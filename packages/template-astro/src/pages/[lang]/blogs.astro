@@ -1,0 +1,823 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import BackToTop from '../../components/BackToTop.astro';
+import BlogPostCard from '../../components/BlogPostCard.astro';
+import { getTranslation } from '../../utils/i18n';
+import { buildLocalizedPath, toContentLocale } from '../../utils/routeLocale';
+import { getPublishedPosts, isLocalMode } from '../../data/localDataSource';
+import { loadSiteSettings } from '../../utils/siteSettings';
+
+export const prerender = true;
+
+export async function getStaticPaths() {
+  return [{ params: { lang: 'zh' } }, { params: { lang: 'en' } }];
+}
+
+const routeLang = Astro.params.lang === 'en' ? 'en' : 'zh';
+const locale = toContentLocale(routeLang);
+const t = (key: string) => getTranslation(locale, key);
+const postRoutePrefix = `/${routeLang}`;
+
+let initialPosts: any[] = [];
+let initialFeaturedPosts: any[] = [];
+let initialFeaturedTotal = 0;
+// Always define for the client script (used in define:vars)
+let initialPostsRequestUrl = '/api/posts?page=1&perPage=20&timeline=desc';
+
+// ── Local data source ──────────────────────────────
+const allPublished = getPublishedPosts();
+const sorted = [...allPublished].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+initialPosts = sorted;
+// Featured = posts with 'featured' or '精选' tag
+const featured = sorted.filter(p => (p.tags || []).some((t: string) => {
+  const nt = String(t).trim().toLowerCase();
+  return nt === 'featured' || nt === '精选';
+}));
+initialFeaturedPosts = featured;
+initialFeaturedTotal = featured.length;
+
+// Local mode: embed all posts for client-side fake pagination
+const allPostsJSON = JSON.stringify(sorted);
+
+const settings = await loadSiteSettings();
+
+const formatMonthName = (iso: string) => {
+  try {
+    return new Date(iso).toLocaleString(locale, { month: 'short' });
+  } catch (e) {
+    return '';
+  }
+};
+
+const buildArchiveGroups = (posts: any[]) => {
+  const sortedPosts = [...posts].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const yearMap = new Map<number, Map<number, { monthName: string; posts: any[] }>>();
+
+  sortedPosts.forEach((post) => {
+    const date = new Date(post.date);
+    const year = date.getFullYear();
+    const monthIndex = date.getMonth();
+    const monthName = formatMonthName(post.date);
+    if (!yearMap.has(year)) yearMap.set(year, new Map());
+    const monthMap = yearMap.get(year)!;
+    if (!monthMap.has(monthIndex)) monthMap.set(monthIndex, { monthName, posts: [] });
+    monthMap.get(monthIndex)!.posts.push(post);
+  });
+
+  return [...yearMap.entries()]
+    .sort(([a], [b]) => b - a)
+    .map(([year, monthMap]) => {
+      const months = [...monthMap.entries()].sort(([a], [b]) => b - a);
+      return { year, months };
+    })
+    ;
+};
+
+const featuredPosts = [...initialFeaturedPosts].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 3);
+const archiveGroups = buildArchiveGroups(initialPosts);
+const hasInitialPosts = initialPosts.length > 0;
+const hasFeaturedPosts = initialFeaturedPosts.length > 0;
+const metaDescription = locale === 'zh-CN'
+  ? '浏览 Chronicle 的全部博客文章、精选内容和归档列表。'
+  : 'Browse Chronicle blog posts, featured content, and the full archive.';
+---
+
+<Layout title={t('nav.posts')} settings={settings} locale={locale} meta={{ description: metaDescription }}>
+  <div class="blog-container">
+    <main class="blog-main">
+      <section class="section-block" id="featured-section" style={`display:${hasFeaturedPosts ? 'block' : 'none'};`}>
+        <div class="section-header">
+          <h2 class="section-title">{t('blog.featured')}</h2>
+          <button
+            class="toggle-btn"
+            id="featured-toggle"
+            style={`display:${initialFeaturedTotal > 3 ? 'inline-block' : 'none'};`}
+            data-expand-text={t('blog.expand')}
+            data-collapse-text={t('blog.collapse')}
+          >
+            {t('blog.expand')}
+          </button>
+        </div>
+        <div class="featured-grid" id="featured-grid">
+          {featuredPosts.map((post) => <BlogPostCard post={post} locale={locale} routeLang={routeLang} featured={true} />)}
+        </div>
+      </section>
+
+      <section class="section-block">
+        <h2 class="section-title">{t('blog.allPosts')}</h2>
+        <div class="archive-list" id="archive-list">
+          {archiveGroups.map(({ year, months }) => (
+            <div class="year-block" data-year={year}>
+              <h3 class="year-header">{year}</h3>
+              {months.map(([monthIndex, monthInfo]) => (
+                <div class="month-row" data-month={monthInfo.monthName} data-month-index={monthIndex}>
+                  <div class="month-label"><span>{monthInfo.monthName}</span></div>
+                  <div class="month-posts">
+                    {monthInfo.posts.map((post) => <BlogPostCard post={post} locale={locale} routeLang={routeLang} />)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+        <div class="loading initial-loading" id="timeline-placeholder" style={`display:${hasInitialPosts ? 'none' : 'flex'};`}>
+          正在加载文章...
+        </div>
+        <div class="empty" id="timeline-empty" style={`display:${hasInitialPosts ? 'none' : 'block'};`}>
+          {t('blog.noPostsStartWriting')}
+        </div>
+      </section>
+    </main>
+  </div>
+  <BackToTop />
+  
+</Layout>
+
+<style>
+  .blog-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px;
+    color: var(--text-primary);
+    box-sizing: border-box;
+    scroll-behavior: smooth;
+  }
+</style>
+
+<style is:global>
+  .section-block {
+    margin-bottom: 60px;
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    border-bottom: 2px solid var(--accent-color);
+    padding-bottom: 10px;
+  }
+
+  .section-title {
+    font-size: 1.8em;
+    margin: 0;
+    color: var(--text-primary);
+    padding-bottom: 0px;
+    border-bottom: none;
+    display: inline-block;
+  }
+
+  .toggle-btn {
+    background: transparent;
+    border: none;
+    color: var(--component-text-secondary);
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: all 0.3s;
+  }
+
+  .toggle-btn:hover {
+    color: var(--component-text-primary-hover);
+    border: none;
+  }
+
+  .featured-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+  }
+
+  .featured-card .post-title {
+    font-size: 1.1em;
+    margin-bottom: 0;
+  }
+
+  .featured-card .tag {
+    font-size: 0.7em;
+  }
+
+  .archive-list {
+    margin-top: 20px;
+  }
+
+  .year-block {
+    margin-bottom: 40px;
+  }
+
+  h3.year-header  {
+    font-size: 3em;
+    font-weight: 800 !important;
+    font-variation-settings: 'wght' 800;
+    color: var(--component-text-secondary);
+    opacity: 0.3;
+    margin-top: 2px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+    line-height: 1;
+  }
+
+  .month-row {
+    display: flex;
+    margin-bottom: 20px;
+  }
+
+  .month-label {
+    width: 60px;
+    flex-shrink: 0;
+    text-align: right;
+    padding-right: 20px;
+    padding-top: 14px;
+    font-weight: medium;
+    font-variation-settings: 'wght' 500;
+    color: var(--accent-color);
+    font-size: 1.1em;
+  }
+
+  html.is-mobile .month-label {
+    width: 38px;
+    padding-right: 12px;
+    padding-top: 10px;
+  }
+
+  .month-posts {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .post-card {
+    padding: 16px;
+    background: var(--component-bg-blur-alt);
+    border: 1px solid var(--border-color-blur);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+
+  .post-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--component-text-primary-highlight);
+  }
+
+  .compact-card {
+    padding: 14px 16px;
+    margin-bottom: 0;
+    border: 1px solid var(--border-color-blur);
+    background: var(--component-bg-blur-alt);
+    border-radius: 8px;
+    transition: all 0.2s;
+  }
+
+  .compact-card:hover {
+    background: var(--component-bg-highlight);
+    border-color: var(--component-text-primary-highlight);
+    transform: none;
+  }
+
+  .post-card-line {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .featured-card-layout {
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .featured-card-date {
+    color: var(--component-text-secondary);
+    font-size: 0.85em;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .post-title {
+    font-size: 1.1em;
+    margin: 0;
+    font-weight: 600;
+    font-variation-settings: 'wght' 600;
+    color: var(--component-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+  }
+
+  html.is-mobile .post-title {
+    width: 0;
+  }
+
+  .post-card-time {
+    font-size: 0.85em;
+    color: var(--component-text-secondary);
+    flex-shrink: 0;
+    white-space: nowrap;
+    min-width: 24px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .compact-card .post-featured-star {
+    display: none;
+    color: var(--featured);
+    font-size: 0.95em;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .compact-card .post-tags {
+    margin-top: 6px;
+    margin-left: 30px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .post-meta {
+    font-size: 0.85em;
+    color: var(--component-text-secondary);
+    margin-bottom: 8px;
+  }
+
+  .post-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: nowrap;
+    overflow-x: hidden;
+  }
+
+  .tag {
+    background: var(--accent-color-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.75em;
+    color: var(--accent-color);
+    display: inline-block;
+    line-height: 1;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  .tag.featured {
+    font-weight: 500;
+    font-variation-settings: 'wght' 500;
+    background: var(--featured-bg);
+    color: var(--featured);
+  }
+
+  .loading,
+  .empty {
+    text-align: center;
+    padding: 60px;
+    color: var(--component-text-secondary);
+  }
+
+  .initial-loading {
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.05em;
+  }
+
+  html.is-mobile .featured-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  html.is-mobile .post-card {
+    padding: 12px 14px;
+    border-radius: 12px;
+  }
+
+  html.is-mobile .featured-card {
+    border-radius: 12px;
+    transition: all 0.3s ease;
+  }
+
+  html.is-mobile .featured-card .post-title,
+  html.is-mobile .compact-card .post-title {
+    font-size: 0.98rem;
+    font-weight: 600;
+  }
+
+  html.is-mobile .featured-card-layout {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  html.is-mobile .featured-card-date {
+    order: 2;
+    font-size: 0.75rem;
+  }
+
+  html.is-mobile .featured-card .post-title,
+  html.is-mobile .compact-card .post-title {
+    order: 1;
+    white-space: nowrap;
+  }
+
+  html.is-mobile .featured-card .post-tags {
+    display: none;
+  }
+
+  html.is-mobile .post-card-line {
+    gap: 10px;
+  }
+
+  html.is-mobile .post-card-line .post-card-time {
+    order: 1;
+    margin-right: 0;
+  }
+
+  html.is-mobile .compact-card .post-featured-star {
+    order: 2;
+    display: inline-flex;
+  }
+
+  html.is-mobile .post-card-line .post-title {
+    order: 3;
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  html.is-mobile .post-card-time {
+    font-size: 0.76rem;
+    min-width: 16px;
+    color: var(--component-text-secondary);
+  }
+
+  html.is-mobile .post-tags {
+    display: none;
+  }
+
+  html.is-mobile .featured-card,
+  html.is-mobile .compact-card {
+    background: var(--component-bg-blur-alt);
+    border-color: var(--border-color-blur);
+  }
+
+  html.is-mobile .featured-card:hover,
+  html.is-mobile .compact-card:hover {
+    transform: none;
+    background: var(--component-bg-hover);
+  }
+</style>
+
+<script type="module" define:vars={{ expandText: t('blog.expand'), collapseText: t('blog.collapse'), daySuffix: t('blog.daySuffix'), featuredLabel: t('tag.featured'), initialPosts, initialPostsRequestUrl, initialFeaturedPosts, initialFeaturedTotal, locale, postRoutePrefix, isLocalMode, allPostsJSON }}>
+  (function () {
+    const getApiUrlClient = (endpoint) => {
+      endpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+      return endpoint;
+    };
+
+    const perPage = 10;
+    let page = initialPosts.length > 0 ? 2 : 1;
+    let loading = false;
+    let done = false;
+    let loadedAny = initialPosts.length > 0;
+    const featuredMap = new Map();
+    let featuredExpanded = false;
+
+    const archive = document.getElementById('archive-list');
+    const placeholder = document.getElementById('timeline-placeholder');
+    const empty = document.getElementById('timeline-empty');
+    const featuredSection = document.getElementById('featured-section');
+    const featuredGrid = document.getElementById('featured-grid');
+    const featuredToggle = document.getElementById('featured-toggle');
+
+    function escapeHtml(str) {
+      return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function normalizeTag(tag) {
+      return String(tag || '')
+        .trim()
+        .replace(/^#+/, '')
+        .toLowerCase();
+    }
+
+    function isFeaturedTag(tag) {
+      const normalized = normalizeTag(tag);
+      return normalized === 'featured' || normalized === '精选';
+    }
+
+    function sortTagsList(tags) {
+      if (!Array.isArray(tags)) return [];
+      return [...tags].sort((a, b) => {
+        if (isFeaturedTag(a) && !isFeaturedTag(b)) return -1;
+        if (!isFeaturedTag(a) && isFeaturedTag(b)) return 1;
+        return String(a).localeCompare(String(b));
+      });
+    }
+
+    function formatMonthNameISO(iso) {
+      try {
+        return new Date(iso).toLocaleString(locale, { month: 'short' });
+      } catch (e) {
+        return '';
+      }
+    }
+
+    function hasFeaturedTag(tags) {
+      return Array.isArray(tags) && tags.some((tag) => isFeaturedTag(String(tag)));
+    }
+
+    function buildFeaturedCardMarkup(post, dateText) {
+      const tags = Array.isArray(post.tags) ? sortTagsList(post.tags) : [];
+      const tagHtml = tags.length
+        ? `<div class="post-tags">${tags.map((tag) => `<span class="tag${isFeaturedTag(tag) ? ' featured' : ''}"># ${isFeaturedTag(tag) ? escapeHtml(featuredLabel) : escapeHtml(tag)}</span>`).join('')}</div>`
+        : '';
+
+      return `
+        <div class="featured-card-layout">
+          <div class="featured-card-date">${escapeHtml(dateText)}</div>
+          <span class="post-title">${escapeHtml(post.title)}</span>
+          ${tagHtml}
+        </div>
+      `;
+    }
+
+    function buildCompactCardMarkup(post, dateText) {
+      const featured = hasFeaturedTag(post.tags);
+      return `
+        <div class="post-card-line">
+          <span class="post-card-time">${escapeHtml(dateText)}</span>
+          ${featured ? '<span class="post-featured-star" aria-hidden="true">★</span>' : ''}
+          <span class="post-title">${escapeHtml(post.title)}</span>
+        </div>
+      `;
+    }
+
+    function logRequestUrl(stage, url) {
+      let resolved = url;
+      try {
+        resolved = getApiUrlClient(url);
+      } catch (e) {
+        // keep raw url when URL constructor cannot parse
+      }
+    }
+
+    logRequestUrl('ssr', initialPostsRequestUrl);
+
+    async function loadFeaturedPosts(loadAll = false) {
+      try {
+        let arr;
+        if (isLocalMode) {
+          const allPosts = JSON.parse(allPostsJSON);
+          const featured = allPosts.filter(p => (p.tags || []).some(t => {
+            const nt = String(t).trim().toLowerCase();
+            return nt === 'featured' || nt === '精选';
+          }));
+          arr = loadAll ? featured : featured.slice(0, 3);
+        } else {
+          const url = loadAll
+            ? `/api/posts?featured=true&timeline=desc&_ts=${Date.now()}`
+            : `/api/posts?featured=true&timeline=desc&page=1&perPage=3&_ts=${Date.now()}`;
+          logRequestUrl('featured', url);
+          const res = await fetch(getApiUrlClient(url), { cache: 'no-store' });
+          if (!res.ok) return;
+          const data = await res.json();
+          const unwrapped = (data && data.data) ?? data;
+          arr = Array.isArray(unwrapped) ? unwrapped : unwrapped.posts || [];
+        }
+        arr.forEach((post) => featuredMap.set(post.id, post));
+        renderFeatured();
+      } catch (e) {
+        console.error('[blogs] Error loading featured posts:', e);
+      }
+    }
+
+    if (!window.__chronicleBlogsFeaturedToggleBound) {
+      window.__chronicleBlogsFeaturedToggleBound = true;
+      document.addEventListener('click', async (event) => {
+        if (!(event.target instanceof Element)) return;
+        const btn = event.target.closest('#featured-toggle');
+        if (!btn) return;
+
+        const expanded = btn.dataset.expanded === 'true';
+        const next = !expanded;
+        const expandLabel = btn.dataset.expandText || expandText;
+        const collapseLabel = btn.dataset.collapseText || collapseText;
+        btn.dataset.expanded = next ? 'true' : 'false';
+        btn.textContent = next ? collapseLabel : expandLabel;
+        featuredExpanded = next;
+
+        if (next) {
+          await loadFeaturedPosts(true);
+        } else {
+          renderFeatured();
+        }
+      });
+    }
+
+    function ensureYearMonthContainer(year, monthName, monthIndex = null) {
+      if (!archive) return null;
+      let yearBlock = archive.querySelector(`.year-block[data-year="${year}"]`);
+      if (!yearBlock) {
+        yearBlock = document.createElement('div');
+        yearBlock.className = 'year-block';
+        yearBlock.setAttribute('data-year', String(year));
+        const yHeader = document.createElement('h3');
+        yHeader.className = 'year-header';
+        yHeader.textContent = String(year);
+        yearBlock.appendChild(yHeader);
+        const existing = Array.from(archive.querySelectorAll('.year-block'));
+        let inserted = false;
+        for (const eb of existing) {
+          const ey = parseInt(eb.getAttribute('data-year') || '0', 10);
+          if (ey < year) {
+            archive.insertBefore(yearBlock, eb);
+            inserted = true;
+            break;
+          }
+        }
+        if (!inserted) archive.appendChild(yearBlock);
+      }
+      let monthRow = Array.from(yearBlock.querySelectorAll('.month-row')).find(
+        (m) => m.getAttribute('data-month') === monthName,
+      );
+      if (!monthRow) {
+        monthRow = document.createElement('div');
+        monthRow.className = 'month-row';
+        monthRow.setAttribute('data-month', monthName);
+        if (monthIndex !== null) monthRow.setAttribute('data-month-index', String(monthIndex));
+        const label = document.createElement('div');
+        label.className = 'month-label';
+        const span = document.createElement('span');
+        span.textContent = monthName;
+        label.appendChild(span);
+        const postsDiv = document.createElement('div');
+        postsDiv.className = 'month-posts';
+        monthRow.appendChild(label);
+        monthRow.appendChild(postsDiv);
+        const siblings = Array.from(yearBlock.querySelectorAll('.month-row'));
+        let insertedM = false;
+        for (const s of siblings) {
+          const si = s.getAttribute('data-month-index');
+          if (si !== null && monthIndex !== null) {
+            const sidx = parseInt(si, 10);
+            if (sidx < monthIndex) {
+              yearBlock.insertBefore(monthRow, s);
+              insertedM = true;
+              break;
+            }
+          }
+        }
+        if (!insertedM) yearBlock.appendChild(monthRow);
+      }
+      return monthRow.querySelector('.month-posts');
+    }
+
+    function appendPosts(arr) {
+      arr.forEach((post) => {
+        const d = new Date(post.date);
+        const year = d.getFullYear();
+        const monthName = formatMonthNameISO(post.date);
+        const monthIndex = d.getMonth();
+        const container = ensureYearMonthContainer(year, monthName, monthIndex);
+        if (!container) return;
+
+        const a = document.createElement('a');
+        a.href = `${postRoutePrefix}/post/${post.id}`;
+        a.style.textDecoration = 'none';
+        a.style.color = 'inherit';
+        a.setAttribute('data-post-date', post.date);
+        const article = document.createElement('article');
+        article.className = 'post-card compact-card';
+        article.innerHTML = buildCompactCardMarkup(post, String(d.getDate()));
+        if (post.tags && post.tags.length) {
+          const tagsDiv = document.createElement('div');
+          tagsDiv.className = 'post-tags';
+          sortTagsList(post.tags).forEach((tag) => {
+            const s = document.createElement('span');
+            s.className = 'tag' + (isFeaturedTag(tag) ? ' featured' : '');
+            s.textContent = '# ' + (isFeaturedTag(tag) ? featuredLabel : tag);
+            tagsDiv.appendChild(s);
+          });
+          article.appendChild(tagsDiv);
+        }
+        a.appendChild(article);
+
+        const newTs = d.getTime();
+        let inserted = false;
+        const siblings = Array.from(container.querySelectorAll('a'));
+        for (const s of siblings) {
+          const existingDate = s.getAttribute('data-post-date');
+          const existingTs = existingDate ? new Date(existingDate).getTime() : 0;
+          if (existingTs < newTs) {
+            container.insertBefore(a, s);
+            inserted = true;
+            break;
+          }
+        }
+        if (!inserted) container.appendChild(a);
+      });
+    }
+
+    function renderFeatured() {
+      const featuredSectionEl = document.getElementById('featured-section');
+      const featuredGridEl = document.getElementById('featured-grid');
+      const featuredToggleEl = document.getElementById('featured-toggle');
+      if (!featuredSectionEl || !featuredGridEl || !featuredToggleEl) return;
+      const featured = Array.from(featuredMap.values()).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      if (!featured.length) {
+        featuredSectionEl.style.display = 'none';
+        return;
+      }
+      featuredSectionEl.style.display = 'block';
+      const displayLimit = featuredExpanded ? featured.length : 3;
+      const shouldShowToggle = initialFeaturedTotal > 3;
+
+      featuredGridEl.innerHTML = featured.slice(0, displayLimit).map((post) => {
+        const dateText = new Date(post.date).toLocaleDateString(locale);
+        return `<a href="${postRoutePrefix}/post/${encodeURIComponent(post.id)}" style="text-decoration:none; color:inherit;" class="featured-card">
+          <article class="post-card featured-card">
+            ${buildFeaturedCardMarkup(post, dateText)}
+          </article>
+        </a>`;
+      }).join('');
+
+      featuredToggleEl.style.display = shouldShowToggle ? 'inline-block' : 'none';
+      featuredToggleEl.dataset.expanded = featuredExpanded ? 'true' : 'false';
+      featuredToggleEl.textContent = featuredExpanded ? (featuredToggleEl.dataset.collapseText || collapseText) : (featuredToggleEl.dataset.expandText || expandText);
+    }
+
+    async function loadNext() {
+      if (loading || done) return;
+      loading = true;
+      page += 1;
+      try {
+        let arr;
+        if (isLocalMode) {
+          const allPosts = JSON.parse(allPostsJSON);
+          const start = (page - 1) * perPage;
+          arr = allPosts.slice(start, start + perPage);
+        } else {
+          const url = `/api/posts?page=${page}&perPage=${perPage}&timeline=desc&_ts=${Date.now()}`;
+          logRequestUrl('csr', url);
+          const res = await fetch(getApiUrlClient(url), { cache: 'no-store' });
+          if (!res.ok) { done = true; return; }
+          const data = await res.json();
+          const unwrapped = (data && data.data) ?? data;
+          arr = Array.isArray(unwrapped) ? unwrapped : unwrapped.posts || [];
+        }
+        if (page === 2 && placeholder) placeholder.style.display = 'none';
+        if (!arr.length) {
+          done = true;
+          if (!loadedAny && empty) empty.style.display = 'block';
+          return;
+        }
+        loadedAny = true;
+        if (empty) empty.style.display = 'none';
+        appendPosts(arr);
+        if (arr.length < perPage) done = true;
+      } catch (e) {
+        console.error('[blogs] Error loading posts:', e);
+        done = true;
+        if (page === 2 && placeholder) placeholder.style.display = 'none';
+        if (!loadedAny && empty) empty.style.display = 'block';
+      } finally {
+        loading = false;
+      }
+    }
+
+    const sentinel = document.createElement('div');
+    sentinel.id = 'infinite-sentinel';
+    if (archive) archive.appendChild(sentinel);
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((ent) => {
+          if (ent.isIntersecting) loadNext();
+        });
+      },
+      {
+        root: document.querySelector('.main-content') || null,
+        rootMargin: '200px',
+      },
+    );
+    io.observe(sentinel);
+
+    if (initialFeaturedPosts.length > 0) {
+      initialFeaturedPosts.forEach((post) => featuredMap.set(post.id, post));
+      if (featuredSection) featuredSection.style.display = 'block';
+      if (featuredToggle && initialFeaturedTotal > 3) {
+        featuredToggle.style.display = 'inline-block';
+      }
+      renderFeatured();
+    }
+  })();
+</script>

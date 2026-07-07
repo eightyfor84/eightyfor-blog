@@ -1,0 +1,107 @@
+---
+// FilePreviewModal.astro — drops-in for the deleted FilePreviewModal.vue.
+// All preview styles come from chronicle-markdown.css (bundled once, shared).
+import '@chronicle/shared/src/styles/chronicle-markdown.css';
+---
+
+<div id="file-preview-root" data-state="idle" style="display:none" aria-hidden="true">
+  <!-- ═══ File / Audio / Video / Text / PDF mode ═══ -->
+  <div class="file-preview-overlay">
+    <div class="file-preview-container">
+      <header class="file-preview-header">
+        <h3 class="file-preview-title"></h3>
+        <div class="preview-header-actions">
+          <select class="encoding-select" style="display:none" aria-label="Text encoding">
+            <option value="utf-8">UTF-8</option>
+            <option value="gbk">GBK</option>
+            <option value="iso-8859-1">ISO-8859-1</option>
+            <option value="windows-1252">Windows-1252</option>
+          </select>
+          <a class="preview-action-btn" download target="_blank" rel="noopener" title="Download">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </a>
+          <button class="preview-action-btn" title="Close">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </header>
+      <main class="file-preview-body"></main>
+    </div>
+  </div>
+
+  <!-- ═══ Image mode ═══ -->
+  <div class="image-preview-overlay" style="display:none">
+    <div class="preview-header-actions" style="position:fixed;top:30px;right:30px;z-index:20002">
+      <a class="preview-action-btn" download target="_blank" rel="noopener" title="Download">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </a>
+      <button class="preview-action-btn" title="Close">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="image-preview-container">
+      <img class="image-preview-content" draggable="false" />
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── Bootstrap: lazy-load rendering on first use ──────────
+  let _fpOpen: Function | null = null;
+  let _fpLoading = false;
+
+  async function _fpEnsure() {
+    if (_fpOpen) return;
+    if (_fpLoading) return;
+    _fpLoading = true;
+    const mod = await import('../utils/filePreviewCore');
+    _fpOpen = mod.open;
+    // expose globally for programmatic use
+    (window as any).__openFilePreview = _fpOpen;
+    (window as any).__closeFilePreview = mod.close;
+  }
+
+  // Reset event bindings after soft navigation (only if already loaded)
+  document.addEventListener('astro:before-swap', () => {
+    if (_fpOpen) import('../utils/filePreviewCore').then(m => m.resetBindings()).catch(() => {});
+  });
+
+  // Pre-warm on first user interaction
+  const _fpPreWarm = () => {
+    _fpEnsure();
+    ['mouseover','touchstart','keydown'].forEach(ev =>
+      document.removeEventListener(ev, _fpPreWarm, { capture: true }));
+  };
+  ['mouseover','touchstart','keydown'].forEach(ev =>
+    document.addEventListener(ev, _fpPreWarm, { capture: true, once: true }));
+
+  // Global API (available before module loads — queues the call)
+  (window as any).__openFilePreview = (opts: any) => {
+    _fpEnsure().then(() => _fpOpen!(opts));
+  };
+  (window as any).__closeFilePreview = () => {
+    (window as any).__closeFilePreview = () => {}; // noop until loaded
+  };
+
+  // File-card click delegation (always active, lightweight)
+  document.addEventListener('click', (e: Event) => {
+    const el = (e.target as HTMLElement).closest?.('.file-card') as HTMLElement | null;
+    if (!el || el.tagName === 'A') return;
+    e.preventDefault();
+    const url = el.getAttribute('data-url') || (el as any).dataset?.url || '';
+    const name = el.getAttribute('data-name') || (el as any).dataset?.name || '';
+    const hinted = el.getAttribute('data-type') || (el as any).dataset?.type || '';
+    if (/^https?:\/\//i.test(url)) { window.open(url, '_blank', 'noopener'); return; }
+    if (/^mailto:/i.test(url)) { window.location.href = url; return; }
+    _fpEnsure().then(() => _fpOpen!({ url, title: name, type: hinted }));
+  });
+
+  // Image click delegation (.md-image in post content)
+  document.addEventListener('click', (e: Event) => {
+    const img = (e.target as HTMLElement).closest?.('img.md-image') as HTMLImageElement | null;
+    if (!img) return;
+    e.preventDefault();
+    e.stopPropagation();
+    _fpEnsure().then(() => _fpOpen!({ url: img.src, title: img.alt || '', type: 'image' }));
+  }, { capture: true });
+</script>

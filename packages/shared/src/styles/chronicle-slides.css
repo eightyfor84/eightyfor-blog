@@ -1,0 +1,152 @@
+/* ═══════════════════════════════════════════════════════
+   Chronicle Slides — Base Styles (Chronicle default theme)
+   ═══════════════════════════════════════════════════════ */
+
+
+
+.chronicle-slideshow {
+  --slide-ratio: 1.777; /* 16:9 default */
+  --slide-bg: var(--bg-primary, #fff);
+  --slide-fg: var(--text-primary, #111);
+  --slide-accent: var(--accent-color, #2563eb);
+}
+
+/* ── Container ─────────────────────────────────── */
+.slides-container {
+  position: fixed;
+  inset: 0;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  overflow: hidden;
+}
+
+html.focus .slides-container {
+  background: #000;
+}
+
+.slides-viewport {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Base pane ── */
+.marp-slides-wrap {
+  position: absolute; inset: 0;
+  overflow: hidden;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Browse: absolute size, both scroll directions ── */
+.marp-slides-browse {
+  overflow: auto;
+}
+.marp-slides-browse .marp-slides {
+  --slide-zoom: 1;
+  width: fit-content;
+  margin: 0 auto;
+}
+.marp-slides-browse .marpit {
+  zoom: var(--slide-zoom);
+}
+
+/* ── Present: contain, single slide fills viewport ── */
+.marp-slides-present .marp-slides {
+  position: absolute; inset: 0;
+}
+
+.marp-slides-present .marpit {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+.marp-slides-present svg[data-marpit-svg] {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto !important;
+  height: auto !important;
+}
+
+.slide-canvas {
+  position: relative;
+  width: 100%;
+  max-width: min(96vw, calc(96vh * var(--slide-ratio)));
+  aspect-ratio: var(--slide-ratio);
+  background: var(--slide-bg);
+  color: var(--slide-fg);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0,0,0,.3);
+}
+
+.slide-canvas[data-ratio="16:9"]  { --slide-ratio: 1.778; }
+.slide-canvas[data-ratio="4:3"]  { --slide-ratio: 1.333; }
+.slide-canvas[data-ratio="21:9"] { --slide-ratio: 2.333; }
+.slide-canvas[data-ratio="2:1"]  { --slide-ratio: 2; }
+
+.slide-content {
+  font-family: var(--app-font-stack);
+  position: absolute;
+  inset: 0;
+  padding: clamp(24px, 5%, 64px) clamp(32px, 6%, 80px);
+  overflow-y: auto;
+  font-size: clamp(16px, 2vw, 24px);
+  line-height: 1.6;
+}
+
+.slide-content h1 { font-size: 2em; margin-bottom: .3em; }
+.slide-content h2 { font-size: 1.5em; margin-bottom: .25em; }
+.slide-content h3 { font-size: 1.2em; margin-bottom: .2em; }
+.slide-content p  { margin-bottom: .5em; }
+.slide-content ul, .slide-content ol { padding-left: 1.5em; margin-bottom: .5em; }
+.slide-content li { margin-bottom: .3em; }
+.slide-content pre { font-size: .75em; margin: .5em 0; }
+.slide-content code { font-size: .85em; }
+.slide-content img { max-width: 100%; max-height: 60vh; }
+.slide-content blockquote { border-left: 3px solid var(--slide-accent); padding-left: 1em; margin: .5em 0; opacity: .85; }
+
+/* ── Controls bar (layout) ───────────────────── */
+.slides-controls {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  z-index: 10;
+}
+
+.slide-view-spacer { flex: 1; }
+
+/* ── Speaker notes ─────────────────────────────── */
+.speaker-notes {
+  padding: 8px 16px;
+  background: rgba(0,0,0,.5);
+  color: #aaa;
+  font-size: 13px;
+  max-height: 60px;
+  overflow-y: auto;
+  border-top: 1px solid rgba(255,255,255,.1);
+}
+
+.speaker-notes-toggle {
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+/* ── Dark mode ─────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  .slide-canvas { --slide-bg: #1a1a2e; --slide-fg: #e5e7eb; }
+}

@@ -1,0 +1,204 @@
+---
+import type { TocItem } from '../utils/toc';
+interface LinkItem { href: string; label: string }
+
+interface Props {
+  id: string;
+  template?: 'btt' | 'toc-list' | 'link-list' | 'menu';
+  side?: 'left' | 'right';
+  variant?: 'default' | 'primary';
+  capsule?: boolean;
+  capsuleWidth?: number;
+  closeOnBackdrop?: boolean;
+  items?: TocItem[];
+  links?: LinkItem[];
+  activeHref?: string;
+}
+const {
+  id, template = 'btt', side = 'right', variant = 'default',
+  capsule = false, capsuleWidth = 50,
+  closeOnBackdrop = true, items = [], links = [], activeHref = '',
+} = Astro.props as Props;
+
+const sideClass = side === 'left' ? 'cb--left' : 'cb--right';
+const isPrimary = variant === 'primary';
+const isBtt = template === 'btt';
+const isTocList = template === 'toc-list';
+const isLinkList = template === 'link-list';
+const isMenu = template === 'menu';
+---
+
+<div data-cb-root={id} class={`cb ${sideClass}`} data-cb-template={template} data-cb-close={String(closeOnBackdrop)}>
+  <div class="cb__backdrop" hidden></div>
+  <div class:list={['cb__btn', { 'cb--primary': isPrimary }, { 'cb--btt': isBtt }, { 'is-capsule': capsule }]} style={capsule ? `width:${capsuleWidth}px` : ''}>
+    <div class="cb__icons">
+      {isBtt && (
+        <button class="cb__slot" data-action="scrollToTop" title="回到顶部" aria-label="回到顶部">
+          <svg class="cb__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+        </button>
+      )}
+      {isTocList && (
+        <button class="cb__slot" data-menu="toc-list" title="目录" aria-label="目录">
+          <svg class="cb__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      )}
+      {isLinkList && (
+        <button class="cb__slot" data-menu="link-list" title="菜单" aria-label="菜单">
+          <svg class="cb__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      )}
+      {isMenu && (<slot name="buttons" />)}
+    </div>
+    <div class="cb__content" hidden>
+      {isTocList && items.length > 0 && (
+        <ul data-menu="toc-list" class="cb__list" hidden>
+          {items.map((item: TocItem) => (
+            <li class:list={['cb__list-item', `cb__list-item--l${item.level}`]} data-toc-id={item.id}>
+              <a href={`#${item.id}`} class="cb__list-link" data-toc-id={item.id}><span class="cb__list-text">{item.text}</span></a>
+            </li>
+          ))}
+        </ul>
+      )}
+      {isLinkList && links.length > 0 && (
+        <ul data-menu="link-list" class="cb__list" hidden>
+          {links.map((l: LinkItem) => (
+            <li class:list={['cb__list-item', { 'cb--active': l.href === activeHref }]}>
+              <a href={l.href} class="cb__list-link"><span class="cb__list-text">{l.label}</span></a>
+            </li>
+          ))}
+        </ul>
+      )}
+      {isMenu && (<slot />)}
+    </div>
+  </div>
+</div>
+
+<script>
+  // Bootstrap: idle-load CornerButton logic after first paint.
+  let _cbMod: typeof import('../utils/cornerButtonCore') | null = null;
+
+  async function _cbEnsure() {
+    if (_cbMod) return _cbMod;
+    _cbMod = await import('../utils/cornerButtonCore');
+    _cbMod.initCornerButton(); // sets up listeners (once)
+    _cbMod.init();             // initial scan
+    return _cbMod;
+  }
+
+  if (typeof requestIdleCallback !== 'undefined') {
+    requestIdleCallback(() => _cbEnsure());
+  } else {
+    setTimeout(() => _cbEnsure(), 2000);
+  }
+
+  document.addEventListener('astro:page-load', async () => {
+    const mod = await _cbEnsure();
+    mod.init(); // re-scan DOM on every page load
+  });
+</script>
+
+<style is:global>
+  .cb__backdrop { position:fixed;inset:0;z-index:1399;background:transparent;pointer-events:auto }
+  .cb__backdrop[hidden] { display:none }
+
+  /* === Shell (collapsed) === */
+  .cb__btn {
+    position:fixed;bottom:30px;width:50px;min-height:50px;border-radius:50px;
+    background:var(--component-bg-blur-alt);border:1px solid var(--border-color-blur);
+    color:var(--component-text-primary);box-shadow:var(--shadow-elev-2);
+    backdrop-filter:blur(5px);
+    z-index:300;cursor:pointer;overflow:hidden;display:block;max-height:50px;
+    will-change:transform;contain:layout style;
+    transition:left calc(700ms * var(--transition-duration)) cubic-bezier(0.22,0.9,0.36,1),
+               bottom calc(600ms * var(--transition-duration)) cubic-bezier(0.22,0.9,0.36,1),
+               width calc(300ms * var(--transition-duration)) cubic-bezier(0.12,0.9,0.24,1),
+               height calc(200ms * var(--transition-duration)) cubic-bezier(0.22,0.9,0.36,1),
+               max-height calc(200ms * var(--transition-duration)) cubic-bezier(0.22,0.9,0.36,1),
+               border-radius calc(300ms * var(--transition-duration)) cubic-bezier(0.1,0.2,0.36,1),
+               background calc(360ms * var(--transition-duration)) cubic-bezier(0.22,0.9,0.36,1),
+               border-color calc(700ms * var(--transition-duration)) cubic-bezier(0.22,0.9,0.36,1),
+               transform 0.15s ease-out;
+  }
+  .cb--left .cb__btn  { left:30px;right:auto }
+  .cb--right .cb__btn { right:30px;left:auto }
+
+  .cb__btn.cb--primary { background:var(--component-bg-accent-ghost);border-color:var(--component-bg-accent-ghost);color:var(--component-text-accent-ghost) }
+
+  /* Hover — desktop */
+  html:not(.is-mobile) .cb__btn:not(.cb--open):hover { transform:scale(1.1) }
+  html:not(.is-mobile) .cb__btn.cb--primary:not(.cb--open):hover { background:var(--component-bg-accent-hover);border-color:var(--component-bg-accent-hover);color:var(--component-text-accent-hover) }
+  
+  html:not(.is-mobile) .cb__btn.cb__btn.is-capsule:not(.cb--open):hover { transform:scale(1.1) }
+
+  
+  /* Active — mobile */
+  html.is-mobile .cb__btn:not(.cb--open):active { transform:scale(1.3);filter:brightness(1.5) }
+  html.is-mobile .cb__btn.cb--primary:not(.cb--open):active { border-color:color-mix(in srgb,var(--component-bg-accent-ghost) 80%,#fff6);background:color-mix(in srgb,var(--component-bg-accent-ghost) 80%,#fff6) }
+
+  html.is-mobile .cb__btn.is-capsule:not(.cb--open):active { transform:scale(1.15);filter:brightness(1.2) }
+  
+  /* === Open state === */
+  .cb__btn.cb--open {
+    left:30px!important;right:30px!important;bottom:90px;
+    width:calc(100vw - 60px)!important;max-height:60vh;border-radius:12px;
+    background:var(--component-bg-blur);border-color:var(--border-color);
+    color:var(--component-text-primary);box-shadow:var(--shadow-elev-3);
+    z-index:1400!important;cursor:default;overflow:auto;
+    transition:left calc(700ms * var(--transition-duration)) cubic-bezier(0.22,0.9,0.36,1),
+               bottom calc(600ms * var(--transition-duration)) cubic-bezier(0.22,0.9,0.36,1),
+               width calc(360ms * var(--transition-duration)) cubic-bezier(0.22,0.3,0.36,1),
+               height calc(500ms * var(--transition-duration)) cubic-bezier(0.22,0.9,0.36,1),
+               max-height calc(500ms * var(--transition-duration)) cubic-bezier(0.22,0.9,0.36,1),
+               border-radius calc(360ms * var(--transition-duration)) cubic-bezier(0.1,0.9,0.36,1),
+               background calc(360ms * var(--transition-duration)) cubic-bezier(0.22,0.9,0.36,1),
+               border-color calc(700ms * var(--transition-duration)) cubic-bezier(0.22,0.9,0.36,1),
+               transform 0.15s ease-out;
+  }
+  .cb__btn.cb--open:hover,.cb__btn.cb--open:active { transform:none!important;filter:none!important;background:var(--component-bg-blur);border-color:var(--border-color);color:var(--component-text-primary) }
+
+  /* === BTT visibility === */
+  .cb__btn.cb--btt { opacity:0;pointer-events:none;transform:translateY(20px);transition:opacity .15s ease-out,transform .15s ease-out }
+  .cb__btn.cb--btt.cb--btt-visible { opacity:1;pointer-events:auto;transform:none }
+
+  /* === Layers === */
+  /* Layer 1 — icon face: absolute for single icon, in-flow for multi (capsule) */
+  .cb__icons { position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:1;pointer-events:auto;transition:opacity calc(200ms * var(--transition-duration)) ease;z-index:1 }
+  /* Capsule: icons remain absolute, width via SSR inline style */
+  .cb__btn.is-capsule .cb__icons { flex-direction:row }
+  .cb__btn.cb--open .cb__icons { opacity:0;pointer-events:none }
+  /* Layer 0 — content face: relative, fades in slow on open, fades out fast on close */
+  .cb__content { position:relative;opacity:0;pointer-events:none;transition:opacity calc(120ms * var(--transition-duration)) ease;padding:8px;z-index:0 }
+  .cb__content [hidden] { display:none !important }
+  .cb__btn.cb--open .cb__content { opacity:1;pointer-events:auto;transition:opacity calc(600ms * var(--transition-duration)) ease }
+
+  /* === Slots === */
+  .cb__slot { width:50px;height:50px;display:flex;align-items:center;justify-content:center;background:none;border:none;color:inherit;cursor:pointer;padding:0;line-height:0 }
+  .cb__icon { width:24px;height:24px;display:block }
+  a.cb__slot { text-decoration:none;color:inherit }
+
+  /* Capsule hover/active */
+  html.is-mobile .cb__icons:has(>:nth-child(2)) .cb__btn:not(.cb--open):active{ transform:scale(1.15) }
+  html:not(.is-mobile) .cb__icons:has(>:nth-child(2)) .cb__btn:not(.cb--open):hover{ transform:scale(1.1) }
+
+  /* === List template === */
+  .cb__list { list-style:none;margin:0;padding:0; overflow-x:hidden; gap: 4px; display:flex;flex-direction:column;overflow-y:auto }
+  .cb__list-item { padding:6px 4px;border-radius:6px; transition:background 0.15s,color 0.15s;cursor:pointer;display:flex;align-items:center }
+  .cb__list-item a { width:100%;display:block }
+  .cb__list-item.cb--active { background:var(--component-bg-hover) }
+  .cb__list-item.cb--active .cb__list-text { color:var(--component-text-primary);font-weight:500 }
+  .cb__list-link { color:inherit;text-decoration:none;display:block;padding:6px 4px;margin:-6px -4px }
+  .cb__list-text { text-align:left;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--component-text-primary);padding:0 .5rem }
+  .cb__list-item:hover { background:var(--component-bg-hover);color:var(--component-text-primary-hover) }
+  .cb__list-item:hover .cb__list-text{ color:var(--component-text-primary-hover) }
+  .cb__list-item--l1 a{padding-left:1px}.cb__list-item--l2 a{padding-left:16px}.cb__list-item--l3 a{padding-left:30px}.cb__list-item--l4 a{padding-left:44px}.cb__list-item--l5 a{padding-left:58px}.cb__list-item--l6 a{padding-left:72px}
+
+  /* Scrollbar */
+  .cb__list::-webkit-scrollbar { background:transparent;width:3px;height:3px }
+  .cb__list::-webkit-scrollbar-track { background:inherit;width:5px;height:5px }
+
+  /* === Menu helpers === */
+  .cb__divider { width:1px;height:24px;background:transparent;align-self:center;flex-shrink:0 }
+  .cb__menu-group { margin-bottom:12px }
+  .cb__menu-title { font-weight:600;font-size:.85em;color:var(--component-text-secondary);padding:4px 8px }
+
+</style>

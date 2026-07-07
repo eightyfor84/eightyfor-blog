@@ -1,0 +1,23 @@
+{
+  "backendLocale": "en",
+  "backendFont": "sans",
+  "backendAccent": "#30a32e",
+  "backendTheme": "follow",
+  "backendBackground": "/data/assets/Kaltsit.jpg",
+  "backendBackgroundMeta": {
+    "url": "/data/assets/Kaltsit.jpg",
+    "sourcePath": "data/assets/Kaltsit.jpg",
+    "sourceName": "Kaltsit.jpg",
+    "mode": "cover",
+    "posX": 50,
+    "posY": 50,
+    "size": 100,
+    "blur": 21,
+    "overlayLightColor": "#ffffff",
+    "overlayLightOpacity": 62,
+    "overlayDarkColor": "#000000",
+    "overlayDarkOpacity": 65,
+    "overlayColor": "#000000",
+    "overlayOpacity": 65
+  }
+}

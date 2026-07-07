@@ -1,0 +1,508 @@
+---
+// Collection navigation panel — dual-mode: desktop sidebar + mobile inline.
+// variant="sidebar" (default): fixed sidebar with collapse. variant="inline": plain panel for CornerButton.
+interface Props {
+  postId?: string;
+  mountToBody?: boolean;
+  collections?: any[];
+  postTitles?: Record<string, string>;
+  postTypes?: Record<string, string>;
+  variant?: "sidebar" | "inline";
+}
+const {
+  postId = "",
+  mountToBody = true,
+  collections = [],
+  postTitles = {},
+  postTypes = {},
+  variant = "sidebar",
+} = Astro.props as Props;
+
+function esc(s: string) {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+function has(n: any[] | undefined, pid: string): boolean {
+  if (!Array.isArray(n)) return false;
+  for (const x of n) {
+    if (x?.type === "post" && String(x.id) === pid) return true;
+    if (x?.children && has(x.children, pid)) return true;
+  }
+  return false;
+}
+function find(cols: any[], pid: string): any[] {
+  return cols.filter((c: any) => has(c.nodes, pid));
+}
+function iconFor(pid: string): string {
+  const st = postTypes[pid] || 'article';
+  if (st === 'slides') {
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M 2 12 L 2 22 L 14 22 L 14 12 Z"></path><path d="M 6 10 L 6 8 L 18 8 L 18 18 L 16 18"></path><path d="M 10 6 L 10 4 L 22 4 L 22 14 L 20 14"></path></svg>';
+  }
+  return '<svg viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 2v6h6" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/></svg>';
+}
+function tree(n: any[] | undefined, p: string, active: string): string {
+  if (!Array.isArray(n) || !n.length) return "";
+  return (
+    "<ul>" +
+    n
+      .map((x, i) => {
+        const np = p + "-" + i;
+        if (x.type === "post") {
+          const id = String(x.id || ""),
+            t = esc(postTitles[id] || id),
+            ac = active && id === active ? " active" : "";
+          return (
+            '<li><div class="ct-card post' +
+            ac +
+            '" tabindex="0" role="link" data-pid="' +
+            esc(id) +
+            '"' +
+            (ac ? ' aria-current="true"' : "") +
+            '><span class="ct-icon">' + iconFor(id) + '</span><span class="ct-title">' +
+            t +
+            "</span></div></li>"
+          );
+        }
+        const gt = esc(String(x.title || x.name || "Group")),
+          ch = tree(x.children, np, active),
+          ex = !!(active && has(x.children, active));
+        return (
+          '<li><div class="ct-card group' +
+          (ex ? " active" : "") +
+          '" tabindex="0" role="button" data-gk="' +
+          esc(np) +
+          '"><span class="ct-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="ct-title">' +
+          gt +
+          '</span><span class="ct-caret' +
+          (ex ? " ex" : "") +
+          '" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span></div><div class="ct-children"' +
+          (ex ? "" : " hidden") +
+          ">" +
+          ch +
+          "</div></li>"
+        );
+      })
+      .join("") +
+    "</ul>"
+  );
+}
+
+const matched = postId ? find(collections, postId) : [];
+const activeCol =
+  matched.length > 0
+    ? matched[0]
+    : collections.length > 0
+      ? collections[0]
+      : null;
+const treeHtml = activeCol ? tree(activeCol.nodes, "r", postId) : "";
+const navTitle = activeCol ? String(activeCol.name || "") : "";
+const hasMultiple = matched.length > 1;
+const isSidebar = variant === "sidebar";
+const rootId = isSidebar ? "collection-nav-root" : "collection-nav-inline";
+---
+
+<div
+  id={rootId}
+  class="cn-panel collapsed"
+  data-cn-variant={variant}
+  data-mount-to-body={isSidebar ? String(mountToBody) : "false"}
+  data-post-id={postId}
+>
+  <div class="cn-header">
+    <div class="cn-header-title">
+      <span class="cn-header-icon"
+        ><svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          ><path d="M 12 2 L 21 8 L 12 14 L 3 8 Z"></path><path
+            d="M 18 14 L 21 16 L 12 22 L 3 16 L 6 14"></path></svg
+        ></span
+      >
+      {
+        hasMultiple ? (
+          <select class="cn-switcher">
+            {matched.map((c: any, i: number) => (
+              <option value={String(i)} data-name={c.name}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <span class="cn-header-text">{navTitle}</span>
+        )
+      }
+    </div>
+  </div>
+  <div class="cn-body">
+    {
+      treeHtml ? (
+        <div class="cn-tree" set:html={treeHtml} />
+      ) : (
+        <div class="cn-empty">No posts in this collection</div>
+      )
+    }
+  </div>
+</div>
+
+<script>
+  (() => {
+    const _roots=new Set<HTMLElement>();
+    function setup() {
+      _roots.clear();
+      document.querySelectorAll(".cn-panel[data-cn-variant]").forEach((r) => {
+        if (!(r instanceof HTMLElement)) return;
+        if(_roots.has(r))return;_roots.add(r);
+        if (
+          r.dataset.mountToBody === "true" &&
+          r.parentElement !== document.body
+        )
+          document.body.appendChild(r);
+        if (r.dataset.cnVariant === "sidebar") {
+          const NAV = 260;
+          let pushed = false,
+            opl: string | null = null;
+          function P() {
+            const w = window.innerWidth;
+            const ct = document.querySelector(".post-detail-container") as HTMLElement;
+            if (w >= 1200) {
+              r.classList.remove("collapsed");
+              r.classList.add("expanded");
+              if (ct && !pushed) {
+                opl = ct.style.paddingLeft || "";
+                ct.style.paddingLeft = NAV + 20 + "px";
+                pushed = true;
+              }
+            } else {
+              r.classList.add("collapsed");
+              r.classList.remove("expanded");
+              if (ct && pushed) {
+                ct.style.paddingLeft = opl || "";
+                pushed = false;
+                opl = null;
+              }
+            }
+          }
+          let ct2: number | undefined;
+          r.addEventListener("pointerenter", () => {
+            if (ct2) {
+              clearTimeout(ct2);
+              ct2 = undefined;
+            }
+            r.classList.remove("collapsed");
+            r.classList.add("expanded");
+          });
+          r.addEventListener("pointerleave", () => {
+            if (window.innerWidth < 1200)
+              ct2 = window.setTimeout(() => {
+                r.classList.add("collapsed");
+                r.classList.remove("expanded");
+              }, 700);
+          });
+          window.addEventListener("resize", P);
+          P();
+          document.addEventListener(
+            "astro:before-swap",
+            () => {
+              window.removeEventListener("resize", P);
+              if (ct2) clearTimeout(ct2);
+              if (r.parentElement) r.parentElement.removeChild(r);
+            },
+            { once: true },
+          );
+        }
+        r.addEventListener("click", (e) => {
+          const t = e.target as HTMLElement;
+          if (!t) return;
+          const gh = t.closest(".ct-card.group");
+          if (gh) {
+            const ch = gh.parentElement?.querySelector(":scope>.ct-children") as HTMLElement | null;
+            if (!ch) return;
+            ch.hidden = !ch.hidden;
+            gh.classList.toggle("active", !ch.hidden);
+            const ca = gh.querySelector(".ct-caret");
+            if (ca) ca.classList.toggle("ex", !ch.hidden);
+            return;
+          }
+          const pc = t.closest(".ct-card.post") as HTMLElement | null;
+          if (pc && pc.dataset.pid) {
+            const p = window.location.pathname.startsWith("/en")
+              ? "/en"
+              : "/zh";
+            window.location.href =
+              p + "/post/" + encodeURIComponent(pc.dataset.pid);
+          }
+        });
+        r.addEventListener("keydown", (e) => {
+          if (!e || !e.target || (e.key !== "Enter" && e.key !== " ")) return;
+          const a = (e.target as HTMLElement).closest(".ct-card") as HTMLElement | null;
+          if (a) {
+            e.preventDefault();
+            a.click();
+          }
+        });
+      });
+    }
+    document.addEventListener("astro:before-swap",()=>{_roots.forEach(r=>{if(r.parentElement)r.parentElement.removeChild(r)});_roots.clear()});
+    document.addEventListener("astro:page-load", setup);
+  })();
+</script>
+
+<style is:global>
+  .cn-panel {
+    border-radius: 8px;
+    overflow: auto;
+  }
+  .cn-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 32px;
+    border-bottom: 1px solid var(--border-color-blur);
+  }
+  .cn-header-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    color: var(--component-text-primary);
+  }
+  .cn-header-icon {
+    width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--component-text-secondary);
+    flex-shrink: 0;
+  }
+  .cn-header-icon svg {
+    width: 20px;
+    height: 20px;
+    display: block;
+  }
+  .cn-switcher {
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    border: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    min-width: 0;
+    width: 200px;
+    outline: none;
+    padding: 0 10px 0 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transform: translateY(1px);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right center;
+    background-size: 16px;
+  }
+  .cn-header-text {
+    line-height: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 600;
+    font-variation-settings: "wght" 600;
+  }
+  .cn-body {
+    overflow: auto;
+  }
+  .cn-tree ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .cn-tree li {
+    margin: 7px 0;
+  }
+  .cn-empty {
+    padding: 0.5rem 0.35rem;
+    color: var(--component-text-secondary);
+    font-size: 0.92rem;
+  }
+
+  /* Tree (shared: desktop + mobile) */
+  .ct-card {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition:
+      background 0.12s ease,
+      transform 0.08s ease,
+      border-color 0.12s ease;
+  }
+  .ct-card.group {
+    font-weight: 700;
+    color: var(--component-text-primary);
+  }
+  .ct-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1 1 auto;
+  }
+  .ct-icon {
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 8px;
+    color: var(--component-text-secondary);
+    flex-shrink: 0;
+  }
+  .ct-icon svg {
+    display: block;
+    width: 16px;
+    height: 16px;
+  }
+  .ct-caret {
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    background: transparent;
+    border: 0;
+    color: var(--component-text-secondary);
+    margin-left: auto;
+    padding: 0;
+  }
+  .ct-caret svg {
+    transition: transform 120ms linear;
+    display: block;
+    width: 16px;
+    height: 16px;
+  }
+  .ct-caret.ex svg {
+    transform: rotate(180deg);
+  }
+  .ct-children {
+    margin-left: 12px;
+    padding-left: 12px;
+  }
+  .ct-children[hidden] {
+    display: none;
+  }
+  .ct-card:hover {
+    background: var(--component-bg-hover);
+  }
+  .ct-card.group.active {
+    background: var(--component-bg-active);
+  }
+  .ct-card.post.active {
+    background: var(--component-bg-active);
+    color: var(--component-text-primary-hover);
+    border-color: var(--component-text-primary-hover);
+  }
+
+  /* Desktop sidebar */
+  .cn-panel[data-cn-variant="sidebar"] {
+    --nav-width: 260px;
+    width: var(--nav-width);
+    min-height: 200px;
+    z-index: 1200;
+  }
+  .cn-panel[data-cn-variant="sidebar"] .cn-header {
+    padding: 0.35rem 0.8rem;
+  }
+  .cn-panel[data-cn-variant="sidebar"] .cn-body {
+    padding: 0.6rem;
+    max-height: 66vh;
+  }
+  @media (min-width: 1200px) {
+    .cn-panel[data-cn-variant="sidebar"] {
+      position: fixed;
+      top: 120px;
+      left: calc(15vw - 160px);
+      transform: translateX(0);
+    }
+  }
+  @media (max-width: 1199px) {
+    .cn-panel[data-cn-variant="sidebar"] {
+      position: fixed;
+      top: 90px;
+      left: 20px;
+      background: var(--component-bg-blur);
+      border: 1px solid var(--border-color-blur);
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow-elev-3);
+      transition:
+        transform 280ms ease,
+        opacity 280ms ease;
+    }
+    .cn-panel[data-cn-variant="sidebar"].collapsed {
+      opacity: 0.5;
+      transform: translateX(calc(-1 * (var(--nav-width) - 0px)));
+    }
+    .cn-panel[data-cn-variant="sidebar"].expanded {
+      transform: translateX(0);
+    }
+  }
+
+  /* Mobile: inside CornerButton panel */
+  html.is-mobile .cn-panel[data-cn-variant="inline"] {
+    min-height: 0;
+  }
+  html.is-mobile .cn-panel[data-cn-variant="inline"] .cn-header {
+    padding: 0 0.5rem 0.5rem 0.5rem;
+  }
+  html.is-mobile .cn-panel[data-cn-variant="inline"] .cn-header-title {
+    font-size: 1.05rem;
+  }
+  html.is-mobile .cn-panel[data-cn-variant="inline"] .cn-header-icon {
+    width: 20px;
+    height: 20px;
+  }
+  html.is-mobile .cn-panel[data-cn-variant="inline"] .cn-body {
+    padding: 4px 4px;
+    max-height: 44vh;
+  }
+  html.is-mobile .cn-panel[data-cn-variant="inline"] .ct-card {
+    padding: 8px 10px;
+    font-size: 0.95rem;
+  }
+  html.is-mobile .cn-panel[data-cn-variant="inline"] .ct-children {
+    margin-left: 14px;
+    padding-left: 14px;
+  }
+  html.is-mobile .cn-panel[data-cn-variant="inline"] .ct-icon {
+    width: 18px;
+    height: 18px;
+  }
+  html.is-mobile .cn-panel[data-cn-variant="inline"] .ct-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+  .cb__content .ct-card {
+    padding: 5px 6px;
+    font-size: 0.9rem;
+  }
+  .cb__content .ct-children {
+    margin-left: 8px;
+    padding-left: 8px;
+  }
+</style>

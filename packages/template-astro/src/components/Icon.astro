@@ -1,0 +1,22 @@
+---
+// src/components/Icon.astro
+import type { HTMLAttributes } from "astro/types";
+import { Icons } from "../utils/icons";
+
+export interface Props extends HTMLAttributes<"svg"> {
+  name: keyof typeof Icons;
+  size?: number | string;
+}
+
+const { name, size = 24, class: className, ...rest } = Astro.props;
+const icon = Icons[name];
+
+if (!icon) {
+  throw new Error(`Icon "${name}" not found`);
+}
+
+const width = size;
+const height = size;
+---
+
+{icon}

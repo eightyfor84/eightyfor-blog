@@ -1,0 +1,22 @@
+# OS
+.DS_Store
+_MACOSX/*
+
+# IDE
+.vscode/*
+.cursor/*
+.joycode/*
+
+# Dependencies
+node_modules/
+
+# Agent
+CLAUDE.md
+
+# temp assets
+data/branding
+dist/
+
+# REMOVE when deploying to production
+data/
+site.legacy/

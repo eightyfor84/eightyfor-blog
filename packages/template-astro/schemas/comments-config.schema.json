@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronicle:comments-config",
+  "title": {
+    "en": "Comments",
+    "zh-CN": "评论"
+  },
+  "x-lang": "en",
+  "x-version": "1.0.0",
+  "x-migrations": [],
+  "type": "object",
+  "x-nav": {
+    "group": "template",
+    "tabs": {
+      "": {
+        "label": {
+          "en": "Comments",
+          "zh-CN": "评论"
+        },
+        "icon": "message-circle",
+        "order": 6
+      }
+    }
+  },
+  "x-groups": {
+    "backend": {
+      "title": {
+        "en": "Comment Backend",
+        "zh-CN": "评论后端"
+      },
+      "order": 1
+    }
+  },
+  "properties": {
+    "comment": {
+      "type": "object",
+      "x-widget": "fieldset",
+      "x-group": "backend",
+      "x-order": 1,
+      "title": {
+        "en": "Comment Backend",
+        "zh-CN": "评论后端"
+      },
+      "description": {
+        "en": "Choose how comments are stored and submitted. Changes take effect on next build.",
+        "zh-CN": "选择评论的存储和提交方式。修改后需重新构建站点生效。"
+      },
+      "properties": {
+        "backend": {
+          "type": "string",
+          "default": "",
+          "enum": ["", "chronicle", "github", "twikoo"],
+          "x-widget": "select",
+          "x-order": 1,
+          "title": {
+            "en": "Backend",
+            "zh-CN": "后端"
+          },
+          "description": {
+            "en": "Static JSON (no interaction) / Chronicle API (self-hosted, full features) / GitHub Issues (read-only, link to issue) / Twikoo (third-party, full features)",
+            "zh-CN": "静态 JSON（无交互）/ Chronicle API（自建，完整功能）/ GitHub Issues（只读，跳转提交）/ Twikoo（第三方托管，完整功能）"
+          },
+          "x-options": [
+            { "value": "", "label": { "en": "Static JSON (no interaction)", "zh-CN": "静态 JSON（无交互）" } },
+            { "value": "chronicle", "label": { "en": "Chronicle API (VPS / self-hosted)", "zh-CN": "Chronicle API（VPS / 自建）" } },
+            { "value": "github", "label": { "en": "GitHub Issues (read + link)", "zh-CN": "GitHub Issues（阅读 + 跳转）" } },
+            { "value": "twikoo", "label": { "en": "Twikoo (third-party)", "zh-CN": "Twikoo（第三方托管）" } }
+          ]
+        },
+        "apiBase": {
+          "type": "string",
+          "default": "",
+          "maxLength": 256,
+          "x-widget": "input",
+          "x-order": 2,
+          "x-visible-when": { "field": "backend", "equals": "chronicle" },
+          "title": {
+            "en": "API Base URL",
+            "zh-CN": "API 地址"
+          },
+          "description": {
+            "en": "Chronicle Host API base URL, e.g. https://blog.example.com.",
+            "zh-CN": "Chronicle Host API 地址，如 https://blog.example.com。"
+          }
+        },
+        "githubRepo": {
+          "type": "string",
+          "default": "",
+          "maxLength": 128,
+          "x-widget": "input",
+          "x-order": 3,
+          "x-visible-when": { "field": "backend", "equals": "github" },
+          "title": {
+            "en": "GitHub Repository",
+            "zh-CN": "GitHub 仓库"
+          },
+          "description": {
+            "en": "Repository in owner/name format, e.g. eightyfor/blog.",
+            "zh-CN": "仓库名（owner/name 格式），如 eightyfor/blog。"
+          }
+        },
+        "githubIssueNumber": {
+          "type": "string",
+          "default": "",
+          "maxLength": 20,
+          "x-widget": "input",
+          "x-order": 4,
+          "x-visible-when": { "field": "backend", "equals": "github" },
+          "title": {
+            "en": "GitHub Issue Number",
+            "zh-CN": "GitHub Issue 编号"
+          },
+          "description": {
+            "en": "Default issue number for comments. Can be overridden per post via frontmatter.",
+            "zh-CN": "默认 Issue 编号，可在文章 frontmatter 中单独覆盖。"
+          }
+        },
+        "twikooEnvId": {
+          "type": "string",
+          "default": "",
+          "maxLength": 256,
+          "x-widget": "input",
+          "x-order": 5,
+          "x-visible-when": { "field": "backend", "equals": "twikoo" },
+          "title": {
+            "en": "Twikoo Env ID",
+            "zh-CN": "Twikoo 环境 ID"
+          },
+          "description": {
+            "en": "Twikoo environment ID (URL or Vercel app address).",
+            "zh-CN": "Twikoo 环境 ID（URL 或 Vercel 应用地址）。"
+          }
+        }
+      }
+    }
+  }
+}

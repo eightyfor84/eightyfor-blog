@@ -1,0 +1,286 @@
+---
+export const prerender = true;
+
+export async function getStaticPaths() {
+  return [{ params: { lang: 'zh' } }, { params: { lang: 'en' } }];
+}
+
+import Layout from '../../layouts/Layout.astro';
+import { getTranslation, getLocale } from '../../utils/i18n';
+import { resolveFeatureFlags } from '../../utils/featureFlags';
+import { buildLocalizedPath } from '../../utils/routeLocale';
+import { loadSiteSettings } from '../../utils/siteSettings';
+import { renderChronicleMarkdown } from '../../utils/chronicleMarkdown';
+import { getProfile } from '../../data/localDataSource';
+import chronicleMarkdownCssUrl from '@chronicle/shared/src/styles/chronicle-markdown.css?url';
+import fs from 'fs';
+import path from 'path';
+
+const locale = getLocale(Astro.locals);
+const t = (key: string) => getTranslation(locale, key);
+
+const settings = await loadSiteSettings();
+const featureFlags = resolveFeatureFlags(settings?.featureFlags);
+const aboutEnabled = featureFlags.aboutPage !== false;
+
+// Profile card
+const profile = getProfile() as Record<string, any>;
+const showProfileCard = settings?.about?.showProfileCard !== false;
+
+// About markdown — match localDataSource.ts resolveDataDir()
+const DATA_DIR = process.env.CHRONICLE_DATA_DIR
+  ? path.resolve(process.env.CHRONICLE_DATA_DIR)
+  : path.resolve(process.cwd(), '..', '..', 'data');
+const aboutPath = path.join(DATA_DIR, 'about.md');
+
+let aboutHtml = '';
+let lastModified: string | null = null;
+try {
+  if (fs.existsSync(aboutPath)) {
+    const raw = fs.readFileSync(aboutPath, 'utf-8');
+    let content = raw;
+    const lines = raw.split('\n');
+    if (lines[0]?.trim() === '---') {
+      let i = 1;
+      while (i < lines.length && lines[i].trim() !== '---') {
+        const m = lines[i].match(/^lastModified:\s*(.+)/);
+        if (m) lastModified = m[1].trim();
+        i++;
+      }
+      content = lines.slice(i + 1).join('\n');
+    }
+    if (!lastModified) {
+      const stat = fs.statSync(aboutPath);
+      lastModified = stat.mtime.toISOString().slice(0, 10);
+    }
+    aboutHtml = renderChronicleMarkdown(content);
+  }
+} catch {}
+
+const homeHref = buildLocalizedPath(locale, '/');
+const pageTitle = locale === 'zh-CN' ? '关于' : 'About';
+const metaDescription = profile?.bio
+  ? String(profile.bio).slice(0, 160)
+  : (locale === 'zh-CN' ? '关于页面' : 'About page');
+---
+
+<Layout title={pageTitle} settings={settings} locale={locale} meta={{ description: metaDescription }}>
+  {
+    !aboutEnabled ? (
+      <main class="about-page">
+        <div class="about-placeholder">
+          <p>{t('page.disabled')}</p>
+          <a href={homeHref}>{t('nav.home')}</a>
+        </div>
+      </main>
+    ) : (
+      <main class="about-page">
+        <article class="about-article">
+          <h1 class="about-title">{pageTitle}</h1>
+
+          {
+            showProfileCard && (profile?.name || profile?.avatar || profile?.bio) ? (
+              <div class="about-profile-card">
+                {profile.avatar ? (
+                  <img
+                    class="about-avatar"
+                    src={profile.avatar}
+                    alt={profile.name || ''}
+                    loading="lazy"
+                    decoding="async"
+                    style="cursor:pointer"
+                    data-source={(profile.avatarSource && !profile.avatarSource.startsWith('/') && !profile.avatarSource.startsWith('http')) ? `/server/data/upload/${profile.avatarSource}` : (profile.avatarSource || profile.avatar)}
+                    onclick="window.__openFilePreview?.({ url: event.target.dataset.source || event.target.src, title: event.target.alt, type: 'image' })"
+                  />
+                ) : null}
+                <div class="about-profile-body">
+                  {profile.name ? <h2 class="about-name">{profile.name}</h2> : null}
+                  {profile.bio ? <p class="about-bio">{profile.bio}</p> : null}
+                  {profile.location ? (
+                    <span class="about-location">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                        <circle cx="12" cy="10" r="3" />
+                      </svg>
+                      {profile.location}
+                    </span>
+                  ) : null}
+                  {profile.links?.length ? (
+                    <div class="about-links">
+                      {profile.links.map((link: { label: string; url: string }) => (
+                        <a
+                          class="about-link"
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {link.label}
+                        </a>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            ) : null
+          }
+
+          {
+            aboutHtml ? (
+              <div class="chronicle-markdown" set:html={aboutHtml} />
+            ) : (
+              <div class="about-empty">
+                <p>{locale === 'zh-CN' ? '暂无内容。' : 'Nothing here yet.'}</p>
+              </div>
+            )
+          }
+
+          <!-- chronicle-markdown.css loaded async (43KB) — non-render-blocking -->
+          <link rel="stylesheet" href={chronicleMarkdownCssUrl} media="print" onload="this.media='all'" />
+          <noscript><link rel="stylesheet" href={chronicleMarkdownCssUrl} /></noscript>
+
+          {
+            lastModified ? (
+              <div class="about-last-modified">
+                <span class="about-modified-label">
+                  {locale === 'zh-CN' ? '最后更新' : 'Last updated'}:
+                </span>
+                <time datetime={lastModified}>{lastModified}</time>
+              </div>
+            ) : null
+          }
+        </article>
+      </main>
+    )
+  }
+</Layout>
+
+<style>
+.about-page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 48px 24px 64px;
+}
+
+.about-placeholder {
+  text-align: center;
+  padding: 80px 0;
+  color: var(--component-text-secondary);
+}
+
+.about-article {
+  color: var(--component-text);
+}
+
+.about-title {
+  font-size: 2.4rem;
+  font-weight: 700;
+  margin: 0 0 32px;
+  padding: 0 0 16px;
+}
+
+.about-empty {
+  padding: 48px 0;
+  text-align: center;
+  color: var(--component-text-secondary);
+  font-size: 1rem;
+}
+
+/* Profile Card */
+.about-profile-card {
+  display: flex;
+  gap: 20px;
+  padding: 20px 24px;
+  margin: 0 0 36px;
+  background: var(--component-bg-blur);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  align-items: center;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+.about-avatar {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.about-profile-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.about-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+
+.about-bio {
+  font-size: 0.95rem;
+  color: var(--component-text-secondary);
+  margin: 0 0 8px;
+  line-height: 1.55;
+}
+
+.about-location {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--component-text-secondary);
+  margin: 0 0 6px;
+}
+
+.about-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.about-link {
+  display: inline-block;
+  padding: 4px 12px;
+  border: 1px solid var(--component-border);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  color: var(--component-text);
+  text-decoration: none;
+  transition: border-color 0.15s;
+}
+
+.about-link:hover {
+  border-color: var(--component-text-secondary);
+}
+
+/* Last Modified */
+.about-last-modified {
+  margin-top: 40px;
+  padding-top: 16px;
+  border-top: 1px solid var(--component-border);
+  font-size: 0.85rem;
+  color: var(--component-text-secondary);
+}
+
+.about-modified-label {
+  margin-right: 4px;
+}
+
+@media (max-width: 600px) {
+  .about-profile-card {
+    flex-direction: column;
+    text-align: center;
+  }
+  .about-links {
+    justify-content: center;
+  }
+}
+</style>
+
+<script>
+  import('../../utils/mathTooltip').then(({ initMathTooltip }) => {
+    initMathTooltip(document.querySelector('.chronicle-markdown'));
+  }).catch(() => {});
+</script>

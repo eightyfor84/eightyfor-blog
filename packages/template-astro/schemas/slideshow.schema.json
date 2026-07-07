@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronicle:slideshow",
+  "title": "Slideshow",
+  "description": "Slideshow configuration for Chronicle slides pages.",
+  "type": "object",
+  "x-nav": { "icon": "eye", "order": 50, "group": "template" },
+  "x-tab": "template-features",
+  "x-group": "Slideshow",
+  "x-order": 10,
+  "properties": {
+    "slideshow": {
+      "type": "object",
+      "title": "Default Slideshow Settings",
+      "x-order": 0,
+      "properties": {
+        "theme": {
+          "type": "string",
+          "title": "Default Theme",
+          "description": "Marp theme to use for slides export. Built-in: default, gaia, uncover, chronicle. Custom CSS files in data/marp-themes/ are also supported.",
+          "default": "chronicle",
+          "x-widget": "select",
+          "x-order": 10,
+          "x-options": [
+            { "value": "chronicle", "label": "Chronicle (default)" },
+            { "value": "default", "label": "Marp Default" },
+            { "value": "gaia", "label": "Gaia" },
+            { "value": "uncover", "label": "Uncover" }
+          ]
+        },
+        "ratio": {
+          "type": "string",
+          "title": "Slide Ratio",
+          "default": "16:9",
+          "x-widget": "select",
+          "x-order": 20,
+          "x-options": [
+            { "value": "16:9", "label": "16:9 (Widescreen)" },
+            { "value": "4:3", "label": "4:3 (Classic)" },
+            { "value": "21:9", "label": "21:9 (Ultrawide)" },
+            { "value": "2:1", "label": "2:1 (Panoramic)" }
+          ]
+        },
+        "footer": {
+          "type": "string",
+          "title": "Global Footer",
+          "description": "Footer text shown on every slide.",
+          "x-widget": "input",
+          "x-order": 30
+        }
+      }
+    }
+  }
+}

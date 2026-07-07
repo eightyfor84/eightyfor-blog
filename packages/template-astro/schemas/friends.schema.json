@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronicle:friends",
+  "title": {
+    "en": "Friends",
+    "zh-CN": "友链管理"
+  },
+  "x-lang": "en",
+  "x-version": "2.0.2",
+  "x-migrations": [],
+  "type": "object",
+  "x-nav": {
+    "group": "template",
+    "tabs": {
+      "": {
+        "label": {
+          "en": "Friends",
+          "zh-CN": "友链管理"
+        },
+        "icon": "users",
+        "order": 5
+      }
+    }
+  },
+  "properties": {
+    "globalStyle": {
+      "type": "string",
+      "default": "left-lg",
+      "enum": [
+        "left-sm",
+        "left-lg",
+        "top-lg"
+      ],
+      "x-widget": "select",
+      "x-chronicle-class": "card-toggle",
+      "x-preview-type": "card-style",
+      "x-order": 1,
+      "title": {
+        "en": "Card Style",
+        "zh-CN": "卡片样式"
+      },
+      "x-options": [
+        {
+          "value": "left-sm",
+          "label": {
+            "en": "Left Small",
+            "zh-CN": "左小图"
+          }
+        },
+        {
+          "value": "left-lg",
+          "label": {
+            "en": "Left Large",
+            "zh-CN": "左大图"
+          }
+        },
+        {
+          "value": "top-lg",
+          "label": {
+            "en": "Top Large",
+            "zh-CN": "上大图"
+          }
+        }
+      ]
+    },
+    "cards": {
+      "type": "array",
+      "x-widget": "card-list",
+      "x-card-title-key": "name",
+      "x-card-image-key": "avatar",
+      "x-card-subtitle-key": "intro",
+      "x-order": 2,
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "homeUrl"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60,
+            "x-widget": "input",
+            "x-order": 1,
+            "title": {
+              "en": "Name",
+              "zh": "名称"
+            }
+          },
+          "avatar": {
+            "type": "string",
+            "x-widget": "image-picker",
+            "x-order": 2,
+            "title": {
+              "en": "Avatar",
+              "zh": "头像"
+            }
+          },
+          "intro": {
+            "type": "string",
+            "maxLength": 200,
+            "x-widget": "textarea",
+            "x-order": 3,
+            "title": {
+              "en": "Intro",
+              "zh": "简介"
+            }
+          },
+          "homeUrl": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https?://.*",
+            "x-widget": "input",
+            "x-order": 4,
+            "title": {
+              "en": "Home URL",
+              "zh": "主页链接"
+            }
+          },
+          "storyPostId": {
+            "type": "string",
+            "x-widget": "post-picker",
+            "x-order": 5,
+            "title": {
+              "en": "Story Post",
+              "zh": "关联文章"
+            }
+          }
+        }
+      },
+      "title": {
+        "en": "Friend Cards",
+        "zh-CN": "友链卡片"
+      }
+    }
+  }
+}

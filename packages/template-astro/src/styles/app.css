@@ -1,0 +1,457 @@
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+pre{
+  background: var(--component-bg);
+  color: var(--text-primary)
+
+}
+
+html.is-mobile .nav-header {
+  height:50px;
+}
+
+html.is-mobile .app-title{
+  font-size: 1.2rem;
+  transform: translateY(.1rem);
+  vertical-align: middle;
+}
+
+.nav-header {
+  background: var(--component-bg-blur);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-color-blur);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  height: 70px;
+  box-sizing: border-box;
+  transition: background 0.3s ease, border-color 0.3s ease, backdrop-filter 0.3s ease;
+}
+
+.nav-header.at-top {
+  background: transparent;
+  border-bottom-color: transparent;
+  backdrop-filter: none;
+  
+}
+
+.nav-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 2rem;
+  height: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+html.is-mobile .nav-content {
+  padding: 0 1.5rem;
+}
+
+
+.math-tooltip{
+  display: none;
+  visibility: hidden;
+}
+
+
+
+/* Mobile title back button (left of app title) */
+.mobile-title-back {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width:24px;
+  height: 24px;
+  margin-right: 12px;
+  padding: 0;
+}
+
+.mobile-title-back:hover {
+  color: var(--text-primary);
+}
+
+.mobile-title-back span {
+  display: inline-flex;
+  transform: rotate(-90deg);
+  width: 24px;
+  height: 24px
+}
+
+
+.app-title {
+  color: var(--text-primary);
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.reading-title {
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 600;
+  font-variation-settings: 'wght' 600;
+  line-height: 1;
+}
+
+.site-header {
+  display: flex;
+  align-items: center
+}
+
+.reading-header {
+  display: flex;
+  align-items: center
+}
+
+/* Ensure reading-title shrinks in flex layout and shows ellipsis when too long */
+.reading-header {
+  gap: 8px
+}
+
+.reading-title {
+  cursor: default;
+  flex: 1 1 auto;
+  min-width: 0;
+  /* allow flex children to shrink below content width */
+  max-width: calc(100vw - 220px);
+  /* prevent overflow beyond viewport (accounting for back button and padding) */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Unified header-swap transition: out-in mode ensures leave completes before enter starts.
+  Enter animations differ by element via .entering-up / .entering-down classes. Leave has no animation. */
+.header-swap-enter-from {
+  opacity: 0
+}
+
+.header-swap-enter-to {
+  opacity: 1
+}
+
+.header-swap-enter-active {
+  transition: transform 190ms cubic-bezier(.2, .9, .3, 1), opacity 160ms ease
+}
+
+.header-swap-leave-active {
+  transition: none
+}
+
+/* entering-up: site title enters from slightly above */
+.entering-up.header-swap-enter-from {
+  transform: translateY(-8px)
+}
+
+.entering-up.header-swap-enter-to {
+  transform: translateY(0)
+}
+
+/* entering-down: reading header enters from slightly below */
+.entering-down.header-swap-enter-from {
+  transform: translateY(8px)
+}
+
+.entering-down.header-swap-enter-to {
+  transform: translateY(0)
+}
+
+.menu-toggle {
+  display: none;
+  /* hide on desktop, show on small screens via media query */
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  z-index: 102;
+  /* Higher than nav-content */
+  /* Make the clickable area compact so the hamburger is not too tall */
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+}
+
+.menu-toggle svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+  line-height: 0;
+}
+
+.nav-links {
+  display: flex;
+  gap: 2rem;
+}
+
+.nav-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+@media (max-width: 768px) {
+  .menu-toggle {
+    display: flex;
+  }
+
+  .nav-links {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 100dvh;
+    background: var(--app-bg-secondary);
+    /* Solid background for menu */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transform: translateY(-100%);
+    transition: transform 0.3s ease;
+    z-index: 101;
+    /* Behind toggle, above content */
+    gap: 30px;
+  }
+
+  .nav-links .nav-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 110;
+  }
+
+  .nav-links .nav-close .nav-close-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center
+  }
+
+  .nav-links .nav-close .nav-close-icon svg {
+    width: 32px;
+    height: 32px;
+    display: block;
+    stroke: currentColor
+  }
+
+  .nav-links.mobile-open {
+    transform: translateY(0);
+    z-index: 999;
+  }
+
+  .nav-link {
+    font-size: 1.5em;
+  }
+}
+
+.nav-link {
+  color: var(--text-inactive);
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.nav-link.router-link-active {
+  background: var(--component-bg-hover);
+  color: var(--component-text-primary-hover);
+}
+
+.new-post-btn {
+  background: var(--accent-color);
+  color: white !important;
+  font-weight: 600;
+  font-variation-settings: 'wght' 500;
+}
+
+.new-post-btn:hover {
+  background: var(--accent-color-hover) !important;
+}
+
+.nav-link:hover {
+  background: var(--component-bg-hover);
+  color: var(--component-text-primary-hover);
+}
+
+
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  /* Changed to auto to allow scrolling under nav */
+  overflow-x: hidden;
+  padding-top: 70px;
+  /* Use padding instead of margin */
+  height: 100vh;
+  box-sizing: border-box;
+  --toc-scroll-offset: 70px;
+  position: relative;
+  /* 使用 mask-image 在主内容顶部实现渐隐（支持 -webkit- 前缀）
+      透明到可见的渐变位置使用可配置变量（`--top-fade-length`/`--top-fade-opacity`） */
+    /* 可配置变量：渐隐长度与强度（若不需要，可在 html 上移除 .immersive） */
+    --top-fade-length: 70px;
+    --top-fade-opacity: 1;
+  scroll-behavior: smooth;
+  scroll-padding-top: var(--toc-scroll-offset);
+}
+
+
+
+/* 仅当 html 上有 .immersive 类时启用 mask 渐隐效果 */
+html.immersive:not(.focus) .main-content {
+  /* 四个停点（位置 0 / 0.5 / 0.75 / 1），对应的不透明度为 0 / 0.05 / 0.2 / 1 */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0) 0px,
+    rgba(0,0,0,0.1) calc(var(--top-fade-length) * 0.4),
+    rgba(0,0,0,0.3) calc(var(--top-fade-length) * 0.7),
+    rgba(0,0,0,1) var(--top-fade-length),
+    rgba(0,0,0,1) 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0) 0px,
+    rgba(0,0,0,0.1) calc(var(--top-fade-length) * 0.4),
+    rgba(0,0,0,0.3) calc(var(--top-fade-length) * 0.7),
+    rgba(0,0,0,1) var(--top-fade-length),
+    rgba(0,0,0,1) 100%
+  );
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+}
+
+
+html.is-mobile .main-content {
+  padding-top: 50px;
+  /* 手机上使用更短的渐隐长度 */
+  --top-fade-length: 50px;
+}
+
+.main-content.unscrollable {
+  overflow: hidden;
+}
+
+.main-content.no-nav {
+  padding-top: 0;
+  overflow: hidden;
+  /* Restore hidden for editor */
+  z-index: 0;
+}
+
+.nav-setting-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 0 8px;
+  margin-left: 0;
+  border-radius: 6px;
+  color: var(--text-inactive);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  /* remove border on hover */
+}
+
+.nav-setting-btn:hover {
+  background: transparent;
+  /* hover background should not change */
+  border: none;
+  /* remove border on hover */
+  color: var(--text-primary);
+}
+
+.nav-settings-menu {
+  /* reduce opacity to make blur more visible */
+  background: var(--component-bg);
+  backdrop-filter: blur(16px);
+  /* Use fixed so the menu overlays page content — allows backdrop-filter to blur underlying page */
+  position: fixed;
+  color: var(--component-text-secondary);
+  top: 70px;
+  /* immediately under the header */
+  right: 24px;
+  /* align near the nav padding on desktop */
+  left: auto;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  border-radius: 8px;
+  min-width: 160px;
+  max-width: calc(100vw - 24px);
+  max-height: 70vh;
+  box-sizing: border-box;
+  overflow: auto;
+
+  /* allow internal scrolling instead of overflowing viewport */
+  /* keep icon sizing inline */
+  .locale-icon {
+    width: 14px;
+    height: 14px;
+    display: inline-block;
+    vertical-align: middle
+  }
+
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  z-index: 1200;
+  font-size: 0.9rem;
+}
+
+.popup-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: left;
+  padding: 6px 10px;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  border-radius: 6px
+}
+
+.popup-item:hover {
+  background: var(--component-bg-hover);
+  color: var(--component-text-primary-hover);
+}
+
+.popup-label {
+  flex: 1;
+  text-align: left
+}
+
+.popup-check {
+  color: var(--accent);
+  display: inline-flex;
+  align-items: center
+}
+
+.tag{
+  white-space: nowrap;
+}
+
