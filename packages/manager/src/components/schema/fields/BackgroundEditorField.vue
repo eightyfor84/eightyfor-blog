@@ -76,19 +76,35 @@ function clearBg() {
   emitUpdate()
 }
 
-function onBgSave(m: any) {
-  internalUrl.value = m.url || ''
+async function onBgSave(m: any) {
+  const url = m.url || ''
+  internalUrl.value = url
   internalMeta.value = m
   if (m.sourcePath !== undefined) {
     internalSourcePath.value = m.sourcePath
     internalSourceName.value = m.sourceName || ''
   }
   bgEditorOpen.value = false
+
+  // Auto-copy to data/background/ if image is outside the directory
+  if (url && !url.startsWith('/data/background/')) {
+    const ext = (url.match(/\.\w+$/)?.[0]) || '.jpg'
+    try {
+      const isElec = typeof window !== 'undefined' && !!(window as any).chronicleElectron?.isElectron
+      if (isElec) {
+        const bridge = (window as any).chronicleElectron
+        await bridge.copyFile(url.replace(/^\//, ''), 'data/background/background' + ext)
+      } else {
+        await fetch('/api/copy-file', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ source: url, dest: 'data/background/background' + ext }) })
+      }
+      internalUrl.value = '/data/background/background' + ext
+    } catch (_) { /* best-effort */ }
+  }
+
   emitUpdate()
 }
 
 function emitUpdate() {
-  // Aurora: just the URL string — no redundant path/source/generated fields
   emit('update:modelValue', internalUrl.value)
   if (internalMeta.value) emit('update:meta', internalMeta.value)
 }

@@ -80,13 +80,13 @@
 </template>
 
 <script setup lang="ts">
-import { fetchWithAuth } from '../../utils/fetchWithAuth.ts';
+import { readYaml, readJson, writeJson } from '../../data/dataAccess';
 import { computed, ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import useToast from '../../composables/useToast.ts'
 import BackgroundEditorModal from '../../components/BackgroundEditorModal.vue'
 import { hexToRgbString } from '../../utils/colorUtils.ts'
-import { resolveMediaUrl } from '../../utils/backgroundSettings.ts'
+import { resolveMediaUrl, discoverBackendBgUrlAsync } from '../../utils/backgroundSettings.ts'
 
 const { locale } = useI18n()
 const uiBackendLocale = ref('follow')
@@ -127,15 +127,17 @@ function buildDarkerColor(accent: string) {
 
 async function loadSettingsFromServer() {
   try {
-    const r = await fetchWithAuth(`/api/settings?t=${Date.now()}`)
-    if (!r.ok) return
-    const s = await r.json()
-    if (!s) return
+    const [site, ws, bgUrl] = await Promise.all([
+      readYaml<Record<string, any>>('data/site.yml') ?? {},
+      readJson<Record<string, any>>('.chronicle/workspace.json') ?? {},
+      discoverBackendBgUrlAsync(),
+    ])
+    const s = { ...site, ...ws }
+    if (bgUrl) s.backendBackground = bgUrl
     if (s.backendLocale) uiBackendLocale.value = s.backendLocale
     if (s.backendFont) uiBackendFont.value = s.backendFont
     if (s.backendTheme) uiBackendTheme.value = s.backendTheme
     uiAccentColor.value = s.backendAccent || s.frontendAccent || '#2ea35f'
-    // Aurora: background is just a URL string
     if (s.backendBackground) {
       uiBackendBackground.value = typeof s.backendBackground === 'string'
         ? s.backendBackground
@@ -268,27 +270,39 @@ function applyBackgroundToDom() {
 }
 
 async function save() {
-  // Aurora: just the URL string — no compression, no generated paths
   const backgroundMeta = uiBackendBackgroundMeta.value ? { ...uiBackendBackgroundMeta.value } : undefined
 
+  // Auto-copy image to .chronicle/ directory
+  if (uiBackendBackground.value && !uiBackendBackground.value.startsWith('/.chronicle/')) {
+    const ext = (uiBackendBackground.value.match(/\.\w+$/)?.[0]) || '.jpg'
+    const source = uiBackendBackground.value
+    const dest = '.chronicle/background' + ext
+    try {
+      const isElec = typeof window !== 'undefined' && !!(window as any).chronicleElectron?.isElectron
+      if (isElec) {
+        const bridge = (window as any).chronicleElectron
+        await bridge.copyFile(source.replace(/^\//, ''), dest)
+      } else {
+        await fetch('/api/copy-file', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ source, dest }) })
+      }
+      uiBackendBackground.value = '/' + dest
+    } catch (_) { /* best-effort */ }
+  }
+
+  // Only save meta and UI settings — background image is directory-based
   const cfg = {
     backendLocale: uiBackendLocale.value,
     backendFont: uiBackendFont.value,
     backendAccent: uiAccentColor.value,
     backendTheme: uiBackendTheme.value,
-    backendBackground: uiBackendBackground.value,
     backendBackgroundMeta: backgroundMeta || undefined,
   }
 
-  // Apply background layer immediately
   applyBackgroundToDom()
 
-  // persist to backend
   try {
-    const res = await fetchWithAuth(`/api/settings?t=${Date.now()}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cfg) })
-    if (res.ok) {
-      loadSettingsFromServer()
-    }
+    await writeJson('.chronicle/workspace.json', cfg)
+    loadSettingsFromServer()
   } catch (e) { }
 
   // Apply backend font immediately

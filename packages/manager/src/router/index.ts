@@ -47,7 +47,7 @@ const Playground = () => import(/* webpackChunkName: "playground" */ '../pages/P
 // Schema-driven settings: single generic page that renders any schema
 const SchemaSettingsPage = () => import(/* webpackChunkName: "schema-settings" */ '../pages/SchemaSettingsPage.vue')
 const SystemAppearance = () => import(/* webpackChunkName: "system-appearance" */ '../pages/settings/SystemAppearance.vue')
-const SystemBuild = () => import(/* webpackChunkName: "system-build" */ '../pages/settings/SystemBuild.vue')
+// SystemBuild removed — build/deploy is CI/CD's concern, not CMS
 // SystemSecurity removed — auth not applicable in Aurora (local-first)
 
 const routes = [
@@ -73,9 +73,8 @@ const routes = [
       { path: 'template-appearance', name: 'SettingsTemplateAppearance', component: SchemaSettingsPage, props: { schemaId: 'chronicle:template-settings', tab: 'template-appearance' }, meta: { title: 'settings.appearance' } },
       { path: 'template-features',   name: 'SettingsTemplateFeatures',   component: SchemaSettingsPage, props: { schemaId: 'chronicle:template-settings', tab: 'template-features' },   meta: { title: 'settings.features' } },
       { path: 'template', redirect: '/settings/template-homepage' },
-      // System schema tabs
+      // System schema tabs (Build & Deploy removed — Aurora is CI/CD-managed)
       { path: 'system-appearance', name: 'SettingsSystemAppearance', component: SystemAppearance, meta: { title: 'settings.appearance' } },
-      { path: 'system-build',      name: 'SettingsSystemBuild',      component: SystemBuild,      meta: { title: 'settings.build' } },
       { path: 'system', redirect: '/settings/system-appearance' },
       // Standalone schemas (no tabs)
       { path: 'collections', name: 'SettingsCollections', component: SchemaSettingsPage, props: { schemaId: 'chronicle:collections' }, meta: { title: 'settings.collections' } },
@@ -89,7 +88,6 @@ const routes = [
       { path: 'features',   redirect: '/settings/template-features' },
       { path: 'about',      redirect: '/settings/profile' },
       { path: 'collection', redirect: '/settings/collections' },
-      { path: 'build',      redirect: '/settings/system-build' },
       { path: 'i18n',       redirect: '/settings/template-appearance' },
       // ═══════════════════════════════════════════════
       // Legacy (archived hand-coded pages, for reference)

@@ -72,9 +72,18 @@ export async function resolveBackgroundUrlAsync(_scope: BackgroundScope): Promis
   return url
 }
 
-/** Sync fallback — returns cached URL from last async scan. */
-export function resolveBackgroundUrl(_raw: any, _scope: BackgroundScope): string {
+/** Resolve background URL for any scope. Directory-based auto-discovery. */
+export function resolveBackgroundUrl(_raw: any, scope: BackgroundScope): string {
+  if (scope === 'backend') return _backendBgUrlCache || '/.chronicle'
   return _bgUrlCache || `/${getBackgroundDir('frontend')}`
+}
+
+let _backendBgUrlCache: string | null = null
+export async function discoverBackendBgUrlAsync(): Promise<string> {
+  const image = await findFirstImage('.chronicle')
+  const url = image ? `/.chronicle/${image}` : ''
+  _backendBgUrlCache = url
+  return url
 }
 
 /** Async: discover avatar URL by scanning data/avatar/. */

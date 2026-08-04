@@ -148,17 +148,19 @@
 </template>
 
 <script setup lang="ts">
-import { fetchWithAuth } from '../utils/fetchWithAuth'
+import { readJson, writeJson, readText, writeText, deleteDir } from '../data/dataAccess'
 import { ref, onMounted, onUnmounted, computed, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { sortTags } from '../utils/tagUtils'
 import useToast from '../composables/useToast'
 import { getNotificationCenter } from '../composables/useNotificationCenter'
 import { settingsStore } from '../composables/settingsApi'
+import { triggerBuild } from '../composables/useAstroBuild'
 import { Icons } from '../utils/icons'
 import FilterDropdown from '../components/FilterDropdown.vue'
 
 const nc = getNotificationCenter()
+const isElectron = typeof window !== 'undefined' && !!(window as any).chronicleElectron?.isElectron
 
 interface Post {
   id: string
@@ -314,15 +316,9 @@ async function saveRename(post: Post) {
   const newTitle = tempRenameTitle.value.trim()
   if (newTitle && newTitle !== post.title) {
     try {
-      const res = await fetchWithAuth(`/api/post?t=${Date.now()}`, {
-        method: 'POST',
-        body: JSON.stringify({ id: post.id, title: newTitle }),
-      })
-      if (res.ok) {
-        post.title = newTitle
-      } else {
-        alert(t('post.renameFailed'))
-      }
+      const idx = await readJson<Record<string, any>>('data/posts/index.json') ?? {}
+      const entry = idx[post.id]
+      if (entry) { entry.title = newTitle; await writeJson('data/posts/index.json', idx); post.title = newTitle }
     } catch (e) {
       alert(t('post.errorRenaming'))
     }
@@ -362,16 +358,13 @@ function editPost(id: string) {
 async function deletePost(id: string) {
   if (!confirm(t('post.confirmDelete'))) return
   try {
-    const res = await fetchWithAuth(`/api/post?id=${id}&t=${Date.now()}`, {
-      method: 'DELETE',
-    })
-    if (res.ok) {
-      loadPosts()
-    } else {
-      alert(t('post.failedToDelete'))
-    }
-  } catch (e) {
-    alert(t('post.errorDeleting'))
+    const idx = await readJson<Record<string, any>>('data/posts/index.json') ?? {}
+    const slug = idx[id]?.slug
+    if (slug) await deleteDir(`data/posts/${slug}`)
+    delete idx[id]
+    await writeJson('data/posts/index.json', idx)
+    loadPosts()
+  } catch (e) { alert(t('post.errorDeleting'))
   }
 }
 
@@ -383,15 +376,17 @@ async function bulkDelete() {
   if (!confirm(t('post.batchDeleteConfirm', { count: ids.length }))) return
 
   let success = 0, failed = 0
+  const idx = await readJson<Record<string, any>>('data/posts/index.json') ?? {}
 
   for (const id of ids) {
     try {
-      const res = await fetchWithAuth(`/api/post?id=${id}&t=${Date.now()}`, {
-        method: 'DELETE',
-      })
-      if (res.ok) success++; else failed++
+      const slug = idx[id]?.slug
+      if (slug) await deleteDir(`data/posts/${slug}`)
+      delete idx[id]
+      success++
     } catch { failed++ }
   }
+  await writeJson('data/posts/index.json', idx)
   showToast(t('post.batchDeleteResult', { success, failed: failed ? `, ${failed} failed` : '' }), {
     status: failed ? 'warning' : 'success', position: 'bottom-center', shape: 'capsule', duration: 3000,
   })
@@ -422,9 +417,9 @@ function onKeyDown(e: KeyboardEvent) {
 async function loadPosts() {
   loading.value = true
   try {
-    const res = await fetchWithAuth(`/api/posts?includeDrafts=true&t=${Date.now()}`)
-    if (res.ok) {
-      posts.value = await res.json()
+    const idx = await readJson<Record<string, any>>('data/posts/index.json')
+    if (idx) {
+      posts.value = Object.entries(idx).map(([id, entry]: [string, any]) => ({ id, ...entry }))
     }
   } catch (e) {
     console.error(e)
@@ -445,54 +440,11 @@ async function republishAll() {
 
   republishing.value = true
   try {
-    const res = await fetchWithAuth(`/api/admin/posts/republish-all?t=${Date.now()}`, { method: 'POST' })
-    const payload = await res.json().catch(() => null)
-    if (!res.ok || !payload?.success) throw new Error(payload?.message || t('post.republishAllFailed'))
-
-    const successList = Array.isArray(payload.successList) ? payload.successList : Array.isArray(payload.republishedPosts) ? payload.republishedPosts : []
-    const failureList = Array.isArray(payload.failureList) ? payload.failureList : []
-    const skippedList = Array.isArray(payload.skippedList) ? payload.skippedList : Array.isArray(payload.skippedPosts) ? payload.skippedPosts : []
-    const successCount = Number(payload.successCount ?? successList.length ?? 0)
-    const failureCount = Number(payload.failureCount ?? failureList.length ?? 0)
-    const skippedCount = Number(payload.skippedCount ?? skippedList.length ?? 0)
-    const buildStatus = payload.build?.status
-    const buildMessage = payload.build?.message ? ` ${payload.build.message}` : ''
-    const html = buildRepublishToastHtml({ successCount, failureCount, skippedCount, successList, failureList, skippedList })
-    const toastStatus = failureCount > 0 ? 'error' : (skippedCount > 0 ? 'warning' : 'success')
-    showToast(`${t('post.republishToastTitle')}：${html}${buildStatus ? ` <span class="republish-build-note">(${escapeHtml(buildStatus)}${buildMessage ? ` ${escapeHtml(buildMessage)}` : ''})</span>` : ''}`, {
-      status: toastStatus, position: 'bottom-center', shape: 'capsule', duration: 6000, rich: true,
-    })
-
-    // Auto-build：host 不再在 republish-all 中自动构建，前端检查设置并触发
-    const settings = settingsStore.value as Record<string, any> | null
-    if (settings?.autoBuildOnPublish && successCount > 0) {
-      const bt = nc.startBuild(`${t('settings.building')} · ${t('notification.source.batchRepublish')}`)
-      if (bt) {
-        const detailLabels = { id: t('notification.detailId') as string, trigger: t('notification.detailTrigger') as string, time: t('notification.detailTime') as string }
-        nc.update(bt.nid, { message: nc.buildDetail(detailLabels, bt.clientBuildId, t('notification.source.batchRepublish') as string) })
-        try {
-          const res = await fetchWithAuth(`/api/admin/build/astro?t=${Date.now()}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ clientBuildId: bt.clientBuildId, source: 'republish-all', reason: 'republish' }),
-          })
-          if (res.ok) {
-            const result = await res.json().catch(() => ({}))
-            const baseMsg = nc.buildDetail(detailLabels, bt.clientBuildId, t('notification.source.batchRepublish') as string)
-            if (result.status === 'timeout') {
-              nc.update(bt.nid, { state: 'completed', level: 'warning', title: t('settings.buildTimeout') as string, message: baseMsg })
-            } else {
-              nc.update(bt.nid, { state: 'completed', level: 'success', title: t('settings.buildCompleted') as string, message: baseMsg })
-            }
-          } else {
-            const msg = await res.json().then(d => d?.message).catch(() => '')
-            nc.update(bt.nid, { state: 'failed', level: 'error', title: t('settings.buildFailed') as string, message: `${nc.buildDetail(detailLabels, bt.clientBuildId, t('notification.source.batchRepublish') as string)}\n${t('notification.detailError')}: ${msg}`, actions: [{ label: t('nav.buildNow') as string, handler: 'retry-build' }] })
-          }
-        } catch (e: any) {
-          nc.update(bt.nid, { state: 'failed', level: 'error', title: t('settings.buildFailed') as string, message: `${nc.buildDetail(detailLabels, bt.clientBuildId, t('notification.source.batchRepublish') as string)}\n${t('notification.detailError')}: ${e?.message || ''}` })
-        }
-      }
-    }
+    if (!isElectron) throw new Error('Build requires Electron')
+    // Aurora: republish = rebuild. No server-side republish endpoint.
+    await triggerBuild({ source: t('post.republishAll'), t })
+    showToast(t('post.republishToastTitle'), { status: 'success', position: 'bottom-center', shape: 'capsule', duration: 3000 })
+    loadPosts()
 
     await loadPosts()
   } catch (error: any) {

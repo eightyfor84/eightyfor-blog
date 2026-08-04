@@ -216,14 +216,8 @@
                             <p>{{ t('editor.file.createNew') }}</p>
                             <div class="new-doc-grid">
                                 <div class="new-doc-col">
-                                    <span class="new-doc-label">{{ t('editor.file.local') }}</span>
-                                    <button class="primary-btn" @click="createLocalNew('article')">{{ t('editor.createNewArticle') }}</button>
-                                    <button class="primary-btn" @click="createLocalNew('slides')">{{ t('editor.createNewSlides') }}</button>
-                                </div>
-                                <div class="new-doc-col">
-                                    <span class="new-doc-label">{{ t('editor.file.cloud') }}</span>
-                                    <button class="secondary-btn" @click="createCloudNew('article')">{{ t('editor.file.newArticleCloud') }}</button>
-                                    <button class="secondary-btn" @click="createCloudNew('slides')">{{ t('editor.file.newSlidesCloud') }}</button>
+                                    <button class="primary-btn" @click="createNew('article')">{{ t('editor.createNewArticle') }}</button>
+                                    <button class="primary-btn" @click="createNew('slides')">{{ t('editor.createNewSlides') }}</button>
                                 </div>
                             </div>
                             <div class="warning-box" style="margin-top:8px;">
@@ -259,7 +253,7 @@
                             </div>
 
                             <div class="uploaded-section" style="margin-top:16px;">
-                                <h4>{{ t('editor.file.uploaded') }}</h4>
+                                <h4>{{ t('editor.file.workspace') }}</h4>
                                 <div v-if="!isCloudAuthenticated()" class="login-placeholder">
                                     <p>{{ t('editor.file.loginRequired') }}</p>
                                     <button class="primary-btn" @click="goToLogin('open-cloud-posts')">{{
@@ -654,7 +648,9 @@ import { ref, computed, watch, onMounted, onUnmounted, nextTick, reactive, provi
 import { useRoute, useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
-import { fetchWithAuth } from '../utils/fetchWithAuth.ts'
+// Aurora: cloud relay uses dataAccess directly — no fetchWithAuth needed.
+// Retained as null to satisfy composable parameter contracts.
+const fetchWithAuth: any = null
 import { settingsStore } from '../composables/settingsApi.ts'
 import { Icons } from '../utils/icons.ts'
 
@@ -1021,7 +1017,7 @@ const {
   fileTabs, currentFileTabTitle,
   openFileMenu, handleFileTabChange,
   onFilePickerSelect, executeFileAction,
-  createLocalNew, createCloudNew,
+  createNew,
   openLocalFilePicker, openRecentProject, requestOpenLocalFile,
   resetCurrentFile, handlePostOpen,
 } = useFileMenu({
@@ -1047,13 +1043,11 @@ async function restorePost() {
 async function doRestore() {
   if (!postId.value) return
   try {
-    const res = await fetchWithAuth(`/api/restore?id=${postId.value}&t=${Date.now()}`, { method: 'POST' })
-    if (res.ok) {
-      localStorage.removeItem(`chronicle_draft_${postId.value}`)
-      sessionStorage.removeItem(`chronicle_history_${postId.value}`)
-      await initLoad()
-      activeModal.value = 'none'
-    } else { alert('Failed to restore') }
+    // Aurora: restore = clear draft and reload from local file
+    localStorage.removeItem(`chronicle_draft_${postId.value}`)
+    sessionStorage.removeItem(`chronicle_history_${postId.value}`)
+    await initLoad()
+    activeModal.value = 'none'
   } catch (e) { alert('Error restoring') }
 }
 

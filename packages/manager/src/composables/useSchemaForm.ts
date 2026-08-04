@@ -12,8 +12,8 @@ import { ref, type Ref } from 'vue'
 import { readYaml, readJson, writeYaml, writeJson } from '../data/dataAccess'
 import { getMapping } from '../data/schemaRegistry'
 import { schemaStore, syncSchemas } from './schemaApi'
+import { resolveBackgroundUrlAsync, readBackgroundMeta, discoverBackendBgUrlAsync } from '../utils/backgroundSettings'
 
-// Local schemas bundled with manager — instant, no I/O needed
 import systemSettings from '../../schemas/system-settings.schema.json'
 
 const LOCAL_REGISTRY: Record<string, any> = {
@@ -109,8 +109,26 @@ export function useSchemaForm(schemaId: string) {
       let fileData: any = null
       if (mapping.format === 'yaml') {
         fileData = await readYaml(mapping.filePath)
+        // Auto-discover background from directory (site.yml doesn't store these)
+        if (id === 'chronicle:template-settings') {
+          fileData = fileData ?? {}
+          if (!fileData.frontendBackground) {
+            fileData.frontendBackground = await resolveBackgroundUrlAsync('frontend')
+          }
+          if (!fileData.frontendBackgroundMeta) {
+            const meta = await readBackgroundMeta('frontend')
+            if (meta) fileData.frontendBackgroundMeta = typeof meta === 'string' ? meta : meta
+          }
+        }
       } else {
         fileData = await readJson(mapping.filePath)
+        // Auto-discover backend background from directory (workspace.json doesn't store URL)
+        if (id === 'chronicle:system-settings') {
+          fileData = fileData ?? {}
+          if (!fileData.backendBackground) {
+            fileData.backendBackground = await discoverBackendBgUrlAsync()
+          }
+        }
       }
 
       if (sch.type === 'array') {

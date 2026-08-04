@@ -8,26 +8,29 @@
 
 import { reactive } from 'vue'
 import { readYaml, readJson } from '../data/dataAccess'
+import { discoverBackendBgUrlAsync, resolveBackgroundUrlAsync, readBackgroundMeta } from '../utils/backgroundSettings'
 
-/**
- * Reactive settings store — populated from local files on first load.
- * Components can import this directly for reactive access.
- */
 export const settingsStore = reactive<Record<string, any>>({})
 
 /**
  * Sync settings from local filesystem into the reactive store.
- * Reads both site.yml (template settings) and workspace.json (system settings).
+ * Auto-discovers background images and meta from directories.
  */
 export async function syncSettings(): Promise<Record<string, any>> {
   try {
-    const [site, ws] = await Promise.all([
+    const [site, ws, backendBgUrl, frontendBgUrl, frontendBgMeta] = await Promise.all([
       readYaml<Record<string, any>>('data/site.yml'),
       readJson<Record<string, any>>('.chronicle/workspace.json'),
+      discoverBackendBgUrlAsync(),
+      resolveBackgroundUrlAsync('frontend'),
+      readBackgroundMeta('frontend'),
     ])
 
-    // Merge: workspace overrides site for shared keys (backend settings win)
     const merged = { ...(site ?? {}), ...(ws ?? {}) }
+    if (backendBgUrl) merged.backendBackground = backendBgUrl
+    if (frontendBgUrl) merged.frontendBackground = frontendBgUrl
+    if (frontendBgMeta) merged.frontendBackgroundMeta = typeof frontendBgMeta === 'string' ? frontendBgMeta : JSON.stringify(frontendBgMeta)
+
     Object.keys(settingsStore).forEach(k => delete settingsStore[k])
     Object.assign(settingsStore, merged)
 

@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { fetchWithAuth } from '../utils/fetchWithAuth';
-import { readApiErrorMessage } from '../utils/apiError.ts'
+import { writeJson } from '../data/dataAccess'
 import { computed, ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 import { ShellIcons } from '../utils/shellIcons'
@@ -189,7 +188,7 @@ function ensureBackgroundImagePrepared(url: string): Promise<{ ok: boolean; prep
       for (const tryUrl of urlsToTry) {
         // Prefer fully downloaded blob url to avoid progressive display artifacts.
         try {
-          const resp = await fetchWithAuth(tryUrl, { cache: 'force-cache' })
+          const resp = await fetch(tryUrl, { cache: 'force-cache' })
           if (resp.ok) {
             const blob = await resp.blob()
             if (blob && blob.size > 0) {
@@ -935,6 +934,8 @@ watch(settingsStore, (s) => { applySettingsFromStore(s) })
 
 watch(route, () => {
   isMenuOpen.value = false
+  // Re-apply background on soft navigation (directory-based discovery)
+  try { applySettingsFromStore({ ...settingsStore }) } catch (_) {}
 })
 
 // Sidebar actions: open frontend and trigger astro rebuild
@@ -942,7 +943,7 @@ const { show: showToast } = useToast()
 const { theme, cycleTheme } = usePreferences()
 async function cycleAndSaveTheme() {
   cycleTheme()
-  fetchWithAuth('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ backendTheme: theme.value }) }).catch(() => {})
+  writeJson('.chronicle/workspace.json', { backendTheme: theme.value }).catch(() => {})
 }
 const isRebuilding = ref(false)
 const isAvailable = ref(true)

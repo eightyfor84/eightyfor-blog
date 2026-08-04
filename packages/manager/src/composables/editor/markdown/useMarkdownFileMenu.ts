@@ -281,26 +281,14 @@ export function useFileMenu(options: FileMenuOptions) {
   // 新建
   // ══════════════════════════════════════════════════════
 
-  /** 新建本地文档——createPost + router.replace */
-  async function createLocalNew(type: 'article' | 'slides') {
-    const doNew = async () => {
-      await createPost({ source: 'local', type })
-      router.replace(ep(type as 'article' | 'slides'))
-      activeModal.value = 'none'
-    }
-    if (isDirty.value) handleUnsavedCheck(doNew)
-    else await doNew()
-  }
-
-  /** 新建云端文档——导航到 ?id=new，由 initLoad 统一处理 */
-  async function createCloudNew(type: 'article' | 'slides') {
-    if (!isCloudAuthenticated()) { goToLogin(`${editorBasePath}/${type}?id=new`); return }
-    const doCloud = () => {
+  /** 新建文档——导航到 ?id=new，由 initLoad 统一处理（Aurora: 无 cloud/local 区分） */
+  async function createNew(type: 'article' | 'slides') {
+    const doNew = () => {
       router.push({ path: ep(type as 'article' | 'slides'), query: { id: 'new' } })
       activeModal.value = 'none'
     }
-    if (isDirty.value) handleUnsavedCheck(doCloud)
-    else doCloud()
+    if (isDirty.value) handleUnsavedCheck(doNew)
+    else doNew()
   }
 
   // ══════════════════════════════════════════════════════
@@ -376,7 +364,7 @@ export function useFileMenu(options: FileMenuOptions) {
     openFileMenu, handleFileTabChange,
     triggerImportInput, handleImportSelect, onFilePickerSelect,
     executeFileAction, clearCurrentLocalDocument,
-    createLocalNew, createCloudNew,
+    createNew,
     openLocalFilePicker, openRecentProject, requestOpenLocalFile,
     resetCurrentFile, handlePostOpen,
     loadRecentProjects, saveRecentProjects,

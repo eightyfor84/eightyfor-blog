@@ -93,7 +93,7 @@
 
 <script setup lang="ts">
 import '@chronicle/shared/src/styles/chronicle-markdown.css'
-import { fetchWithAuth } from '../utils/fetchWithAuth'
+import { readText } from '../data/dataAccess'
 import { ref, watch, computed, onMounted, onUnmounted } from 'vue'
 import { usePreview } from '../composables/usePreview'
 import DOMPurify from 'dompurify'
@@ -126,10 +126,11 @@ async function loadText() {
   if (!state.file?.path) { textError.value = 'No file URL'; return }
   loading.value = true; textError.value = ''; textHtml.value = ''
   try {
-    const res = await fetchWithAuth(state.file.path)
-    if (!res.ok) throw new Error(`Fetch failed: ${res.status}`)
-    const buf = await res.arrayBuffer()
-    let decoded = ''
+    // Normalize path: strip /api/, /server/data/, leading slashes
+    const relPath = state.file.path.replace(/^\/?(api\/|server\/data\/)/, '').replace(/^\//, '')
+    const text = await readText(relPath)
+    if (!text) throw new Error('Failed to load file')
+    let decoded = text
     try { decoded = new TextDecoder(encoding.value).decode(buf) }
     catch { decoded = new TextDecoder('utf-8').decode(buf) }
 

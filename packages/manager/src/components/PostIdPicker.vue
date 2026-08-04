@@ -75,7 +75,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { fetchWithAuth } from '../utils/fetchWithAuth'
+import { readJson } from '../data/dataAccess'
 
 type PostRecord = {
   id: string
@@ -171,9 +171,9 @@ async function loadPublishedPosts() {
   if (loaded.value || loading.value) return
   loading.value = true
   try {
-    const res = await fetchWithAuth(`/api/posts?includeDrafts=true&t=${Date.now()}`)
-    if (!res.ok) return
-    const all = parsePostsPayload(await res.json())
+    const idx = await readJson<Record<string, any>>('data/posts/index.json')
+    if (!idx) return
+    const all = Object.entries(idx).map(([id, entry]: [string, any]) => ({ id, ...entry }))
     posts.value = all.filter((item) => String(item?.status || '') === 'published'||String(item?.status || '') === 'modifying')
     loaded.value = true
   } finally {

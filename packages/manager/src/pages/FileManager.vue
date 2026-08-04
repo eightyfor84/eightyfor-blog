@@ -212,7 +212,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { fetchWithAuth } from '../utils/fetchWithAuth'
+import { readDir, deleteFile as delFile } from '../data/dataAccess'
 import { usePreview } from '../composables/usePreview'
 import useToast from '../composables/useToast'
 import {
@@ -313,8 +313,8 @@ async function bulkDeleteFiles() {
   let success = 0, failed = 0
   for (const p of paths) {
     try {
-      const res = await fetchWithAuth(`/api/files?path=${encodeURIComponent(p)}&t=${Date.now()}`, { method: 'DELETE' })
-      if (res.ok) success++; else failed++
+      const ok = await delFile(`data/assets/${p.split('/').pop()}`)
+      if (ok) success++; else failed++
     } catch { failed++ }
   }
   showToast(t('file.batchDeleteResult', { success, failed: failed ? `, ${failed} failed` : '' }), {
@@ -386,18 +386,14 @@ async function loadItems() {
     loading.value = true
     allItems.value = []
     try {
-        const res = await fetchWithAuth(`/api/files?path=all&t=${Date.now()}`)
-        if (res.ok) {
-            const all = await res.json()
-            allItems.value = (Array.isArray(all) ? all : [])
-                .filter((i: any) => i.type === 'file')
-                .map((item: any, idx: number) => ({
-                    ...item,
-                    key: item.path || `${Date.now()}_${idx}`,
-                    name: item.displayname || item.name,
-                    type: item.type || getCategoryFromFile(item),
-                }))
-        }
+        const names = await readDir('data/assets')
+        allItems.value = names.map((name, idx) => ({
+            name, url: `/data/assets/${encodeURIComponent(name)}`,
+            path: `/data/assets/${encodeURIComponent(name)}`,
+            thumb: `/data/assets/${encodeURIComponent(name)}`,
+            type: getCategoryFromFile({ name }),
+            key: `/data/assets/${encodeURIComponent(name)}`,
+        }))
     } catch (e) {
         console.error('loadItems failed', e)
         allItems.value = []
@@ -414,15 +410,14 @@ function triggerUploadInput() {
 
 async function uploadFileToServer(file: File): Promise<string | null> {
     try {
-        const encodedName = encodeURIComponent(file.name)
-        const res = await fetchWithAuth(`/api/upload?t=${Date.now()}`, {
-            method: 'POST',
-            headers: { 'x-filename': encodedName },
-            body: file,
-        })
-        if (!res.ok) throw new Error('upload failed')
-        const j = await res.json()
-        return j && j.url ? j.url : null
+        const isElec = typeof window !== 'undefined' && !!(window as any).chronicleElectron?.isElectron
+        if (!isElec) { console.warn('Upload requires Electron'); return null }
+        const bridge = (window as any).chronicleElectron
+        const buf = await file.arrayBuffer()
+        const base64 = btoa(String.fromCharCode(...new Uint8Array(buf)))
+        const name = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+        await bridge.writeBase64(`data/assets/${name}`, base64)
+        return `/data/assets/${encodeURIComponent(name)}`
     } catch (e) {
         console.error('upload failed', e)
         return null
@@ -533,9 +528,7 @@ function copyLink(file: any) {
 async function deleteItem(path: string) {
     if (!confirm(`Permanently delete this file?`)) return
 
-    await fetchWithAuth(`/api/files?path=${encodeURIComponent(path)}&t=${Date.now()}`, {
-        method: 'DELETE',
-    })
+    await delFile(`data/assets/${decodeURIComponent(path).split('/').pop()}`)
     loadItems()
 }
 

@@ -192,7 +192,7 @@
 </template>
 
 <script setup lang="ts">
-import { fetchWithAuth } from '../utils/fetchWithAuth'
+import { readDir } from '../data/dataAccess'
 import { ref, watch, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { usePreview } from '../composables/usePreview'
@@ -375,29 +375,16 @@ async function loadCloudFiles() {
     }
 
     try {
-        const categories = getCategoriesFromRestrictedTypes()
-        let url = `/api/files?t=${Date.now()}`
-        url += `&path=all`
-        
-        if (categories.length > 0) {
-            url += `&categories=${categories.join(',')}`
-        }
-        
-        const res = await fetchWithAuth(url, { cache: 'no-store' } as any)
-        if (!res.ok) throw new Error(`load failed: ${res.status}`)
-        const all = await res.json()
-        cloudFiles.value = (Array.isArray(all) ? all : [])
-            .filter((item: any) => item.type === 'file')
-            .map((item: any, idx: number) => ({
-                ...item,
-                key: item._localId || item.path || `${Date.now()}_${idx}`,
-                name: item.displayname || item.name,
-                size: item.size || 0,
-                type: getFileTypeFromName(item.displayname || item.name),
-                mimeType: item.mimeType || null,
-                url: item.url || `/server/data/upload/${item.path}`,
-                preview: item.thumb || item.preview || item.url || `/server/data/upload/${item.path}`,
-            }))
+        const names = await readDir('data/assets')
+        cloudFiles.value = names.map((name, idx) => ({
+            key: `/data/assets/${name}`,
+            name,
+            size: 0,
+            type: getFileTypeFromName(name),
+            mimeType: null,
+            url: `/data/assets/${encodeURIComponent(name)}`,
+            preview: `/data/assets/${encodeURIComponent(name)}`,
+        }))
         refreshVisibleFiles()
     } catch (e) {
         console.error('loadCloudFiles failed', e)
@@ -562,15 +549,14 @@ async function onUploadSelect(e: Event) {
 
 async function uploadFileToServer(file: File) {
     try {
-        const encodedName = encodeURIComponent(file.name)
-        const res = await fetchWithAuth(`/api/upload?t=${Date.now()}`, {
-            method: 'POST',
-            headers: { 'x-filename': encodedName },
-            body: file
-        })
-        if (!res.ok) throw new Error('upload failed')
-        const j = await res.json()
-        return j && j.url ? j.url : null
+        const isElec = typeof window !== 'undefined' && !!(window as any).chronicleElectron?.isElectron
+        if (!isElec) { console.warn('Upload requires Electron'); return null }
+        const bridge = (window as any).chronicleElectron
+        const buf = await file.arrayBuffer()
+        const base64 = btoa(String.fromCharCode(...new Uint8Array(buf)))
+        const name = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+        await bridge.writeBase64(`data/assets/${name}`, base64)
+        return `/data/assets/${encodeURIComponent(name)}`
     } catch (e) {
         console.error('upload failed', e)
         return null

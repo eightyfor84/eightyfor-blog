@@ -1,5 +1,14 @@
 <script setup lang="ts">
-import { fetchWithAuth } from '../utils/fetchWithAuth'
+import { readJson, readDir } from '../data/dataAccess'
+
+// Scan data/ directory via /api/storage
+async function fetchStorage() {
+  try {
+    const resp = await fetch('/api/storage')
+    if (resp.ok) return resp.json()
+  } catch (_) { /* ok */ }
+  return { total: 0, categories: { images: 0, videos: 0, audio: 0, documents: 0, config: 0, other: 0 }, labels: {} }
+}
 import { syncSettings } from '../composables/settingsApi';
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -22,35 +31,13 @@ type StorageSegment = {
   ratio: number
 }
 
-type StorageResponse = {
-  paths: {
-    frontendPath: string
-    backendPath: string
-    apiPath: string
-    uploadPath: string
-  }
-  usage: {
-    frontendBytes: number
-    backendBytes: number
-    apiBytes: number
-    uploadBytes: number
-    otherBytes: number
-  }
-  server: {
-    totalBytes: number
-    availableBytes: number
-    usedBytes: number
-  }
-  segments: StorageSegment[]
-}
-
 const { t } = useI18n()
 const router = useRouter()
 const loading = ref(true)
 const error = ref('')
 const posts = ref<PostRecord[]>([])
 const totalUploads = ref(0)
-const storage = ref<StorageResponse | null>(null)
+const storageData = ref({ total: 0, categories: { images: 0, videos: 0, audio: 0, documents: 0, config: 0, other: 0 }, labels: {} as Record<string,string> })
 const templateInfo = ref<{ name?: string; version?: string }>({})
 const templateError = ref(false)
 
@@ -72,41 +59,20 @@ function editPost(postId: string) {
   router.push(`/editor?id=${postId}`)
 }
 
-function parsePostsPayload(payload: any): PostRecord[] {
-  if (Array.isArray(payload)) return payload
-  if (Array.isArray(payload?.posts)) return payload.posts
-  return []
-}
-
 onMounted(async () => {
   try {
-    const stamp = Date.now()
-    const [postsRes, filesRes, storageRes] = await Promise.all([
-      fetchWithAuth('/api/posts?includeDrafts=true&t=' + stamp, { cache: 'no-store' }),
-      fetchWithAuth('/api/files?path=all&t=' + stamp, { cache: 'no-store' }),
-      fetchWithAuth('/api/system/storage?t=' + stamp, { cache: 'no-store' }),
+    const [idx, files, pkg] = await Promise.all([
+      readJson<Record<string, any>>('data/posts/index.json'),
+      readDir('data/assets'),
+      readJson<Record<string, any>>('packages/template-astro/package.json').catch(() => null),
     ])
-
-    if (!postsRes.ok) throw new Error(`posts: HTTP ${postsRes.status}`)
-    if (!filesRes.ok) throw new Error(`files: HTTP ${filesRes.status}`)
-    if (!storageRes.ok) throw new Error(`storage: HTTP ${storageRes.status}`)
-
-    posts.value = parsePostsPayload(await postsRes.json())
-
-    const files = await filesRes.json()
-    totalUploads.value = Array.isArray(files) ? files.length : 0
-
-    storage.value = await storageRes.json()
-
-    // 模板版本信息（非阻塞，失败不影响仪表盘）
-    fetchWithAuth('/api/admin/template/info', { cache: 'no-store' })
-      .then(res => res.ok ? res.json() : Promise.reject(new Error(`HTTP ${res.status}`)))
-      .then(data => { if (data) templateInfo.value = data; })
-      .catch(() => { templateError.value = true; })
-
-    await syncSettings()  // deduplicates with App.vue's syncSettings
-  } catch (err) {
-    error.value = t('dashboard.loadFailed')
+    posts.value = Object.entries(idx ?? {}).map(([id, entry]: [string, any]) => ({ id, ...entry }))
+    totalUploads.value = files.length
+    storageData.value = await fetchStorage() as any
+    if (pkg) templateInfo.value = { name: pkg.name, version: pkg.version }
+    else templateError.value = true
+    await syncSettings()
+  } catch (err) { error.value = t('dashboard.loadFailed')
   } finally {
     loading.value = false
   }
@@ -122,104 +88,29 @@ const overviewCards = computed(() => {
     return tags.some((tag) => String(tag) === 'featured' || String(tag) === '精选')
   }).length
   
-  // 存储占用计算
-  const serverTotalBytes = storage.value?.server?.totalBytes ?? 0
-  const serverAvailable = storage.value?.server?.availableBytes ?? 0
-  
-  // 计算项目总占用
-  const usage = storage.value?.usage
-  const projectUsed = (usage?.frontendBytes ?? 0) + 
-                     (usage?.backendBytes ?? 0) + 
-                     (usage?.apiBytes ?? 0) + 
-                     (usage?.uploadBytes ?? 0)
-  
-  const storagePercent = serverTotalBytes > 0 ? (projectUsed / serverTotalBytes) * 100 : 0
-  
-  // 存储占用小字样式
-  let storageNoteClass = ''
-  if (serverAvailable < 200 * 1024 * 1024) { // 小于200MB - 红色严重警告
-    storageNoteClass = 'critical-warning-note'
-  } else if (serverAvailable < 1 * 1024 * 1024 * 1024) { // 小于1GB - 黄色警告
-    storageNoteClass = 'warning-note'
-  }
+  const totalUsed = storageData.value.total
+  const c = storageData.value.categories; const l = storageData.value.labels
+  const topCat = Object.entries(c).filter(([,v]) => (v as number) > 0).sort((a,b) => (b[1] as number) - (a[1] as number))[0]
 
   return [
-    { 
-      label: t('dashboard.totalPosts'), 
-      value: publishedPosts, 
-      note: featuredPosts > 0 ? t('dashboard.featuredCount', { count: featuredPosts }) : '',
-      noteClass: featuredPosts > 0 ? 'featured-note' : ''
-    },
-    { 
-      label: t('dashboard.drafts'), 
-      value: draftPosts, 
-      note: t('dashboard.modifyingCount', { count: modifyingPosts }),
-      noteClass: modifyingPosts > 0 ? 'warning-note' : ''
-    },
-    {
-      label: t('dashboard.storageUsage'), 
-      value: `${storagePercent.toFixed(1)}%`,
-      note: serverTotalBytes > 0 ? t('dashboard.storageUsedAvl', { used: formatBytes(projectUsed), avl: formatBytes(serverAvailable) }) : t('dashboard.fetchError'),
-      noteClass: serverTotalBytes === 0 ? 'error-note' : storageNoteClass
-    },
-    {
-      label: t('dashboard.templateVersion'),
-      value: templateInfo.value.version || 'N/A',
-      note: templateInfo.value.name || t('dashboard.templateError'),
-      noteClass: templateError.value ? 'error-note' : ''
-    }
+    { label: t('dashboard.totalPosts'), value: publishedPosts, note: featuredPosts > 0 ? t('dashboard.featuredCount', { count: featuredPosts }) : '', noteClass: featuredPosts > 0 ? 'featured-note' : '' },
+    { label: t('dashboard.drafts'), value: draftPosts, note: t('dashboard.modifyingCount', { count: modifyingPosts }), noteClass: modifyingPosts > 0 ? 'warning-note' : '' },
+    { label: t('dashboard.storageUsage'), value: formatBytes(totalUsed), note: topCat ? `${l[topCat[0]] || topCat[0]}: ${formatBytes(topCat[1] as number)}` : '', noteClass: '' },
+    { label: t('dashboard.templateVersion'), value: templateInfo.value.version || 'N/A', note: templateInfo.value.name || t('dashboard.templateError'), noteClass: templateError.value ? 'error-note' : '' },
   ]
 })
 
 const spaceCards = computed(() => {
-  const usage = storage.value?.usage
-  const server = storage.value?.server
-  return [
-    { key: 'frontend', label: t('dashboard.frontendUsage'), value: usage?.frontendBytes ?? 0 },
-    { key: 'backend', label: t('dashboard.backendUsage'), value: usage?.backendBytes ?? 0 },
-    { key: 'api', label: t('dashboard.apiUsage'), value: usage?.apiBytes ?? 0 },
-    { key: 'upload', label: t('dashboard.uploadUsage'), value: usage?.uploadBytes ?? 0 },
-    { key: 'other', label: t('dashboard.otherUsage'), value: usage?.otherBytes ?? 0 },
-    { key: 'available', label: t('dashboard.serverAvailable'), value: server?.availableBytes ?? 0 },
-  ]
+  const c = storageData.value.categories; const l = storageData.value.labels
+  return Object.entries(c).filter(([,v]) => v > 0).map(([k, v]) => ({ key: k, label: l[k] || k, value: v as number }))
 })
 
 const spaceSegments = computed(() => {
-  const serverTotal = storage.value?.server?.totalBytes ?? 0
-  const segments = storage.value?.segments || []
-  return segments.map((segment) => {
-    const key = segment.key
-    const labelMap: Record<string, string> = {
-      frontend: t('dashboard.frontendUsage'),
-      backend: t('dashboard.backendUsage'),
-      api: t('dashboard.apiUsage'),
-      upload: t('dashboard.uploadUsage'),
-      other: t('dashboard.otherUsage'),
-      available: t('dashboard.serverAvailable'),
-    }
-    const percent = serverTotal > 0 ? (segment.bytes / serverTotal) * 100 : 0
-    return {
-      ...segment,
-      label: labelMap[key] || segment.label,
-      percent,
-    }
-  })
+  const total = storageData.value.total; const c = storageData.value.categories; const l = storageData.value.labels
+  return Object.entries(c).filter(([,v]) => v > 0).map(([k, v]) => ({ key: k, label: l[k] || k, bytes: v as number, percent: total > 0 ? ((v as number) / total) * 100 : 0 }))
 })
 
-const usedSpaceSegments = computed(() => {
-  const order: Record<string, number> = {
-    other: 0,
-    frontend: 1,
-    backend: 2,
-    api: 3,
-    upload: 4,
-  }
-
-  return spaceSegments.value
-    .filter((segment) => segment.key !== 'available')
-    .slice()
-    .sort((a, b) => (order[a.key] ?? 99) - (order[b.key] ?? 99))
-})
+const usedSpaceSegments = computed(() => spaceSegments.value)
 
 function segmentWidthStyle(percent: number) {
   if (!Number.isFinite(percent) || percent <= 0) return '0px'
@@ -266,20 +157,8 @@ const recentPosts = computed(() => {
   return sorted.slice(0, 3)
 })
 
-const storagePaths = computed(() => storage.value?.paths || {
-  frontendPath: '',
-  backendPath: '',
-  apiPath: '',
-  uploadPath: '',
-})
-const serverTotal = computed(() => storage.value?.server?.totalBytes ?? 0)
-const projectUsed = computed(() => {
-  const usage = storage.value?.usage
-  return (usage?.frontendBytes ?? 0) + 
-         (usage?.backendBytes ?? 0) + 
-         (usage?.apiBytes ?? 0) + 
-         (usage?.uploadBytes ?? 0)
-})
+const serverTotal = computed(() => storageData.value.total)
+const projectUsed = computed(() => storageData.value.total)
 </script>
 
 <template>
@@ -363,16 +242,6 @@ const projectUsed = computed(() => {
             </div>
           </div>
         </article>
-        <article class="panel">
-          <div class="panel-header">
-            <h3>{{ t('dashboard.storagePaths') }}</h3>
-          </div>
-          <ul class="path-list">
-            <li><span>{{ t('dashboard.frontendPath') }}</span><code>{{ storagePaths.frontendPath || '-' }}</code></li>
-            <li><span>{{ t('dashboard.backendPath') }}</span><code>{{ storagePaths.backendPath || '-' }}</code></li>
-            <li><span>{{ t('dashboard.apiPath') }}</span><code>{{ storagePaths.apiPath || '-' }}</code></li>
-          </ul>
-        </article>
       </section>
     </template>
   </div>
@@ -420,12 +289,18 @@ const projectUsed = computed(() => {
 .space-contrib { display: grid; gap: .85rem; }
 .contrib-bar { width: 100%; height: 16px; border-radius: 4px; overflow: hidden; background: var(--component-bg); border: 1px solid var(--border-color); display: flex; }
 .contrib-segment { display: block; height: 100%; }
-.seg-frontend { background: #4e79a7; }
-.seg-backend { background: #f28e2b; }
-.seg-api { background: #e15759; }
-.seg-upload { background: #76b7b2; }
+.seg-images { background: #4e79a7; }
+.seg-videos { background: #e15759; }
+.seg-audio { background: #f28e2b; }
+.seg-documents { background: #76b7b2; }
+.seg-config { background: #b07aa1; }
 .seg-other { background: #888; }
-.seg-available { background: #59a14f; }
+.swatch-images { background: #4e79a7; }
+.swatch-videos { background: #e15759; }
+.swatch-audio { background: #f28e2b; }
+.swatch-documents { background: #76b7b2; }
+.swatch-config { background: #b07aa1; }
+.swatch-other { background: #888; }
 .space-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .55rem; }
 .space-list li { display: flex; align-items: center; justify-content: space-between; gap: .8rem; padding: .6rem .8rem; border-radius: 10px; background: var(--component-bg); border: 1px solid var(--border-color); }
 .space-list span { color: var(--component-text-secondary); }

@@ -133,7 +133,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { fetchWithAuth } from '../utils/fetchWithAuth'
+import { readJson, writeJson, readDir } from '../data/dataAccess'
 import PostIdPicker from '../components/PostIdPicker.vue'
 const { t } = useI18n()
 
@@ -193,18 +193,11 @@ watch(selectedPostId, async (id) => {
   loadingPost.value = true
   error.value = ''
   try {
-    const res = await fetchWithAuth(`/api/admin/comments/${id}?t=${Date.now()}`)
-    if (res.ok) {
-      const data = await res.json()
-      const approved = (data?.approved ?? (Array.isArray(data) ? data : [])).map((c: any) => ({ ...c, _source: 'approved' }))
-      const pending = (data?.pending ?? []).map((c: any) => ({ ...c, _source: 'pending' }))
-      const all = [...pending, ...approved].sort(
-        (a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime()
-      )
-      flatComments.value = all
-    } else {
-      error.value = `HTTP ${res.status}`
-    }
+    const approved = await readJson<any[]>('data/comments/' + id + '.json') ?? []
+    const pending = await readJson<any[]>('data/comments-pending/' + id + '.json') ?? []
+    const all = [...pending.map((c: any) => ({ ...c, _source: 'pending' })), ...approved.map((c: any) => ({ ...c, _source: 'approved' }))]
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    flatComments.value = all
   } catch (e: any) {
     error.value = e.message || t('comment.loading')
   } finally {
@@ -215,25 +208,21 @@ watch(selectedPostId, async (id) => {
 async function moderate(comment: ChronicleComment, action: 'approve' | 'hide' | 'unhide') {
   markActing(comment.id)
   try {
-    const res = await fetchWithAuth(
-      `/api/admin/comments/${selectedPostId.value}/${comment.id}?t=${Date.now()}`,
-      { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action }) }
-    )
-    if (res.ok) {
-      if (action === 'approve') {
-        const c = flatComments.value.find(x => x.id === comment.id)
-        if (c) { c._source = 'approved'; c.hidden = false }
-      } else if (action === 'hide') {
-        const c = flatComments.value.find(x => x.id === comment.id)
-        if (c) c.hidden = true
-      } else if (action === 'unhide') {
-        const c = flatComments.value.find(x => x.id === comment.id)
-        if (c) c.hidden = false
-      }
+    const pid = selectedPostId.value
+    if (action === 'approve') {
+      const pending = await readJson<any[]>('data/comments-pending/' + pid + '.json') ?? []
+      const approved = await readJson<any[]>('data/comments/' + pid + '.json') ?? []
+      const idx = pending.findIndex((c:any) => c.id === comment.id)
+      if (idx >= 0) { const c = pending.splice(idx,1)[0]; c.hidden = false; approved.push(c) }
+      await writeJson('data/comments-pending/' + pid + '.json', pending)
+      await writeJson('data/comments/' + pid + '.json', approved)
     } else {
-      const err = await res.json().catch(() => ({}))
-      error.value = (err as any).message || `HTTP ${res.status}`
+      const list = await readJson<any[]>('data/comments/' + pid + '.json') ?? []
+      const c = list.find((c:any) => c.id === comment.id)
+      if (c) { c.hidden = action === 'hide'; await writeJson('data/comments/' + pid + '.json', list) }
     }
+    const c = flatComments.value.find(x => x.id === comment.id)
+    if (c) { if (action === 'approve') { c._source = 'approved'; c.hidden = false } else { c.hidden = action === 'hide' } }
   } catch (e: any) {
     error.value = e.message || t('comment.moderationFailed')
   } finally {
@@ -245,16 +234,13 @@ async function remove(comment: ChronicleComment) {
   if (!confirm(t('comment.confirmDelete'))) return
   markActing(comment.id)
   try {
-    const res = await fetchWithAuth(
-      `/api/admin/comments/${selectedPostId.value}/${comment.id}?t=${Date.now()}`,
-      { method: 'DELETE' }
-    )
-    if (res.ok) {
-      flatComments.value = flatComments.value.filter(x => x.id !== comment.id)
-    } else {
-      const err = await res.json().catch(() => ({}))
-      error.value = (err as any).message || `HTTP ${res.status}`
+    const pid = selectedPostId.value
+    for (const dir of ['data/comments', 'data/comments-pending']) {
+      const list = await readJson<any[]>(dir + '/' + pid + '.json') ?? []
+      const filtered = list.filter((c:any) => c.id !== comment.id && c.parent !== comment.id)
+      if (filtered.length !== list.length) { await writeJson(dir + '/' + pid + '.json', filtered) }
     }
+    flatComments.value = flatComments.value.filter(x => x.id !== comment.id)
   } catch (e: any) {
     error.value = e.message || t('comment.deleteFailed')
   } finally {
@@ -267,17 +253,15 @@ async function loadPendingOverview() {
   loadingPending.value = true
   error.value = ''
   try {
-    const res = await fetchWithAuth(`/api/admin/comments?t=${Date.now()}`)
-    if (res.ok) {
-      const data = await res.json()
-      const list = (data?.data) ? data.data : (Array.isArray(data) ? data : [])
-      pendingGroups.value = list.map((g: any) => ({
-        postId: g.postId,
-        postTitle: g.postTitle || g.postId,
-        comments: g.comments || [],
-      }))
-      pendingTotal.value = pendingGroups.value.reduce((s, g) => s + g.comments.length, 0)
+    const pendingFiles = await readDir('data/comments-pending')
+    const uuids = pendingFiles.map(f => f.replace('.json', ''))
+    const groups = []
+    for (const uuid of uuids) {
+      const comments = await readJson<any[]>('data/comments-pending/' + uuid + '.json') ?? []
+      if (comments.length) groups.push({ postId: uuid, postTitle: uuid, comments })
     }
+    pendingGroups.value = groups
+    pendingTotal.value = groups.reduce((s, g) => s + g.comments.length, 0)
   } catch (e: any) {
     error.value = e.message || t('comment.loading')
   } finally {
@@ -288,20 +272,18 @@ async function loadPendingOverview() {
 async function moderateOverview(postId: string, comment: ChronicleComment, action: 'approve') {
   markActing(comment.id)
   try {
-    const res = await fetchWithAuth(
-      `/api/admin/comments/${postId}/${comment.id}?t=${Date.now()}`,
-      { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action }) }
-    )
-    if (res.ok) {
-      for (const g of pendingGroups.value) {
-        g.comments = g.comments.filter((c: any) => c.id !== comment.id)
-      }
-      pendingGroups.value = pendingGroups.value.filter(g => g.comments.length > 0)
-      pendingTotal.value = Math.max(0, pendingTotal.value - 1)
-    } else {
-      const err = await res.json().catch(() => ({}))
-      error.value = (err as any).message || `HTTP ${res.status}`
+    // Aurora: approve from pending → move to approved
+    const pending = await readJson<any[]>('data/comments-pending/' + postId + '.json') ?? []
+    const approved = await readJson<any[]>('data/comments/' + postId + '.json') ?? []
+    const idx = pending.findIndex((c:any) => c.id === comment.id)
+    if (idx >= 0) { const c = pending.splice(idx,1)[0]; c.hidden = false; approved.push(c) }
+    await writeJson('data/comments-pending/' + postId + '.json', pending)
+    await writeJson('data/comments/' + postId + '.json', approved)
+    for (const g of pendingGroups.value) {
+      g.comments = g.comments.filter((c: any) => c.id !== comment.id)
     }
+    pendingGroups.value = pendingGroups.value.filter(g => g.comments.length > 0)
+    pendingTotal.value = Math.max(0, pendingTotal.value - 1)
   } catch (e: any) {
     error.value = e.message || t('comment.moderationFailed')
   } finally {
@@ -313,17 +295,16 @@ async function removeOverview(postId: string, comment: ChronicleComment) {
   if (!confirm(t('comment.confirmDelete'))) return
   markActing(comment.id)
   try {
-    const res = await fetchWithAuth(
-      `/api/admin/comments/${postId}/${comment.id}?t=${Date.now()}`,
-      { method: 'DELETE' }
-    )
-    if (res.ok) {
-      for (const g of pendingGroups.value) {
-        g.comments = g.comments.filter((c: any) => c.id !== comment.id)
-      }
-      pendingGroups.value = pendingGroups.value.filter(g => g.comments.length > 0)
-      pendingTotal.value = Math.max(0, pendingTotal.value - 1)
+    for (const dir of ['data/comments', 'data/comments-pending']) {
+      const list = await readJson<any[]>(dir + '/' + postId + '.json') ?? []
+      const filtered = list.filter((c:any) => c.id !== comment.id && c.parent !== comment.id)
+      if (filtered.length !== list.length) { await writeJson(dir + '/' + postId + '.json', filtered) }
     }
+    for (const g of pendingGroups.value) {
+      g.comments = g.comments.filter((c: any) => c.id !== comment.id)
+    }
+    pendingGroups.value = pendingGroups.value.filter(g => g.comments.length > 0)
+    pendingTotal.value = Math.max(0, pendingTotal.value - 1)
   } catch (e: any) {
     error.value = e.message || t('comment.deleteFailed')
   } finally {

@@ -304,6 +304,7 @@
     position: sticky;
     top: 0;
     z-index: 1;
+    border-left: 1px solid var(--component-bg-blur-alt);
 }
 
 .chronicle-fb-table th {
@@ -312,8 +313,7 @@
     padding: 0.4rem 0.5rem;
     font-weight: 500;
     color: var(--component-text-secondary);
-    border-bottom: 1px solid var(--border-color);
-    background: var(--component-bg);
+    background: var(--component-bg-blur-alt);
     transition: color 0.2s;
     white-space: nowrap;
 }
@@ -332,6 +332,7 @@
 .chronicle-fb-table tbody tr {
     cursor: pointer;
     transition: background 0.15s ease;
+    border-left: 3px solid transparent;
 }
 
 .chronicle-fb-table tbody tr:hover {
