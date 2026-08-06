@@ -1,0 +1,363 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronicle:system-settings",
+  "title": {
+    "en": "System Settings",
+    "zh": "系统设置"
+  },
+  "x-lang": "en",
+  "x-version": "1.0.0",
+  "x-migrations": [],
+  "type": "object",
+  "x-nav": {
+    "group": "system",
+    "icon": "settings",
+    "order": 2,
+    "tabs": {
+      "system-appearance": {
+        "icon": "palette",
+        "order": 1,
+        "label": {
+          "en": "Appearance",
+          "zh": "外观"
+        }
+      },
+      "system-git": {
+        "icon": "git",
+        "order": 2,
+        "label": {
+          "en": "Git & Preview",
+          "zh": "Git 与预览"
+        }
+      }
+    }
+  },
+  "properties": {
+    "backendTheme": {
+      "type": "string",
+      "default": "dark",
+      "enum": [
+        "light",
+        "dark",
+        "follow"
+      ],
+      "x-widget": "select",
+      "x-tab": "system-appearance",
+      "x-group": "theme",
+      "x-order": 1,
+      "title": {
+        "en": "Backend Theme",
+        "zh": "后台主题"
+      },
+      "x-options": [
+        {
+          "value": "light",
+          "label": {
+            "en": "Light",
+            "zh": "浅色"
+          }
+        },
+        {
+          "value": "dark",
+          "label": {
+            "en": "Dark",
+            "zh": "深色"
+          }
+        },
+        {
+          "value": "follow",
+          "label": {
+            "en": "Follow System",
+            "zh": "跟随系统"
+          }
+        }
+      ]
+    },
+    "backendAccent": {
+      "type": "string",
+      "default": "#2ea35f",
+      "x-widget": "color",
+      "x-tab": "system-appearance",
+      "x-group": "theme",
+      "x-order": 2,
+      "title": {
+        "en": "Backend Accent Color",
+        "zh": "后台强调色"
+      }
+    },
+    "backendFont": {
+      "type": "string",
+      "default": "sans",
+      "enum": [
+        "sans",
+        "serif",
+        "mono"
+      ],
+      "x-widget": "select",
+      "x-tab": "system-appearance",
+      "x-group": "theme",
+      "x-order": 2,
+      "title": {
+        "en": "Backend Font",
+        "zh": "后台字体"
+      },
+      "x-options": [
+        {
+          "value": "sans",
+          "label": {
+            "en": "Sans-serif",
+            "zh": "无衬线体"
+          }
+        },
+        {
+          "value": "serif",
+          "label": {
+            "en": "Serif",
+            "zh": "衬线体"
+          }
+        },
+        {
+          "value": "mono",
+          "label": {
+            "en": "Monospace",
+            "zh": "等宽字体"
+          }
+        }
+      ]
+    },
+    "backendLocale": {
+      "type": "string",
+      "default": "en",
+      "enum": [
+        "en",
+        "zh-CN",
+        "ja",
+        "ko"
+      ],
+      "x-widget": "select",
+      "x-tab": "system-appearance",
+      "x-group": "locale",
+      "x-order": 1,
+      "title": {
+        "en": "Backend Language",
+        "zh": "后台语言"
+      },
+      "x-options": [
+        {
+          "value": "en",
+          "label": {
+            "en": "English",
+            "zh": "English"
+          }
+        },
+        {
+          "value": "zh-CN",
+          "label": {
+            "en": "中文 (简体)",
+            "zh": "中文 (简体)"
+          }
+        },
+        {
+          "value": "ja",
+          "label": {
+            "en": "日本語",
+            "zh": "日本語"
+          }
+        },
+        {
+          "value": "ko",
+          "label": {
+            "en": "한국어",
+            "zh": "한국어"
+          }
+        }
+      ]
+    },
+    "backendBackground": {
+      "type": "object",
+      "x-widget": "background-editor",
+      "x-tab": "system-appearance",
+      "x-group": "background",
+      "x-order": 1,
+      "title": {
+        "en": "Backend Background",
+        "zh": "后台背景"
+      },
+      "x-meta": true
+    },
+    "backendBackgroundMeta": {
+      "type": "string",
+      "x-widget": "hidden",
+      "x-tab": "system-appearance",
+      "x-group": "background",
+      "x-order": 2,
+      "title": {
+        "en": "Background Meta",
+        "zh": "背景元数据"
+      }
+    },
+    "gitAutoCommit": {
+      "type": "boolean",
+      "default": false,
+      "x-widget": "toggle",
+      "x-tab": "system-git",
+      "x-group": "git",
+      "x-order": 1,
+      "title": {
+        "en": "Auto-commit on save",
+        "zh": "保存时自动提交"
+      },
+      "description": {
+        "en": "Automatically git commit after each save.",
+        "zh": "每次保存后自动执行 git commit。"
+      }
+    },
+    "gitAutoPush": {
+      "type": "boolean",
+      "default": false,
+      "x-widget": "toggle",
+      "x-tab": "system-git",
+      "x-group": "git",
+      "x-order": 2,
+      "title": {
+        "en": "Auto-push after commit",
+        "zh": "提交后自动推送"
+      },
+      "description": {
+        "en": "Automatically git push after each commit.",
+        "zh": "每次提交后自动执行 git push。"
+      }
+    },
+    "gitCommitTemplate": {
+      "type": "string",
+      "default": "Update: {title}",
+      "x-widget": "text",
+      "x-tab": "system-git",
+      "x-group": "git",
+      "x-order": 3,
+      "title": {
+        "en": "Commit message template",
+        "zh": "提交信息模板"
+      },
+      "description": {
+        "en": "Use {title} for post title, {slug} for post slug.",
+        "zh": "用 {title} 代表文章标题，{slug} 代表文章标识。"
+      }
+    },
+    "previewAutoOpen": {
+      "type": "boolean",
+      "default": true,
+      "x-widget": "toggle",
+      "x-tab": "system-git",
+      "x-group": "preview",
+      "x-order": 1,
+      "title": {
+        "en": "Auto-open preview after build",
+        "zh": "构建后自动打开预览"
+      },
+      "description": {
+        "en": "Open the browser preview automatically after a local build.",
+        "zh": "本地构建完成后自动打开浏览器预览。"
+      }
+    },
+    "previewPort": {
+      "type": "number",
+      "default": 4321,
+      "minimum": 1024,
+      "maximum": 65535,
+      "x-widget": "number",
+      "x-tab": "system-git",
+      "x-group": "preview",
+      "x-order": 2,
+      "title": {
+        "en": "Preview port",
+        "zh": "预览端口"
+      }
+    },
+    "backendBackgroundCompression": {
+      "type": "number",
+      "default": 12.96,
+      "minimum": 1,
+      "maximum": 30,
+      "x-widget": "range",
+      "x-tab": "system-appearance",
+      "x-group": "background",
+      "x-order": 3,
+      "x-range": {
+        "min": 1,
+        "max": 30,
+        "step": 0.1
+      },
+      "title": {
+        "en": "Background Compression",
+        "zh-CN": "背景压缩"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "scheduledBuildEnabled": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "scheduledBuildMode"
+        ]
+      }
+    }
+  ],
+  "x-groups": {
+    "paths": {
+      "label": {
+        "en": "Paths",
+        "zh": "路径"
+      }
+    },
+    "schedule": {
+      "label": {
+        "en": "Schedule",
+        "zh": "定时"
+      }
+    },
+    "triggers": {
+      "label": {
+        "en": "Build Triggers",
+        "zh": "构建触发"
+      }
+    },
+    "locale": {
+      "label": {
+        "en": "Language & Region",
+        "zh": "语言与地区"
+      }
+    },
+    "theme": {
+      "label": {
+        "en": "Theme",
+        "zh": "主题"
+      }
+    },
+    "git": {
+      "label": {
+        "en": "Git",
+        "zh": "Git 同步"
+      }
+    },
+    "preview": {
+      "label": {
+        "en": "Local Preview",
+        "zh": "本地预览"
+      }
+    },
+    "background": {
+      "label": {
+        "en": "Background",
+        "zh": "背景"
+      }
+    }
+  }
+}

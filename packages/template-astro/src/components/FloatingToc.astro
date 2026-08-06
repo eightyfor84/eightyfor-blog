@@ -1,0 +1,186 @@
+---
+import type { TocItem } from '../utils/toc';
+
+interface Props {
+  toc?: TocItem[];
+  navLabel?: string;
+  containerSelector?: string;
+  inlineSelector?: string;
+  baselineOffset?: number;
+  mountToBody?: boolean;
+}
+
+const {
+  toc = [],
+  navLabel = 'Table of contents',
+  containerSelector = '.main-content',
+  inlineSelector = '.markdown-toc',
+  baselineOffset = 85,
+  mountToBody = false,
+} = Astro.props as Props;
+---
+
+<div id="floating-toc-root" data-mount-to-body={String(mountToBody)}>
+  {toc.length > 0 && (
+    <nav
+      class="toc-float collapsed"
+      class:list={{ visible: false }}
+      aria-label={navLabel}
+      data-container-selector={containerSelector}
+      data-inline-selector={inlineSelector}
+      data-baseline-offset={String(baselineOffset)}
+    >
+      <ul>
+        {toc.map((item) => (
+          <li class={`toc-float-item toc-level-${item.level}`} data-toc-id={item.id}>
+            <a href={`#${item.id}`} class="toc-link">
+              <span class="toc-text">{item.text}</span>
+              <span class="toc-line"></span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )}
+</div>
+
+<script>
+  // Per-navigation setup: re-read DOM, re-bind events, init controller fresh
+  let _unsub: (() => void) | null = null;
+  let _floatTimer: number | undefined;
+
+  function setupFloatingToc() {
+    const root = document.getElementById('floating-toc-root');
+    if (!root) return;
+    const nav = root.querySelector('.toc-float') as HTMLElement;
+    if (!nav) return;
+
+    if (root.dataset.mountToBody === 'true' && root.parentElement !== document.body) {
+      document.body.appendChild(root);
+    }
+
+    import('../utils/tocController').then(({ default: tc, initController, destroyController, setTocGetter }) => {
+      // Destroy previous controller state before re-initializing
+      destroyController();
+      const containerSelector = nav.dataset.containerSelector || '.main-content';
+      const inlineSelector = nav.dataset.inlineSelector || '.markdown-toc';
+      const baselineOffset = parseInt(nav.dataset.baselineOffset || '85');
+
+      setTocGetter(() => JSON.parse(document.getElementById('chronicle-toc-data')?.textContent || '[]'));
+      initController({ containerSelector, inlineSelector, baselineOffset });
+
+      // Unsubscribe previous callback
+      if (_unsub) _unsub();
+      let syncPending = false;
+      _unsub = tc.subscribe(() => {
+        if (syncPending) return;
+        syncPending = true;
+        requestAnimationFrame(() => {
+          syncPending = false;
+          const s = tc.state;
+          const activeItem = nav.querySelector('li.active') as HTMLElement;
+          let needsScroll = false, scrollTarget = 0;
+          if (activeItem) {
+            const nr = nav.getBoundingClientRect();
+            const ar = activeItem.getBoundingClientRect();
+            if (ar.top < nr.top + nr.height * 0.2 || ar.bottom > nr.bottom - nr.height * 0.2) {
+              needsScroll = true;
+              scrollTarget = Math.min(Math.max(0, nav.scrollHeight - nav.clientHeight), Math.max(0, nav.scrollTop + (ar.top - nr.top) - nav.clientHeight / 2 + ar.height / 2));
+            }
+          }
+          nav.classList.toggle('visible', s.showTOCandBTT);
+          nav.querySelectorAll('li').forEach(li => {
+            const shouldBe = (li as HTMLElement).dataset.tocId === s.liveActiveId;
+            if (li.classList.contains('active') !== shouldBe) li.classList.toggle('active', shouldBe);
+          });
+          if (needsScroll) nav.scrollTo({ top: scrollTarget, behavior: 'instant' });
+        });
+      });
+
+      // Mouse collapse
+      nav.addEventListener('mouseenter', () => {
+        if (_floatTimer) { clearTimeout(_floatTimer); _floatTimer = undefined; }
+        nav.classList.remove('collapsed');
+        tc.state.floatCollapsed = false;
+      });
+      nav.addEventListener('mouseleave', () => {
+        if (_floatTimer) clearTimeout(_floatTimer);
+        _floatTimer = window.setTimeout(() => {
+          nav.classList.add('collapsed');
+          tc.state.floatCollapsed = true;
+        }, 1000);
+      });
+
+      // Click navigation
+      nav.querySelectorAll('a').forEach(a => {
+        a.addEventListener('click', (e) => {
+          e.preventDefault();
+          const id = (a.parentElement as HTMLElement).dataset.tocId!;
+          tc.lockActiveId(id);
+          try { history.pushState(null, '', `#${id}`); } catch { window.location.hash = id; }
+          tc.scrollToHeading(id);
+        });
+      });
+    }).catch(() => {});
+  }
+
+  // ── Lifecycle: run on every navigation ──
+  document.addEventListener('astro:page-load', setupFloatingToc);
+  document.addEventListener('astro:before-swap', () => {
+    if (_floatTimer) clearTimeout(_floatTimer);
+    if (_unsub) { _unsub(); _unsub = null; }
+    import('../utils/tocController').then(({ destroyController }) => destroyController());
+    const root = document.getElementById('floating-toc-root');
+    if (root?.parentElement) root.parentElement.removeChild(root);
+  });
+</script>
+
+<style>
+  .toc-float { font-size:0.8em; backdrop-filter: blur(10px); background-clip: padding-box; margin-right: 10px; }
+  .toc-float { right: calc(10px + 2vw); position: fixed; top: calc(30px + 10vh); z-index: 1199; overflow-x: hidden; transition: transform 0.25s ease, width 0.25s ease, max-height 0.25s ease, background-color 0.25s ease, opacity 0.25s ease; box-sizing: border-box; border-radius: 8px; max-height: calc(70vh - 80px); height: auto; will-change: width; contain: layout style; }
+  .toc-float-item { margin-left: 10px; }
+  .toc-float-item:hover { color: var(--text-primary) !important; }
+  .toc-float ul { list-style: none; margin: 0; padding: 4px }
+  .toc-float li { margin: 1px 0; }
+  .toc-float a { text-decoration: none; display: block; box-sizing: border-box; }
+  .toc-float .toc-text { --padding-h-base: 6px; display: block; width: 100%; padding: 3px var(--padding-h-base) 3px 6px; padding-right: 10px; box-sizing: border-box; border-radius: 6px; transition: background 0.12s, color 0.12s; color: var(--component-text-secondary-disabled); }
+  .toc-float:not(.collapsed) .toc-level-1 span { padding-left: calc(1px + var(--padding-h-base)) !important; }
+  .toc-float:not(.collapsed) .toc-level-2 span { padding-left: calc(6px + var(--padding-h-base)) !important; }
+  .toc-float:not(.collapsed) .toc-level-3 span { padding-left: calc(12px + var(--padding-h-base)) !important; }
+  .toc-float:not(.collapsed) .toc-level-4 span { padding-left: calc(18px + var(--padding-h-base)) !important; }
+  .toc-float:not(.collapsed) .toc-level-5 span { padding-left: calc(24px + var(--padding-h-base)) !important; }
+  .toc-float:not(.collapsed) .toc-level-6 span { padding-left: calc(30px + var(--padding-h-base)) !important; }
+  .toc-float.collapsed .toc-level-1 { padding-left: 0 !important; }
+  .toc-float.collapsed .toc-level-2 { padding-left: 5px !important; }
+  .toc-float.collapsed .toc-level-3 { padding-left: 8px !important; }
+  .toc-float.collapsed .toc-level-4 { padding-left: 10px !important; }
+  .toc-float.collapsed .toc-level-5 { padding-left: 11px !important; }
+  .toc-float.collapsed .toc-level-6 { padding-left: 12px !important; }
+  .toc-float li:hover .toc-text { background: var(--component-bg-hover); color: var(--component-text-primary-hover) }
+  .toc-float li:active .toc-text, .toc-float li:focus .toc-text { background: var(--component-bg-highlight); color: var(--component-text-primary-highlight); }
+  .toc-float.collapsed { overflow-y: auto; width: 38px; padding: 4px 8px; border:none; background-color: transparent; border-radius: 10px; scrollbar-width: none; }
+  .toc-float.collapsed::-webkit-scrollbar { width: 0; height: 0; }
+  .toc-float:not(.collapsed) { overflow-y: auto; width: 220px; background-color: var(--component-bg-blur); backdrop-filter: blur(10px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); border: 1px solid var(--border-color); }
+  .toc-float ul { padding: 4px; list-style: none; margin: 0; transition: padding 0.3s ease; }
+  .toc-float.collapsed ul { padding: 0; }
+  .toc-float li { display: flex; align-items: center; transition: justify-content 0.3s ease; min-height: 20px; position: relative; }
+  .toc-float.collapsed li { justify-content: center; margin: 0; min-height: 18px; }
+  .toc-float:not(.collapsed) li { justify-content: flex-start; }
+  .toc-link { display: flex; align-items: center; width: 100%; text-decoration: none; position: relative; justify-content: inherit; }
+  .toc-float.collapsed .toc-link { width: 100%; padding: 0; }
+  .toc-float .toc-line { display:block; height:3px; background: var(--border-color-blur); border-radius:1.5px; transition: opacity 0.2s ease, transform 0.3s ease, background-color 0.3s ease; position: absolute; right: 0; width: 100% !important; }
+  .toc-float:not(.collapsed) .toc-line { opacity: 0; transform: translateX(10px); pointer-events: none; }
+  .toc-float.collapsed .toc-line { opacity: 1; transform: translateX(0); position: relative; margin: 0; }
+  .toc-float li.active .toc-line { background: var(--component-text-primary-highlight); box-shadow: 0 0 4px color-mix(in srgb, var(--component-text-primary-highlight) 70%, transparent), 0 0 8px color-mix(in srgb, var(--component-text-primary) 20%, transparent); filter: drop-shadow(0 0 3px color-mix(in srgb, var(--component-text-primary-highlight) 45%, transparent)); transition: box-shadow 0.18s ease, background 0.18s ease, filter 0.18s ease; }
+  .toc-float li:hover .toc-line { background: var(--component-text-primary-hover); }
+  .toc-float .toc-text { display: block; width: 100%; padding: 3px 6px; padding-right: 10px; box-sizing: border-box; border-radius: 6px; color: var(--component-text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: opacity 0.2s ease, transform 0.3s ease, background-color 0.2s, color 0.2s; }
+  .toc-float.collapsed .toc-text { opacity: 0; transform: translateX(10px); position: absolute; pointer-events: none; }
+  .toc-float:not(.collapsed)::-webkit-scrollbar { width: 6px; }
+  .toc-float:not(.collapsed)::-webkit-scrollbar-thumb { background: var(--component-bg-hover); border-radius: 3px; }
+  .toc-float:not(.collapsed)::-webkit-scrollbar-track { background: inherit; border-radius: 3px; }
+  .toc-float:not(.collapsed) .toc-text { opacity: 1; transform: translateX(0); }
+  .toc-float:not(.collapsed) li:hover .toc-text { background: var(--component-bg-hover); color: var(--component-text-primary-hover) }
+  .toc-float:not(.collapsed) li.active .toc-text { background: var(--component-bg-highlight); color: var(--component-text-primary-highlight); font-weight: 500; font-variation-settings: 'wght' 500; }
+  .toc-float.visible {  opacity: 1; pointer-events: auto; }
+  .toc-float:not(.visible) { transform: translateX(20px); opacity: 0; pointer-events: none; }
+</style>

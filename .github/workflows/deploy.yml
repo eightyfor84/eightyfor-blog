@@ -1,0 +1,80 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Cache template node_modules
+        uses: actions/cache@v4
+        with:
+          path: packages/template-astro/node_modules
+          key: tmpl-${{ runner.os }}-${{ hashFiles('packages/template-astro/package-lock.json') }}
+
+      - name: Cache gen node_modules
+        uses: actions/cache@v4
+        with:
+          path: packages/gen/node_modules
+          key: gen-${{ runner.os }}-${{ hashFiles('packages/gen/package-lock.json') }}
+
+      - name: Cache gen-cache (compressed images)
+        uses: actions/cache@v4
+        with:
+          path: .chronicle/gen-cache
+          key: gencache-${{ runner.os }}-${{ github.sha }}
+          restore-keys: gencache-${{ runner.os }}-
+
+      - name: Install template dependencies
+        run: npm install
+        working-directory: packages/template-astro
+
+      - name: Install gen dependencies
+        run: npm install
+        working-directory: packages/gen
+
+      - name: Build
+        run: |
+          node packages/gen/bin/cli.mjs build \
+            --dataDir data \
+            --codeDir packages/template-astro \
+            --targetDir dist
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

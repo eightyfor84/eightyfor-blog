@@ -1,0 +1,1461 @@
+/*
+ * Chronicle — Shared Markdown Rendering Stylesheet
+ *
+ * Used by both template-astro (SSG published pages) and manager (CMS preview).
+ * The two rendering pipelines (chronicleMarkdown.ts / markdownPreview.ts) produce
+ * identical HTML, so a single stylesheet guarantees visual parity.
+ *
+ * Convention:
+ *   Wrap rendered HTML in a container with class "chronicle-markdown".
+ *   All selectors are scoped under .chronicle-markdown to avoid leakage.
+ *
+ * CSS variables (required — defined in global.css):
+ *   --text-primary / --text-secondary
+ *   --component-bg / --component-bg-hover / --component-bg-active
+ *   --component-bg-blur / --component-bg-blur-alt
+ *   --component-bg-primary
+ *   --component-text-primary / --component-text-secondary
+ *   --border-color / --border-color-blur
+ *   --accent-color / --accent-color-hover / --accent-color-dark
+ *   --code-bg / --code-text
+ *   --code-keyword / --code-string / --code-comment / --code-number / --code-boolean
+ *   --code-operator / --code-tag / --code-attribute / --code-property / --code-selector
+ *   --code-type / --code-variable / --code-parameter / --code-cmdlet / --code-directive
+ *   --code-preprocessor / --code-color / --code-section / --code-date / --code-quote
+ *   --code-header / --code-inline / --code-link
+ *   --code-katexcommand / --code-katexnumber / --code-katexoperator / --code-katexbracket
+ *   --featured / --status-error
+ *   --shadow-elev-1 / --shadow-elev-2 / --shadow-elev-3
+ *   --app-font-stack / --app-font-stack-inter / --app-font-stack-serif
+ *   --toc-scroll-offset
+ *
+ * Keep in sync with:
+ *   packages/manager/src/utils/markdownPreview.ts
+ *   packages/template-astro/src/utils/chronicleMarkdown.ts
+ */
+
+/* ═══════════════════════════════════════════════════════════
+   1. Container
+   ═══════════════════════════════════════════════════════════ */
+
+.chronicle-markdown {
+  color: var(--text-primary);
+  line-height: 1.7;
+  font-size: 1rem;
+}
+
+/* Active block highlight (cursor in editor → corresponding preview block) */
+.chronicle-markdown .active-block {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 4px;
+  border-radius: 6px;
+  transition: outline-color 0.3s ease;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   2. Headings
+   ═══════════════════════════════════════════════════════════ */
+
+.chronicle-markdown h1,
+.chronicle-markdown h2,
+.chronicle-markdown h3,
+.chronicle-markdown h4,
+.chronicle-markdown h5,
+.chronicle-markdown h6 {
+  margin: 1rem 0 1.2rem 0;
+  font-weight: 600;
+  font-variation-settings: 'wght' 600;
+  line-height: 1.3;
+  color: var(--text-primary);
+  scroll-margin-top: var(--toc-scroll-offset, 84px);
+}
+
+.chronicle-markdown h1 { font-size: 2rem; padding-bottom: 0.5rem; margin-top: 2.5rem; }
+.chronicle-markdown h2 { font-size: 1.75rem; margin-top: 2.2rem; }
+.chronicle-markdown h3 { font-size: 1.5rem; margin-top: 1.8rem; }
+.chronicle-markdown h4 { font-size: 1.3rem; margin-top: 1.6rem; }
+.chronicle-markdown h5 { font-size: 1.2rem; margin-top: 1.4rem; }
+.chronicle-markdown h6 { font-size: 1.1rem; margin-top: 1.2rem; }
+
+/* ═══════════════════════════════════════════════════════════
+   3. Paragraphs & Lists
+   ═══════════════════════════════════════════════════════════ */
+
+.chronicle-markdown p {
+  margin-bottom: 1.2rem;
+  margin-top: 0;
+  line-height: 1.7;
+}
+
+.chronicle-markdown ul,
+.chronicle-markdown ol {
+  margin-bottom: 1.2rem;
+  margin-top: 0;
+  padding-left: 2rem;
+}
+
+.chronicle-markdown li {
+  margin: 0.6rem 0;
+  line-height: 1.4;
+}
+
+.chronicle-markdown li::marker {
+  color: color-mix(in srgb, transparent 50%, var(--text-primary));
+}
+
+/* ═══════════════════════════════════════════════════════════
+   4. Inline Elements
+   ═══════════════════════════════════════════════════════════ */
+
+/* Inline code (not inside code-chunk) */
+.chronicle-markdown code:not(.code-chunk-container code):not(pre code) {
+  background: var(--code-bg);
+  color: var(--code-text);
+  border-radius: 5px;
+  padding: 0.2em 0.5em;
+  font-size: 0.85em;
+  font-family: var(--app-font-stack-mono);
+  font-weight: 500;
+  vertical-align: middle;
+}
+
+.chronicle-markdown i,
+.chronicle-markdown em {
+  font-style: italic;
+}
+
+.chronicle-markdown strong,
+.chronicle-markdown b {
+  font-weight: bold;
+  font-variation-settings: 'wght' 700;
+}
+
+.chronicle-markdown s,
+.chronicle-markdown del {
+  opacity: .6;
+}
+
+.chronicle-markdown a {
+  color: var(--accent-color);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.chronicle-markdown a:hover {
+  text-decoration: underline;
+  color: var(--accent-color-dark);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   5. Block Elements
+   ═══════════════════════════════════════════════════════════ */
+
+.chronicle-markdown blockquote {
+  border-left: 4px solid var(--accent-color);
+  background: var(--component-bg-active);
+  padding: 0.5em 1em;
+  margin: 0.5em 0;
+  border-radius: 4px;
+}
+
+.chronicle-markdown blockquote p{
+  margin: .4rem;
+  line-height: 1.5;
+}
+
+.chronicle-markdown hr {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 1.5em 0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   6. Tables
+   ═══════════════════════════════════════════════════════════ */
+
+.chronicle-markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.8rem 0;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.chronicle-markdown th,
+.chronicle-markdown td {
+  border: 1px solid var(--border-color);
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.chronicle-markdown th {
+  background: color-mix(in srgb, #808080 50%, var(--component-bg-blur));
+  font-weight: 600;
+  font-variation-settings: 'wght' 600;
+  color: var(--text-primary);
+}
+
+.chronicle-markdown td {
+  background: var(--component-bg-blur-alt);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   7. Image Wrapper (renderImageWrapper)
+   ═══════════════════════════════════════════════════════════ */
+
+.chronicle-markdown .md-image-container {
+  display: block;
+  margin: 1em auto;
+  width: 100%;
+  text-align: center;
+  max-width: 100%;
+}
+
+.chronicle-markdown .md-image-wrapper {
+  display: block;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  max-width: 100%;
+  width: fit-content;
+  box-sizing: border-box;
+  background-color: var(--component-bg-blur-alt);
+}
+
+/* During loading (before .loaded is added to <img>), reserve a 2:1
+   placeholder so the page layout doesn't collapse. Once the image loads,
+   the wrapper resizes to the image's natural aspect ratio. */
+.chronicle-markdown .md-image-wrapper:not(:has(.md-image.loaded)):not([data-error="1"]) {
+  aspect-ratio: 2 / 1;
+}
+
+
+.chronicle-markdown .md-placeholder-text {
+  display: none;
+}
+
+/* Loading + broken-image states — visible when img is loading or failed;
+   hidden when img (z:1) successfully loads and covers them. */
+.chronicle-markdown .md-image-wrapper::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--component-bg-blur-alt);
+}
+
+.chronicle-markdown .md-image-wrapper::before {
+  content: 'Loading...';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  font-family: var(--app-font-stack);
+  font-size: 14px;
+  pointer-events: none;
+}
+
+/* onerror triggers data-error — override Loading → Image not found */
+.chronicle-markdown .md-image-wrapper[data-error="1"]::before {
+  content: 'Image not found';
+  color: var(--status-error);
+}
+
+.chronicle-markdown .md-image-wrapper .md-image {
+  position: relative;
+  z-index: 1;
+}
+
+.chronicle-markdown .md-image-caption {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.9em;
+  color: var(--component-text-secondary);
+  text-align: center;
+  font-family: var(--app-font-stack);
+  width: 100%;
+}
+
+.chronicle-markdown .md-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  display: block;
+  cursor: zoom-in;
+  object-fit: fill;
+  opacity: 0;
+  filter: blur(10px);
+  transition: opacity 0.3s ease, filter 0.3s ease-out;
+}
+
+.chronicle-markdown .md-image.loaded {
+  opacity: 1;
+  filter: blur(0);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   8. File Card (renderFileCard)
+   ═══════════════════════════════════════════════════════════ */
+
+.chronicle-markdown .file-card {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--component-bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  max-width: 240px;
+}
+
+.chronicle-markdown .file-card:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color) 20%, transparent);
+  border-color: var(--accent-color);
+  transform: translateY(-1px);
+}
+
+.chronicle-markdown .file-card:active {
+  transform: translateY(0);
+}
+
+.chronicle-markdown .file-card:hover {
+  background-color: var(--component-bg-highlight);
+  border-color: var(--accent-color);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-elev-1);
+  text-decoration: none;
+}
+
+.chronicle-markdown .file-card-icon {
+  width: 24px;
+  height: 24px;
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--component-text-primary);
+  flex-shrink: 0;
+}
+
+.chronicle-markdown .file-card:hover .file-card-icon {
+  color: var(--accent-color);
+}
+
+.chronicle-markdown .file-card-info {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.chronicle-markdown .file-card-title {
+  font-size: 14px;
+  color: var(--component-text-primary);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chronicle-markdown .file-card-subtitle {
+  font-size: 11px;
+  color: var(--component-text-secondary);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   9. CodeChunk Container (renderCodeChunkHtml)
+   ═══════════════════════════════════════════════════════════ */
+
+.chronicle-markdown .code-chunk-container {
+  display: flex;
+  flex-direction: column;
+  background: var(--component-bg-blur-alt);
+  border: 1px solid var(--border-color);
+  color: var(--app-text-primary);
+  font-family: var(--app-font-stack-mono);
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 8px 0;
+}
+
+.chronicle-markdown .editor-header {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: .2rem 1rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+  font-size: 0.92rem;
+  font-family: var(--app-font-stack);
+}
+
+.chronicle-markdown .toolbar {
+  display: flex;
+  flex-direction: row;
+  gap: 0.2rem;
+  min-height: 22px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.chronicle-markdown .editor-wrapper {
+  display: flex;
+  overflow: auto;
+  width: 100%;
+}
+
+.chronicle-markdown .editor-content {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.chronicle-markdown .code-textarea {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0.7rem 1.5rem 1.2rem 1.5rem;
+  background: transparent;
+  color: transparent;
+  caret-color: var(--text-primary);
+  border: none;
+  outline: none;
+  resize: none;
+  font-size: 13.5px;
+  line-height: 1.3em;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+/* Read-only textarea (non-mermaid): hide the overlay so only highlighted pre is visible */
+.chronicle-markdown .code-chunk-container:not(.mermaid) .code-textarea:read-only {
+  display: none;
+}
+
+.chronicle-markdown .syntax-highlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  background: transparent;
+  border: none;
+  color: var(--component-text-primary);
+  font-family: inherit;
+  font-size: 13.5px;
+  line-height: 1.3em;
+  overflow: auto;
+  tab-size: 2;
+  vertical-align: top;
+  z-index: 0;
+  letter-spacing: normal;
+}
+
+.chronicle-markdown .syntax-highlight::-webkit-scrollbar {
+  cursor: default;
+  width: 8px;
+  height: 8px;
+}
+
+
+.chronicle-markdown .icon-btn {
+  background: transparent;
+  color: var(--component-text-secondary);
+  border: none;
+  padding: .2rem 0.3rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  transition: background 0.2s, color 0.2s;
+}
+
+.chronicle-markdown .icon-btn:hover {
+  color: var(--text-primary);
+}
+
+.chronicle-markdown .icon-btn.active {
+  background: var(--component-bg-active);
+  color: var(--text-primary);
+}
+
+.chronicle-markdown .transparent-select {
+  background: transparent !important;
+  border: none;
+  color: var(--component-text-primary);
+  font-size: 0.91em;
+  font-family: var(--app-font-stack);
+  outline: none;
+  box-shadow: none;
+  padding: 0 1.2em 0 0.2em;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+  min-width: 70px;
+}
+
+.chronicle-markdown .transparent-select:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.chronicle-markdown .transparent-select option {
+  background: var(--component-bg-primary);
+  color: var(--component-text-primary);
+}
+
+.chronicle-markdown .editor-footer {
+  color: var(--component-text-secondary);
+  padding: 0.1rem 1rem 0.2rem 1rem;
+  font-size: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  flex-shrink: 0;
+  font-family: var(--app-font-stack);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   10. KaTeX
+   ═══════════════════════════════════════════════════════════ */
+
+.chronicle-markdown .katex-interactive {
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-radius: 4px;
+}
+
+.chronicle-markdown .katex {
+  color: var(--text-primary) !important;
+  cursor: pointer;
+}
+
+.chronicle-markdown .katex-html {
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.chronicle-markdown .katex .katex-html {
+  padding: 0.15em;
+}
+
+.chronicle-markdown .katex-html:hover {
+  background: var(--component-bg-hover);
+}
+
+.chronicle-markdown .katex-display .katex-html {
+  min-height: 40px;
+  align-content: center;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.chronicle-markdown .katex-display .katex-html::-webkit-scrollbar {
+  height: 2px;
+  width: 2px;
+  background: transparent;
+}
+
+.chronicle-markdown .katex-display .katex-html::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--component-text-secondary) 50%, transparent);
+}
+
+.chronicle-markdown .katex-display .katex-html::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--component-text-primary) 50%, transparent);
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   11. Mermaid
+   ═══════════════════════════════════════════════════════════ */
+
+/* Mermaid toolbar layout */
+.chronicle-markdown .code-chunk-container .mermaid-group {
+  display: flex;
+  gap: 0.2rem;
+  align-items: center;
+}
+
+.chronicle-markdown .code-chunk-container .toolbar-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border-color);
+  margin: 0 0.45rem;
+}
+
+/* Mermaid split layout */
+.chronicle-markdown .code-chunk-container.mermaid.mermaid-split {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+}
+
+.chronicle-markdown .code-chunk-container.mermaid.mermaid-split > .editor-wrapper {
+  flex: 1;
+  min-width: 0;
+}
+
+.chronicle-markdown .code-chunk-container.mermaid.mermaid-split > .mermaid-preview {
+  flex: 1;
+  min-width: 0;
+  display: block !important;
+}
+
+/* Mermaid preview panel */
+.chronicle-markdown .mermaid-preview {
+  background: var(--component-bg-blur-alt);
+  border-top: 1px solid var(--border-color);
+  max-height: 420px;
+  overflow: auto;
+  font-family: var(--app-font-stack) !important;
+}
+
+.chronicle-markdown .mermaid-preview svg {
+  background: transparent !important;
+}
+
+.chronicle-markdown .mermaid-preview svg,
+.chronicle-markdown .mermaid-preview svg * {
+  font-family: inherit !important;
+}
+
+.chronicle-markdown .mermaid-loading {
+  color: var(--component-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 120px;
+}
+
+.chronicle-markdown .mermaid-error {
+  color: var(--status-error);
+  padding: 12px;
+  background: var(--component-bg-hover);
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.chronicle-markdown .mermaid-svg {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.chronicle-markdown .mermaid-svg svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Mermaid SVG theme overrides (dark theme compatible) */
+.chronicle-markdown .mermaid-preview svg rect {
+  fill: var(--component-bg-blur-alt) !important;
+  stroke: var(--text-primary) !important;
+}
+
+.chronicle-markdown .mermaid-preview svg path {
+  stroke: var(--component-text-primary) !important;
+}
+
+.chronicle-markdown .mermaid-preview svg text {
+  fill: var(--component-text-primary) !important;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif !important;
+}
+
+.chronicle-markdown .mermaid-preview svg .node rect,
+.chronicle-markdown .mermaid-preview svg .node circle,
+.chronicle-markdown .mermaid-preview svg .node ellipse,
+.chronicle-markdown .mermaid-preview svg .node polygon,
+.chronicle-markdown .mermaid-preview svg .cluster rect,
+.chronicle-markdown .mermaid-preview svg .label-container rect,
+.chronicle-markdown .mermaid-preview svg .actor,
+.chronicle-markdown .mermaid-preview svg .task,
+.chronicle-markdown .mermaid-preview svg .section,
+.chronicle-markdown .mermaid-preview svg .arrow,
+.chronicle-markdown .mermaid-preview svg .legend rect {
+  fill: var(--component-bg-blur-alt) !important;
+  stroke: var(--component-text-secondary) !important;
+}
+
+.chronicle-markdown .mermaid-preview svg .edgePath path,
+.chronicle-markdown .mermaid-preview svg .flowchart-link,
+.chronicle-markdown .mermaid-preview svg .relation,
+.chronicle-markdown .mermaid-preview svg .marker path {
+  fill: none !important;
+  stroke: var(--component-text-primary) !important;
+}
+
+.chronicle-markdown .mermaid-preview svg .nodeLabel,
+.chronicle-markdown .mermaid-preview svg .label,
+.chronicle-markdown .mermaid-preview svg .messageText,
+.chronicle-markdown .mermaid-preview svg .legend text {
+  fill: var(--component-text-primary) !important;
+  color: var(--component-text-primary) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   12. Math Tooltip
+   Global rules — the tooltip is appended to document.body so
+   these must NOT be scoped under .chronicle-markdown.
+   ═══════════════════════════════════════════════════════════ */
+
+.math-tooltip {
+  position: fixed !important;
+  opacity: 1;
+  z-index: 1200;
+  min-width: 400px;
+  width: 400px;
+  height: fit-content;
+  max-height: 200px;
+  padding: 0.6rem;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--component-bg-blur);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(10px);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+}
+
+.math-tooltip.is-hidden {
+  opacity: 0;
+  transform: translateY(-10px);
+  pointer-events: none;
+}
+
+.math-tooltip-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+.math-tooltip-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.4rem;
+}
+
+.math-tooltip-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.math-tooltip-actions {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.math-tooltip-action {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+}
+.math-tooltip-action:hover {
+  color: var(--text-primary);
+  background: var(--component-bg-hover);
+}
+
+.math-tooltip-source {
+  margin: 0;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  border-radius: 10px;
+  padding: 0.7rem;
+  position: relative;
+  box-sizing: border-box;
+  display: block;
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  background: #fff1;
+  border: 1px solid var(--border-color);
+  max-height: 130px;
+  color: var(--text-primary);
+}
+
+.math-tooltip-source code {
+  font-family: var(--app-font-stack-mono);
+  font-size: 0.85rem;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   13. Legacy Pipeline A class compatibility (md-quote-block, etc.)
+   ═══════════════════════════════════════════════════════════ */
+
+.chronicle-markdown .md-quote-block {
+  background: var(--component-bg-hover);
+  border-left: 4px solid var(--accent-color);
+  padding: 0.3em 1em;
+  margin: 0;
+  border-radius: 4px;
+  line-height: 1.6;
+}
+
+.chronicle-markdown .md-quote-block p {
+  margin: 0.5rem 0;
+}
+
+.chronicle-markdown .md-quote-block br {
+  line-height: 1.2;
+  display: block;
+  margin: 0.15em 0;
+}
+
+.chronicle-markdown .para-backslash {
+  margin: .5rem 0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   14. Syntax Highlighting Tokens
+   ═══════════════════════════════════════════════════════════ */
+
+/* Core token classes produced by syntaxHighlight.ts */
+/* ═══════════════════════════════════════════════════════════
+   Syntax Highlighting — hljs Token Colors
+   Single source of truth for all code highlighting across
+   SSG output, CMS preview, and editor overlay.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── hljs Code Tokens ────────────────────────────────
+   Shared between SSG output + CMS preview (.syntax-highlight)
+   and CMS editor (.cm-editor-host).  Single source of truth
+   for hljs-* → --code-* color mapping.
+
+   Inheritance chain:
+     CSS Variable (theme-aware, defined in :root / [data-theme])
+       └── .syntax-highlight .hljs-*  ← published blog pages
+       └── .cm-editor-host  .hljs-*  ← CMS CodeMirror editor
+       Both contexts see the same color.  Editor markdown-
+       structure classes (cm-md-*) live in CmEditor.vue.
+
+   To add a new code color: define --code-xxx in :root sections,
+   then add a rule here — both contexts pick it up automatically.
+*/
+
+/* ── Keywords ─────────────────────────────────────── */
+.hljs-keyword    { color: var(--code-keyword); font-weight: bold; }
+
+.hljs-modifier   { color: var(--code-keyword); }
+
+/* ── Literals ─────────────────────────────────────── */
+.hljs-string     { color: var(--code-string); }
+
+.hljs-number     { color: var(--code-number); }
+
+.hljs-literal    { color: var(--code-boolean); }
+
+.hljs-char       { color: var(--code-string); }
+
+.hljs-char.escape_ { color: var(--code-operator); }
+
+/* ── Comments ─────────────────────────────────────── */
+.hljs-comment    { color: var(--code-comment); font-style: italic; }
+
+/* ── Identifiers & types ──────────────────────────── */
+.hljs-variable   { color: var(--code-variable); }
+
+.hljs-type       { color: var(--code-type); }
+
+.hljs-title            { color: var(--code-type); }
+
+.hljs-title.function_  { color: var(--code-type); }
+
+.hljs-title.class_     { color: var(--code-type); font-weight: bold; }
+
+.hljs-symbol     { color: var(--code-number); }
+
+.hljs-built_in   { color: var(--code-cmdlet); font-weight: bold; }
+
+.hljs-params     { color: var(--code-parameter); }
+
+.hljs-name             { color: var(--code-tag); }
+
+/* ── Objects & markup ─────────────────────────────── */
+.hljs-attr       { color: var(--code-attribute); }
+
+.hljs-property   { color: var(--code-property); }
+
+.hljs-tag        { color: var(--code-tag); }
+
+.hljs-selector-tag { color: var(--code-selector); }
+
+.hljs-section    { color: var(--code-section); font-weight: bold; }
+
+/* ── Operators & punctuation ──────────────────────── */
+.hljs-operator   { color: var(--code-operator); }
+
+.hljs-punctuation { color: var(--featured); }
+
+.hljs-bullet     { color: var(--featured); }
+
+/* ── Regex & special ──────────────────────────────── */
+.hljs-regexp     { color: var(--code-string); }
+
+.hljs-invalid    { color: var(--status-warning); text-decoration: underline wavy; }
+
+/* ── Meta / directives ────────────────────────────── */
+.hljs-meta       { color: var(--code-directive); }
+
+.hljs-preprocessor { color: var(--code-preprocessor); font-weight: bold; }
+
+.hljs-doctag     { color: var(--code-comment); font-weight: bold; }
+
+/* ── Misc ─────────────────────────────────────────── */
+.hljs-subst      { color: var(--code-variable); }
+
+.hljs-formula    { color: var(--code-keyword); }
+
+.hljs-addition   { color: var(--code-string); background: rgba(0,255,0,0.1); }
+
+.hljs-deletion   { color: var(--code-string); background: rgba(255,0,0,0.1); }
+
+.hljs-template-variable { color: var(--code-variable); }
+
+.hljs-template-tag     { color: var(--code-keyword); }
+
+/* ── KaTeX (math rendering) ────────────────────────── */
+.katexcommand    { color: var(--code-katexcommand); }
+
+.katexnumber     { color: var(--code-number); }
+
+.katexbracket    { color: var(--component-text-secondary); }
+
+/* ── highlight.js formatting tokens ────────────────
+   Used by SSG output (hljs) for emphasis/code/links
+   inside highlighted code blocks.  Some language grammars
+   emit these for doc comments, format strings, etc.
+   CmEditor emits cm-md-* for markdown-prose equivalents,
+   so these hljs-* rules apply to fenced-block content only. */
+
+.hljs-strong     { font-weight: bold; color: var(--text-primary); }
+
+.hljs-emphasis   { font-style: italic; color: var(--component-text-primary); }
+
+.hljs-code       { background: var(--component-bg-hover); color: var(--code-inline); padding: 0.2rem 0.4rem; border-radius: 3px; }
+
+.hljs-link       { color: var(--code-link); }
+
+.hljs-quote      { color: var(--code-quote); font-style: italic; border-left: 4px solid var(--code-quote); padding-left: 0.5rem; margin-left: 0.5rem; }
+
+/* ── GFM Task list checkbox ──────────────────────────
+   Rendered by markdown-it inline rule (chronicleMarkdown.ts /
+   markdownPreview.ts) as <input class="md-task-checkbox">.
+   Editor uses .cm-task-marker (CmEditor.vue taskMarkerPlugin). */
+.md-task-checkbox {
+  accent-color: var(--accent-color);
+  width: 1.25em;
+  height: 1.25em;
+  margin: 0 0.25em 0 0;
+  vertical-align: middle;
+  transform: translateY(-1px);
+  pointer-events: none;  /* readonly — matches GFM disabled behavior */
+}
+
+/* ── Footnotes (markdown-it-footnote) ───────────────── */
+.chronicle-markdown a.footnote-ref {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.4em;
+  height: 1.4em;
+  padding: 2px;
+  border-radius: 1em;
+  background: var(--component-bg-active);
+  color: var(--component-text-primary);
+  font-size: 0.7em;
+  line-height: 1;
+  margin: 0 0.1em;
+  transform: translateY(-2px);
+  text-decoration: none;
+}
+
+.chronicle-markdown .footnotes-sep {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 5rem 0 1rem;
+}
+
+.chronicle-markdown .footnotes {
+  font-size: 0.9em;
+  color: var(--text-secondary);
+}
+
+.chronicle-markdown .footnotes-list {
+  padding-left: 1.5rem;
+}
+
+.chronicle-markdown .footnote-item {
+  margin: 0.4rem 0;
+}
+
+.chronicle-markdown .footnote-backref {
+  text-decoration: none;
+  margin-left: 0.25em;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   15. Font Variants
+   ═══════════════════════════════════════════════════════════ */
+
+.font-sans .chronicle-markdown {
+  font-family: var(--app-font-stack-inter), sans-serif;
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+}
+
+.font-serif .chronicle-markdown {
+  font-family: 'Noto Serif SC', serif;
+  font-weight: 400;
+  line-height: 1.7;
+  letter-spacing: 0;
+}
+
+.font-mono .chronicle-markdown {
+  font-family: var(--app-font-stack-mono);
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   16. Image Preview → moved to §20 (unified with file overlay)
+   ═══════════════════════════════════════════════════════════ */
+
+/* Ensure images inside flexible containers don't force overflow */
+.chronicle-markdown img {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   17. Print
+   ═══════════════════════════════════════════════════════════ */
+
+@media print {
+  .chronicle-markdown .editor-footer {
+    display: none;
+  }
+
+  .chronicle-markdown .code-chunk-container .toolbar {
+    display: none;
+  }
+
+  .chronicle-markdown .code-chunk-container .editor-wrapper,
+  .chronicle-markdown .code-chunk-container .code-textarea,
+  .chronicle-markdown .code-chunk-container .syntax-highlight {
+    max-height: none !important;
+  }
+
+  .chronicle-markdown .code-chunk-container {
+    max-height: none !important;
+  }
+
+  .chronicle-markdown .code-textarea {
+    max-height: none !important;
+    overflow: hidden !important;
+  }
+
+  .chronicle-markdown .syntax-highlight {
+    max-height: none !important;
+    overflow: hidden !important;
+  }
+
+  .chronicle-markdown thead {
+    background: #ccc;
+  }
+
+  .chronicle-markdown .code-chunk-container.mermaid .editor-wrapper {
+    display: none;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   18. Post Layout Framework
+   Shared between manager and template-astro (post.css).
+   Uses the exact same class names so both sides render identically.
+   ═══════════════════════════════════════════════════════════ */
+
+.post-detail-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.post-header {
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1.5rem;
+}
+
+.post-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0 0 1rem;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+.post-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.meta-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: transparent;
+  padding: 0;
+  border-radius: 0.5rem;
+  border: none;
+  font-size: 0.85rem;
+}
+
+.meta-item svg {
+  width: 16px;
+  height: 16px;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.post-body {
+  line-height: 1.7;
+  font-size: 1rem;
+}
+
+@media (max-width: 720px) {
+  .post-detail-container { padding: 1rem; }
+  .post-title { font-size: 1.5rem; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   19. File Preview Framework
+   Mirrors template-astro/src/components/FilePreviewModal.vue.
+   Glassmorphism design: transparent container, blur overlay,
+   circular action buttons, dark semi-transparent accents.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Overlay ─────────────────────────────────────── */
+
+.file-preview-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 20000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  animation: fadeIn 0.15s forwards;
+}
+
+@keyframes fadeIn { to { opacity: 1; } }
+
+/* ── Container ───────────────────────────────────── */
+
+.file-preview-container {
+  background: transparent;
+  width: 80%;
+  max-width: 900px;
+  height: 80%;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: none;
+}
+
+/* ── Header ──────────────────────────────────────── */
+
+.file-preview-header {
+  height: 100px;
+  background: transparent;
+  border-bottom: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.file-preview-title {
+  color: #fff;
+  font-weight: 600;
+  font-variation-settings: 'wght' 600;
+  font-size: 1.7rem;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0 20px 0 0;
+}
+
+.preview-header-actions {
+  padding: 0 5px;
+  display: flex;
+  gap: 20px;
+}
+
+/* ── Action buttons ──────────────────────────────── */
+
+.preview-action-btn {
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  color: #eee;
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  padding: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  text-decoration: none;
+}
+
+.preview-action-btn:hover {
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  transform: scale(1.05);
+}
+
+.preview-action-btn:active {
+  transform: scale(0.95);
+}
+
+/* ── Encoding select ─────────────────────────────── */
+
+.encoding-select {
+  border-radius: 24px;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  color: #eee;
+  padding: 6px 40px 6px 18px;
+  font-size: 14px;
+  width: 180px;
+  height: 48px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23eee' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+}
+
+.encoding-select:hover {
+  background-color: #000;
+}
+
+/* ── Body ────────────────────────────────────────── */
+
+.file-preview-body {
+  flex: 1;
+  overflow: hidden;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  border-radius: 12px;
+  background: transparent;
+}
+
+/* ── Media (audio / video) ───────────────────────── */
+
+.fp-media {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+  background: transparent;
+}
+
+/* ── Document / PDF ──────────────────────────────── */
+
+.fp-doc {
+  width: 100%;
+  height: 100%;
+  background: var(--component-bg-blur);
+}
+
+.fp-doc object {
+  border-radius: 12px;
+}
+
+/* ── Text wrapper ────────────────────────────────── */
+
+.text-wrapper {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  overflow: visible;
+  background: var(--component-bg-blur);
+  border: none;
+  border-radius: 12px;
+  box-sizing: border-box;
+  min-width: 100%;
+  margin: 0;
+  white-space: pre;
+}
+
+.text-scroll-container {
+  flex: 1;
+  width: 100%;
+  overflow: auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Text content (monospace) ────────────────────── */
+
+.fp-text {
+  margin: 12px;
+  width: fit-content;
+  min-width: calc(100% - 24px);
+  font-family: var(--app-font-stack-mono);
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.6;
+  background: transparent;
+}
+
+/* ── Truncation marker ───────────────────────────── */
+
+.fp-truncated {
+  background: var(--accent-color);
+  color: var(--accent-contrast, #fff);
+  padding: 0 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+}
+
+/* ── Generic / unsupported file ──────────────────── */
+
+.fp-file {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: var(--component-bg-blur);
+}
+
+.fp-unsupported {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+/* ── Loading state ───────────────────────────────── */
+
+.loading-state {
+  color: #888;
+  align-self: center;
+  margin-top: 20px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   20. Image Preview Overlay
+   Shared between manager and template-astro.
+   ═══════════════════════════════════════════════════════════ */
+
+.image-preview-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 20000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  animation: fadeIn 0.15s forwards;
+}
+
+.image-preview-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-preview-content {
+  max-width: 90%;
+  max-height: 90%;
+  object-fit: contain;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+  cursor: grab;
+  transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  will-change: transform;
+}
+.image-preview-content.is-dragging { transition: none !important; }
+.image-preview-content:active { cursor: grabbing; }
+
+@media (max-width: 720px) {
+  .file-preview-header { height: 70px; }
+  .file-preview-overlay { backdrop-filter: none; }
+
+  .image-preview-overlay {
+    align-items: flex-start;
+    padding-top: 80px;
+  }
+}

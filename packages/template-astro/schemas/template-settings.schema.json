@@ -1,0 +1,671 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronicle:template-settings",
+  "title": {
+    "en": "Template Settings",
+    "zh-CN": "模板设置"
+  },
+  "x-lang": "en",
+  "x-version": "2.0.2",
+  "x-migrations": [
+    {
+      "fromVersion": "0.9.0",
+      "description": "Rename 'title' to 'siteName', drop legacy field, fill new defaults",
+      "rename": [
+        {
+          "from": "title",
+          "to": "siteName"
+        }
+      ],
+      "remove": [
+        "legacyFlag"
+      ],
+      "setDefaults": [
+        "frontendBackgroundCompression"
+      ]
+    },
+    {
+      "fromVersion": "2.0.1",
+      "description": "Move rss/sitemap/friends into featureFlags; drop legacy top-level friends",
+      "moveInto": [
+        {
+          "from": "rss",
+          "to": "featureFlags.rss"
+        },
+        {
+          "from": "sitemap",
+          "to": "featureFlags.sitemap"
+        }
+      ],
+      "remove": [
+        "friends"
+      ],
+      "setDefaults": [
+        "featureFlags.rss",
+        "featureFlags.sitemap"
+      ],
+      "mapValue": [
+        {
+          "from": "friends",
+          "to": "featureFlags.friendsPage"
+        }
+      ]
+    }
+  ],
+  "type": "object",
+  "x-nav": {
+    "group": "template",
+    "icon": "layout",
+    "order": 1,
+    "tabs": {
+      "template-homepage": {
+        "icon": "home",
+        "order": 1,
+        "label": {
+          "en": "Homepage",
+          "zh-CN": "主页"
+        }
+      },
+      "template-appearance": {
+        "icon": "palette",
+        "order": 2,
+        "label": {
+          "en": "Appearance",
+          "zh-CN": "外观"
+        }
+      },
+      "template-features": {
+        "icon": "toggle",
+        "order": 3,
+        "label": {
+          "en": "Features",
+          "zh-CN": "功能开关"
+        }
+      }
+    }
+  },
+  "properties": {
+    "siteName": {
+      "type": "string",
+      "default": "Chronicle",
+      "minLength": 1,
+      "maxLength": 100,
+      "x-widget": "input",
+      "x-tab": "template-homepage",
+      "x-group": "general",
+      "x-order": 1,
+      "x-required": true,
+      "title": {
+        "en": "Site Name",
+        "zh-CN": "站点名称"
+      }
+    },
+    "siteDescription": {
+      "type": "string",
+      "default": "",
+      "x-widget": "textarea",
+      "x-tab": "template-homepage",
+      "x-group": "general",
+      "x-order": 3,
+      "title": {
+        "en": "Site Description",
+        "zh-CN": "站点描述"
+      }
+    },
+    "icpNumber": {
+      "type": "string",
+      "default": "",
+      "maxLength": 50,
+      "x-widget": "input",
+      "x-tab": "template-homepage",
+      "x-group": "general",
+      "x-order": 5,
+      "title": {
+        "en": "ICP Filing Number",
+        "zh-CN": "备案号"
+      },
+      "description": {
+        "en": "China ICP filing number. Leave blank to hide.",
+        "zh-CN": "中国大陆ICP备案号，留空则隐藏。"
+      }
+    },
+    "homepageMode": {
+      "type": "string",
+      "default": "split",
+      "enum": [
+        "cover",
+        "split",
+        "cards"
+      ],
+      "x-widget": "radio-group",
+      "x-chronicle-class": "card-toggle",
+      "x-preview-type": "homepage-layout",
+      "x-tab": "template-homepage",
+      "x-group": "layout",
+      "x-order": 1,
+      "title": {
+        "en": "Homepage Mode",
+        "zh-CN": "主页模式"
+      },
+      "x-options": [
+        {
+          "value": "cover",
+          "label": {
+            "en": "Cover",
+            "zh-CN": "封面"
+          }
+        },
+        {
+          "value": "split",
+          "label": {
+            "en": "Split",
+            "zh-CN": "分栏"
+          }
+        },
+        {
+          "value": "cards",
+          "label": {
+            "en": "Cards",
+            "zh-CN": "卡片"
+          }
+        }
+      ]
+    },
+    "singleColumnHomepage": {
+      "type": "boolean",
+      "default": false,
+      "x-widget": "toggle",
+      "x-tab": "template-homepage",
+      "x-group": "cards",
+      "x-order": 10,
+      "title": {
+        "en": "Single Column Layout",
+        "zh-CN": "单列布局"
+      },
+      "description": {
+        "en": "Force the homepage to render as a single column regardless of screen width.",
+        "zh-CN": "强制主页以单列布局显示，不论屏幕宽度。"
+      }
+    },
+    "cardVisibility": {
+      "type": "object",
+      "x-widget": "fieldset",
+      "x-tab": "template-homepage",
+      "x-group": "cards",
+      "x-order": 11,
+      "title": {
+        "en": "Card Visibility",
+        "zh-CN": "卡片显隐"
+      },
+      "properties": {
+        "author": {
+          "type": "boolean",
+          "default": true,
+          "x-widget": "toggle",
+          "title": {
+            "en": "Author Card",
+            "zh-CN": "作者卡片"
+          }
+        },
+        "taxonomy": {
+          "type": "boolean",
+          "default": true,
+          "x-widget": "toggle",
+          "title": {
+            "en": "Quick Navigation Card",
+            "zh-CN": "快速导航卡片"
+          }
+        },
+        "activity": {
+          "type": "boolean",
+          "default": true,
+          "x-widget": "toggle",
+          "title": {
+            "en": "Activity Card",
+            "zh-CN": "动态卡片"
+          }
+        }
+      }
+    },
+    "frontendTheme": {
+      "type": "string",
+      "default": "follow",
+      "enum": [
+        "light",
+        "dark",
+        "follow"
+      ],
+      "x-widget": "select",
+      "x-tab": "template-appearance",
+      "x-group": "theme",
+      "x-order": 1,
+      "title": {
+        "en": "Default Color Scheme",
+        "zh-CN": "默认主题"
+      },
+      "x-options": [
+        {
+          "value": "light",
+          "label": {
+            "en": "Light",
+            "zh-CN": "浅色"
+          }
+        },
+        {
+          "value": "dark",
+          "label": {
+            "en": "Dark",
+            "zh-CN": "深色"
+          }
+        },
+        {
+          "value": "follow",
+          "label": {
+            "en": "Follow System",
+            "zh-CN": "跟随系统"
+          }
+        }
+      ]
+    },
+    "frontendAccent": {
+      "type": "string",
+      "default": "#2ea35f",
+      "pattern": "^#[0-9a-fA-F]{6}$",
+      "x-widget": "color",
+      "x-tab": "template-appearance",
+      "x-group": "theme",
+      "x-order": 2,
+      "title": {
+        "en": "Accent Color",
+        "zh-CN": "强调色"
+      }
+    },
+    "frontendFont": {
+      "type": "string",
+      "default": "sans",
+      "enum": [
+        "sans",
+        "serif"
+      ],
+      "x-widget": "select",
+      "x-tab": "template-appearance",
+      "x-group": "theme",
+      "x-order": 3,
+      "title": {
+        "en": "Default Font",
+        "zh-CN": "默认字体"
+      },
+      "x-options": [
+        {
+          "value": "sans",
+          "label": {
+            "en": "Sans-serif",
+            "zh-CN": "无衬线体"
+          }
+        },
+        {
+          "value": "serif",
+          "label": {
+            "en": "Serif",
+            "zh-CN": "衬线体"
+          }
+        }
+      ]
+    },
+    "frontendLocale": {
+      "type": "string",
+      "default": "follow",
+      "enum": [
+        "follow",
+        "en",
+        "zh-CN",
+        "ja",
+        "ko",
+        "fr",
+        "de",
+        "es"
+      ],
+      "x-widget": "select",
+      "x-tab": "template-appearance",
+      "x-group": "locale",
+      "x-order": 1,
+      "title": {
+        "en": "Default Language",
+        "zh-CN": "默认语言"
+      },
+      "x-options": [
+        {
+          "value": "follow",
+          "label": {
+            "en": "Follow System",
+            "zh-CN": "跟随系统"
+          }
+        },
+        {
+          "value": "en",
+          "label": {
+            "en": "English",
+            "zh-CN": "英语 (English)"
+          }
+        },
+        {
+          "value": "zh-CN",
+          "label": {
+            "en": "Simplified Chinese (中文 (简体) )",
+            "zh-CN": "中文 (简体)"
+          }
+        },
+        {
+          "value": "ja",
+          "label": {
+            "en": "Japanese (日本語)",
+            "zh-CN": "日语 (日本語)"
+          }
+        },
+        {
+          "value": "ko",
+          "label": {
+            "en": "Korean (한국어)",
+            "zh-CN": "韩语 (한국어)"
+          }
+        },
+        {
+          "value": "fr",
+          "label": {
+            "en": "French (Français)",
+            "zh-CN": "法语 (Français)"
+          }
+        },
+        {
+          "value": "de",
+          "label": {
+            "en": "German (Deutsch)",
+            "zh-CN": "德语 (Deutsch)"
+          }
+        },
+        {
+          "value": "es",
+          "label": {
+            "en": "Spanish (Español)",
+            "zh-CN": "西语 (Español)"
+          }
+        }
+      ]
+    },
+    "defaultPerformanceMode": {
+      "type": "string",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "full",
+        "reduced"
+      ],
+      "x-widget": "select",
+      "x-tab": "template-appearance",
+      "x-group": "theme",
+      "x-order": 99,
+      "title": {
+        "en": "Performance Mode",
+        "zh-CN": "性能模式"
+      },
+      "description": {
+        "en": "Auto: detect device capability. Full: all effects. Reduced: disable blur/glow/heavy animations for lower-end devices.",
+        "zh-CN": "auto=自动检测设备性能, full=全效果, reduced=禁用模糊/光晕等重效果以适配低端设备"
+      },
+      "x-options": [
+        {
+          "value": "auto",
+          "label": {
+            "en": "Auto",
+            "zh-CN": "自动"
+          }
+        },
+        {
+          "value": "full",
+          "label": {
+            "en": "Full Effects",
+            "zh-CN": "全效果"
+          }
+        },
+        {
+          "value": "reduced",
+          "label": {
+            "en": "Reduced",
+            "zh-CN": "流畅"
+          }
+        }
+      ]
+    },
+    "searchSuggestions": {
+      "type": "boolean",
+      "default": false,
+      "x-widget": "toggle",
+      "x-tab": "template-features",
+      "x-group": "advanced",
+      "x-order": 10,
+      "title": {
+        "en": "Search Suggestions",
+        "zh-CN": "搜索建议"
+      },
+      "description": {
+        "en": "Show search suggestions as users type.",
+        "zh-CN": "在用户输入时显示搜索建议。"
+      }
+    },
+    "relatedPosts": {
+      "type": "boolean",
+      "default": false,
+      "x-widget": "toggle",
+      "x-tab": "template-features",
+      "x-group": "advanced",
+      "x-order": 11,
+      "title": {
+        "en": "Related Posts",
+        "zh-CN": "相关文章"
+      },
+      "description": {
+        "en": "Display related posts on article pages.",
+        "zh-CN": "在文章页展示相关推荐内容。"
+      }
+    },
+    "collectionPage": {
+      "type": "boolean",
+      "default": true,
+      "x-widget": "toggle",
+      "x-tab": "template-features",
+      "x-group": "pages",
+      "x-order": 1,
+      "title": {
+        "en": "Collection Page",
+        "zh-CN": "合集页面"
+      },
+      "description": {
+        "en": "Enable the collection browsing page.",
+        "zh-CN": "启用合集浏览页面。"
+      }
+    },
+    "aboutPage": {
+      "type": "boolean",
+      "default": true,
+      "x-widget": "toggle",
+      "x-tab": "template-features",
+      "x-group": "pages",
+      "x-order": 2,
+      "title": {
+        "en": "About Page",
+        "zh-CN": "关于页面"
+      },
+      "description": {
+        "en": "Enable the about page on the frontend.",
+        "zh-CN": "在前台启用关于页面。"
+      }
+    },
+    "friendsPage": {
+      "type": "boolean",
+      "default": true,
+      "x-widget": "toggle",
+      "x-tab": "template-features",
+      "x-group": "pages",
+      "x-order": 3,
+      "title": {
+        "en": "Friends Page",
+        "zh-CN": "友链页面"
+      },
+      "description": {
+        "en": "Enable the friends page on the frontend.",
+        "zh-CN": "在前台启用友链页面。"
+      }
+    },
+    "traffic": {
+      "type": "boolean",
+      "default": true,
+      "x-widget": "toggle",
+      "x-tab": "template-features",
+      "x-group": "analytics",
+      "x-order": 1,
+      "title": {
+        "en": "Traffic Analytics",
+        "zh-CN": "流量统计"
+      },
+      "description": {
+        "en": "Enable Google Analytics traffic tracking on the frontend.",
+        "zh-CN": "在前台启用 Google Analytics 流量统计。"
+      }
+    },
+    "rss": {
+      "type": "boolean",
+      "default": true,
+      "x-widget": "toggle",
+      "x-tab": "template-features",
+      "x-group": "syndication",
+      "x-order": 1,
+      "title": {
+        "en": "RSS Feed",
+        "zh-CN": "RSS 订阅"
+      },
+      "description": {
+        "en": "Enable RSS feed syndication for the blog.",
+        "zh-CN": "为博客启用 RSS 订阅输出。"
+      }
+    },
+    "sitemap": {
+      "type": "boolean",
+      "default": false,
+      "x-widget": "toggle",
+      "x-tab": "template-features",
+      "x-group": "syndication",
+      "x-order": 2,
+      "title": {
+        "en": "Sitemap",
+        "zh-CN": "站点地图"
+      },
+      "description": {
+        "en": "Generate a sitemap.xml for search engines.",
+        "zh-CN": "为搜索引擎生成 sitemap.xml。"
+      }
+    },
+    "gaMeasurementId": {
+      "type": "string",
+      "default": "",
+      "pattern": "^(G-[A-Z0-9]+)?$",
+      "x-widget": "input",
+      "x-tab": "template-features",
+      "x-group": "analytics",
+      "x-order": 1,
+      "x-advanced": true,
+      "title": {
+        "en": "Google Analytics ID",
+        "zh-CN": "Google Analytics ID"
+      }
+    },
+    "frontendBackground": {
+      "type": "string",
+      "x-widget": "background-editor",
+      "x-persist": false,
+      "x-tab": "template-appearance",
+      "x-group": "background",
+      "x-order": 1,
+      "title": {
+        "en": "Background Image",
+        "zh-CN": "背景图片"
+      }
+    },
+    "frontendBackgroundMeta": {
+      "type": "string",
+      "x-widget": "hidden",
+      "x-persist": false,
+      "x-tab": "template-appearance",
+      "x-group": "background",
+      "x-order": 2,
+      "title": {
+        "en": "Background Meta",
+        "zh-CN": "背景元数据"
+      }
+    }
+  },
+  "required": [
+    "siteName"
+  ],
+  "x-groups": {
+    "general": {
+      "label": {
+        "en": "General",
+        "zh": "通用"
+      }
+    },
+    "pages": {
+      "label": {
+        "en": "Pages",
+        "zh": "页面"
+      }
+    },
+    "advanced": {
+      "label": {
+        "en": "Advanced",
+        "zh": "高级"
+      }
+    },
+    "layout": {
+      "label": {
+        "en": "Layout",
+        "zh": "布局"
+      }
+    },
+    "cards": {
+      "label": {
+        "en": "Cards",
+        "zh": "主页卡片"
+      }
+    },
+    "analytics": {
+      "label": {
+        "en": "Analytics",
+        "zh": "统计"
+      }
+    },
+    "locale": {
+      "label": {
+        "en": "Language & Region",
+        "zh": "语言与地区"
+      }
+    },
+    "syndication": {
+      "label": {
+        "en": "Syndication",
+        "zh": "订阅"
+      }
+    },
+    "theme": {
+      "label": {
+        "en": "Theme",
+        "zh": "主题"
+      }
+    },
+    "background": {
+      "label": {
+        "en": "Background",
+        "zh-CN": "背景"
+      }
+    }
+  }
+}

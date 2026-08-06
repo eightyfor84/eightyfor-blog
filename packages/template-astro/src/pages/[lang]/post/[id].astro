@@ -1,0 +1,474 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import { getPublishedPosts, getPostById, getPublicSettings, getCollections } from '../../../data/localDataSource';
+import { getTranslation, getLocale } from '../../../utils/i18n';
+import { buildLocalizedPath, toContentLocale } from '../../../utils/routeLocale';
+import { buildTocItems, injectHeadingIds } from '../../../utils/toc';
+import { renderCodeBlockStatsHtml, renderCodeBlockLangLabelsHtml } from '../../../utils/markdownParser';
+import { escapeHtmlText, decodeHtmlEntities, getFileExt, getMediaIcon, toMediaCard, rewriteMediaLinks, hydrateLegacyKatexPlaceholders, wrapRenderedKatex } from '../../../utils/contentUtils';
+import DesktopFloatingToc from '../../../components/FloatingToc.astro';
+import CornerActions from '../../../components/CornerActions.astro';
+import CollectionNav from '../../../components/CollectionNav.astro';
+import CommentSection from '../../../components/CommentSection.astro';
+import Slideshow from '../../../components/Slideshow.astro';
+import 'katex/dist/katex.min.css';
+import '../../../styles/post.css';
+import chronicleMarkdownCssUrl from '@chronicle/shared/src/styles/chronicle-markdown.css?url';
+
+export const prerender = true;
+
+ 
+
+
+
+export async function getStaticPaths() {
+  const posts = getPublishedPosts();
+  return posts.flatMap((post) => ([
+    { params: { lang: 'zh', id: String(post.id) } },
+    { params: { lang: 'en', id: String(post.id) } },
+  ]));
+}
+
+const routeLang = Astro.params.lang === 'en' ? 'en' : 'zh';
+const locale = toContentLocale(routeLang);
+const backToBlogs = buildLocalizedPath(routeLang, '/blogs');
+const searchForTags = buildLocalizedPath(routeLang, '/search?tags=');
+const t = (key: string) => getTranslation(locale, key);
+const { id } = Astro.params;
+const mermaidUiText = {
+  downloadSvg: t('preview.mermaid.downloadSvg'),
+  split: t('preview.mermaid.split'),
+  code: t('preview.mermaid.code'),
+  preview: t('preview.mermaid.preview'),
+  notPrerendered: t('preview.mermaid.notPrerendered'),
+};
+
+let post: any = null;
+let error = null;
+let settings: Record<string, any> = {};
+
+// ── Local data source ──────────────────────────────────
+const localPost = getPostById(id);
+if (localPost) {
+  post = {
+    id: localPost.id,
+    title: localPost.title,
+    date: localPost.date,
+    updatedAt: localPost.updatedAt,
+    tags: localPost.tags || [],
+    summary: localPost.summary || '',
+    content: localPost.content,
+    html: localPost.compiledHtml,
+    toc: localPost.toc || [],
+    collection: localPost.collection,
+    collectionPath: localPost.collectionPath,
+    font: localPost.font,
+    status: localPost.status,
+    aiGenerated: localPost.aiGenerated,
+    author: localPost.author,
+    type: localPost.type,
+    slideshow: localPost.slideshow,
+  };
+}
+settings = getPublicSettings() as Record<string, any>;
+
+// ── Comment config ────────────────────────────────────
+const commentCfg = (settings as Record<string, any>).comment || {};
+const commentBackend = String(commentCfg.backend || '');
+const commentApiBase = String(commentCfg.apiBase || '');
+const commentRepo = String(commentCfg.githubRepo || '');
+const commentIssueNumber = String(commentCfg.githubIssueNumber || '');
+const commentTwikooEnvId = String(commentCfg.twikooEnvId || '');
+
+// ── Collections + post titles for CollectionNav ──────────
+let embeddedCollections: any[] = [];
+let embeddedPostTitles: Record<string, string> = {};
+let embeddedPostTypes: Record<string, string> = {};
+try {
+  const collectionsData = getCollections();
+  embeddedCollections = (collectionsData as any)?.collections || [];
+  const allPosts = getPublishedPosts();
+  for (const p of allPosts) {
+    embeddedPostTitles[String(p.id)] = String(p.title || '').trim();
+    embeddedPostTypes[String(p.id)] = String(p.type || 'article').trim();
+  }
+} catch (_) {}
+
+if (!post && !error) {
+  error = 'Post not found';
+}
+
+let pageTitle = 'Post not found';
+if (post && post.title) {
+  pageTitle = `${post.title}`;
+}
+
+const createdAtText = post ? new Date(post.date).toLocaleDateString(locale) : '';
+const updatedAtText = post && post.updatedAt && post.updatedAt !== post.date
+  ? new Date(post.updatedAt).toLocaleDateString(locale)
+  : '';
+
+// 计算字数和阅读时间
+let wordCount = 0;
+let readingTime = 0;
+
+if (post && post.content) {
+  // 移除HTML标签，只统计纯文本字数
+  const textContent = post.content.replace(/<[^>]*>/g, '').trim();
+  
+  // 中文字数统计（每个中文字符算1个字）
+  const chineseChars = (textContent.match(/[\u4e00-\u9fa5]/g) || []).length;
+  
+  // 英文单词统计（按空格分隔）
+  const englishWords = textContent.replace(/[\u4e00-\u9fa5]/g, '').trim();
+  const englishWordCount = englishWords ? englishWords.split(/\s+/).length : 0;
+  
+  // 总字数（中文字数 + 英文单词数）
+  wordCount = chineseChars + englishWordCount;
+  
+  // 阅读时间估算（中文：300字/分钟，英文：200字/分钟）
+  const chineseReadingTime = chineseChars / 300;
+  const englishReadingTime = englishWordCount / 200;
+  readingTime = Math.ceil(chineseReadingTime + englishReadingTime);
+  
+  // 最少1分钟
+  if (readingTime < 1) readingTime = 1;
+}
+
+// 获取作者名和AI生成标记
+const authorName = post?.author || settings?.authorName || 'Eightyfor';
+const isAI = post?.aiGenerated || false;
+
+function buildMetaDescription(input: any, fallbackLocale: string) {
+  const fallback = fallbackLocale === 'zh-CN'
+    ? '浏览 Chronicle 的文章详情。'
+    : 'Read the Chronicle article details.';
+  const rawSource = String(
+    input?.summary ||
+    input?.excerpt ||
+    input?.description ||
+    input?.content ||
+    input?.html ||
+    '',
+  ).trim();
+
+  if (!rawSource) return fallback;
+
+  const plainText = rawSource
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!plainText) return fallback;
+  return plainText.slice(0, 160) + (plainText.length > 160 ? '...' : '');
+}
+
+const rawPostHtml = typeof post?.html === 'string' ? post.html : '';
+const rawPostMarkdown = typeof post?.content === 'string' ? post.content : '';
+const renderContextLabel = `${post?.id || id || 'unknown-id'}${post?.title ? `:${post.title}` : ''}`;
+let renderedPostContent = rawPostHtml
+  ? hydrateLegacyKatexPlaceholders(rawPostHtml, renderContextLabel)
+  : (rawPostMarkdown ? `<pre class="md-fallback">${escapeHtmlText(rawPostMarkdown)}</pre>` : '');
+
+// Mermaid: rendered client-side on demand (requires browser DOM, not available at SSG build time)
+// Toolbar HTML and mermaid-container placeholder are generated by renderCodeChunkHtml
+
+let tocItems: any[] = [];
+
+if (renderedPostContent) {
+  console.info('[Post SSR] Rendering post content', {
+    context: renderContextLabel,
+    length: renderedPostContent.length,
+    htmlSource: !!rawPostHtml,
+  });
+    try {
+    // First apply server-side replacements that may affect headings (code footers, language labels)
+    try {
+      renderedPostContent = renderCodeBlockStatsHtml(renderedPostContent, locale)
+      try { renderedPostContent = renderCodeBlockLangLabelsHtml(renderedPostContent, locale) } catch (e) {}
+    } catch (e) {
+      // ignore and keep placeholders
+    }
+
+    // Use server-provided TOC if available; fall back to local HTML heading extraction
+    if (post && Array.isArray(post.toc) && post.toc.length > 0) {
+      tocItems = buildTocItems('', true, post.toc);
+    } else if (renderedPostContent) {
+      tocItems = buildTocItems(renderedPostContent, true);
+    } else {
+      tocItems = [];
+    }
+
+    // Inject heading ids into rendered HTML so TOC links work
+    if (tocItems.length > 0) {
+      renderedPostContent = injectHeadingIds(renderedPostContent, tocItems);
+    }
+  } catch (renderErr) {
+    // If rendering fails completely, fall back to escaped raw content
+    console.error('[Post SSR] Rendering failed:', renderContextLabel, renderErr);
+    renderedPostContent = `<div class="md-placeholder">文章内容渲染失败</div><pre style="margin-top:1rem; padding: 1rem; background: var(--component-bg-primary); border-radius: 4px; overflow-x: auto; font-size: 12px;">${escapeHtmlText((rawPostHtml || rawPostMarkdown).substring(0, 500))}</pre>`;
+  }
+}
+
+const isSlidesType = post?.type === 'slides' || !!post?.slideshow;
+const isSlidesView = isSlidesType;
+const metaDescription = buildMetaDescription(post, locale);
+---
+
+{isSlidesView && post ? (
+<Layout title={pageTitle} settings={settings} locale={locale} navTitle={post?.title} navBackHref={backToBlogs} navBackLabel={t('inblog.backToBlogs')} meta={{ description: metaDescription, type: 'article' }}>
+  <Slideshow id={post.id} locale={locale} config={post.slideshow || {}} />
+</Layout>
+) : (
+<Layout title={pageTitle} settings={settings} locale={locale} navTitle={post?.title} navBackHref={backToBlogs} navBackLabel={t('inblog.backToBlogs')} meta={{ description: metaDescription, type: 'article' }}>
+  <div class="post-detail-container" id="post-top">
+    {error ? (
+      <div class="error-container">
+        <h1>Post not found</h1>
+        <p>{error}</p>
+        <a href={backToBlogs} class="back-link" aria-label="Back to blogs">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            {t('inblog.backToBlogs')}
+        </a>
+      </div>
+    ) : post ? (
+      <article class={`post-content font-${post.font || 'sans'}`} data-page-locale={locale} data-mermaid-ui={JSON.stringify(mermaidUiText)}>
+        <nav class="post-nav">
+          <a href={backToBlogs} class="nav-back" aria-label="Back to blogs">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            {t('inblog.backToBlogs')}
+          </a>
+        </nav>
+
+        <header class="post-header">
+          <h1 class="post-title">{post.title}</h1>
+
+          <div class="post-meta">
+            <!-- 第一行：作者和创建修改时间 -->
+            <div class="meta-row">
+              <span class="meta-item" title={`Author: ${authorName}`} aria-label={`Author: ${authorName}`}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <span class="meta-value">{authorName}</span>
+              </span>
+              <span class="meta-item" title={createdAtText} aria-label={`Created ${createdAtText}`}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                <span class="meta-label">{t('inblog.created')}</span>
+                <time datetime={new Date(post.date).toISOString()}>{createdAtText}</time>
+              </span>
+              {updatedAtText && (
+                <span class="meta-item" title={updatedAtText} aria-label={`Updated ${updatedAtText}`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+                  <span class="meta-label">{t('inblog.updated')}</span>
+                  <time datetime={new Date(post.updatedAt).toISOString()}>{updatedAtText}</time>
+                </span>
+              )}
+            </div>
+
+            <!-- 第二行：字数和阅读时间 -->
+            <div class="meta-row">
+              {wordCount > 0 && (
+                <span class="meta-item" title={`${wordCount} words`} aria-label={`${wordCount} words`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14,2 14,8 20,8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10,9 9,9 8,9"></polyline></svg>
+                  <span class="meta-label">{t('inblog.words')}</span>
+                  <span class="meta-value">{wordCount.toLocaleString()}</span>
+                </span>
+              )}
+              {readingTime > 0 && (
+                <span class="meta-item" title={`${readingTime} minutes read`} aria-label={`${readingTime} minutes read`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12,6 12,12 16,14"></polyline></svg>
+                  <span class="meta-label">{t('inblog.readingTime')}</span>
+                  <span class="meta-value">{readingTime} {t('inblog.min')}</span>
+                </span>
+              )}
+            </div>
+
+            <!-- 第三行：AI生成标记（如果有） -->
+            {isAI && (
+              <div class="meta-row">
+                <span class="meta-item warning" title="AI Generated Content" aria-label="AI Generated Content">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                  <span class="meta-label">{t('inblog.aiGeneratedTip')}</span>
+                </span>
+              </div>
+            )}
+
+            {post.tags && post.tags.length > 0 && (
+              <div class="post-tags">
+                {post.tags.map((tag: string) => (
+                <a href={searchForTags + encodeURIComponent(tag)} class="tag-link" aria-label={`Search for tag ${tag}`}>
+                  <span class="tag" class:list={[{ featured: tag === 'featured' || tag === '精选' }]} >
+                    {tag}
+                  </span>
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+        </header>
+
+        {tocItems.length > 0 && (
+          <div class="markdown-toc" id="inline-toc">
+            <button class="toc-summary" aria-label={t('inblog.toc-title')} aria-expanded="false">
+              <span class="toc-title">{t('inblog.toc-title')}</span>
+              <svg class="toc-toggle-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div class="toc-body-wrap">
+              <div class="toc-body">
+                <ul class="toc-list">
+                  {tocItems.map((item) => (
+                    <li class={`toc-level-${item.level}`}>
+                      <a href={`#${item.id}`}>
+                        <span class="toc-text">{item.text}</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+          <script>
+            let _tocHandler: (() => void) | null = null
+            function bindTocToggle() {
+              const s = document.getElementById('inline-toc')?.querySelector('.toc-summary')
+              if (!s || _tocHandler) return
+              _tocHandler = () => {
+                const toc = document.getElementById('inline-toc')
+                if (!toc) return
+                const open = toc.classList.toggle('open')
+                s.setAttribute('aria-expanded', String(open))
+              }
+              s.addEventListener('click', _tocHandler)
+            }
+            document.addEventListener('astro:page-load', bindTocToggle)
+            document.addEventListener('astro:before-swap', () => {
+              const s = document.getElementById('inline-toc')?.querySelector('.toc-summary')
+              if (s && _tocHandler) s.removeEventListener('click', _tocHandler)
+              _tocHandler = null
+            })
+          </script>
+        )}
+
+        <div class="post-body">
+          <div class="chronicle-markdown md-parser-rendered markdown-content" set:html={renderedPostContent} />
+        </div>
+
+        <!-- chronicle-markdown.css loaded async (43KB) — non-render-blocking.
+             media="print" downgrades priority; onload switches to all media.
+             <noscript> fallback for users with JS disabled. -->
+        <link rel="stylesheet" href={chronicleMarkdownCssUrl} media="print" onload="this.media='all'" />
+        <noscript><link rel="stylesheet" href={chronicleMarkdownCssUrl} /></noscript>
+      </article>
+      <CommentSection
+        postId={post?.id || id}
+        locale={locale}
+        backend={commentBackend}
+        apiBase={commentApiBase}
+        repo={commentRepo}
+        issueNumber={commentIssueNumber}
+        twikooEnvId={commentTwikooEnvId}
+      />
+    ) : null}
+  </div>
+  <div class="scroll-blank"/>
+
+  {tocItems.length > 0 && (
+    <>
+      <script id="chronicle-toc-data" type="application/json" set:html={JSON.stringify(tocItems)}></script>
+      <DesktopFloatingToc
+        toc={tocItems}
+        navLabel={t('inblog.toc-title')}
+        mountToBody={true}
+      />
+    </>
+  )}
+
+  <CornerActions toc={tocItems} postId={post?.id || id} collections={embeddedCollections} postTitles={embeddedPostTitles} postTypes={embeddedPostTypes} />
+
+  {post?.collection && (
+    <CollectionNav postId={post?.id || id} collections={embeddedCollections} postTitles={embeddedPostTitles} postTypes={embeddedPostTypes} />
+  )}
+
+  <!-- CSS-only padding for CollectionNav sidebar — prevents CLS (was set by JS after first paint) -->
+  {post?.collection && (
+    <style>
+      @media (min-width: 1200px) {
+        .post-detail-container { padding-left: 280px; }
+      }
+    </style>
+  )}
+
+  <style is:global>
+    /* Hide desktop CollectionNav on mobile (768px breakpoint, matches html.is-mobile) */
+    html.is-mobile .cn-panel[data-cn-variant="sidebar"] {
+      display: none !important;
+    }
+
+    @media (max-width: 768px) {
+      .post-detail-container {
+        padding: 1rem 0.5rem;
+      }
+
+      .post-title {
+        font-size: 2rem;
+      }
+
+      .meta-row {
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .post-nav {
+        margin-bottom: .5rem;
+      }
+
+      .scroll-blank {
+        height: 80px;
+      }
+    }
+
+
+  </style>
+
+  <script>
+    import '../../../scripts/article';
+  </script>
+
+  <script define:vars={{ POST_ID: JSON.stringify(post?.id || id), POST_TITLE: JSON.stringify(post?.title || ''), PAGE_LOCALE: JSON.stringify(locale), MERMAID_UI_TEXT: JSON.stringify(mermaidUiText) }} is:inline>
+    (function() {
+      try {
+        if (typeof window !== 'undefined') {
+          window.__PAGE_LOCALE = PAGE_LOCALE;
+          window.__MERMAID_UI_TEXT = MERMAID_UI_TEXT;
+        }
+      } catch(e) {}
+      function sendPostView() {
+        try {
+          if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+            window.gtag('event', 'post_view', { post_id: POST_ID, post_title: POST_TITLE, page_path: location.pathname });
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', sendPostView, { once: true });
+      } else {
+        sendPostView();
+      }
+
+      document.addEventListener('astro:page-load', sendPostView);
+    })();
+  </script>
+
+
+</Layout>
+)}

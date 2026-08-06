@@ -1,0 +1,1606 @@
+@keyframes spin {
+  from {
+    transform: rotate(0deg)
+  }
+
+  to {
+    transform: rotate(360deg)
+  }
+}
+
+@keyframes shimmer {
+  0%   { opacity: 0.35; }
+  50%  { opacity: 0.85; }
+  100% { opacity: 0.35; }
+}
+
+:root {
+  /* 可用视口高度：浏览器 = 100dvh，Electron = 100dvh - 40px（避让 TitleBar） */
+  --app-height: 100dvh;
+
+  /*系统字体*/
+  --app-font-stack-system: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  /*Inter字体*/
+  /* Apple设备优先使用系统字体，其他设备使用Inter */
+  --app-font-stack-inter: -apple-system, BlinkMacSystemFont, 'InterVariable', 'Inter', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', 'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+  /*当前字体栈，入口动态切换*/
+  --app-font-stack: var(--app-font-stack-inter);
+  /* Backend font stack (admin/editor). Defaults to same as frontend stack unless overridden */
+  --backend-font-stack: var(--app-font-stack-inter);
+
+  --app-font-stack-serif: "Noto Serif SC", serif;
+  --app-font-stack-mono: 'Consolas','SF Mono', 'Menlo', 'Monaco', 'Ubuntu Mono', 'Courier New', monospace, var(--app-font-stack-inter);
+
+  font-family: var(--app-font-stack);
+  line-height: 1.5;
+  --app-text-wght: 400;
+  --app-heading-wght: 570;
+  /* 比正文略粗，避免 700 的过粗带来的闪烁与布局抖动 */
+
+  color-scheme: dark;
+
+  /* Core brand */
+  --accent-color-default: #2ea35f;
+  --accent-color: var(--accent-color-default);
+  --accent-color-dark: #24804a;
+  --accent-color-bg: color-mix(in srgb, var(--accent-color) 15%, transparent);
+  --accent-color-hover: color-mix(in srgb, var(--accent-color) 80%, transparent);
+  --recommended-accent-text: #fff;
+  --featured: #ffd700;
+  --featured-bg: color-mix(in srgb, var(--featured) 15%, transparent);
+
+  --code-bg: rgba(255, 0, 0, 0.12);
+  --code-text: #ff8585;
+
+  --status-warning: var(--featured);
+  --status-warning-bg: var(--featured-bg);
+  --status-error: #d9534f;
+  --status-error-bg: color-mix(in srgb, var(--status-error) 15%, transparent);
+  --status-success: #5cb85c;
+  --status-success-bg: color-mix(in srgb, var(--status-success) 15%, transparent);
+  --status-progress: #06b6d4;
+  --status-progress-bg: color-mix(in srgb, var(--status-progress) 15%, transparent);
+
+  /* Background hierarchy */
+  --app-bg-primary: #121212;
+  --app-bg-secondary: #1e1e1e;
+  --component-bg: #222222;
+  --component-bg-alt: #2a2a2a;
+  --component-bg-blur: rgba(34, 34, 34, 0.9);
+  --component-bg-blur-alt: rgba(72, 72, 72, 0.5);
+  --component-bg-accent: color-mix(in srgb, var(--accent-color) 40%, transparent);
+  --component-bg-accent-blur: color-mix(in srgb, var(--accent-color) 25%, transparent);
+  --component-bg-accent-ghost: color-mix(in srgb, var(--accent-color) 35%, #0008);
+
+  /* Background highlight states */
+  --app-bg-primary-hover: rgba(255, 255, 255, 0.04);
+  --app-bg-primary-active: rgba(255, 255, 255, 0.08);
+  --app-bg-secondary-hover: rgba(255, 255, 255, 0.06);
+  --app-bg-secondary-active: rgba(255, 255, 255, 0.12);
+  --component-bg-hover: rgba(255, 255, 255, 0.08);
+  --component-bg-highlight: rgba(255, 255, 255, 0.1);
+  --component-bg-active: rgba(255, 255, 255, 0.14);
+  --component-bg-accent-hover: var(--accent-color-dark);
+  --component-bg-accent-active: var(--accent-color-dark);
+
+  /* Foreground hierarchy */
+  --app-text-primary: #e0e0e0;
+  --app-text-secondary: #a9a9a9;
+  --component-text-primary: #d4d4d4;
+  --component-text-secondary: #a5a5a5;
+  --component-text-primary-disabled: rgba(212, 212, 212, 0.45);
+  --component-text-secondary-disabled: rgba(165, 165, 165, 0.45);
+
+  /* Foreground highlight states */
+  --component-text-primary-hover: var(--app-text-primary);
+  --component-text-secondary-hover: var(--app-text-secondary);
+  --component-text-primary-active: var(--component-text-primary-hover);
+  --component-text-secondary-active: var(--component-text-secondary-hover);
+  --component-text-primary-highlight: var(--app-text-primary);
+  --component-text-secondary-highlight: var(--app-text-secondary);
+  --component-text-accent-hover: #ffffff;
+  --component-text-accent-active: #ffffff;
+  --component-text-accent-ghost: color-mix(in srgb, var(--component-text-primary) 60%, var(--accent-color));
+
+  --border-color: color-mix(in srgb, var(--app-text-secondary) 20%, transparent);
+  --border-color-blur: rgba(113, 113, 113, 0.2);
+  --glow-light: rgba(0, 0, 0, 0.678);
+  --glow-dark: rgba(255, 255, 255, 0.644);
+  --select-arrow-color: #bbbbbb;
+
+  /* Legacy aliases for existing components */
+  --app-bg: var(--app-bg-primary);
+  --bg-primary: var(--app-bg-primary);
+  --bg-secondary: var(--app-bg-secondary);
+  --app-text-light: #222;
+  --app-text-dark: var(--app-text-primary);
+  --text-primary: var(--app-text-primary);
+  --text-secondary: var(--app-text-secondary);
+  --text-inactive: var(--app-text-secondary);
+  --accent: var(--accent-color);
+  --text-on-accent: #fff;
+  --shadow-elev-1: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-elev-2: 0 4px 12px rgba(0, 0, 0, 0.25);
+  --shadow-elev-3: 0 10px 30px rgba(0, 0, 0, 0.5);
+  --toc-divider-color: rgba(255, 255, 255, 0.02);
+  --select-option-border-color: var(--border-color);
+
+  color: var(--app-text-primary);
+
+  /* font-synthesis: none; */
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Syntax highlighting color tokens (dark theme defaults) */
+:root {
+  --code-keyword: #569cd6;
+  --code-string: #ce9178;
+  --code-comment: #6a9955;
+  --code-katexcommand: #c9bf4e;
+  --code-number: #b5cea8;
+  --code-boolean: #569cd6;
+  --code-operator: #d4d4d4;
+  --code-tag: #569cd6;
+  --code-attribute: #9cdcfe;
+  --code-property: #9cdcfe;
+  --code-selector: #d7ba7d;
+  --code-type: #4ec9b0;
+  --code-variable: #9cdcfe;
+  --code-parameter: #9cdcfe;
+  --code-cmdlet: #569cd6;
+  --code-directive: #c586c0;
+  --code-preprocessor: #c586c0;
+  --code-color: #ce9178;
+  --code-section: #569cd6;
+  --code-date: #b5cea8;
+  --code-quote: #6a9955;
+  --code-header: #569cd6;
+  --code-inline: #ce9178;
+  --code-link: #569cd6;
+}
+
+/* Light theme overrides for syntax highlighting */
+[data-theme="light"] {
+  --code-keyword: #0000ff;
+  --code-string: #a31515;
+  --code-subst: #cf222e;
+  --code-comment: #008000;
+  --code-katexcommand: #8a6f2f;
+  --code-number: #098658;
+  --code-boolean: #0000ff;
+  --code-operator: #333333;
+  --code-tag: #800000;
+  --code-attribute: #795e26;
+  --code-property: #0366d6;
+  --code-selector: #800000;
+  --code-type: #267f99;
+  --code-variable: #0366d6;
+  --code-parameter: #0366d6;
+  --code-cmdlet: #0000ff;
+  --code-directive: #0451a5;
+  --code-preprocessor: #0451a5;
+  --code-color: #a31515;
+  --code-section: #0000ff;
+  --code-date: #098658;
+  --code-quote: #008000;
+  --code-header: #0000ff;
+  --code-inline: #a31515;
+  --code-link: #0000ff;
+}
+
+
+/* Backend-specific theme overrides
+   When backend area requests a separate theme, we apply the same
+   variable set scoped to the body so frontend and backend can differ.
+*/
+body[data-backend-theme="light"] {
+  color-scheme: light;
+  --app-text-wght: 430;
+
+  --code-bg: rgba(255, 0, 0, 0.12);
+  --code-text: #c7254e;
+
+  --recommended-accent-text: #fff;
+
+  --app-bg-primary: #f9f9f9;
+  /* Backend light-mode should use light overlay variant */
+  --backend-bg-overlay: var(--backend-bg-overlay-light);
+  --app-bg-secondary: #f0f0f0;
+  --component-bg: #ffffff;
+  --component-bg-alt: #f7f7f7;
+  --component-bg-blur: rgba(230, 230, 230, 0.8);
+  --component-bg-blur-alt: rgba(232, 232, 232, 0.5);
+  --component-bg-accent: color-mix(in srgb, var(--accent-color) 30%, #fffb);
+  --component-bg-accent-blur: color-mix(in srgb, var(--accent-color) 35%, #fffb);
+  --component-bg-accent-ghost: color-mix(in srgb, var(--accent-color) 45%, #fff7);
+
+  --app-bg-primary-hover: rgba(0, 0, 0, 0.03);
+  --app-bg-primary-active: rgba(0, 0, 0, 0.06);
+  --app-bg-secondary-hover: rgba(0, 0, 0, 0.05);
+  --app-bg-secondary-active: rgba(0, 0, 0, 0.08);
+  --component-bg-hover: rgba(0, 0, 0, 0.06);
+  --component-bg-highlight: color-mix(in srgb, var(--accent-color) 30%, #fffb);
+  --component-bg-active: rgba(0, 0, 0, 0.08);
+  --component-bg-accent-hover: var(--accent-color-dark);
+  --component-bg-accent-active: var(--accent-color-dark);
+
+  --app-text-primary: #111;
+  --app-text-secondary: #444;
+  --component-text-primary: #222;
+  --component-text-secondary: #555;
+  --component-text-primary-disabled: rgba(61, 61, 61, 0.42);
+  --component-text-secondary-disabled: rgba(129, 129, 129, 0.42);
+
+  --component-text-primary-hover: var(--app-text-primary);
+  --component-text-secondary-hover: var(--app-text-secondary);
+  --component-text-primary-active: var(--component-text-primary-hover);
+  --component-text-secondary-active: var(--component-text-secondary-hover);
+  --component-text-primary-highlight: var(--accent-color);
+  --component-text-secondary-highlight: color-mix(in srgb, var(--accent-color) 75%, #555);
+  --component-text-accent-hover: #ffffff;
+  --component-text-accent-active: #ffffff;
+  --component-text-accent-ghost: color-mix(in srgb, var(--component-text-primary) 75%, var(--accent-color));
+
+  --featured: #c58f00;
+  --featured-bg: rgba(242, 234, 212, 0.9);
+  --border-color: color-mix(in srgb, var(--app-text-secondary) 20%, transparent);
+  --border-color-blur: rgba(28, 28, 28, 0.12);
+  --select-arrow-color: #999;
+
+  /* Legacy aliases */
+  --app-bg: var(--app-bg-primary);
+  --bg-primary: var(--app-bg-primary);
+  --bg-secondary: var(--app-bg-secondary);
+  --app-text-dark: var(--app-text-primary);
+  --text-primary: var(--app-text-primary);
+  --text-secondary: var(--app-text-secondary);
+  --text-inactive: var(--app-text-secondary);
+  --shadow-elev-1: 0 4px 12px rgba(0, 0, 0, 0.2);
+  --shadow-elev-2: 0 4px 12px rgba(0, 0, 0, 0.16);
+  --shadow-elev-3: 0 10px 30px rgba(0, 0, 0, 0.25);
+  --toc-divider-color: rgba(28, 28, 28, 0.08);
+
+  color: var(--app-text-primary);
+}
+
+body[data-backend-theme="dark"] {
+  /* :root is the dark theme — explicit re-declaration ensures consistency
+     regardless of whether :root is later changed or overridden. */
+  color-scheme: dark;
+  --app-text-wght: 400;
+
+  --code-bg: rgba(255, 0, 0, 0.12);
+  --code-text: #ff8585;
+
+  --recommended-accent-text: #fff;
+
+  --app-bg-primary: #121212;
+  --app-bg-secondary: #1e1e1e;
+  --component-bg: #222222;
+  --component-bg-alt: #2a2a2a;
+  --component-bg-blur: rgba(34, 34, 34, 0.9);
+  --component-bg-blur-alt: rgba(72, 72, 72, 0.5);
+  --component-bg-accent: color-mix(in srgb, var(--accent-color) 40%, transparent);
+  --component-bg-accent-blur: color-mix(in srgb, var(--accent-color) 25%, transparent);
+  --component-bg-accent-ghost: color-mix(in srgb, var(--accent-color) 35%, #0008);
+
+  --app-bg-primary-hover: rgba(255, 255, 255, 0.04);
+  --app-bg-primary-active: rgba(255, 255, 255, 0.08);
+  --app-bg-secondary-hover: rgba(255, 255, 255, 0.06);
+  --app-bg-secondary-active: rgba(255, 255, 255, 0.12);
+  --component-bg-hover: rgba(255, 255, 255, 0.08);
+  --component-bg-highlight: rgba(255, 255, 255, 0.1);
+  --component-bg-active: rgba(255, 255, 255, 0.14);
+  --component-bg-accent-hover: var(--accent-color-dark);
+  --component-bg-accent-active: var(--accent-color-dark);
+
+  --app-text-primary: #e0e0e0;
+  --app-text-secondary: #a9a9a9;
+  --component-text-primary: #d4d4d4;
+  --component-text-secondary: #a5a5a5;
+  --component-text-primary-disabled: rgba(212, 212, 212, 0.45);
+  --component-text-secondary-disabled: rgba(165, 165, 165, 0.45);
+
+  --component-text-primary-hover: var(--app-text-primary);
+  --component-text-secondary-hover: var(--app-text-secondary);
+  --component-text-primary-active: var(--component-text-primary-hover);
+  --component-text-secondary-active: var(--component-text-secondary-hover);
+  --component-text-primary-highlight: var(--app-text-primary);
+  --component-text-secondary-highlight: var(--app-text-secondary);
+  --component-text-accent-hover: #ffffff;
+  --component-text-accent-active: #ffffff;
+  --component-text-accent-ghost: color-mix(in srgb, var(--component-text-primary) 60%, var(--accent-color));
+
+  --featured: #ffd700;
+  --featured-bg: color-mix(in srgb, var(--featured) 15%, transparent);
+
+  --border-color: color-mix(in srgb, var(--app-text-secondary) 20%, transparent);
+  --border-color-blur: rgba(113, 113, 113, 0.2);
+  --select-arrow-color: #bbbbbb;
+
+  --shadow-elev-1: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-elev-2: 0 4px 12px rgba(0, 0, 0, 0.25);
+  --shadow-elev-3: 0 10px 30px rgba(0, 0, 0, 0.5);
+  --toc-divider-color: rgba(255, 255, 255, 0.02);
+
+  /* Legacy aliases */
+  --app-bg: var(--app-bg-primary);
+  --bg-primary: var(--app-bg-primary);
+  --bg-secondary: var(--app-bg-secondary);
+  --app-text-dark: var(--app-text-primary);
+  --text-primary: var(--app-text-primary);
+  --text-secondary: var(--app-text-secondary);
+  --text-inactive: var(--app-text-secondary);
+
+  /* Backend dark-mode should use dark overlay variant */
+  --backend-bg-overlay: var(--backend-bg-overlay-dark);
+
+  color: var(--app-text-primary);
+}
+
+
+/* Explicit light theme tokens */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --app-text-wght: 430;
+
+  --code-bg: rgba(255, 0, 0, 0.12);
+  --code-text: #c7254e;
+
+  --recommended-accent-text: #fff;
+
+  --app-bg-primary: #f9f9f9;
+  /* Backend light-mode should use light overlay variant */
+  --backend-bg-overlay: var(--backend-bg-overlay-light);
+  --app-bg-secondary: #f0f0f0;
+  --component-bg: #ffffff;
+  --component-bg-alt: #f7f7f7;
+  --component-bg-blur: rgba(230, 230, 230, 0.8);
+  --component-bg-blur-alt: rgba(232, 232, 232, 0.5);
+  --component-bg-accent: color-mix(in srgb, var(--accent-color) 30%, #fffb);
+  --component-bg-accent-blur: color-mix(in srgb, var(--accent-color) 35%, #fffb);
+  --component-bg-accent-ghost: color-mix(in srgb, var(--accent-color) 45%, #fff7);
+
+  --app-bg-primary-hover: rgba(0, 0, 0, 0.03);
+  --app-bg-primary-active: rgba(0, 0, 0, 0.06);
+  --app-bg-secondary-hover: rgba(0, 0, 0, 0.05);
+  --app-bg-secondary-active: rgba(0, 0, 0, 0.08);
+  --component-bg-hover: rgba(0, 0, 0, 0.06);
+  --component-bg-highlight: color-mix(in srgb, var(--accent-color) 30%, #fffb);
+  --component-bg-active: rgba(0, 0, 0, 0.08);
+  --component-bg-accent-hover: var(--accent-color-dark);
+  --component-bg-accent-active: var(--accent-color-dark);
+
+  --app-text-primary: #111;
+  --app-text-secondary: #444;
+  --component-text-primary: #222;
+  --component-text-secondary: #555;
+  --component-text-primary-disabled: rgba(61, 61, 61, 0.42);
+  --component-text-secondary-disabled: rgba(129, 129, 129, 0.42);
+
+  --component-text-primary-hover: var(--app-text-primary);
+  --component-text-secondary-hover: var(--app-text-secondary);
+  --component-text-primary-active: var(--component-text-primary-hover);
+  --component-text-secondary-active: var(--component-text-secondary-hover);
+  --component-text-primary-highlight: var(--accent-color);
+  --component-text-secondary-highlight: color-mix(in srgb, var(--accent-color) 75%, #555);
+  --component-text-accent-hover: #ffffff;
+  --component-text-accent-active: #ffffff;
+  --component-text-accent-ghost: color-mix(in srgb, var(--component-text-primary) 75%, var(--accent-color));
+
+  --featured: #c58f00;
+  --featured-bg: rgba(242, 234, 212, 0.9);
+  --border-color: color-mix(in srgb, var(--app-text-secondary) 20%, transparent);
+  --border-color-blur: rgba(28, 28, 28, 0.12);
+  --select-arrow-color: #999;
+
+  /* Legacy aliases */
+  --app-bg: var(--app-bg-primary);
+  --bg-primary: var(--app-bg-primary);
+  --bg-secondary: var(--app-bg-secondary);
+  --app-text-dark: var(--app-text-primary);
+  --text-primary: var(--app-text-primary);
+  --text-secondary: var(--app-text-secondary);
+  --text-inactive: var(--app-text-secondary);
+  --shadow-elev-1: 0 4px 12px rgba(0, 0, 0, 0.2);
+  --shadow-elev-2: 0 4px 12px rgba(0, 0, 0, 0.16);
+  --shadow-elev-3: 0 10px 30px rgba(0, 0, 0, 0.25);
+  --toc-divider-color: rgba(28, 28, 28, 0.08);
+
+  color: var(--app-text-primary);
+}
+
+/* Follow-system light mode when no explicit dark override is set */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+    --app-text-wght: 430;
+
+    --code-bg: rgba(255, 0, 0, 0.12);
+    --code-text: #c7254e;
+
+    --recommended-accent-text: #fff;
+
+    --app-bg-primary: #f9f9f9;
+    /* Backend light-mode should use light overlay variant */
+    --backend-bg-overlay: var(--backend-bg-overlay-light);
+    --app-bg-secondary: #f0f0f0;
+    --component-bg: #ffffff;
+    --component-bg-alt: #f7f7f7;
+    --component-bg-blur: rgba(230, 230, 230, 0.8);
+    --component-bg-blur-alt: rgba(232, 232, 232, 0.5);
+    --component-bg-accent: color-mix(in srgb, var(--accent-color) 30%, #fffb);
+    --component-bg-accent-blur: color-mix(in srgb, var(--accent-color) 35%, #fffb);
+    --component-bg-accent-ghost: color-mix(in srgb, var(--accent-color) 45%, #fff7);
+
+    --app-bg-primary-hover: rgba(0, 0, 0, 0.03);
+    --app-bg-primary-active: rgba(0, 0, 0, 0.06);
+    --app-bg-secondary-hover: rgba(0, 0, 0, 0.05);
+    --app-bg-secondary-active: rgba(0, 0, 0, 0.08);
+    --component-bg-hover: rgba(0, 0, 0, 0.06);
+    --component-bg-highlight: color-mix(in srgb, var(--accent-color) 30%, #fffb);
+    --component-bg-active: rgba(0, 0, 0, 0.08);
+    --component-bg-accent-hover: var(--accent-color-dark);
+    --component-bg-accent-active: var(--accent-color-dark);
+
+    --app-text-primary: #1f2a36;
+    --app-text-secondary: #5f6b78;
+    --component-text-primary: #2a3745;
+    --component-text-secondary: #66768a;
+    --component-text-primary-disabled: rgba(61, 61, 61, 0.42);
+    --component-text-secondary-disabled: rgba(129, 129, 129, 0.42);
+
+    --component-text-primary-hover: var(--app-text-primary);
+    --component-text-secondary-hover: var(--app-text-secondary);
+    --component-text-primary-active: var(--component-text-primary-hover);
+    --component-text-secondary-active: var(--component-text-secondary-hover);
+    --component-text-primary-highlight: var(--accent-color);
+    --component-text-secondary-highlight: color-mix(in srgb, var(--accent-color) 75%, #555);
+    --component-text-accent-hover: #ffffff;
+    --component-text-accent-active: #ffffff;
+    --component-text-accent-ghost: color-mix(in srgb, var(--component-text-primary) 60%, var(--accent-color));
+
+    --featured: #c58f00;
+    --featured-bg: rgba(242, 234, 212, 0.9);
+    --border-color: color-mix(in srgb, var(--app-text-secondary) 20%, transparent);
+    --border-color-blur: rgba(28, 28, 28, 0.12);
+    --select-arrow-color: #999;
+
+    /* Legacy aliases */
+    --app-bg: var(--app-bg-primary);
+    --bg-primary: var(--app-bg-primary);
+    --bg-secondary: var(--app-bg-secondary);
+    --app-text-dark: var(--app-text-primary);
+    --text-primary: var(--app-text-primary);
+    --text-secondary: var(--app-text-secondary);
+    --text-inactive: var(--app-text-secondary);
+    --shadow-elev-1: 0 4px 12px rgba(0, 0, 0, 0.2);
+    --shadow-elev-2: 0 4px 12px rgba(0, 0, 0, 0.16);
+    --shadow-elev-3: 0 10px 30px rgba(0, 0, 0, 0.25);
+    --toc-divider-color: rgba(28, 28, 28, 0.08);
+
+    color: var(--app-text-primary);
+  }
+}
+
+
+
+i,
+em {
+  font-style: italic;
+}
+
+a {
+  font-weight: 500;
+  color: var(--accent-color);
+  text-decoration: inherit;
+}
+
+a:hover {
+  color: var(--accent-color-dark);
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: var(--app-height);
+  background: var(--app-bg-primary);
+  color: var(--app-text-primary);
+  font-weight: var(--app-text-wght, 400);
+  /* For variable fonts (e.g. InterVariable), keep正文在可配置字重 */
+  font-variation-settings: 'wght' var(--app-text-wght, 400);
+}
+
+/* Electron: title bar occupies 40px, reduce available viewport height */
+body.is-electron {
+  --app-height: calc(100vh - 40px);
+}
+
+
+/* Respect iOS safe-area (notch / status bar) */
+body {
+  padding-top: constant(safe-area-inset-top);
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: constant(safe-area-inset-bottom);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* When in backend/admin area, use a separate font stack to avoid changing frontend look */
+body.backend {
+  font-family: var(--backend-font-stack);
+}
+
+h1 {
+  font-size: 2rem;
+  padding-bottom: 0.5rem;
+  margin-top: 2.5rem;
+}
+
+h2 {
+  font-size: 1.75rem;
+  margin-top: 2.2rem;
+}
+
+h3 {
+  font-size: 1.5rem;
+  margin-top: 1.8rem;
+}
+
+h4 {
+  font-size: 1.3rem;
+  margin-top: 1.6rem;
+}
+
+h5 {
+  font-size: 1.2rem;
+  margin-top: 1.4rem;
+}
+
+h6 {
+  font-size: 1.1rem;
+  margin-top: 1.2rem;
+}
+
+/* 标题使用稍高字重（Inter 可变轴 + 非可变字体回退） */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.ant-typography h1,
+.ant-typography h2,
+.ant-typography h3,
+.ant-typography h4,
+.ant-typography h5,
+.ant-typography h6,
+.ant-typography.ant-typography-title,
+.ant-card-head-title,
+.ant-modal-title,
+.ant-drawer-title,
+.ant-page-header-heading-title,
+.ant-result-title,
+.ant-statistic-title,
+.ant-descriptions-header .ant-descriptions-title,
+.ant-collapse-header,
+.ant-tabs-tab,
+.ant-menu-submenu-title,
+.ant-steps-item-title,
+.ant-table-thead>tr>th,
+.ant-form-item-label>label,
+.ant-list-item-meta-title,
+.ant-alert-message,
+.ant-notification-notice-message,
+.ant-message .ant-message-notice-content,
+.ant-popconfirm-message-title,
+.ant-select-selection-search-input,
+.ant-input-group-addon {
+  /* 变量字体优先 */
+  font-variation-settings: 'wght' var(--app-heading-wght, 570);
+  /* 传统字体回退 */
+  font-weight: 600;
+}
+
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: var(--component-bg-alt);
+  color: var(--component-text-primary);
+  cursor: pointer;
+  transition: border-color 0.25s;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+
+
+/* Base form elements */
+input,
+button,
+select,
+textarea {
+  font-family: inherit;
+}
+
+input[type="range"] {
+  background: transparent;
+  accent-color: var(--accent-color);
+  border: none;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  border-color: transparent;
+  /* 移除默认边框 */
+  width: 100%;
+  height: 6px;
+  /* 轨道厚度 */
+  border-radius: 3px;
+  transition: all 0.1s ease;
+}
+
+/* 2.2 设置滑块按钮 */
+input[type="range"]::-webkit-slider-thumb {
+  margin-top: -5px;
+  /* 按钮居中（(按钮高-轨道高)/2） */
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  scale: 1.4;
+  cursor: pointer;
+}
+
+/* 3. Firefox 浏览器设置 */
+/* 3.1 设置轨道 */
+input[type="range"]::-moz-range-track {
+  width: 100%;
+  height: 6px;
+  background: var(--app-bg-primary);
+  border-radius: 3px;
+}
+
+/* 3.2 设置滑块按钮 */
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  background: var(--accent-color);
+  border: none;
+  /* Firefox 需要移除默认边框 */
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+/* 3.3 Firefox 设置已划过部分（可选） */
+input[type="range"]::-moz-range-progress {
+  background: var(--accent-color);
+  /* 已划过部分的颜色 */
+  height: 6px;
+  border-radius: 3px;
+}
+
+/* 4. 移除聚焦时的外轮廓 */
+input[type="range"] {
+  outline: none;
+}
+
+
+
+html:not(.is-mobile) button:hover {
+  border-color: var(--accent-color);
+}
+
+button:focus,
+button:focus-visible {
+  outline: none;
+}
+
+button.primary {
+  background: var(--accent-color);
+  color: var(--text-on-accent);
+  transition: all 0.3s ease;
+}
+
+html:not(.is-mobile) button.primary:hover {
+  background: var(--accent-color-dark);
+}
+
+button.secondary {
+  background: transparent;
+  border-color: var(--accent-color) !important;
+  color: var(--accent-color);
+}
+
+.titlebar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: default;
+  border-radius: 0;
+  padding: 0;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.titlebar-btn:hover {
+  background: color-mix(in srgb, var(--text-primary) 20%, transparent);
+  color: var(--text-primary);
+}
+
+
+/* Corner buttons (used by back-to-top and mobile TOC) */
+.corner-button {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 50px !important;
+  height: 50px !important;
+  border-radius: 50px;
+  background: var(--component-bg-blur-alt);
+  border: 1px solid var(--border-color-blur);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  color: var(--component-text-primary);
+  padding: 0;
+  cursor: pointer;
+  box-shadow: var(--shadow-elev-1);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.2s ease-out;
+  transform: translateY(20px);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
+.corner-button:not(.corner-menu.open) span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.corner-button.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+/* Hover only when the app root is NOT in mobile mode (global class 'is-mobile') */
+html:not(.is-mobile) .corner-button:hover {
+  background: var(--component-bg-hover);
+  transform: scale(1.1);
+  border-color: var(--border-color-blur);
+  filter: brightness(1.5);
+}
+
+html.is-mobile .corner-button:active {
+  background: var(--component-bg-active);
+  transform: scale(1.3);
+  border-color: var(--border-color-blur);
+  filter: brightness(3);
+}
+
+/* Primary variant (used for mobile TOC button): semi-transparent accent background */
+.corner-button.primary {
+  background: var(--component-bg-accent-blur);
+  border: 1px solid var(--component-bg-accent);
+  color: var(--component-text-primary);
+}
+
+/* Pressed state visual for primary (works on mobile via :active) */
+html.is-mobile .corner-button.primary:active {
+  transform: scale(1.3);
+  border-color: var(--component-bg-accent-blur);
+  background: var(--component-bg-accent-blur);
+}
+
+html:not(.is-mobile) .corner-button.primary:hover {
+  transform: scale(1.1);
+  background: var(--component-bg-accent-hover);
+  border-color: var(--component-bg-accent-hover);
+  color: var(--component-text-accent-hover);
+}
+
+/* When running in mobile mode, ensure the primary corner button is visible on the left */
+html.is-mobile .corner-button.primary {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+  left: 30px;
+  right: auto;
+  z-index: 300;
+}
+
+/* Hide desktop inline/floating TOC on mobile (app has html.is-mobile) */
+html.is-mobile .markdown-toc {
+  display: none !important;
+}
+
+html.is-mobile .toc-float {
+  display: none !important;
+}
+
+
+/* Mobile TOC fly-in animation and fixed header */
+.mobile-toc-panel {
+  transform-origin: left bottom;
+  opacity: 0;
+  transform: translateY(10px) scale(0.96);
+  transition: opacity 220ms ease, transform 260ms cubic-bezier(.22, .9, .36, 1);
+}
+
+.mobile-toc-panel.open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  /* ensure panel is above corner button */
+  z-index: 1400;
+}
+
+.mobile-toc-panel.open {
+  animation: mobileTocFlyIn 140ms ease-out both;
+}
+
+@keyframes mobileTocFlyIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.5);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Make header sticky inside the panel so it stays visible while the list scrolls */
+.mobile-toc-panel-inner {
+  padding: 0;
+}
+
+.mobile-toc-panel .mobile-toc-list {
+  padding: 8px;
+  max-height: calc(60vh - 56px);
+  overflow: auto;
+}
+
+.card {
+  padding: 2em;
+  background: var(--component-bg-blur);
+}
+
+.modern-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='var(--text-primary) text' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 20px;
+  padding-right: 48px;
+  /* reserve more space for larger arrow */
+}
+
+.modern-select:hover {
+  border-color: var(--border-color-blur);
+  background: var(--component-bg-hover);
+}
+
+.modern-select:hover option {
+  color: var(--text-primary);
+  background: var(--component-bg);
+}
+
+.modern-select:focus {
+  outline: none;
+  background-color: var(--component-bg-active);
+  box-shadow: var(--shadow-elev-2);
+  border-color: var(--accent-color);
+}
+
+/* Mobile TOC panel styles (moved from component) */
+.mobile-toc-panel {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: 80px;
+  z-index: 1400;
+  background: var(--component-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  max-height: 60vh;
+  overflow: auto;
+  box-shadow: var(--shadow-elev-3);
+}
+
+.mobile-toc-panel-inner {
+  padding: 8px
+}
+
+.mobile-toc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--toc-divider-color)
+}
+
+.mobile-toc-title {
+  font-weight: 600
+}
+
+.mobile-toc-close {
+  background: transparent;
+  border: none;
+  color: inherit;
+  padding: 6px
+}
+
+.mobile-toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 6px
+}
+
+.mobile-toc-list li {
+  padding: 6px 4px;
+  border-radius: 6px
+}
+
+.mobile-toc-list li.active {
+  background: var(--component-bg-hover);
+}
+
+.mobile-toc-list li a {
+  color: inherit;
+  text-decoration: none;
+  display: block
+}
+
+/* Hide native IE arrow */
+.modern-select::-ms-expand {
+  display: none;
+}
+
+select option {
+  background: var(--component-bg);
+  color: var(--component-text-primary);
+}
+
+select:hover option {
+  background: var(--component-bg);
+  color: var(--component-text-primary);
+}
+
+/* Option styles (browser support varies) */
+.modern-select option {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+
+  border: 2px solid var(--select-option-border-color);
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: var(--component-bg);
+  color: var(--text-primary);
+}
+
+/* Compact variant */
+.modern-select.compact {
+  padding: 6px 32px 6px 8px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+/* Transparent variant keeps background transparent but preserves arrow */
+.transparent-select {
+  background-color: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.modern-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.modern-select[disabled] {
+  background-image: none;
+  border-color: var(--border-color-blur);
+  color: var(--component-text-secondary-disabled);
+}
+
+
+.settings-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+}
+
+.settings-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.settings-card {
+  background: var(--component-bg-blur);
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+/* Shared floating action surface for settings save/reset groups */
+.settings-card .actions,
+.settings-page .actions,
+.build-page .actions {
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border-color-blur);
+  border-radius: 14px;
+  background: var(--component-bg-blur);
+  box-shadow: var(--shadow-elev-1);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  display: flex;
+  gap: 0.8rem;
+}
+
+.actions-wrapper {
+  position: sticky;
+  z-index: 40;
+  padding: 0 0 1rem 0;
+  background: transparent;
+  bottom: 0;
+  border-radius: 14px 14px 0 0;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  margin-top: 1rem;
+}
+
+.sticky-tabs-wrapper {
+  position: sticky;
+  z-index: 30;
+  top: 0;
+  background: transparent;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding-top: 1rem;
+}
+
+
+.settings-card h3 {
+  font-size: 1.3rem;
+}
+
+/* Shared styles for feature toggles used across settings pages */
+.feature-card {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  background: var(--component-bg-blur);
+  border: 1px solid var(--border-color);
+  margin-bottom: 0.75rem;
+}
+
+.feature-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 10px;
+  background: var(--component-bg);
+  border: 1px solid var(--border-color-blur);
+}
+
+.feature-row input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+.feature-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem
+}
+
+.feature-copy small {
+  color: var(--component-text-secondary);
+  line-height: 1.4
+}
+
+.feature-disabled {
+  opacity: 0.6;
+  pointer-events: none
+}
+
+.disabled-note {
+  color: var(--component-text-secondary);
+  font-size: 0.95rem
+}
+
+/* Wrapper for select so we can draw arrow via pseudo-element (select doesn't support ::after) */
+.select-wrap {
+  display: inline-block;
+  position: relative;
+}
+
+.select-wrap .modern-select {
+  display: block;
+  /* fill the wrapper */
+  width: 100%;
+  position: relative;
+  z-index: 1;
+  /* keep select below the arrow pseudo-element */
+  box-sizing: border-box;
+}
+
+/* Arrow via pseudo-element using mask so color can be controlled by CSS variable */
+.select-wrap::after {
+  content: '';
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 18px;
+  pointer-events: none;
+  background-color: var(--select-arrow-color);
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M6 9 L12 15 L18 9' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>") no-repeat center;
+  -webkit-mask-size: 18px 18px;
+  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M6 9 L12 15 L18 9' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>") no-repeat center;
+  mask-size: 18px 18px;
+  z-index: 3;
+  /* ensure arrow is above the select */
+}
+
+#app {
+  width: 100vw;
+  /* var(--app-height): 100dvh in browser, calc(100dvh - 40px) in Electron.
+     Fallback to JS-calculated --vh for mobile browsers. */
+  height: var(--app-height);
+  height: calc(var(--vh, 1vh) * 100);
+  margin: 0;
+  padding: 0;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  text-align: left;
+  box-sizing: border-box;
+}
+
+
+/* Article Fonts */
+.font-serif {
+  font-family: var(--app-font-stack-serif) !important;
+  font-size: 1em;
+  /* Adjust size for EB Garamond visual balance */
+}
+
+.font-mono {
+  font-family: var(--app-font-stack-mono) !important;
+}
+
+.font-sans {
+  font-family: var(--app-font-stack-inter) !important;
+}
+
+/* Background image variables used by SettingsAppearance */
+:root {
+  --frontend-bg-image: none;
+  --backend-bg-image: none;
+  /* Background editor vars */
+  --frontend-bg-mode: cover;
+  --frontend-bg-pos: center center;
+  --frontend-bg-size: cover;
+  --frontend-bg-repeat: no-repeat;
+  --frontend-bg-blur: 0px;
+  --frontend-bg-opacity: 0;
+  --frontend-bg-compression: 1;
+  --frontend-bg-overlay-dark: transparent;
+  --frontend-bg-overlay-light: transparent;
+  --frontend-bg-overlay: var(--frontend-bg-overlay-dark);
+  --backend-bg-mode: cover;
+  --backend-bg-pos: center center;
+  --backend-bg-size: cover;
+  --backend-bg-repeat: no-repeat;
+  --backend-bg-blur: 0px;
+  --backend-bg-opacity: 0;
+  --backend-bg-compression: 1;
+  --backend-bg-overlay-dark: transparent;
+  --backend-bg-overlay-light: transparent;
+  --backend-bg-overlay: var(--backend-bg-overlay-dark);
+}
+
+/* Use frontend background by default, backend overrides when body.backend is set */
+body {
+  position: relative;
+  /* Keep body background transparent so dedicated DOM background layer
+     (#chronicle-bg-layer) can render the surface and image without being
+     occluded by the body's own background color. */
+  background-repeat: no-repeat;
+}
+
+/* Disabled on purpose: all background media/overlay now render only via #chronicle-bg-layer. */
+body::before,
+body.backend::before,
+body::after,
+body.backend::after {
+  content: none !important;
+}
+
+/* Dedicated DOM background layer (lowest z-index) */
+#chronicle-bg-layer {
+  position: fixed;
+  inset: 0;
+  z-index: -9999;
+  pointer-events: none;
+  display: block;
+}
+
+/* Auth pages: disable entire bg-layer (body has --app-bg-primary by default) */
+body.auth-page #chronicle-bg-layer {
+  display: none;
+}
+
+/* Order inside layer (lower z => behind): image -> solid surface -> overlay */
+#chronicle-bg-layer .bg-image {
+  position: absolute;
+  inset: 0;
+  background-repeat: var(--frontend-bg-repeat, no-repeat);
+  background-position: var(--frontend-bg-pos, center center);
+  background-size: var(--frontend-bg-size, cover);
+  filter: var(--frontend-bg-blur, none);
+  opacity: 0;
+  z-index: -2;
+  transition: opacity 0.32s ease, background-image 0.25s ease, filter 0.25s ease, background-position 0.25s ease, background-size 0.25s ease;
+}
+
+body.backend #chronicle-bg-layer .bg-image {
+  background-repeat: var(--backend-bg-repeat, no-repeat);
+  background-position: var(--backend-bg-pos, center center);
+  background-size: var(--backend-bg-size, cover);
+  filter: var(--backend-bg-blur, none);
+}
+
+#chronicle-bg-layer.is-ready .bg-image {
+  opacity: 1;
+}
+
+#chronicle-bg-layer .bg-surface {
+  position: absolute;
+  inset: 0;
+  background: var(--app-bg-primary);
+  z-index: -3;
+}
+
+#chronicle-bg-layer .bg-overlay {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+  z-index: -1;
+}
+
+/* Ensure app content sits above the background layer */
+#app {
+  position: relative;
+  z-index: 1;
+}
+
+html {
+  overflow: hidden;
+}
+
+/* Responsive images for frontend content and previews */
+.markdown-body img,
+.parsed-html-content img,
+.md-parser-rendered img,
+.file-media-content img,
+.file-preview-body img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0.6em 0;
+  object-fit: contain;
+}
+
+/* Ensure images inside flexible containers don't force overflow */
+.markdown-body img,
+.parsed-html-content img {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Electron: background layers bleed into transparent title bar.
+   Individual sticky elements add their own padding-top to clear the 40px bar. */
+
+.sidebar {
+  padding: 0.6rem 0.5rem;
+  box-sizing: border-box;
+  background: var(--component-bg-blur-alt);
+  border: 1px solid var(--border-color-blur);
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  box-shadow: 4px 0 10px 0 rgba(0, 0, 0, 0.05);
+}
+
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  flex: 1;
+  padding: 0.2rem 0.2rem 0;
+  overflow-y: auto;
+}
+
+.sidebar-nav::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: color-mix(in srgb, var(--component-text-secondary) 50%, transparent);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: color-mix(in srgb, var(--component-text-primary) 50%, transparent);
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-items {
+  display: flex;
+  align-items: center;
+  background: transparent;
+  border: none;
+  color: var(--text-inactive);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: left;
+  padding: 0.4rem 0.8rem;
+  border-radius: 10px;
+}
+
+.nav-label {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.nav-icon {
+  width: 18px;
+  height: 18px;
+  margin-right: 10px;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.sidebar-items:hover {
+  background: var(--component-bg-hover);
+  color: var(--component-text-primary-hover);
+}
+
+.sidebar-items.active {
+  background: var(--component-bg-hover);
+  color: var(--component-text-primary-hover);
+}
+
+.segment-control-bar {
+  display: inline-flex;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--component-bg-blur);
+  padding: 4px;
+}
+
+.segment-control-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+}
+
+.segment-control-item.active {
+  background: var(--component-bg-hover);
+  color: var(--component-text-primary-hover);
+}
+
+.modern-input {
+  width: 100%;
+  /* Ensure no overflow */
+  box-sizing: border-box;
+  padding: 10px 14px;
+  font-size: .95rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  border-radius: 8px;
+  outline: none;
+}
+
+.modern-input:read-only {
+  background: var(--component-bg-blur-alt);
+}
+
+
+.modern-input:focus:not(:read-only) {
+  border-color: var(--accent-color);
+}
+
+.modern-textarea {
+  font-family: inherit;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  font-size: .95rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  border-radius: 8px;
+  outline: none;
+  resize: vertical;
+}
+
+.modern-textarea:read-only {
+  background: var(--component-bg-blur-alt);
+}
+
+.modern-textarea:focus:not(:read-only) {
+  border-color: var(--accent-color);
+}
+
+
+.login-input {
+  background: var(--bg-primary);
+  width: 100%;
+  margin: 4px 0 6px 0;
+  transition: all .2s ease;
+}
+
+.form-row {
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.grid-item {
+  background: var(--component-bg-blur-alt);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.grid-item:hover {
+  background: var(--component-bg-hover);
+}
+
+.grid-item.selected {
+  background: var(--component-bg-accent);
+  border-color: var(--accent-color);
+}
+
+.grid-item .name {
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 6px;
+  color: var(--component-text-primary);
+}
+
+
+:is(textarea, .syntax-highlight, .pane)::selection {
+  background: var(--component-bg-active);
+  color: inherit;
+}
+
+/* Firefox */
+:is(textarea, .syntax-highlight, .pane)::-moz-selection {
+  background: var(--component-bg-active);
+  color: inherit;
+}
+
+.icon-label-btn.narrow .label {
+  display: none;
+}
+
+
+.icon-label-btn.narrow {
+  padding: 0.6rem;
+}
+
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #000a;
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+@media (max-width: 768px) {
+
+  .icon-label-btn .label {
+    display: none;
+  }
+
+  .icon-label-btn {
+    padding: 0.6rem;
+  }
+
+  .responsive-title {
+    padding-left: 40px;
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   CodeMirror 行闪烁高亮（useEditorFlash）
+   瞬间亮 → 渐隐：.cm-line-flash（instant ON）→ .cm-line-flash-removing（fade out）
+   ══════════════════════════════════════════════════════ */
+.cm-line-flash {
+  background: var(--accent-color);
+  border-radius: 4px;
+}
+.cm-line-flash-removing {
+  background: transparent;
+  border-radius: 4px;
+  transition: background 1.6s ease-out;
+}

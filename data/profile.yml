@@ -1,0 +1,10 @@
+$about_edit: ""
+showProfileCard: true
+name: Chronicle
+bio: A local-first, git-backed Jamstack blogging platform. No server, no database, just files.
+location: GitHub
+links:
+  - label: GitHub
+    url: https://github.com/eightyfor/chronicle-aurora
+  - label: Docs
+    url: https://github.com/eightyfor/chronicle-aurora#readme

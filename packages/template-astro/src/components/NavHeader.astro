@@ -1,0 +1,1120 @@
+---
+import { getTranslation, getLocale, type Locale } from "../utils/i18n";
+import { buildLocalizedPath, stripRouteLocale } from "../utils/routeLocale";
+
+interface Props {
+  currentPath: string;
+  locale?: Locale;
+  articleTitle?: string;
+  articleBackHref?: string;
+  articleBackLabel?: string;
+  featureFlags?: Record<string, boolean>;
+  /** Initial performance mode for the SSR-rendered toggle switch. */
+  defaultPerformanceMode?: string;
+  siteName?: string;
+}
+
+const { currentPath, locale: propLocale, articleTitle, articleBackHref, articleBackLabel, featureFlags, defaultPerformanceMode, siteName } = Astro.props;
+const appTitle = siteName || 'Chronicle';
+const locale = propLocale || getLocale(Astro.locals);
+const t = (key: string) => getTranslation(locale, key);
+const activePath = stripRouteLocale(currentPath);
+const homeHref = buildLocalizedPath(locale, "/");
+const blogsHref = buildLocalizedPath(locale, "/blogs");
+// Initial SSR state for the perf toggle. 'auto' defaults to 'full' — the
+// client-side script corrects it immediately if the device is low-end.
+const searchHref = buildLocalizedPath(locale, "/search");
+const collectionHref = buildLocalizedPath(locale, "/collection");
+const friendsHref = buildLocalizedPath(locale, "/friends");
+const aboutHref = buildLocalizedPath(locale, "/about");
+const showFriends = featureFlags?.friendsPage !== false;
+const showAbout = featureFlags?.aboutPage !== false;
+const showCollection = featureFlags?.collectionPage !== false;
+
+const navCollapsedIcons = {
+  home: `<svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"></path><path d="M5 10.5V20h14v-9.5"></path><path d="M9 20v-6h6v6"></path></svg>`,
+  blogs: `<svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line></svg>`,
+  collection: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M 12 2 L 21 8 L 12 14 L 3 8 Z"/><path d="M 18 14 L 21 16 L 12 22 L 3 16 L 6 14"/></svg>`,
+  friends: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"></path><circle cx="10" cy="7" r="3"></circle><path d="M21 21v-2a3 3 0 0 0-2.25-2.9"></path><path d="M16 4.2a3 3 0 0 1 0 5.6"></path></svg>`,
+};
+
+// Determine active route for highlighting
+const isActive = (path: string) => {
+  if (path === "/" && activePath === "/") return true;
+  if (path !== "/" && activePath.startsWith(path)) return true;
+  return false;
+};
+---
+
+<nav class:list={["nav-header", {"at-top": true, "swap-enabled": articleTitle && articleBackHref }]} id="main-nav">
+  <div class="nav-content">
+    <div class="header-swap">
+      <div class:list={["site-header", { "entering-up": articleTitle && articleBackHref }]}>
+        <a href="/" style="text-decoration:none; color:inherit;">
+          <h1 class="app-title">{appTitle}</h1>
+        </a>
+      </div>
+
+      <div class:list={["reading-header", { "entering-down": articleTitle && articleBackHref }]}>
+        {articleTitle && articleBackHref && (
+          <a href={articleBackHref} class="mobile-title-back" aria-label={articleBackLabel || t('inblog.backToBlogs')}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="19" y1="12" x2="5" y2="12"></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+          </a>
+        )}
+        {articleTitle && <h1 class="reading-title">{articleTitle}</h1>}
+      </div>
+    </div>
+
+    <div class="nav-actions">
+      <!-- Mobile Menu Toggle -->
+      <button class="menu-toggle" id="menu-toggle" aria-label="Toggle menu">
+        <svg
+          class="menu-icon"
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+        <svg
+          class="close-icon"
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+
+      <div class="nav-links" id="nav-links">
+        <button class="nav-close" id="nav-close" aria-label="Close menu">
+          <span class="nav-close-icon">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </span>
+        </button>
+        <a
+          href={homeHref}
+          class:list={["nav-link", { "router-link-active": isActive("/") }]}
+        >
+          <span class="nav-link-swap">
+            <span class="nav-link-full">{t("nav.home")}</span>
+            <span class="nav-link-collapsed" aria-hidden="true" set:html={navCollapsedIcons.home}></span>
+          </span>
+        </a>
+        <a
+          href={blogsHref}
+          class:list={[
+            "nav-link",
+            { "router-link-active": isActive("/blogs") },
+          ]}
+        >
+          <span class="nav-link-swap">
+            <span class="nav-link-full">{t("nav.posts")}</span>
+            <span class="nav-link-collapsed" aria-hidden="true" set:html={navCollapsedIcons.blogs}></span>
+          </span>
+        </a>
+        {showCollection && (
+          <a
+            href={collectionHref}
+            class:list={["nav-link", { "router-link-active": isActive("/collection") }]}
+          >
+            <span class="nav-link-swap">
+              <span class="nav-link-full">{t("nav.collection")}</span>
+              <span class="nav-link-collapsed" aria-hidden="true" set:html={navCollapsedIcons.collection}></span>
+            </span>
+          </a>
+        )}
+        <a
+          href={searchHref}
+          class:list={[
+            "nav-link",
+            "nav-link-search",
+            { "router-link-active": isActive("/search") },
+          ]}
+        >
+          {t("nav.search")}
+        </a>
+        {showFriends && (
+          <a
+            href={friendsHref}
+            class:list={["nav-link", { "router-link-active": isActive("/friends") }]}
+          >
+            <span class="nav-link-swap">
+              <span class="nav-link-full">{t("nav.friends")}</span>
+              <span class="nav-link-collapsed" aria-hidden="true" set:html={navCollapsedIcons.friends}></span>
+            </span>
+          </a>
+        )}
+      </div>
+
+      <a
+        href={searchHref}
+        class:list={[
+          "nav-action-link",
+          "nav-search-btn",
+          { "router-link-active": isActive("/search") },
+        ]}
+        aria-label={t("nav.search")}
+        title={t("nav.search")}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="11" cy="11" r="7"></circle>
+          <line x1="16.65" y1="16.65" x2="21" y2="21"></line>
+        </svg>
+      </a>
+
+      <!-- Settings Button -->
+      <button
+        class="nav-setting-btn"
+        id="nav-setting-btn"
+        aria-label="Settings"
+      >
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.4"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"
+          ></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+      </button>
+
+      <!-- Settings Menu -->
+      <div class="nav-settings-menu" id="settings-menu">
+        <!-- Theme controls (top) -->
+        <button class="popup-item" data-theme="follow">
+          <span class="popup-label"
+            >{locale === "zh-CN" ? "跟随系统" : "Follow System"}</span
+          >
+          <span class="popup-check">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M20 6L9 17l-5-5"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"></path>
+            </svg>
+          </span>
+        </button>
+        <button class="popup-item" data-theme="light">
+          <span class="popup-label"
+            >{locale === "zh-CN" ? "浅色" : "Light"}</span
+          >
+          <span class="popup-check">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M20 6L9 17l-5-5"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"></path>
+            </svg>
+          </span>
+        </button>
+        <button class="popup-item" data-theme="dark">
+          <span class="popup-label">{locale === "zh-CN" ? "深色" : "Dark"}</span
+          >
+          <span class="popup-check">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M20 6L9 17l-5-5"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"></path>
+            </svg>
+          </span>
+        </button>
+
+        <hr
+          style="margin:6px 4px; border:none; border-top:1px solid var(--component-text-secondary); opacity: 0.4;"
+        />
+
+        <!-- Performance toggle -->
+        <button class="popup-item" id="perf-toggle" onclick="window.__chronicleTogglePerf?.()">
+          <span class="popup-label">{
+            locale === "zh-CN" ? "高级效果" : "Visual Effects"
+          }</span>
+          <span class="popup-switch">
+            <span class="popup-switch-knob"></span>
+          </span>
+        </button>
+
+        <hr
+          style="margin:6px 4px; border:none; border-top:1px solid var(--component-text-secondary); opacity: 0.4;"
+        />
+
+        <!-- Language controls (below) -->
+        <button class="popup-item" data-locale="follow">
+          <span class="popup-label">{t("settings.locale.follow")}</span>
+          <span class="popup-check">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M20 6L9 17l-5-5"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"></path>
+            </svg>
+          </span>
+        </button>
+        <button class="popup-item" data-locale="zh-CN">
+          <span class="popup-label">中文（简体）</span>
+          <span class="popup-check">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M20 6L9 17l-5-5"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"></path>
+            </svg>
+          </span>
+        </button>
+        <button class="popup-item" data-locale="en">
+          <span class="popup-label">English</span>
+          <span class="popup-check">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M20 6L9 17l-5-5"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"></path>
+            </svg>
+          </span>
+        </button>
+
+        <hr
+          style="margin:6px 4px; border:none; border-top:1px solid var(--component-text-secondary); opacity: 0.4;"
+        />
+
+        <!-- About -->
+        {showAbout && (
+          <a href={aboutHref} class:list={["popup-item", "popup-item-link"]}>
+            <span class="popup-label">{t("nav.about")}</span>
+          </a>
+        )}
+
+        <div
+          style="font-size: 0.8em; padding: 2px 10px 0 10px; color: var(--component-text-secondary);"
+        >
+          Chronicle Aurora{__VERSION__}<br />
+          &copy; {__YEAR__} Eightyfor All Rights Reserved.
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<style>
+  .nav-header {
+    background: var(--component-bg-blur);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border-color-blur);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    height: 70px;
+    box-sizing: border-box;
+    transition:
+      background 0.3s ease,
+      border-color 0.3s ease,
+      backdrop-filter 0.3s ease;
+  }
+
+  html.immersive:not(.focus) .nav-header{
+    background: transparent;
+    border-bottom: none;
+    backdrop-filter: blur(1px);
+  }
+
+  html.focus .nav-header{
+    background: transparent;
+    border-bottom: none;
+    backdrop-filter: none;
+    
+  }
+
+  html.focus .app-title{
+    display: none;
+  }
+
+  .nav-header.at-top {
+    background: transparent;
+    border-bottom-color: transparent;
+    backdrop-filter: none;
+  }
+
+  .nav-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 2rem;
+    height: 100%;
+    max-width: min(calc(1400px + 20%), calc(80% + 100px));
+    margin: 0 auto;
+  }
+
+  .header-swap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
+  }
+
+  .site-header,
+  .reading-header {
+    align-items: center;
+    min-width: 0;
+  }
+
+  .site-header {
+    display: flex;
+    opacity: 1;
+    pointer-events: auto;
+    transition: opacity 0.28s ease;
+  }
+
+  .nav-header.nav-collapsed .site-header {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  html.is-mobile .nav-header.swap-enabled .reading-header {
+    display: flex;
+  }
+
+  .reading-header {
+    display: none;
+  }
+
+  html.is-mobile .nav-header.swap-enabled .header-swap {
+    position: relative;
+    min-width: 0;
+    flex: 1 1 auto;
+    height: 100%;
+  }
+
+  html.is-mobile .nav-header.swap-enabled .site-header,
+  html.is-mobile .nav-header.swap-enabled .reading-header {
+    position: absolute;
+    inset: 0 auto 0 0;
+    opacity: 0;
+    transform: translateY(0);
+    pointer-events: none;
+    transition:
+      transform 190ms cubic-bezier(.2, .9, .3, 1),
+      opacity 160ms ease;
+    will-change: transform, opacity;
+  }
+
+  html.is-mobile .nav-header.swap-enabled .site-header.entering-up {
+    transform: translateY(-8px);
+  }
+
+  html.is-mobile .nav-header.swap-enabled .reading-header.entering-down {
+    transform: translateY(8px);
+  }
+
+  html.is-mobile .nav-header.swap-enabled.at-top .site-header {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  html.is-mobile .nav-header.swap-enabled.at-top .reading-header {
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+  }
+
+  html.is-mobile .nav-header.swap-enabled:not(.at-top) .site-header {
+    opacity: 0;
+    transform: translateY(-8px);
+    pointer-events: none;
+  }
+
+  html.is-mobile .nav-header.swap-enabled:not(.at-top) .reading-header {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  html:not(.is-mobile) .nav-header.nav-collapsed .nav-links{
+    gap: 0.75rem;
+  }
+
+
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .nav-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-inactive);
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition:
+      background-color 0.4s ease,
+      color 0.4s ease,
+      padding 0.4s ease,
+      transform 0.4s ease;
+    white-space: nowrap;
+  }
+
+  .nav-link-swap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+  }
+
+  .nav-link.router-link-active {
+    background: var(--component-bg-hover);
+    color: var(--component-text-primary-hover);
+  }
+
+  .nav-link:hover {
+    background: var(--component-bg-hover);
+    color: var(--component-text-primary-hover);
+  }
+
+  .nav-link-full {
+    position: relative;
+    display: inline-block;
+    overflow: hidden;
+    max-width: 12rem;
+    opacity: 1;
+    transform: translateX(0);
+    transition:
+      max-width 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.3s ease,
+      transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .nav-link-collapsed {
+    position: absolute;
+    inset: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    overflow: hidden;
+    max-width: 0;
+    opacity: 0;
+    transform: translateX(4px);
+    transition:
+      max-width 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.3s ease,
+      transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .nav-link-collapsed svg {
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    min-height: 18px;
+    display: block;
+    flex: 0 0 auto;
+  }
+
+  .nav-header.nav-collapsed .nav-link-full {
+    max-width: 0;
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+
+  .nav-header.nav-collapsed .nav-link-collapsed {
+    max-width: 18px;
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .nav-header.nav-collapsed .nav-link.router-link-active .nav-link-full {
+    max-width: 12rem;
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .nav-header.nav-collapsed .nav-link.router-link-active .nav-link-collapsed {
+    max-width: 0;
+    opacity: 0;
+    transform: translateX(4px);
+  }
+
+  .nav-link-search {
+    display: none;
+  }
+
+  /* Settings Button */
+  .nav-action-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    color: var(--text-inactive);
+    transition: all 0.3s ease;
+    flex: 0 0 auto;
+  }
+
+  .nav-action-link:hover,
+  .nav-action-link.router-link-active {
+    background: var(--component-bg-hover);
+    color: var(--component-text-primary-hover);
+  }
+
+  .nav-search-btn {
+    display: flex;
+  }
+
+  .nav-setting-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-inactive);
+    padding: 0 8px;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .nav-setting-btn:hover {
+    color: var(--text-primary);
+  }
+
+  /* Settings Menu */
+  .nav-settings-menu {
+    background: var(--component-bg);
+    position: fixed;
+    color: var(--component-text-secondary);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+    border-radius: 8px;
+    min-width: 180px;
+    max-width: 250px;
+    box-sizing: border-box;
+    padding: 6px;
+    z-index: 10000;
+    font-size: 0.9rem;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-4px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+
+  .nav-settings-menu.is-open {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .popup-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+    padding: 8px 12px;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    border-radius: 6px;
+    width: 100%;
+    transition: all 0.2s;
+  }
+
+  .popup-item:hover {
+    background: var(--component-bg-hover);
+    color: var(--component-text-primary-hover);
+  }
+
+  .popup-item-link {
+    text-decoration: none;
+    box-sizing: border-box;
+  }
+
+  .popup-label {
+    flex: 1;
+    text-align: left;
+  }
+
+  .popup-check {
+    color: var(--accent-color);
+    display: none;
+    align-items: center;
+  }
+
+  .popup-item.active .popup-check {
+    display: flex;
+  }
+
+  /* ── Perf toggle switch ── */
+  .popup-switch {
+    width: 36px;
+    height: 20px;
+    border-radius: 10px;
+    background: var(--border-color);
+    position: relative;
+    transition: background .2s;
+    flex-shrink: 0;
+  }
+  .popup-switch-knob {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform .2s;
+  }
+  [data-perf="full"] .popup-switch {
+    background: var(--accent-color);
+  }
+  [data-perf="full"] .popup-switch-knob {
+    transform: translateX(16px);
+  }
+
+  [data-perf="reduced"] .popup-switch {
+    background: var(--border-color);
+  }
+  [data-perf="reduced"] .popup-switch-knob {
+    transform: none;
+  }
+
+  .popup-divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 6px 0;
+  }
+
+  /* Mobile Menu Toggle */
+  .menu-toggle {
+    display: none;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    position: relative;
+  }
+
+  .menu-toggle .menu-icon,
+  .menu-toggle .close-icon {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .menu-toggle .close-icon {
+    opacity: 0;
+    transform: rotate(-90deg);
+  }
+
+  .menu-toggle.active .menu-icon {
+    opacity: 0;
+    transform: rotate(90deg);
+  }
+
+  .menu-toggle.active .close-icon {
+    opacity: 1;
+    transform: rotate(0deg);
+  }
+
+  /* Mobile Close Button */
+  .nav-close {
+    display: none;
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 110;
+  }
+
+  /* Mobile Styles */
+  @media (max-width: 768px) {
+    .nav-search-btn {
+      display: none;
+    }
+
+    .nav-link-search {
+      display: inline-flex;
+    }
+
+    .nav-link-full {
+      display: inline;
+      position: static;
+      max-width: none;
+      opacity: 1;
+      transform: none;
+    }
+
+    .nav-link-collapsed {
+      display: none;
+      position: static;
+    }
+
+    .menu-toggle {
+      display: flex;
+      z-index: 102;
+    }
+
+    .nav-links {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      opacity: 0;
+      height: 100dvh;
+      background: transparent;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      overflow: auto;
+      transform: translateY(-100%);
+      transition: opacity 0.2s ease, transform 1s ease;
+      z-index: 101;
+      gap: 30px;
+    }
+
+
+    .nav-links.mobile-open {
+      transform: translateY(0);
+      position: fixed;
+      inset: 0;
+      z-index: 10001;
+      border-radius: 0;
+      margin: 0;
+      opacity: 1;
+      transition: opacity 0.8s ease, transform 0.4s ease;
+      border: none;
+    }
+
+    .nav-links .nav-close {
+      display: flex;
+    }
+
+    .nav-link {
+      font-size: 1.5em;
+    }
+
+    .nav-setting-btn {
+      z-index: 102;
+    }
+  }
+
+  :global(.mobile-menu-overlay) {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: color-mix(in srgb, var(--app-bg-primary) 85%, transparent);
+    backdrop-filter: blur(6px);
+    opacity: 1;
+    transition: opacity 0.3s ease;
+  }
+  :global(.mobile-menu-overlay.fade-out) {
+    opacity: 0;
+  }
+
+  @media (min-width: 769px) {
+    .nav-header:not(.nav-expanded) .nav-link:not(.router-link-active) {
+      padding-left: 0.7rem;
+      padding-right: 0.7rem;
+    }
+  }
+</style>
+
+<script>
+  import { navigate } from "astro:transitions/client";
+
+  function initNavScroll() {
+    const nav = document.getElementById("main-nav");
+    const mainContent = document.querySelector(".main-content");
+    if (!nav || !mainContent) return;
+    const handleScroll = () => {
+      const isScrolled = mainContent.scrollTop > 30;
+      nav.classList.toggle("at-top", !isScrolled);
+    };
+    mainContent.addEventListener("scroll", handleScroll);
+    handleScroll();
+  }
+
+  function initMobileMenu() {
+    const menuToggle = document.getElementById("menu-toggle");
+    const navLinks = document.getElementById("nav-links");
+    const navClose = document.getElementById("nav-close");
+    if (!menuToggle || !navLinks) return;
+    const overlay = document.createElement('div');
+    overlay.className = 'mobile-menu-overlay';
+    overlay.setAttribute('aria-hidden', 'true');
+    function openMenu() {
+      if (!navLinks || !menuToggle) return;
+      if (navLinks.parentNode !== document.body) {
+        (navLinks as any)._originalParent = navLinks.parentNode;
+        (navLinks as any)._originalNext = navLinks.nextSibling;
+        document.body.appendChild(navLinks);
+      }
+      overlay.style.opacity = '0';
+      document.body.appendChild(overlay);
+      overlay.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      menuToggle.classList.add('active');
+      navLinks.getBoundingClientRect();
+      overlay.getBoundingClientRect();
+      requestAnimationFrame(() => {
+        navLinks.classList.add("mobile-open");
+        overlay.style.opacity = '';
+      });
+    }
+    function closeMenu() {
+      if (!navLinks || !menuToggle) return;
+      navLinks.classList.remove("mobile-open");
+      menuToggle.classList.remove("active");
+      overlay.setAttribute('aria-hidden', 'true');
+      overlay.classList.add('fade-out');
+      document.body.style.overflow = '';
+      setTimeout(() => {
+        if (!navLinks) return;
+        if (navLinks.classList.contains("mobile-open")) return;
+        overlay.remove();
+        overlay.classList.remove('fade-out');
+        const el = navLinks as any;
+        if (el._originalParent) {
+          const parent = el._originalParent;
+          const next = el._originalNext;
+          if (next && next.parentNode === parent) parent.insertBefore(navLinks, next);
+          else parent.appendChild(navLinks);
+        }
+      }, 350);
+    }
+    menuToggle.addEventListener("click", () => {
+      const isOpen = navLinks.classList.contains("mobile-open");
+      isOpen ? closeMenu() : openMenu();
+    });
+    if (navClose) navClose.addEventListener("click", closeMenu);
+    overlay.addEventListener("click", closeMenu);
+    navLinks!.addEventListener("click", (e) => {
+      const link = (e.target as HTMLElement)?.closest?.('.nav-link');
+      if (link) closeMenu();
+    });
+  }
+
+  function initDesktopNavExpansion() {
+    const nav = document.getElementById("main-nav");
+    if (!nav || window.matchMedia("(max-width: 768px)").matches) return;
+    let collapseTimer: number | undefined;
+    const collapseDelay = 1000;
+    const clearCollapseTimer = () => {
+      if (collapseTimer !== undefined) { window.clearTimeout(collapseTimer); collapseTimer = undefined; }
+    };
+    const scheduleCollapseTimer = () => {
+      clearCollapseTimer();
+      collapseTimer = window.setTimeout(() => {
+        nav.classList.add("nav-collapsed");
+        nav.classList.remove("nav-expanded");
+      }, collapseDelay);
+    };
+    const expandNav = () => { clearCollapseTimer(); nav.classList.remove("nav-collapsed"); nav.classList.add("nav-expanded"); };
+    const collapseNav = () => { scheduleCollapseTimer(); };
+    nav.addEventListener("mouseenter", expandNav);
+    nav.addEventListener("focusin", expandNav);
+    nav.addEventListener("mouseleave", collapseNav);
+    nav.addEventListener("focusout", collapseNav);
+    nav.classList.add("nav-expanded");
+    scheduleCollapseTimer();
+  }
+
+  function initSettingsMenu() {
+    const settingBtn = document.getElementById("nav-setting-btn");
+    const settingsMenu = document.getElementById("settings-menu");
+    if (!settingBtn || !settingsMenu) return;
+    if (settingsMenu.parentNode !== document.body) document.body.appendChild(settingsMenu);
+    function getCurrentTheme() {
+      try { return JSON.parse(localStorage.getItem("chronicle.settings") || "{}").frontendTheme || "follow"; }
+      catch { return "follow"; }
+    }
+    function getCurrentLocale() { return localStorage.getItem("locale") || "follow"; }
+    function getBrowserLocale() { return (navigator.language || "en").startsWith("zh") ? "zh-CN" : "en"; }
+    function getCurrentRouteLocale() {
+      const segs = window.location.pathname.split("/").filter(Boolean);
+      if (segs[0] === "en") return "en";
+      if (segs[0] === "zh") return "zh-CN";
+      return null;
+    }
+    function getBasePath() {
+      const segs = window.location.pathname.split("/").filter(Boolean);
+      if (segs[0] === "en" || segs[0] === "zh") {
+        const remainder = "/" + segs.slice(1).join("/");
+        return remainder === "/" ? "/" : remainder;
+      }
+      return window.location.pathname || "/";
+    }
+    function buildLocalizedClientPath(nextLocale: string | null) {
+      const routeLocale = nextLocale === "zh-CN" ? "zh" : "en";
+      const basePath = getBasePath();
+      if (basePath === "/") return "/" + routeLocale;
+      return "/" + routeLocale + (basePath.startsWith("/") ? basePath : "/" + basePath);
+    }
+    function saveLocalePreference(nextLocale: string | null) {
+      localStorage.setItem("locale", nextLocale || "follow");
+      document.cookie = "locale=" + (nextLocale || "follow") + "; path=/; max-age=31536000";
+    }
+    function updateMenuState() {
+      if (!settingsMenu) return;
+      const currentTheme = getCurrentTheme();
+      const storedLocale = getCurrentLocale();
+      const routeLocale = getCurrentRouteLocale();
+      settingsMenu.querySelectorAll("[data-theme]").forEach((btn) => {
+        btn.classList.toggle("active", btn.getAttribute("data-theme") === currentTheme);
+      });
+      settingsMenu.querySelectorAll("[data-locale]").forEach((btn) => {
+        const locale = btn.getAttribute("data-locale");
+        let shouldBeActive = false;
+        if (storedLocale === "follow") shouldBeActive = locale === "follow";
+        else if (routeLocale) shouldBeActive = locale === routeLocale;
+        else shouldBeActive = locale === storedLocale;
+        btn.classList.toggle("active", shouldBeActive);
+      });
+    }
+    function positionSettingsMenu() {
+      if (!settingBtn || !settingsMenu) return;
+      const rect = settingBtn.getBoundingClientRect();
+      settingsMenu.classList.add('is-open');
+      settingsMenu.style.visibility = "hidden";
+      const menuWidth = settingsMenu.offsetWidth;
+      const top = rect.bottom + 8;
+      let left = rect.right - menuWidth;
+      if (left < 12) left = 12;
+      settingsMenu.style.top = top + "px";
+      settingsMenu.style.left = left + "px";
+      settingsMenu.style.visibility = "visible";
+    }
+    settingBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (settingsMenu.classList.contains('is-open')) { settingsMenu.classList.remove('is-open'); }
+      else { updateMenuState(); positionSettingsMenu(); }
+    });
+    document.addEventListener("click", (e) => {
+      if (!settingsMenu.contains(e.target as Node) && e.target !== settingBtn) settingsMenu.classList.remove('is-open');
+    });
+    settingsMenu.querySelectorAll("[data-theme]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const theme = btn.getAttribute("data-theme");
+        try {
+          const s = JSON.parse(localStorage.getItem("chronicle.settings") || "{}");
+          s.frontendTheme = theme;
+          localStorage.setItem("chronicle.settings", JSON.stringify(s));
+        } catch (e) {}
+        if (theme === "follow" || theme === "system") document.documentElement.removeAttribute("data-theme");
+        else if (theme === "light") document.documentElement.setAttribute("data-theme", "light");
+        else if (theme === "dark") document.documentElement.setAttribute("data-theme", "dark");
+        updateMenuState();
+        settingsMenu.classList.remove('is-open');
+      });
+    });
+    settingsMenu.querySelectorAll("[data-locale]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const locale = btn.getAttribute("data-locale");
+        const nextLocale = locale === "follow" ? getBrowserLocale() : locale;
+        saveLocalePreference(locale || "follow");
+        window.dispatchEvent(new CustomEvent('localeChanged', { detail: { locale } }));
+        navigate(buildLocalizedClientPath(nextLocale) + window.location.search, { history: "replace" });
+      });
+    });
+    const aboutLink = settingsMenu.querySelector(".popup-item-link");
+    if (aboutLink) aboutLink.addEventListener("click", () => settingsMenu.classList.remove('is-open'));
+    updateMenuState();
+  }
+
+  document.addEventListener("astro:page-load", () => {
+    initNavScroll();
+    initDesktopNavExpansion();
+    initSettingsMenu();
+    initMobileMenu();
+  });
+</script>

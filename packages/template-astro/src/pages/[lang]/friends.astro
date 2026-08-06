@@ -1,0 +1,396 @@
+---
+export const prerender = true;
+
+export async function getStaticPaths() {
+  return [{ params: { lang: 'zh' } }, { params: { lang: 'en' } }];
+}
+
+import Layout from '../../layouts/Layout.astro';
+import { getTranslation, getLocale } from '../../utils/i18n';
+import { resolveFeatureFlags } from '../../utils/featureFlags';
+import { buildLocalizedPath } from '../../utils/routeLocale';
+import { loadSiteSettings } from '../../utils/siteSettings';
+
+// Get locale from Astro.locals (set by middleware)
+const locale = getLocale(Astro.locals);
+const t = (key: string) => getTranslation(locale, key);
+
+const settings = await loadSiteSettings();
+
+const featureFlags = resolveFeatureFlags(settings?.featureFlags);
+const friendsEnabled = featureFlags.friendsPage !== false;
+
+const DEFAULT_FRIENDS = [
+  {
+    style: 'left-lg',
+    name: 'Waiwai',
+    avatar: 'https://file.eightyfor.top/data/upload/pic/1770999133303_vne7_177099908700-992.webp',
+    intro: '非常乐意并享受被人挂网上的感觉',
+    homeUrl: 'https://example.com',
+    storyPostId: '',
+  },
+];
+
+type FriendCardStyle = 'left-sm' | 'left-lg' | 'top-lg';
+
+type FriendCard = {
+  style: FriendCardStyle;
+  name: string;
+  avatar: string;
+  intro: string;
+  homeUrl: string;
+  storyPostId: string;
+};
+
+function normalizeFriendCards(input: any): FriendCard[] {
+  const source = Array.isArray(input) ? input : [];
+  const normalized = source.map((item) => ({
+    style: item?.style === 'left-sm' || item?.style === 'left-lg' || item?.style === 'top-lg' ? item.style : 'left-lg',
+    name: String(item?.name || '').trim(),
+    avatar: String(item?.avatar || '').trim(),
+    intro: String(item?.intro || '').trim(),
+    homeUrl: String(item?.homeUrl || '').trim(),
+    storyPostId: String(item?.storyPostId || '').trim(),
+  })).filter((item) => item.name || item.avatar || item.intro || item.homeUrl || item.storyPostId);
+
+  return normalized.length > 0 ? normalized : [];
+}
+
+// Normalize cards and apply global style override when provided by settings
+const friendsCards = normalizeFriendCards(settings?.friendsCards);
+const rawGlobalStyle = settings?.friendsGlobalStyle;
+const friendsGlobalStyle = rawGlobalStyle === 'left-sm' || rawGlobalStyle === 'left-lg' || rawGlobalStyle === 'top-lg' ? rawGlobalStyle : null;
+if (friendsGlobalStyle) {
+  for (const c of friendsCards) c.style = friendsGlobalStyle;
+}
+
+function getStoryHref(card: FriendCard) {
+  return card.storyPostId ? buildLocalizedPath(locale, `/post/${card.storyPostId}`) : '';
+}
+
+const metaDescription = locale === 'zh-CN'
+  ? '浏览 Chronicle 的友链页面，查看站点、朋友与相关故事。'
+  : 'Browse Chronicle friends, external sites, and related stories.';
+---
+
+<Layout title={t('friends.title')} settings={settings} meta={{ description: metaDescription }}>
+  <div class="page-container">
+    {friendsEnabled ? (
+      <>
+        <h1>{t('friends.title')}</h1>
+        <div class:list={[
+          'friends-list',
+          `friends-list--${friendsGlobalStyle || 'left-lg'}`,
+        ]}>
+          {friendsCards.map((card) => {
+            const storyHref = getStoryHref(card);
+            const hasAvatar = Boolean(card.avatar);
+            return (
+              <article
+                class={`friend-card friend-card--${card.style}`}
+                onclick={`if(!event.target.closest('.friend-card__story')){const h='${String(card.homeUrl || '').replace(/'/g, "\\'")}'; if(h) window.open(h,'_blank');}`}
+              >
+                <div class:list={['friend-card__media', { 'is-empty': !hasAvatar }]}>
+                  {hasAvatar ? (
+                    <img
+                      src={card.avatar}
+                      alt={card.name}
+                      loading="lazy"
+                      onerror="this.classList.add('is-hidden'); this.parentElement && this.parentElement.classList.add('is-broken');"
+                    />
+                  ) : null}
+                  <div class="friend-card__media-placeholder" aria-hidden="true"></div>
+                </div>
+
+                <div class="friend-card__body">
+                  <div class="friend-card__heading">
+                    <div class="friend-card__name-wrap">
+                      <h3>{card.name}</h3>
+                      {/* homepage button removed - clicking card handles home navigation */}
+                    </div>
+                  </div>
+
+                  <div class="friend-card__copy">
+                    <p class="friend-card__intro">{card.intro}</p>
+                    {storyHref ? (
+                      <a class="friend-card__story" href={storyHref}>
+                        {t('friends.viewStory')}
+                      </a>
+                    ) : null}
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </>
+    ) : (
+      <div class="feature-disabled-page">
+        <h1>{t('friends.title')}</h1>
+        <p>该页面已被功能开关关闭。</p>
+      </div>
+    )}
+  </div>
+</Layout>
+
+<style>
+.page-container {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 40px 20px 56px;
+  color: var(--text-primary);
+}
+
+.friends-list {
+  margin-top: 28px;
+  display: grid;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.friends-list--left-sm {
+  grid-template-columns: repeat(3, minmax(0, 300px));
+}
+
+.friends-list--left-lg,
+.friends-list--top-lg {
+  grid-template-columns: repeat(2, minmax(0, 500px));
+}
+
+.friend-card {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.8rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  background: var(--component-bg-blur-alt);
+  box-shadow: var(--shadow-elev-1);
+  overflow: hidden;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  width: 240px;
+  box-sizing: border-box;
+}
+
+.friend-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-elev-2);
+}
+
+.friend-card__media {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--component-bg);
+}
+
+.friend-card__media img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.friend-card__media img.is-hidden {
+  display: none;
+}
+
+.friend-card__media-placeholder {
+  width: 100%;
+  height: 100%;
+  display: none;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.08) 25%, transparent 25%) -12px 0/24px 24px,
+    linear-gradient(225deg, rgba(255, 255, 255, 0.08) 25%, transparent 25%) -12px 0/24px 24px,
+    linear-gradient(315deg, rgba(255, 255, 255, 0.08) 25%, transparent 25%) 0 0/24px 24px,
+    linear-gradient(45deg, rgba(255, 255, 255, 0.08) 25%, transparent 25%) 0 0/24px 24px,
+    var(--component-bg);
+}
+
+.friend-card__media.is-empty .friend-card__media-placeholder,
+.friend-card__media.is-broken .friend-card__media-placeholder {
+  display: block;
+}
+
+.friend-card__body {
+  display: grid;
+  gap: .85rem;
+  align-self: start;
+  align-content: start;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.friend-card__name-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  flex-wrap: wrap;
+}
+
+.friend-card__name-wrap h3 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.friend-card__home {
+  display: inline-flex;
+  align-items: center;
+  padding: .4rem .7rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  color: var(--component-text-secondary);
+  text-decoration: none;
+  font-size: .88rem;
+  background: var(--component-bg);
+}
+
+.friend-card__copy {
+  display: grid;
+  align-items: start;
+  justify-items: start;
+  min-height: 3.8rem;
+  overflow: hidden;
+}
+
+.friend-card__intro,
+.friend-card__story {
+  margin: 0;
+  grid-area: 1 / 1;
+  color: var(--component-text-secondary);
+  line-height: 1.8;
+  transition: opacity .2s ease, transform .2s ease;
+}
+
+.friend-card__story {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: .35rem 0;
+  color: var(--accent-color);
+  font-weight: 600;
+  text-decoration: none;
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+}
+
+.friend-card:hover .friend-card__intro {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.friend-card:hover .friend-card__story {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.friend-card--left-sm {
+  width: 100%;
+  max-width: 300px;
+  height: 150px;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+}
+
+.friend-card--left-sm .friend-card__media {
+  width: 120px;
+  height: 120px;
+  border-radius: 12px;
+}
+
+.friend-card--left-lg {
+  width: 100%;
+  max-width: 500px;
+  height: 250px;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+}
+
+.friend-card--left-lg .friend-card__media {
+  width: 200px;
+  height: 200px;
+  border-radius: 12px;
+}
+
+.friend-card--top-lg {
+  width: 100%;
+  max-width: 500px;
+  height: 600px;
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+
+.friend-card--top-lg .friend-card__media {
+  width: 100%;
+  height: 360px;
+  max-height: 360px;
+  border-radius: 12px;
+}
+
+.feature-disabled-page {
+  padding: 48px 20px;
+  text-align: center;
+  color: var(--component-text-secondary);
+}
+
+@media (hover: none) {
+  .friend-card__intro {
+    opacity: 1;
+    transform: none;
+  }
+
+  .friend-card__story {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+  }
+
+  .friend-card__copy {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .friends-list--left-sm {
+    grid-template-columns: repeat(1, minmax(0, 300px));
+  }
+
+  .friends-list--left-lg,
+  .friends-list--top-lg {
+    grid-template-columns: repeat(1, minmax(0, 500px));
+  }
+
+  .friend-card--left-sm .friend-card__media,
+  .friend-card--left-lg .friend-card__media,
+  .friend-card--top-lg .friend-card__media {
+    width: 100%;
+  }
+
+  .friend-card--left-sm, .friend-card--left-lg, .friend-card--top-lg {
+    height: auto;
+    grid-template-columns: 1fr;
+  }
+
+
+  .friend-card--left-sm,
+  .friend-card--left-lg,
+  .friend-card--top-lg {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 980px) {
+  .friends-list--left-sm {
+    grid-template-columns: repeat(2, minmax(0, 300px));
+  }
+}
+
+@media (max-width: 1040px) {
+  .friends-list--left-lg,
+  .friends-list--top-lg {
+    grid-template-columns: repeat(1, minmax(0, 500px));
+  }
+}
+</style>

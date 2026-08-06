@@ -1,0 +1,61 @@
+{
+  "getting-started": {
+    "title": "Getting Started",
+    "date": "2026-08-02",
+    "tags": [
+      "guide",
+      "setup"
+    ],
+    "status": "published",
+    "summary": "A quick guide to setting up your Chronicle blog — from clone to first post.",
+    "font": "sans",
+    "type": "article",
+    "collection": "Chronicle Guide",
+    "collectionPath": "Chronicle Guide"
+  },
+  "markdown-showcase": {
+    "title": "Markdown Showcase",
+    "date": "2026-08-03",
+    "tags": [
+      "markdown",
+      "demo",
+      "featured"
+    ],
+    "status": "published",
+    "summary": "A tour of all the Markdown formatting Chronicle supports — headings, code blocks, tables, math, diagrams, and more.",
+    "font": "sans",
+    "type": "article",
+    "collection": "Chronicle Guide",
+    "collectionPath": "Chronicle Guide"
+  },
+  "slides-demo": {
+    "title": "Chronicle Presentation",
+    "date": "2026-08-04",
+    "tags": [
+      "slides",
+      "demo",
+      "featured"
+    ],
+    "status": "published",
+    "summary": "A Marp-powered slideshow introducing Chronicle's philosophy and features.",
+    "font": "sans",
+    "type": "slides",
+    "collection": "Chronicle Guide",
+    "collectionPath": "Chronicle Guide"
+  },
+  "welcome-to-chronicle": {
+    "title": "Welcome to Chronicle",
+    "date": "2026-08-01",
+    "tags": [
+      "chronicle",
+      "welcome",
+      "jamstack"
+    ],
+    "status": "published",
+    "summary": "Chronicle is a local-first, git-backed Jamstack blogging platform. No server, no database — just Markdown, YAML, and Git.",
+    "font": "sans",
+    "type": "article",
+    "collection": "Chronicle Guide",
+    "collectionPath": "Chronicle Guide"
+  }
+}

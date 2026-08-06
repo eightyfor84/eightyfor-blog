@@ -1,0 +1,189 @@
+{
+  "app": {
+    "title": "Chronicle"
+  },
+  "nav": {
+    "home": "Home",
+    "blogs": "Blogs",
+    "search": "Search",
+    "friends": "Friends",
+    "collection": "Collection",
+    "posts": "Posts",
+    "files": "Files",
+    "settings": "Settings",
+    "newPost": "New Post",
+    "about": "About"
+  },
+  "inblog": {
+    "toc-title": "Table of Contents",
+    "backToBlogs": "Back to Posts",
+    "wordSing": "{count} word",
+    "wordPlural": "{count} words",
+    "min": "min",
+    "created": "Created",
+    "updated": "Updated",
+    "words": "Words",
+    "readingTime": "Read",
+    "aiGeneratedTip": "The post contains AI Generated Content"
+  },
+  "collection": {
+    "title": "Collections",
+    "backToList": "Back to collections",
+    "navTitlePattern": "Collection: {name}"
+  },
+  "misc": {
+    "backToTop": "Back to Top"
+  },
+  "blog": {
+    "featured": "Featured",
+    "collapse": "Collapse",
+    "expand": "Expand",
+    "allPosts": "All Posts",
+    "loadingPosts": "Loading posts...",
+    "noPostsStartWriting": "No posts found. Start writing!",
+    "daySuffix": ""
+  },
+  "home": {
+    "title": "Chronicle for Eightyfor",
+    "tagline": "Love what you wanna love, be what you wanna be.<br/>爱我所爱，自成一派。",
+    "viewBlogs": "View Blogs",
+    "viewThemePost": "Read Theme Post",
+    "noSummary": "No summary available. Open the post for the full reading.",
+    "cardSubtitle": "Love what you wanna love, be what you wanna be.",
+    "cardAuthorLine": "Almost done~ Just a moment~",
+    "defaultAuthorName": "Editor",
+    "metaDescription": "Chronicle homepage",
+    "homepageArchitecture": "Homepage information architecture",
+    "readingLatest": "Read the latest post",
+    "browseAllPosts": "Browse all posts",
+    "filterByTags": "Filter by tags",
+    "latestFeaturedArticles": "Latest / featured articles",
+    "mainContentStream": "Main content stream",
+    "viewAll": "View all",
+    "viewAllTags": "View all tags",
+    "noPostsAvailable": "No posts available.",
+    "authorInfo": "Author info",
+    "topicNavigation": "Topic navigation",
+    "quickSearch": "Quick search",
+    "collectionList": "Collection list",
+    "tagCloud": "Tag cloud",
+    "popularRecommended": "Popular / recommended",
+    "recommendedReading": "Recommended reading",
+    "noRecommendedPosts": "No recommended posts yet.",
+    "recentActivityCard": "Recent comments / activity",
+    "siteActivity": "Site activity",
+    "noInteractionData": "No interaction data available.",
+    "siteLinksAria": "Site links",
+    "rssSubscribe": "RSS",
+    "email": "Email",
+    "footerCopyright": "© {year} {siteTitle} · All rights reserved · <备案号>",
+    "collectionMeta": "{posts} posts · {groups} groups",
+    "friendPageInteraction": "Friend page interaction",
+    "browseBlogs": "Browse blogs",
+    "browseBlogsDescription": "Track the latest writing by timeline.",
+    "topicSearch": "Topic search",
+    "topicSearchDescription": "Follow topics through tags.",
+    "collectionsEntry": "Collections",
+    "collectionsEntryDescription": "Pack posts into curated streams.",
+    "friendsEntry": "Friends",
+    "friendsEntryDescription": "Connect to the site network.",
+    "aboutEntry": "About",
+    "aboutEntryDescription": "Learn about the author and the site.",
+    "unnamedCollection": "Untitled collection",
+    "recentPublished": "Recently Published"
+  },
+  "file": {
+    "type": {
+      "audio": "Audio",
+      "video": "Video",
+      "document": "Document",
+      "code": "Code/Text",
+      "file": "File"
+    }
+  },
+  "friends": {
+    "title": "Friends",
+    "viewStory": "View Story"
+  },
+  "settings": {
+    "locale": {
+      "follow": "Follow Browser",
+      "zh": "中文（简体）",
+      "en": "English"
+    }
+  },
+  "preview": {
+    "pdfUnsupported": "Your browser cannot display PDF inline. You can download it instead.",
+    "downloadPdf": "Download PDF",
+    "textLoading": "Loading text...",
+    "textPreviewEmpty": "Empty file",
+    "textDecodeError": "Unable to preview text (decoding or loading failed)",
+    "truncated": "Truncated",
+    "previewNotSupported": "Preview not supported for this file type.",
+    "mermaid": {
+      "downloadSvg": "Download SVG",
+      "split": "Split View",
+      "code": "Code Only",
+      "preview": "Preview Only",
+      "notPrerendered": "No prerendered Mermaid SVG found."
+    }
+  },
+  "search": {
+    "selectTags": "Select Tags",
+    "placeholder": "Search by title...",
+    "noTags": "No tags found",
+    "done": "Done",
+    "loading": "Loading...",
+    "noResults": "No posts found matching your criteria.",
+    "selectedTags": "Selected",
+    "resultsTitle": "Search results",
+    "resultsCount": "{count} items",
+    "resultDescription": "Search results for {searchDescription}",
+    "items": "{count} item(s)",
+    "tagsCount": " and {count - 1} more tag(s)",
+    "allPosts": "All content"
+  },
+  "tag": {
+    "featured": "featured"
+  },
+  "formula": {
+    "copied": "Formula copied"
+  },
+  "comment": {
+    "title": "Comments",
+    "count": "{count} comments",
+    "noComments": "No comments yet. Be the first to share your thoughts!",
+    "leaveComment": "Leave a Comment",
+    "name": "Name",
+    "namePlaceholder": "Your name",
+    "email": "Email",
+    "emailHint": "never shown",
+    "emailPlaceholder": "your@email.com",
+    "website": "Website",
+    "websitePlaceholder": "https://your.site",
+    "content": "Comment",
+    "contentPlaceholder": "Share your thoughts...",
+    "submit": "Submit",
+    "reviewNote": "Your comment will appear after review.",
+    "notConfigured": "Comment submission is not configured.",
+    "staticPlaceholder": "Comments are displayed in read-only mode, new comment submission is not available now.",
+    "loading": "Loading comments...",
+    "loadError": "Could not load latest comments.",
+    "submitted": "Comment submitted, awaiting review.",
+    "submitError": "Submission failed. Please try again.",
+    "githubLink": "Comment on GitHub",
+    "poweredBy": "Comments powered by",
+    "reply": "Reply",
+    "replyingTo": "Replying to",
+    "preview": "Preview",
+    "previewNow": "Now"
+  },
+  "date": {
+    "justNow": "just now",
+    "minutesAgo": "{count}m ago",
+    "hoursAgo": "{count}h ago",
+    "yesterday": "yesterday",
+    "twoDaysAgo": "2d ago",
+    "daysAgo": "{count}d ago"
+  }
+}

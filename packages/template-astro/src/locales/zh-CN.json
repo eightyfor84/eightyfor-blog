@@ -1,0 +1,189 @@
+{
+  "app": {
+    "title": "Chronicle"
+  },
+  "nav": {
+    "home": "首页",
+    "blogs": "博客",
+    "search": "搜索",
+    "friends": "朋友",
+    "collection": "合集",
+    "posts": "文章",
+    "files": "文件管理",
+    "settings": "设置",
+    "newPost": "写文章",
+    "about": "关于"
+  },
+  "inblog": {
+    "toc-title": "目录",
+    "backToBlogs": "返回博客列表",
+    "wordSing": "{count} 字",
+    "wordPlural": "{count} 字",
+    "min": "分钟",
+    "created": "创建于",
+    "updated": "更新于",
+    "words": "字数",
+    "readingTime": "阅读时间",
+    "aiGeneratedTip": "文章含 AI 生成内容"
+  },
+  "collection": {
+    "title": "合集",
+    "backToList": "返回合集列表",
+    "navTitlePattern": "合集：{name}"
+  },
+  "misc": {
+    "backToTop": "回到顶部"
+  },
+  "blog": {
+    "featured": "精选",
+    "collapse": "收起",
+    "expand": "展开",
+    "allPosts": "全部文章",
+    "loadingPosts": "正在加载文章...",
+    "noPostsStartWriting": "暂无文章，开始写第一篇吧！",
+    "daySuffix": "日"
+  },
+  "home": {
+    "title": "Chronicle for Eightyfor",
+    "tagline": "Love what you wanna love, be what you wanna be.<br/>爱我所爱，自成一派。",
+    "viewBlogs": "查看博客",
+    "viewThemePost": "阅读主题文章",
+    "noSummary": "暂无摘要。点击进入查看完整内容。",
+    "cardSubtitle": "爱我所爱，自成一派。",
+    "cardAuthorLine": "马上就好@ ~ 稍等一下~",
+    "defaultAuthorName": "内容主理人",
+    "metaDescription": "Chronicle 首页",
+    "homepageArchitecture": "首页信息架构",
+    "readingLatest": "阅读最新内容",
+    "browseAllPosts": "浏览全部文章",
+    "filterByTags": "按标签筛选",
+    "latestFeaturedArticles": "最新 / 精选文章卡片",
+    "mainContentStream": "主内容流",
+    "viewAll": "查看全部",
+    "viewAllTags": "查看全部标签",
+    "noPostsAvailable": "暂无文章。",
+    "authorInfo": "作者信息",
+    "topicNavigation": "主题导航",
+    "quickSearch": "快速搜索",
+    "collectionList": "合集列表",
+    "tagCloud": "标签云",
+    "popularRecommended": "热门 / 推荐阅读卡片",
+    "recommendedReading": "推荐阅读",
+    "noRecommendedPosts": "暂无推荐内容。",
+    "recentActivityCard": "近期评论 / 互动卡片",
+    "siteActivity": "站点互动",
+    "noInteractionData": "当前没有可用的互动数据。",
+    "siteLinksAria": "站点链接",
+    "rssSubscribe": "RSS 订阅",
+    "email": "邮箱",
+    "footerCopyright": "© {year} {siteTitle} · All rights reserved · <备案号>",
+    "collectionMeta": "{posts} 篇文章 · {groups} 个分组",
+    "friendPageInteraction": "朋友页互动",
+    "browseBlogs": "浏览博客",
+    "browseBlogsDescription": "按时间追踪最新内容。",
+    "topicSearch": "主题搜索",
+    "topicSearchDescription": "按标签继续订阅主题。",
+    "collectionsEntry": "合集入口",
+    "collectionsEntryDescription": "把文章装进主题流。",
+    "friendsEntry": "朋友页",
+    "friendsEntryDescription": "连接到站点网络。",
+    "aboutEntry": "关于本站",
+    "aboutEntryDescription": "了解作者与站点。",
+    "unnamedCollection": "未命名合集",
+    "recentPublished": "最近发布"
+  },
+  "file": {
+    "type": {
+      "audio": "音频",
+      "video": "视频",
+      "document": "文档",
+      "code": "文本/代码",
+      "file": "文件"
+    }
+  },
+  "friends": {
+    "title": "友人",
+    "viewStory": "查看故事"
+  },
+  "settings": {
+    "locale": {
+      "follow": "跟随浏览器",
+      "zh": "中文（简体）",
+      "en": "English"
+    }
+  },
+  "preview": {
+    "pdfUnsupported": "你的浏览器无法内嵌显示 PDF。请下载来预览。",
+    "downloadPdf": "下载 PDF",
+    "textLoading": "正在加载文本...",
+    "textPreviewEmpty": "文件为空",
+    "textDecodeError": "无法预览文本（解码或加载失败）",
+    "truncated": "已省略后续",
+    "previewNotSupported": "该类型文件不支持预览。",
+    "mermaid": {
+      "downloadSvg": "下载 SVG",
+      "split": "拆分视图",
+      "code": "仅代码",
+      "preview": "仅图像",
+      "notPrerendered": "未找到预渲染的 Mermaid SVG。"
+    }
+  },
+  "search": {
+    "selectTags": "选择标签",
+    "placeholder": "按标题搜索...",
+    "noTags": "未找到标签",
+    "done": "完成",
+    "loading": "正在加载...",
+    "noResults": "未找到符合条件的文章。",
+    "selectedTags": "已选",
+    "resultsTitle": "搜索结果",
+    "resultsCount": "{count} 条",
+    "resultDescription": "{searchDescription} 的搜索结果",
+    "items": "{count} 条",
+    "tagsCount": "等{count}个标签",
+    "allPosts": "所有内容"
+  },
+  "tag": {
+    "featured": "精选"
+  },
+  "formula": {
+    "copied": "公式已复制"
+  },
+  "comment": {
+    "title": "评论",
+    "count": "{count} 条评论",
+    "noComments": "暂无评论，来发表第一条想法吧！",
+    "leaveComment": "发表评论",
+    "name": "昵称",
+    "namePlaceholder": "你的昵称",
+    "email": "邮箱",
+    "emailHint": "不会公开",
+    "emailPlaceholder": "your@email.com",
+    "website": "网站",
+    "websitePlaceholder": "https://your.site",
+    "content": "评论",
+    "contentPlaceholder": "写下你的想法...",
+    "submit": "提交",
+    "reviewNote": "评论提交后将等待审核。",
+    "notConfigured": "评论提交功能尚未配置。",
+    "staticPlaceholder": "评论以只读模式展示。发布新评论入口暂不开放。",
+    "loading": "正在加载评论...",
+    "loadError": "无法加载最新评论。",
+    "submitted": "评论已提交，等待审核。",
+    "submitError": "提交失败，请重试。",
+    "githubLink": "在 GitHub 上评论",
+    "poweredBy": "评论系统由",
+    "reply": "回复",
+    "replyingTo": "回复",
+    "preview": "预览",
+    "previewNow": "刚刚"
+  },
+  "date": {
+    "justNow": "刚刚",
+    "minutesAgo": "{count}分钟前",
+    "hoursAgo": "{count}小时前",
+    "yesterday": "昨天",
+    "twoDaysAgo": "前天",
+    "daysAgo": "{count}天前"
+  }
+}

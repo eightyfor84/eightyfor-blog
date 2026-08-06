@@ -1,0 +1,95 @@
+---
+import { buildLocalizedPath } from '../utils/routeLocale';
+
+const slideIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M 2 12 L 2 22 L 14 22 L 14 12 Z"/><path d="M 6 10 L 6 8 L 18 8 L 18 18 L 16 18"/><path d="M 10 6 L 10 4 L 22 4 L 22 14 L 20 14"/></svg>`;
+
+type Post = {
+  id: string;
+  title: string;
+  date: string;
+  tags?: string[];
+  type?: 'slides' | 'article';
+};
+
+const { post, locale, routeLang, featured = false, hidden = false } = Astro.props as {
+  post: Post;
+  locale: string;
+  routeLang: 'zh' | 'en';
+  featured?: boolean;
+  hidden?: boolean;
+};
+
+const normalizeTag = (tag: unknown) =>
+  String(tag || '')
+    .trim()
+    .replace(/^#+/, '')
+    .toLowerCase();
+
+const isFeaturedTag = (tag: unknown) => {
+  const normalized = normalizeTag(tag);
+  return normalized === 'featured' || normalized === '精选';
+};
+
+const sortTagsList = (tags: unknown) => {
+  if (!Array.isArray(tags)) return [];
+  return [...tags].sort((a, b) => {
+    if (isFeaturedTag(String(a)) && !isFeaturedTag(String(b))) return -1;
+    if (!isFeaturedTag(String(a)) && isFeaturedTag(String(b))) return 1;
+    return String(a).localeCompare(String(b));
+  });
+};
+
+const escapeHtml = (value: unknown) =>
+  String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
+const date = new Date(post.date);
+const dateText = featured ? date.toLocaleDateString(locale) : String(date.getDate());
+const tags = sortTagsList(post.tags);
+---
+
+<a href={buildLocalizedPath(routeLang, `/post/${encodeURIComponent(post.id)}`)} style={`text-decoration:none; color:inherit;${hidden ? ' display:none;' : ''}`} class:list={[hidden ? 'hidden-featured' : '']}>
+  <article class:list={['post-card', featured ? 'featured-card' : 'compact-card']}>
+    {featured ? (
+      <div class="featured-card-layout">
+        <div class="featured-card-date">{dateText}</div>
+        <h3 class="post-title">{post.type === 'slides' && <span class="slides-badge" set:html={slideIcon} />}{post.title}</h3>
+        {tags.length ? (
+          <div class="post-tags">
+            {tags.map((tag) => (
+              <span class:list={['tag', isFeaturedTag(String(tag)) ? 'featured' : '']}>
+                # {isFeaturedTag(String(tag)) ? locale === 'zh-CN' ? '精选' : 'Featured' : tag}
+              </span>
+            ))}
+          </div>
+        ) : null}
+      </div>
+    ) : (
+      <>
+        <div class="post-card-line">
+          <span class="post-card-time">{dateText}</span>
+          {tags.some((tag) => isFeaturedTag(String(tag))) ? <span class="post-featured-star" aria-hidden="true">★</span> : null}
+          <h4 class="post-title">{post.type === 'slides' && <span class="slides-badge" set:html={slideIcon} />}{post.title}</h4>
+        </div>
+        {tags.length ? (
+          <div class="post-tags">
+            {tags.map((tag) => (
+              <span class:list={['tag', isFeaturedTag(String(tag)) ? 'featured' : '']}>
+                # {isFeaturedTag(String(tag)) ? locale === 'zh-CN' ? '精选' : 'Featured' : tag}
+              </span>
+            ))}
+          </div>
+        ) : null}
+      </>
+    )}
+  </article>
+</a>
+
+<style>
+  .slides-badge { transform:translateY(3px); justify-content: center; opacity:.5; display: inline-flex; margin: 0 8px 0 0; flex-shrink: 0; }
+  .slides-badge svg { width: 18px; height: 18px; }
+</style>

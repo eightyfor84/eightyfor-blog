@@ -1,0 +1,165 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronicle:profile",
+  "title": {
+    "en": "About & Profile",
+    "zh-CN": "关于页与个人资料"
+  },
+  "x-lang": "en",
+  "x-version": "2.0.2",
+  "x-migrations": [],
+  "type": "object",
+  "x-nav": {
+    "group": "template",
+    "tabs": {
+      "": {
+        "label": {
+          "en": "About & Profile",
+          "zh-CN": "关于页与个人资料"
+        },
+        "icon": "user",
+        "order": 6
+      }
+    }
+  },
+  "x-groups": {
+    "about": {
+      "title": {
+        "en": "About Page",
+        "zh-CN": "关于页"
+      },
+      "order": 1
+    },
+    "profile": {
+      "title": {
+        "en": "Profile Card",
+        "zh-CN": "个人名片"
+      },
+      "order": 2
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "properties": {
+    "$about_edit": {
+      "type": "null",
+      "x-group": "about",
+      "x-chronicle-class": "about-editor",
+      "x-order": 1,
+      "title": {
+        "en": "About Content",
+        "zh-CN": "关于页正文"
+      },
+      "description": {
+        "en": "Edit the about page markdown content in a new window.",
+        "zh-CN": "在新窗口中编辑关于页 Markdown 正文。"
+      }
+    },
+    "showProfileCard": {
+      "type": "boolean",
+      "default": true,
+      "x-widget": "toggle",
+      "x-group": "about",
+      "x-order": 2,
+      "title": {
+        "en": "Show Profile Card",
+        "zh-CN": "显示个人名片"
+      },
+      "description": {
+        "en": "Display the profile card above the about page content.",
+        "zh-CN": "在关于页正文上方显示个人资料名片。"
+      }
+    },
+    "name": {
+      "type": "string",
+      "default": "",
+      "minLength": 1,
+      "maxLength": 60,
+      "x-widget": "input",
+      "x-group": "profile",
+      "x-order": 1,
+      "x-required": true,
+      "title": {
+        "en": "Name",
+        "zh-CN": "名称"
+      }
+    },
+    "avatar": {
+      "type": "string",
+      "x-widget": "image-picker",
+      "x-picker-only": true,
+      "x-persist": false,
+      "x-target-dir": "data/avatar",
+      "x-group": "profile",
+      "x-order": 2,
+      "title": {
+        "en": "Avatar",
+        "zh-CN": "头像"
+      }
+    },
+    "bio": {
+      "type": "string",
+      "maxLength": 300,
+      "x-widget": "textarea",
+      "x-group": "profile",
+      "x-order": 3,
+      "title": {
+        "en": "Bio",
+        "zh-CN": "简介"
+      }
+    },
+    "location": {
+      "type": "string",
+      "maxLength": 100,
+      "x-widget": "input",
+      "x-group": "profile",
+      "x-order": 4,
+      "x-advanced": true,
+      "title": {
+        "en": "Location",
+        "zh-CN": "位置"
+      }
+    },
+    "links": {
+      "type": "array",
+      "x-widget": "link-list",
+      "x-group": "profile",
+      "x-order": 5,
+      "items": {
+        "type": "object",
+        "required": [
+          "label",
+          "url"
+        ],
+        "properties": {
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 30,
+            "x-widget": "input",
+            "x-order": 1,
+            "title": {
+              "en": "Label",
+              "zh-CN": "标签"
+            }
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "x-widget": "input",
+            "x-order": 2,
+            "title": {
+              "en": "URL",
+              "zh": "地址"
+            }
+          }
+        }
+      },
+      "title": {
+        "en": "Links",
+        "zh-CN": "链接"
+      }
+    }
+  }
+}

@@ -1,0 +1,288 @@
+---
+export const prerender = true;
+
+export async function getStaticPaths() {
+  return [{ params: { lang: "zh" } }, { params: { lang: "en" } }];
+}
+
+import Layout from "../../layouts/Layout.astro";
+import { getTranslation, getLocale } from "../../utils/i18n.ts";
+import { buildLocalizedPath } from "../../utils/routeLocale.ts";
+import { loadSiteSettings } from "../../utils/siteSettings";
+import CardStyleHomeDeck from "../../components/CardStyleHomeDeck.astro";
+import HomeCoverDeck from "../../components/HomeCoverDeck.astro";
+import BackToTop from "../../components/BackToTop.astro";
+import { resolveFeatureFlags } from "../../utils/featureFlags.ts";
+
+// Get locale from Astro.locals (set by middleware)
+const locale = getLocale(Astro.locals);
+const t = (key: string) => getTranslation(locale, key);
+const themePostPath = buildLocalizedPath(
+  locale,
+  "/post/6d879241-fa6c-4099-82a5-066853046b9a",
+);
+const metaDescription = t("home.metaDescription");
+
+const settings = await loadSiteSettings();
+const homepageMode = settings?.homepageMode || "cover";
+const featureFlags = resolveFeatureFlags(settings?.featureFlags || {});
+---
+
+<Layout
+  title={t("nav.home")}
+  settings={settings}
+  scrollable={homepageMode !== "cover"}
+  disableMainContentTransition={true}
+  meta={{ description: metaDescription }}
+>
+  {
+    homepageMode === "cover" && (
+      <div class="home-container home-container--cover">
+        <HomeCoverDeck siteName={settings?.siteName} siteDescription={settings?.siteDescription || ''} locale={locale} themePostPath={themePostPath} mode="cover" />
+      </div>
+    )
+  }
+
+  {
+    homepageMode === "split" && (
+      <div class="home-container home-container--split">
+        <div class="split-hero-stage" id="split-hero-stage">
+          <HomeCoverDeck siteName={settings?.siteName} siteDescription={settings?.siteDescription || ''} locale={locale} themePostPath={themePostPath} mode="split" />
+        </div>
+        <div class="split-cards-stage">
+          <CardStyleHomeDeck locale={locale} featureFlags={featureFlags} />
+        </div>
+      </div>
+    )
+  }
+
+  {
+    homepageMode === "cards" && (
+      <div class="home-container home-container--cards">
+        <CardStyleHomeDeck locale={locale} featureFlags={featureFlags} />
+      </div>
+    )
+  }
+  <BackToTop />
+</Layout>
+
+<style>
+  .home-container {
+    margin: 0;
+    top: 0;
+    min-height: 100vh;
+    padding: 0;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 2;
+    text-align: start;
+    overflow: visible;
+  }
+
+  .home-container--cover {
+    top: -70px;
+    height: 100vh;
+    justify-content: center;
+    text-align: start;
+    overflow: hidden;
+  }
+
+  .home-container--split,
+  .home-container--cards {
+    --split-hero-min: clamp(118px, 18vh, 170px);
+    --split-peek: clamp(24px, 4vh, 40px);
+    --split-cards-offset: 0px; /* cards visual offset controlled by JS */
+  }
+
+  .home-container--split {
+    align-items: stretch;
+    justify-content: flex-start;
+    overflow: visible;
+    overflow-anchor: none;
+  }
+
+  .home-container--cards {
+    align-items: stretch;
+    justify-content: flex-start;
+    padding-top: clamp(2.5rem, 10vh, 6rem);
+  }
+
+  .split-hero-stage {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    height: calc(90vh - 80px);
+    min-height: var(--split-hero-min);
+    display: flex;
+    align-items: center;
+    padding: 0 0 0.8rem;
+    overflow: clip;
+    will-change: filter, opacity;
+  }
+
+  .split-cards-stage {
+    position: relative;
+    z-index: 20;
+    /* overlap hero by peek amount; further visual offset is applied by JS via transform */
+    margin-top: calc(-1 * var(--split-peek));
+    will-change: transform, opacity;
+  }
+
+  .home-container--split .card-home-shell,
+  .home-container--cards .card-home-shell {
+    width: 100%;
+    min-height: 0;
+  }
+
+  .hero--compact {
+    max-width: 1280px;
+  }
+
+</style>
+
+<script type="module">
+  let homeEffectsController = null;
+  let homeNavigationController = null;
+  let pendingHomeFreeze = false;
+
+  function freezeHomeEffects() {
+    const hero = document.getElementById('split-hero');
+    const cards = document.querySelector('.split-cards-stage');
+
+    if (hero) {
+      hero.style.filter = 'none';
+      hero.style.opacity = '1';
+      hero.style.transform = 'none';
+    }
+
+    if (cards) {
+      cards.style.filter = 'none';
+      cards.style.opacity = '1';
+      cards.style.transform = 'none';
+    }
+  }
+
+  function initHomeNavigationFreeze() {
+    if (homeNavigationController) {
+      homeNavigationController.abort();
+      homeNavigationController = null;
+    }
+
+    homeNavigationController = new AbortController();
+    const { signal } = homeNavigationController;
+
+    document.addEventListener('click', (event) => {
+      if (!(event.target instanceof Element)) return;
+      const link = event.target.closest('a[href]');
+      if (!link) return;
+
+      const href = link.getAttribute('href') || '';
+      if (!href) return;
+      if (/^(mailto:|tel:|https?:\/\/|\/\/)/i.test(href)) return;
+      if (!href.startsWith('/')) return;
+
+      pendingHomeFreeze = true;
+    }, { capture: true, signal });
+  }
+
+  function stopHomeEffects() {
+    if (homeEffectsController) {
+      homeEffectsController.abort();
+      homeEffectsController = null;
+    }
+  }
+
+  function initSplitHeroCompression() {
+    const scroller = document.querySelector(".main-content");
+    const shell = document.querySelector(".home-container--split");
+    const stage = document.getElementById("split-hero-stage");
+    const hero = document.getElementById("split-hero");
+    const cards = document.querySelector(".split-cards-stage");
+    if (!scroller || !shell || !stage || !hero || !cards) return;
+
+    stopHomeEffects();
+    homeEffectsController = new AbortController();
+    const { signal } = homeEffectsController;
+
+    let ticking = false;
+
+    const update = () => {
+      if (signal.aborted) return;
+      ticking = false;
+
+      const isReduced = document.documentElement.getAttribute('data-perf') === 'reduced';
+      const vh = window.innerHeight || 900;
+      const range = Math.max(200, vh * 0.35);
+      let progress = Math.min(1, Math.max(0, scroller.scrollTop / range));
+      progress =
+        progress < 0.5
+          ? 2 * progress * progress
+          : -1 + (4 - 2 * progress) * progress;
+
+      if (isReduced) {
+        // Light mode: only opacity + translate, no blur/scale
+        hero.style.filter = 'none';
+        hero.style.transform = 'none';
+        hero.style.opacity = `${1 - .9 * progress}`;
+        const lift = Math.round(progress * 80);
+        cards.style.transform = `translateY(-${lift}px)`;
+        cards.style.opacity = `${0.5 + 0.5 * progress}`;
+        cards.style.filter = 'none';
+      } else {
+        const maxBlur = 8;
+        const cardLiftMax = 80;
+        const blur = Math.round(progress * maxBlur);
+        const decBlur = maxBlur - blur;
+        const lift = Math.round(progress * cardLiftMax);
+        hero.style.filter = `blur(${blur}px)`;
+        hero.style.opacity = `${1 - 0.06 * progress}`;
+        hero.style.transform = `scale(${1 - 0.04 * progress})`;
+        cards.style.transform = `translateY(-${lift}px)`;
+        cards.style.opacity = `${0.7 + 0.3 * progress}`;
+        cards.style.filter = `blur(${decBlur}px)`;
+      }
+    };
+
+    const requestUpdate = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(update);
+    };
+
+    // Attach to the correct scroller and ensure passive listeners for performance
+    scroller.addEventListener("scroll", requestUpdate, { passive: true, signal });
+    window.addEventListener("resize", requestUpdate, { passive: true, signal });
+    // kick off after a frame to ensure layout is stable
+    requestAnimationFrame(requestUpdate);
+
+    // Expose for perf toggle to trigger immediate visual update
+    window.__chronicleUpdateSplitHero = () => { ticking = false; requestUpdate(); };
+  }
+
+  // Run on initial load
+  // Delay initialization to ensure Layout has rendered main-content
+  document.addEventListener("DOMContentLoaded", () => {
+    initHomeNavigationFreeze();
+    initSplitHeroCompression();
+  });
+
+  // Re-run on page load if we're on the home page
+  document.addEventListener("astro:page-load", () => {
+    initHomeNavigationFreeze();
+    initSplitHeroCompression();
+  });
+
+  document.addEventListener('astro:after-swap', () => {
+    if (pendingHomeFreeze) {
+      freezeHomeEffects();
+      stopHomeEffects();
+      pendingHomeFreeze = false;
+    }
+    if (homeNavigationController) {
+      homeNavigationController.abort();
+      homeNavigationController = null;
+    }
+  });
+</script>

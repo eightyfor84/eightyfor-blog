@@ -1,0 +1,12 @@
+- name: Chronicle Guide
+  description: Everything you need to get started with Chronicle — from first principles to advanced features.
+  slug: chronicle-guide
+  nodes:
+    - id: welcome-to-chronicle
+      type: post
+    - id: getting-started
+      type: post
+    - id: markdown-showcase
+      type: post
+    - id: slides-demo
+      type: post

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>Chronicle Passkey</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    display:flex;justify-content:center;align-items:center;
+    min-height:100vh;padding:1rem;
+    background:#0d0d0d;color:#e0e0e0;
+    -webkit-font-smoothing:antialiased;
+  }
+  @media(prefers-color-scheme:light){
+    body{background:#f5f5f5;color:#1a1a1a}
+  }
+  .card{
+    text-align:center;max-width:420px;width:100%;
+    padding:2.5rem 2rem;border-radius:16px;
+    background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  }
+  @media(prefers-color-scheme:light){
+    .card{background:#fff;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  }
+  .icon{font-size:2.5rem;margin-bottom:1rem}
+  h1{font-size:1.25rem;font-weight:600;margin-bottom:.5rem}
+  #status{font-size:.9rem;color:#999;margin-bottom:1.25rem;line-height:1.5}
+  .spinner{
+    display:inline-block;width:28px;height:28px;border:3px solid rgba(255,255,255,.1);
+    border-top-color:#2ea367;border-radius:50%;animation:spin .7s linear infinite;
+    margin-bottom:.75rem
+  }
+  @media(prefers-color-scheme:light){
+    .spinner{border-color:rgba(0,0,0,.1);border-top-color:#2ea367}
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .error{color:#e15759;font-size:.85rem}
+  .success{color:#2ea367;font-size:.85rem}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="icon">&#128274;</div>
+  <h1>Chronicle Passkey</h1>
+  <div id="status">Initialising…</div>
+  <div id="spinner" class="spinner"></div>
+  <div id="error" class="error" style="display:none"></div>
+</div>
+<script>
+(function(){
+  'use strict';
+
+  var statusEl = document.getElementById('status');
+  var spinnerEl = document.getElementById('spinner');
+  var errorEl = document.getElementById('error');
+
+  function status(text){ statusEl.textContent = text; }
+  function error(text){
+    spinnerEl.style.display = 'none';
+    errorEl.textContent = text;
+    errorEl.style.display = 'block';
+    statusEl.textContent = 'Authentication failed';
+  }
+
+  // ── Parse URL params ────────────────────────────────
+  var params = new URLSearchParams(window.location.search);
+  var apiBase = (params.get('api') || '').replace(/\/+$/,'');
+  var callback = params.get('callback') || '';
+
+  if (!callback || (callback.indexOf('chronicle://') !== 0 && callback.indexOf('https://') !== 0)) {
+    error('Missing or invalid callback URL.');
+    return;
+  }
+  if (!apiBase) {
+    error('Missing api parameter.');
+    return;
+  }
+
+  // ── Helpers ─────────────────────────────────────────
+  function buf2b64(buf){
+    return btoa(String.fromCharCode.apply(null, new Uint8Array(buf)))
+      .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  }
+
+  function b64buf(s){
+    var u = s.replace(/-/g,'+').replace(/_/g,'/');
+    var r = atob(u);
+    var b = new Uint8Array(r.length);
+    for (var i=0;i<r.length;i++) b[i]=r.charCodeAt(i);
+    return b.buffer;
+  }
+
+  // ── Main flow ───────────────────────────────────────
+  (async function(){
+    try {
+      // 1. Request challenge from the API server
+      status('Requesting challenge…');
+      var optResp = await fetch(apiBase + '/api/admin/auth/passkey/login/options', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'}
+      });
+      if (!optResp.ok) throw new Error('Server returned ' + optResp.status);
+      var o = await optResp.json();
+
+      if (o.challenge) o.challenge = b64buf(o.challenge);
+      if (o.allowCredentials) {
+        o.allowCredentials = o.allowCredentials.map(function(c){
+          return Object.assign({}, c, {id: b64buf(c.id)});
+        });
+      }
+
+      // 2. Get credential from authenticator
+      status('Waiting for Passkey…');
+      var cred;
+      try {
+        cred = await navigator.credentials.get({publicKey:o});
+      } catch(e){
+        if (e.name === 'NotAllowedError') throw new Error('Passkey authentication was cancelled or timed out.');
+        throw e;
+      }
+
+      // 3. Verify with server
+      status('Verifying…');
+      var r = {
+        id: cred.id,
+        rawId: buf2b64(cred.rawId),
+        type: cred.type,
+        response: {
+          clientDataJSON: buf2b64(cred.response.clientDataJSON),
+          authenticatorData: buf2b64(cred.response.authenticatorData),
+          signature: buf2b64(cred.response.signature),
+          userHandle: cred.response.userHandle ? buf2b64(cred.response.userHandle) : null
+        }
+      };
+
+      var verResp = await fetch(apiBase + '/api/admin/auth/passkey/login/verify', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({response:r})
+      });
+      var d = await verResp.json();
+
+      if (d.verified) {
+        // 4. Success — redirect back to Electron via custom protocol
+        status('Signed in! Redirecting to Chronicle app…');
+        spinnerEl.style.display = 'none';
+        statusEl.className = 'success';
+        var sep = callback.indexOf('?') !== -1 ? '&' : '?';
+        window.location.href = callback + sep + 'token=' + encodeURIComponent(d.token);
+      } else {
+        throw new Error(d.message || 'Verification failed');
+      }
+    } catch(e){
+      error(e.message || 'WebAuthn failed');
+    }
+  })();
+})();
+</script>
+</body>
+</html>

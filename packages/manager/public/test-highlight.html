@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>语法高亮测试</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            background: #1e1e1e; 
+            color: #d4d4d4; 
+            padding: 20px; 
+        }
+        .test-code {
+            background: #252526;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: var(--app-font-stack-mono);
+            white-space: pre-wrap;
+            margin: 20px 0;
+        }
+        .keyword { color: #569cd6; font-weight: bold; }
+        .string { color: #ce9178; }
+        .comment { color: #6a9955; font-style: italic; }
+        .number { color: #b5cea8; }
+        .boolean { color: #569cd6; }
+        .bracket { color: var(--featured); }
+    </style>
+</head>
+<body>
+    <h1>语法高亮修复测试</h1>
+    <p>以下是一个简单的JavaScript代码示例，应该能看到语法高亮效果：</p>
+    
+    <div class="test-code" id="test-code">
+function hello() {
+    console.log("Hello, World!");
+    return true;
+}
+    </div>
+
+    <script>
+        // 简单的语法高亮测试
+        function applyHighlight(text) {
+            return text
+                .replace(/\b(function|return|console)\b/g, '<span class="keyword">$1</span>')
+                .replace(/"([^"]+)"/g, '<span class="string">"$1"</span>')
+                .replace(/\b(true|false)\b/g, '<span class="boolean">$1</span>')
+                .replace(/[{}();]/g, '<span class="bracket">$&</span>');
+        }
+        
+        const codeElement = document.getElementById('test-code');
+        const originalCode = codeElement.textContent;
+        codeElement.innerHTML = applyHighlight(originalCode);
+        
+        console.log('✅ 语法高亮测试页面已加载');
+        console.log('📝 修复说明：');
+        console.log('1. 修改了高亮逻辑：先应用规则再转义HTML');
+        console.log('2. 使用占位符系统避免重复匹配');
+        console.log('3. 将语法高亮样式移至全局作用域');
+    </script>
+</body>
+</html>
