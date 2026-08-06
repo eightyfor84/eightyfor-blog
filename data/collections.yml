@@ -1,34 +1,43 @@
-# Chronicle Aurora
-collections:
-  - name: Stories to tell
-    description: Records of those who once , or have always made my life colorful
-    cover: "https://file.eightyfor.top/server/data/upload/pic/1774947821473_vly1_177494760300-737.webp"
-    slug: stories-to-tell
-    nodes:
-      - id: 45175cf3-db12-4dda-8a62-f36d0d2c3d51
-        type: post
-  - name: Chronicle Docs
-    description: Offical Documents of Chronicle Project
-    cover: "https://file.eightyfor.top/server/data/upload/pic/1770891564693_cktp_.png"
-    slug: chronicle-docs
-    nodes:
-      - type: group
-        title: Changelog
-        children:
-          - id: b792d6ca-5efb-405e-84d2-609f056d4be9
-            type: post
-          - id: 9fad38a2-cf83-476b-bbab-5c097a1180fc
-            type: post
-      - id: 88394cb9-6f3b-4c20-a950-e6d74ea912a0
-        type: post
-  - name: AuthorDNA
-    description: the offical docs of AuthorDNA, an AI-powered writing assistant.
-    cover: "https://file.eightyfor.top/server/data/upload/pic/1780412391392_8rqy_2026-06-02225940.png"
-    slug: authordna
-    nodes:
-      - id: 249931ea-c899-45a5-9daa-9b6fe0089a41
-        type: post
-  - name: 知识点汇总
-    nodes:
-      - id: f3372aca-8f34-4a28-afc0-914489410ab7
-        type: post
+- name: Stories to tell
+  description: Records of those who once , or have always made my life colorful
+  cover: asset://1774947821473_vly1_177494760300-737.webp
+  slug: stories-to-tell
+  nodes:
+    - id: 45175cf3-db12-4dda-8a62-f36d0d2c3d51
+      type: post
+      _localId: n_pflxce6
+  _localId: n_m0n776o
+- name: Chronicle Docs
+  description: Offical Documents of Chronicle Project
+  cover: asset://1770891564693_cktp_.png
+  slug: chronicle-docs
+  nodes:
+    - type: group
+      title: Changelog
+      children:
+        - id: b792d6ca-5efb-405e-84d2-609f056d4be9
+          type: post
+          _localId: n_6emxdfg
+        - id: 9fad38a2-cf83-476b-bbab-5c097a1180fc
+          type: post
+          _localId: n_9hdexrb
+      _localId: n_ma5bloy
+    - id: 88394cb9-6f3b-4c20-a950-e6d74ea912a0
+      type: post
+      _localId: n_atcmv8e
+  _localId: n_b8xz3fa
+- name: AuthorDNA
+  description: the offical docs of AuthorDNA, an AI-powered writing assistant.
+  cover: asset://1780412391392_8rqy_2026-06-02225940.png
+  slug: authordna
+  nodes:
+    - id: 249931ea-c899-45a5-9daa-9b6fe0089a41
+      type: post
+      _localId: n_ahyusmh
+  _localId: n_tfx3wy0
+- name: 知识点汇总
+  nodes:
+    - id: f3372aca-8f34-4a28-afc0-914489410ab7
+      type: post
+      _localId: n_pkzna47
+  _localId: n_h5lz5mp

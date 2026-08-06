@@ -1,12 +1,12 @@
-# Chronicle Aurora
+$about_edit: ""
+showProfileCard: true
 name: Vincent Chen
 bio: 地球ol休闲玩家
 location: Tsinghua University
-showProfileCard: true
 links:
   - label: Github
-    url: "https://github.com/vanvanhasnophi/chronicle"
+    url: https://github.com/vanvanhasnophi/chronicle
   - label: Bilibili
-    url: "https://space.bilibili.com/441276248"
+    url: https://space.bilibili.com/441276248
   - label: Email
-    url: "mailto:j13811593@163.com"
+    url: mailto:j13811593@163.com

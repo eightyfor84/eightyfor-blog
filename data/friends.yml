@@ -1,8 +1,8 @@
-# Chronicle Aurora
 globalStyle: left-lg
 cards:
-  - name: Waiwai
-    avatar: "https://file.eightyfor.top/server/data/upload/pic/1779124827417_iwou_87f6fdc5c3b8bef6be1910e52290cf42.jpg"
+  - _localId: c_9k39b
+    name: Waiwai
+    avatar: asset://1779124827417_iwou_87f6fdc5c3b8bef6be1910e52290cf42.jpg
     intro: 非常乐意并享受被人挂网上的感觉\n(经本人强烈要求，不放本人照片，用家属照片代替)
-    homeUrl: "https://example.com"
+    homeUrl: https://example.com
     storyPostId: 45175cf3-db12-4dda-8a62-f36d0d2c3d51

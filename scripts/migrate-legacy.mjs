@@ -157,7 +157,7 @@ for (const [src, { dest, transform }] of Object.entries(configMap)) {
       const data = transform(json)
       const yml = typeof data === 'object' && !Array.isArray(data)
         ? `# Chronicle Aurora\n${toYaml(data)}`
-        : `# Chronicle Aurora\n${toYaml({ collections: data })}`
+        : `# Chronicle Aurora\n${toYaml(data)}`
       writeFileSync(dstPath, yml + '\n', 'utf-8')
       console.log(`  ${src} → ${dest}`)
     } catch (e) { console.error(`  FAILED ${src}:`, e.message) }

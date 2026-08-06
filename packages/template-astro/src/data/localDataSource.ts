@@ -518,7 +518,7 @@ export function getProfile(): Record<string, unknown> {
 export function getCollections(): Record<string, unknown> {
     const data = readDataFile(COLLECTION_FILE)
     if (data) {
-      const arr = Array.isArray(data) ? data : (data.collections || [])
+      const arr = Array.isArray(data) ? data : (data.collections || data.items || [])
       // Resolve asset:// URLs in collection covers
       const resolved = arr.map((c: any) => ({ ...c, cover: resolveAssetUrl(c.cover || '') }))
       return { collections: resolved }
