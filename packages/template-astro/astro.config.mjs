@@ -1,7 +1,7 @@
 import { defineConfig } from 'astro/config';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync, readdirSync, copyFileSync, mkdirSync, statSync } from 'fs';
 import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { dirname, join, extname } from 'path';
 
 import icon from 'astro-icon';
 
@@ -58,6 +58,35 @@ export default defineConfig({
     },
     plugins: [
       // 在构建时排除 src/archive 目录下的所有模块
+      // Copy post assets to output (private images, files)
+      (function copyPostAssetsPlugin() {
+        const DATA_DIR = process.env.CHRONICLE_DATA_DIR || join(__dirname, '..', '..', 'data');
+        return {
+          name: 'copy-post-assets',
+          enforce: 'post',
+          closeBundle() {
+            const postsDir = join(DATA_DIR, 'posts');
+            const aboutDir = join(DATA_DIR, '__about__');
+            for (const srcDir of [postsDir, aboutDir]) {
+              if (!existsSync(srcDir)) continue;
+              for (const slug of readdirSync(srcDir)) {
+                const slugDir = join(srcDir, slug);
+                if (slug === 'index.json' || !existsSync(slugDir)) continue;
+                if (!statSync(slugDir).isDirectory()) continue;
+                for (const file of readdirSync(slugDir)) {
+                  if (extname(file) === '.md') continue;
+                  const src = join(slugDir, file);
+                  const destBase = slug === '__about__' ? join(__dirname, 'dist', 'about')
+                    : join(__dirname, 'dist', 'post', slug);
+                  if (!existsSync(destBase)) mkdirSync(destBase, { recursive: true });
+                  try { copyFileSync(src, join(destBase, file)) } catch (_) {}
+                }
+              }
+            }
+          },
+        };
+      })(),
+
       (function excludeArchivePlugin() {
         const archiveMarker = '/src/archive/';
         return {

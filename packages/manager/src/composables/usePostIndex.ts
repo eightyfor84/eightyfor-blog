@@ -26,7 +26,7 @@ export interface PostEntry {
   date: string           // ISO 8601
   tags: string[]
   summary?: string
-  status: 'published' | 'draft' | 'modifying'
+  status: 'published' | 'draft'
   type?: 'article' | 'slides'
   font?: string
   author?: string
@@ -228,7 +228,7 @@ async function createPost(input: CreatePostInput): Promise<{ uuid: string; slug:
 async function savePost(
   uuid: string,
   content: string,
-  status?: 'published' | 'draft' | 'modifying',
+  status?: 'published' | 'draft',
 ): Promise<boolean> {
   const entry = index.value[uuid]
   if (!entry) {
@@ -301,7 +301,7 @@ async function scanAndRebuild(): Promise<number> {
       const title = fm.match(/^title:\s*(.+)$/m)?.[1]?.trim() ?? dir
       const date = fm.match(/^date:\s*(.+)$/m)?.[1]?.trim() ?? new Date().toISOString()
       const tagsStr = fm.match(/^tags:\s*(.+)$/m)?.[1]?.trim() ?? ''
-      const tags = tagsStr ? tagsStr.split(/,\s*/).filter(Boolean) : []
+      const tags = tagsStr ? tagsStr.split(',').map(s => s.trim()).filter(Boolean) : []
       const status = (fm.match(/^status:\s*(.+)$/m)?.[1]?.trim() as any) ?? 'draft'
       const type = fm.match(/^type:\s*(.+)$/m)?.[1]?.trim() as any
       const summary = fm.match(/^summary:\s*(.+)$/m)?.[1]?.trim()

@@ -16,14 +16,13 @@
           </div>
 
           <!-- Sort -->
-          <div class="chronicle-fb-sort">
-            <label style="font-size: 0.85rem;">{{ $t('filePicker.sortBy') || 'Sort: ' }}</label>
+          <div class="chronicle-fb-sort-group">
             <select v-model="selectedSortBy" class="chronicle-fb-sort-select">
               <option value="date">{{ $t('post.table.date') }}</option>
               <option value="title">{{ $t('post.table.title') }}</option>
               <option value="status">{{ $t('post.table.status') }}</option>
             </select>
-            <button type="button" class="chronicle-fb-btn chronicle-fb-sort-toggle" :class="sortOrder"
+            <button type="button" class="chronicle-fb-sort-toggle" :class="sortOrder"
               @click="toggleAscDesc">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -37,16 +36,10 @@
             </button>
           </div>
           <div class="chronicle-fb-toolbar-actions">
-            <!-- Republish All -->
-            <button class="chronicle-fb-btn" @click="republishAll"
-              :disabled="republishing || loading || posts.length === 0">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M23 4v6h-6" />
-                <path d="M1 20v-6h6" />
-                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
-              </svg>
-              <span class="label">{{ $t('post.republishAll') }}</span>
+            <!-- Refresh -->
+            <button type="button" class="icon-label-btn chronicle-fb-btn narrow" @click="refresh"
+              :disabled="loading" :title="$t('file.refresh')">
+              <span class="icon-svg" v-html="Icons.refresh"></span>
             </button>
 
             <!-- New Post -->
@@ -148,7 +141,7 @@
 </template>
 
 <script setup lang="ts">
-import { readJson, writeJson, readText, writeText, deleteDir } from '../data/dataAccess'
+import { readJson, writeJson, deleteDir } from '../data/dataAccess'
 import { ref, onMounted, onUnmounted, computed, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { sortTags } from '../utils/tagUtils'
@@ -166,7 +159,7 @@ interface Post {
   id: string
   title: string
   date: string
-  status?: 'draft' | 'published' | 'modifying'
+  status?: 'draft' | 'published'
   tags?: string[]
   type?: 'slides' | 'article' | undefined
 }
@@ -175,7 +168,7 @@ const { t } = useI18n()
 const { show: showToast } = useToast()
 const posts = ref<Post[]>([])
 const loading = ref(true)
-const republishing = ref(false)
+const reindexing = ref(false)
 
 // ── Multi-select state ────────────────────────────────────────────────
 const selectedIds = ref<Set<string>>(new Set())
@@ -233,7 +226,6 @@ const filterGroups = computed(() => [
     options: [
       { value: 'published', label: t('status.published') },
       { value: 'draft', label: t('status.draft') },
-      { value: 'modifying', label: t('status.modifying') },
     ],
   },
   {
@@ -316,11 +308,19 @@ async function saveRename(post: Post) {
   const newTitle = tempRenameTitle.value.trim()
   if (newTitle && newTitle !== post.title) {
     try {
+      // Update title in frontmatter + index via /api/post PUT
+      const resp = await fetch('/api/post', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: post.id, title: newTitle }),
+      })
+      if (!resp.ok) throw new Error('Rename failed')
+      post.title = newTitle
+    } catch (e) {
+      // Fallback: direct index update
       const idx = await readJson<Record<string, any>>('data/posts/index.json') ?? {}
       const entry = idx[post.id]
       if (entry) { entry.title = newTitle; await writeJson('data/posts/index.json', idx); post.title = newTitle }
-    } catch (e) {
-      alert(t('post.errorRenaming'))
     }
   }
   renamingId.value = null
@@ -345,10 +345,7 @@ function formatDate(isoStr: string) {
 // ── Actions ──────────────────────────────────────────────────────────
 
 function createNew() {
-  const id = (typeof crypto !== 'undefined' && (crypto as any).randomUUID)
-    ? `new-${(crypto as any).randomUUID()}`
-    : `new-${Math.random().toString(36).substring(2, 9)}`
-  window.open(`/editor?id=${id}`, '_blank')
+  window.open(`/editor`)
 }
 
 function editPost(id: string) {
@@ -358,9 +355,9 @@ function editPost(id: string) {
 async function deletePost(id: string) {
   if (!confirm(t('post.confirmDelete'))) return
   try {
+    // id is the slug (directory name + index key)
+    await deleteDir(`data/posts/${id}`)
     const idx = await readJson<Record<string, any>>('data/posts/index.json') ?? {}
-    const slug = idx[id]?.slug
-    if (slug) await deleteDir(`data/posts/${slug}`)
     delete idx[id]
     await writeJson('data/posts/index.json', idx)
     loadPosts()
@@ -380,8 +377,7 @@ async function bulkDelete() {
 
   for (const id of ids) {
     try {
-      const slug = idx[id]?.slug
-      if (slug) await deleteDir(`data/posts/${slug}`)
+      await deleteDir(`data/posts/${id}`)
       delete idx[id]
       success++
     } catch { failed++ }
@@ -428,56 +424,21 @@ async function loadPosts() {
   }
 }
 
-// ── Republish All ────────────────────────────────────────────────────
+// ── Reindex — rebuild index.json from directory scan ──────────────
 
-async function republishAll() {
-  if (republishing.value) return
-  if (!posts.value.some((post) => getStatus(post.status) === 'published')) {
-    showToast(t('post.noPublishedPosts'), { status: 'warning', position: 'bottom-center', shape: 'capsule', duration: 3000 })
-    return
-  }
-  if (!confirm(t('post.republishAllConfirm'))) return
-
-  republishing.value = true
-  try {
-    if (!isElectron) throw new Error('Build requires Electron')
-    // Aurora: republish = rebuild. No server-side republish endpoint.
-    await triggerBuild({ source: t('post.republishAll'), t })
-    showToast(t('post.republishToastTitle'), { status: 'success', position: 'bottom-center', shape: 'capsule', duration: 3000 })
-    loadPosts()
-
-    await loadPosts()
-  } catch (error: any) {
-    showToast(error?.message || t('post.republishAllFailed'), { status: 'error', position: 'bottom-center', shape: 'capsule', duration: 4000 })
-  } finally {
-    republishing.value = false
-  }
+async function refresh() {
+  if (loading.value) return
+  try { await fetch('/api/reindex', { method: 'POST' }) } catch (_) {}
+  loadPosts()
 }
-
-function escapeHtml(input: any) {
-  return String(input ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')
-}
-
-function buildListLink(label: string, items: Array<{ id?: string; title?: string; reason?: string }>) {
-  const encodedItems = encodeURIComponent(JSON.stringify(items || []))
-  return `<a href="#" class="toast-link" data-toast-label="${escapeHtml(label)}" data-toast-items="${escapeHtml(encodedItems)}">${escapeHtml(label)} ${escapeHtml(items.length)}</a>`
-}
-
-function buildRepublishToastHtml(payload: { successCount: number; failureCount: number; skippedCount: number; successList: any[]; failureList: any[]; skippedList: any[] }) {
-  return [
-    buildListLink(t('post.republishToastSuccess'), payload.successList),
-    buildListLink(t('post.republishToastFailure'), payload.failureList),
-    buildListLink(t('post.republishToastSkipped'), payload.skippedList),
-  ].join('，')
-}
-
-// ── Init ─────────────────────────────────────────────────────────────
 
 // ── Init ─────────────────────────────────────────────────────────────
 
 let channel: BroadcastChannel | null = null
 
-onMounted(() => {
+onMounted(async () => {
+  // Auto-reindex to keep index.json in sync with directories
+  try { await fetch('/api/reindex', { method: 'POST' }) } catch (_) {}
   loadPosts()
   channel = new BroadcastChannel('chronicle')
   channel.onmessage = (e) => {
@@ -612,29 +573,16 @@ onUnmounted(() => {
 
 /* ── Sort overrides ────────────────────────────────────────────────── */
 
-:deep(.chronicle-fb-sort-select) {
-  font-size: 0.9rem;
-  height: 36px;
-  margin: 0 6px;
-}
-
-:deep(.chronicle-fb-sort-toggle) {
-  padding: 0.45rem;
-}
-
-:deep(.chronicle-fb-sort-toggle svg) {
-  width: 22px;
-  height: 22px;
-}
 
 :deep(.chronicle-fb-btn) {
   font-size: 0.9rem;
   padding: 0.45rem 0.7rem;
 }
 
-:deep(.chronicle-fb-btn svg) {
-  width: 18px;
-  height: 18px;
+:deep(.chronicle-fb-btn svg),
+:deep(.chronicle-fb-btn .icon-svg) {
+    width: 18px;
+    height: 18px;
 }
 
 /* ── Post list area ────────────────────────────────────────────────── */
@@ -828,12 +776,6 @@ onUnmounted(() => {
   border: 1px solid var(--status-success);
 }
 
-.status-badge.modifying {
-  color: var(--status-warning);
-  background: var(--status-warning-bg);
-  border: 1px solid var(--status-warning);
-}
-
 /* ── Post actions ──────────────────────────────────────────────────── */
 
 .post-actions {
@@ -920,11 +862,8 @@ onUnmounted(() => {
   }
 
   /* Filter select: touch height, left padding for hamburger */
-  .filter-select {
-    height: 44px;
-    padding: 0 2rem 0 3rem;
-    background-position: right 0.5rem center;
-    background-size: 18px;
+  :deep(.fd-trigger) {
+    margin-left: 2rem;
   }
 
   /* Toolbar controls: full-width row 2 */

@@ -27,7 +27,7 @@
 
       <!-- ═══ Post selector (by-post mode) ═══ -->
       <div v-if="viewMode === 'post'" class="cm-post-select-row">
-        <PostIdPicker v-model="selectedPostId" :placeholder="$t('comment.selectPost')" :clear-on-focus="true" />
+        <PostIdPicker v-model="selectedPostId" :placeholder="$t('comment.selectPost')" :clear-on-focus="true" showId/>
       </div>
 
       <!-- ═══ By-post view ═══ -->

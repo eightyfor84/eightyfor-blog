@@ -60,7 +60,7 @@ export function serializeFrontmatter(meta: PostFrontmatter, content: string): st
 
   const yaml = entries.map(([k, v]) => {
     if (Array.isArray(v)) {
-      return `${k}: ${JSON.stringify(v)}`
+      return `${k}: ${v.join(', ')}`
     }
     if (typeof v === 'boolean') {
       return `${k}: ${v}`
@@ -94,7 +94,7 @@ function parseSimpleYaml(yaml: string): PostFrontmatter {
     // Boolean
     if (rawValue === 'true') { value = true }
     else if (rawValue === 'false') { value = false }
-    // Array: [a, b, c]
+    // Array: [a, b, c] (legacy JSON/YAML array format)
     else if (rawValue.startsWith('[') && rawValue.endsWith(']')) {
       value = rawValue.slice(1, -1).split(',').map(s => s.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean)
     }
@@ -102,6 +102,16 @@ function parseSimpleYaml(yaml: string): PostFrontmatter {
     else if ((rawValue.startsWith('"') && rawValue.endsWith('"')) ||
               (rawValue.startsWith("'") && rawValue.endsWith("'"))) {
       value = rawValue.slice(1, -1)
+    }
+    // Comma-separated tags (primary format)
+    else if (key === 'tags' && rawValue.includes(',')) {
+      value = rawValue.split(',').map(s => s.trim()).filter(Boolean)
+    }
+    else if (key === 'tags' && rawValue.trim()) {
+      value = [rawValue.trim()]
+    }
+    else if (key === 'tags') {
+      value = []
     }
 
     meta[key] = value

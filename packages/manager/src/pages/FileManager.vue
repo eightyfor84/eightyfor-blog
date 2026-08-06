@@ -2,7 +2,24 @@
     <div class="file-manager">
         <!-- Sidebar: category tabs (matches FilePicker cloud-leftbar style) -->
         <aside class="sidebar">
-            <div class="sidebar-header">{{ $t('file.library') }}</div>
+            <!-- Source switch -->
+            <div class="sidebar-header">{{ $t('file.sourceTitle') }}</div>
+            <div class="sidebar-source-switch">
+                <button type="button" class="sidebar-items"
+                    :class="{ active: fileSource === 'assets' }" @click="fileSource = 'assets'; loadFiles()">
+                    <span class="icon-svg" v-html="Icons.archive"></span> Assets
+                </button>
+                <button type="button" class="sidebar-items"
+                    :class="{ active: fileSource === 'post' }" @click="fileSource = 'post'; loadFiles()">
+                    <span class="icon-svg" v-html="Icons.folder"></span> Post
+                </button>
+            </div>
+            <!-- Post picker (only when post source selected) -->
+            <div v-if="fileSource === 'post'" class="sidebar-post-picker">
+                <PostIdPicker v-model="selectedPostId" :placeholder="$t('postPicker.openAriaLabel') || 'Select post'" showId />
+            </div>
+            <div class="sidebar-divider"></div>
+            <div class="sidebar-header">{{ $t('file.categoriesTitle') }}</div>
             <div class="sidebar-nav">
                 <button v-for="cat in categories" :key="cat.id" type="button" class="sidebar-items"
                     :class="{ active: currentCategory === cat.id }" @click="navigate(cat.id)">
@@ -16,12 +33,20 @@
             <!-- Toolbar (matches FilePicker cloud-toolbar) -->
             <div class="chronicle-fb-toolbar">
                 <h3 class="toolbar-title">{{ currentCategoryLabel }}</h3>
-                <!-- Category select replaces the title on narrow screens -->
-                <select v-model="currentCategory" class="category-select">
-                    <option v-for="cat in categories" :key="cat.id" :value="cat.id">
-                        {{ $t(cat.label) }}
-                    </option>
-                </select>
+                <!-- Narrow screen controls: source + post + category -->
+                <div class="toolbar-narrow-controls">
+                    <select v-model="fileSource" class="category-select source-select" @change="loadFiles()">
+                        <option value="assets">Assets</option>
+                        <option value="post">Post</option>
+                    </select>
+                    <PostIdPicker v-if="fileSource === 'post'" v-model="selectedPostId"
+                        :placeholder="$t('postPicker.openAriaLabel') || 'Select post'" class="narrow-post-picker" />
+                    <select v-model="currentCategory" class="category-select">
+                        <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+                            {{ $t(cat.label) }}
+                        </option>
+                    </select>
+                </div>
                 <div class="chronicle-fb-toolbar-right">
                     <!-- View toggle: Card / List -->
                     <div class="segment-control-bar chronicle-fb-view-toggle">
@@ -58,14 +83,13 @@
                     </div>
 
                     <!-- Sort controls -->
-                    <div class="chronicle-fb-sort">
-                        <label style="font-size: 0.85rem;">{{ $t('filePicker.sortBy') || 'Sort by: ' }}</label>
+                    <div class="chronicle-fb-sort-group">
                         <select v-model="selectedSortBy" class="chronicle-fb-sort-select">
                             <option value="created">{{ $t('filePicker.sortByCreated') || 'Created' }}</option>
                             <option value="name">{{ $t('filePicker.sortByName') || 'Name' }}</option>
                             <option value="type">{{ $t('filePicker.sortByType') || 'Type' }}</option>
                         </select>
-                        <button type="button" class="icon-label-btn chronicle-fb-btn chronicle-fb-sort-toggle"
+                        <button type="button" class="chronicle-fb-sort-toggle"
                             :class="sortOrder" @click="toggleAscDesc">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
@@ -87,16 +111,10 @@
                             <span class="icon-svg" v-html="Icons.refresh"></span>
                         </button>
 
-                        <!-- Upload -->
+                        <!-- Import -->
                         <button type="button" class="icon-label-btn chronicle-fb-btn" @click="triggerUploadInput">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-                                stroke-linejoin="round">
-                                <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
-                                <path d="M12 12v9" />
-                                <path d="m16 16-4-4-4 4" />
-                            </svg>
-                            <span class="label">{{ $t('file.upload') }}</span>
+                            <span class="icon-svg" v-html="Icons.plus"></span>
+                            <span class="label">{{ $t('file.import') || 'Import' }}</span>
                         </button>
                         <input ref="uploadInput" type="file" style="display:none" @change="handleUpload" multiple />
                     </div>
@@ -210,11 +228,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { readDir, deleteFile as delFile } from '../data/dataAccess'
 import { usePreview } from '../composables/usePreview'
 import useToast from '../composables/useToast'
+import PostIdPicker from '../components/PostIdPicker.vue'
 import {
     isImage,
     getCategoryFromFile,
@@ -346,6 +365,8 @@ function onFileKeyDown(e: KeyboardEvent) {
 const view = ref<'card' | 'list'>('card')
 const selectedSortBy = ref<'created' | 'name' | 'type'>('created')
 const sortOrder = ref<'asc' | 'desc'>('desc')
+const fileSource = ref<'assets' | 'post'>('assets')
+const selectedPostId = ref<string | null>(null)
 
 // ── Sorted & filtered items ──────────────────────────────────────────
 
@@ -382,17 +403,26 @@ const items = computed(() => {
 
 // ── Data loading ─────────────────────────────────────────────────────
 
+function loadFiles() { loadItems() }
+
+// Watch post selection for reload
+watch(selectedPostId, () => { if (fileSource.value === 'post') loadItems() })
+
 async function loadItems() {
     loading.value = true
     allItems.value = []
     try {
-        const names = await readDir('data/assets')
-        allItems.value = names.map((name, idx) => ({
-            name, url: `/data/assets/${encodeURIComponent(name)}`,
-            path: `/data/assets/${encodeURIComponent(name)}`,
-            thumb: `/data/assets/${encodeURIComponent(name)}`,
+        const isPost = fileSource.value === 'post' && selectedPostId.value
+        const dir = isPost ? `data/posts/${selectedPostId.value}` : 'data/assets'
+        const urlBase = isPost ? `/data/posts/${selectedPostId.value}` : '/data/assets'
+        const names = await readDir(dir)
+        const filtered = isPost ? names.filter(n => n !== 'index.md' && n !== 'index.json') : names
+        allItems.value = filtered.map((name) => ({
+            name, url: `${urlBase}/${encodeURIComponent(name)}`,
+            path: `${urlBase}/${encodeURIComponent(name)}`,
+            thumb: `${urlBase}/${encodeURIComponent(name)}`,
             type: getCategoryFromFile({ name }),
-            key: `/data/assets/${encodeURIComponent(name)}`,
+            key: `${urlBase}/${encodeURIComponent(name)}`,
         }))
     } catch (e) {
         console.error('loadItems failed', e)
@@ -411,13 +441,24 @@ function triggerUploadInput() {
 async function uploadFileToServer(file: File): Promise<string | null> {
     try {
         const isElec = typeof window !== 'undefined' && !!(window as any).chronicleElectron?.isElectron
-        if (!isElec) { console.warn('Upload requires Electron'); return null }
-        const bridge = (window as any).chronicleElectron
-        const buf = await file.arrayBuffer()
-        const base64 = btoa(String.fromCharCode(...new Uint8Array(buf)))
-        const name = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
-        await bridge.writeBase64(`data/assets/${name}`, base64)
-        return `/data/assets/${encodeURIComponent(name)}`
+        const safeName = file.name.replace(/[^\w.\-一-鿿]/g, '_')
+        const isPost = fileSource.value === 'post' && selectedPostId.value
+        const destDir = isPost ? `data/posts/${selectedPostId.value}` : 'data/assets'
+        const urlBase = isPost ? `/data/posts/${selectedPostId.value}` : '/data/assets'
+        if (isElec) {
+            const buf = await file.arrayBuffer()
+            const base64 = btoa(String.fromCharCode(...new Uint8Array(buf)))
+            await (window as any).chronicleElectron.writeBase64(`${destDir}/${safeName}`, base64)
+        } else {
+            const buf = await file.arrayBuffer()
+            const resp = await fetch('/api/import', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/octet-stream', 'x-filename': encodeURIComponent(safeName), 'x-dest': encodeURIComponent(destDir) },
+                body: new Blob([new Uint8Array(buf)]),
+            })
+            if (!resp.ok) return null
+        }
+        return `${urlBase}/${encodeURIComponent(safeName)}`
     } catch (e) {
         console.error('upload failed', e)
         return null
@@ -561,6 +602,16 @@ onUnmounted(() => {
 
 /* ── Sidebar ───────────────────────────────────────────────────────── */
 
+.sidebar-source-switch {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 4px;
+}
+.sidebar-source-switch :deep(.icon-svg) { width: 14px; height: 14px; }
+.sidebar-post-picker { margin-bottom: 4px; }
+.sidebar-divider { height: 1px; background: var(--border-color); margin: 4px 0 8px; }
+
 .sidebar {
     width: 200px;
     flex-shrink: 0;
@@ -584,6 +635,22 @@ onUnmounted(() => {
 .sidebar :deep(.sidebar-items) {
     font-size: 0.95rem;
     padding: 0.55rem 0.9rem;
+}
+
+.sidebar-source-switch {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+.sidebar-source-switch .sidebar-items {
+    gap: 10px;
+}
+
+.sidebar-source-switch .icon-svg, .sidebar-source-switch :deep(svg){
+    width: 18px;
+    height: 18px;
 }
 
 /* ── Container ─────────────────────────────────────────────────────── */
@@ -639,26 +706,7 @@ onUnmounted(() => {
     height: 14px;
 }
 
-/* Sort label & select */
-:deep(.chronicle-fb-sort label) {
-    font-size: 0.9rem !important;
-}
 
-:deep(.chronicle-fb-sort-select) {
-    font-size: 0.9rem;
-    height: 36px;
-    margin: 0 6px;
-}
-
-/* Sort toggle */
-:deep(.chronicle-fb-sort-toggle) {
-    padding: 0.45rem;
-}
-
-:deep(.chronicle-fb-sort-toggle svg) {
-    width: 22px;
-    height: 22px;
-}
 
 /* Toolbar buttons (refresh, upload) */
 :deep(.chronicle-fb-btn) {
@@ -899,6 +947,7 @@ onUnmounted(() => {
     .sidebar {
         width: 160px;
         margin: 0.4rem 0 0.4rem 0.4rem;
+        padding-top: 48px;
     }
 
     .sidebar :deep(.sidebar-items) {
@@ -909,6 +958,10 @@ onUnmounted(() => {
     .sidebar-header {
         font-size: 10px;
         padding: 8px 10px 6px;
+    }
+    .sidebar-source-switch .icon-svg, .sidebar-source-switch :deep(svg){
+        width: 16px;
+        height: 16px;
     }
 
     .main-content {
@@ -950,8 +1003,13 @@ onUnmounted(() => {
     }
 }
 
-/* ≤ 600px: sidebar gone, select replaces title (row 1), controls wrap to row 2 */
+.toolbar-narrow-controls { display: none; }
+.source-select { min-width: 70px; }
+.narrow-post-picker { min-width: 120px; }
+
+/* ≤ 600px: sidebar gone, narrow controls visible */
 @media (max-width: 600px) {
+    .toolbar-narrow-controls { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
     .file-manager {
         flex-direction: column;
     }
@@ -967,7 +1025,7 @@ onUnmounted(() => {
         appearance: none;
         -webkit-appearance: none;
         height: 44px;
-        padding: 0 1.5rem 0 3rem;
+        padding: 0 1.5rem 0 2rem;
         font-size: 1.3rem;
         font-weight: 600;
         font-variation-settings: 'wght' 600;
@@ -1011,15 +1069,6 @@ onUnmounted(() => {
         height: 20px;
     }
 
-    :deep(.chronicle-fb-sort-select) {
-        height: 44px;
-        font-size: 0.875rem;
-    }
-
-    :deep(.chronicle-fb-sort-toggle) {
-        min-height: 44px;
-        min-width: 44px;
-    }
 
     :deep(.chronicle-fb-view-toggle) {
         height: 34px;

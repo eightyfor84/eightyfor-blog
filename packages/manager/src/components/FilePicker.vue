@@ -31,6 +31,18 @@
             </div>
             <template v-else>
                 <div class="cloud-leftbar sidebar">
+                    <!-- Source switch (only when postSlug provided) -->
+                    <div v-if="showSourceSwitch" class="sidebar-source-switch">
+                        <button type="button" class="sidebar-items"
+                            :class="{ active: currentSource === 'post' }" @click="currentSource = 'post'; loadCloudFiles()">
+                            <span class="icon-svg" v-html="Icons.folder"></span> {{ t('filePicker.attached') || 'Attached' }}
+                        </button>
+                        <button type="button" class="sidebar-items"
+                            :class="{ active: currentSource === 'assets' }" @click="currentSource = 'assets'; loadCloudFiles()">
+                            <span class="icon-svg" v-html="Icons.archive"></span> {{ t('filePicker.assets') || 'Assets' }}
+                        </button>
+                    </div>
+                    <div v-if="showSourceSwitch" class="sidebar-divider"></div>
                     <button v-for="tab in fileTypeTabs" :key="tab.id" type="button" class="sidebar-items"
                         :class="{ active: activeTypeTab === tab.id }" @click="activeTypeTab = tab.id">
                         {{ tab.label }}
@@ -70,14 +82,13 @@
                                 </svg><span class="label">{{ t('filePicker.listView') || 'List' }}</span></button>
                         </div>
                         <div class="right" style="display: flex; align-items: center; gap: 0.5rem;">
-                            <div class="sort-control">
-                                <label style="font-size: 0.85rem;">{{ t('filePicker.sortBy') || '排序依据：' }}</label>
-                                <select v-model="selectedSortBy" class="sort-by-select">
+                            <div class="chronicle-fb-sort-group">
+                                <select v-model="selectedSortBy" class="chronicle-fb-sort-select">
                                     <option value="created">{{ t('filePicker.sortByCreated') || '上传时间' }}</option>
                                     <option value="name">{{ t('filePicker.sortByName') || '文件名' }}</option>
                                     <option value="type">{{ t('filePicker.sortByType') || '文件类型' }}</option>
                                 </select>
-                                <button type="button" class="file-op-btn toggle-asc-desc" :class="sortOrder"
+                                <button type="button" class="chronicle-fb-sort-toggle" :class="sortOrder"
                                     @click="toggleAscDesc"><svg xmlns="http://www.w3.org/2000/svg" width="24"
                                         height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -93,13 +104,7 @@
                                 @click="refreshCloudFiles"><span class="icon-svg" v-html="Icons.refresh"></span></button>
                             <template v-if="allowUpload">
                                 <button type="button" class="file-op-btn icon-label-btn"
-                                    @click="triggerUploadInput"><svg xmlns="http://www.w3.org/2000/svg" width="24"
-                                        height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path>
-                                        <path d="M12 12v9"></path>
-                                        <path d="m16 16-4-4-4 4"></path>
-                                    </svg><span class="label">{{ t('filePicker.upload') || 'Upload…' }}</span></button>
+                                    @click="triggerUploadInput"><span class="icon-svg" v-html="Icons.plus"></span><span class="label">{{ t('filePicker.import') || 'Import' }}</span></button>
                                 <input ref="uploadInput" type="file" style="display:none" @change="onUploadSelect"
                                     :multiple="allowMultiple" />
                             </template>
@@ -203,11 +208,13 @@ import { formatDateTime } from '../utils/dateUtils'
 
 const props = defineProps<{
   selectionMode?: 'single' | 'multiple' | undefined
-  allowMultiple?: boolean  // 兼容旧版
+  allowMultiple?: boolean
   allowUpload?: boolean
   initialFiles?: any[]
   allowLocalPick?: boolean
   restrictedTypes?: string[]
+  source?: 'assets' | 'post'
+  postSlug?: string
 }>()
 
 const emit = defineEmits<{
@@ -227,6 +234,10 @@ const allowUpload = props.allowUpload !== false
 const initialFiles = props.initialFiles || []
 const allowLocalPick = props.allowLocalPick !== false
 const restrictedTypes = Array.isArray(props.restrictedTypes) ? props.restrictedTypes : null
+
+// Source: assets (public) or post directory (private)
+const currentSource = ref<'assets' | 'post'>(props.source || 'assets')
+const showSourceSwitch = computed(() => !!props.postSlug)
 
 const isAuthenticated = ref(false)
 const authChecked = ref(false)
@@ -375,15 +386,19 @@ async function loadCloudFiles() {
     }
 
     try {
-        const names = await readDir('data/assets')
-        cloudFiles.value = names.map((name, idx) => ({
-            key: `/data/assets/${name}`,
+        const isPost = currentSource.value === 'post' && props.postSlug
+        const dir = isPost ? `data/posts/${props.postSlug}` : 'data/assets'
+        const urlBase = isPost ? `/data/posts/${props.postSlug}` : '/data/assets'
+        const names = await readDir(dir)
+        const filtered = isPost ? names.filter(n => n !== 'index.md' && n !== 'index.json') : names
+        cloudFiles.value = filtered.map((name) => ({
+            key: `${urlBase}/${name}`,
             name,
             size: 0,
             type: getFileTypeFromName(name),
             mimeType: null,
-            url: `/data/assets/${encodeURIComponent(name)}`,
-            preview: `/data/assets/${encodeURIComponent(name)}`,
+            url: `${urlBase}/${encodeURIComponent(name)}`,
+            preview: `${urlBase}/${encodeURIComponent(name)}`,
         }))
         refreshVisibleFiles()
     } catch (e) {
@@ -550,13 +565,24 @@ async function onUploadSelect(e: Event) {
 async function uploadFileToServer(file: File) {
     try {
         const isElec = typeof window !== 'undefined' && !!(window as any).chronicleElectron?.isElectron
-        if (!isElec) { console.warn('Upload requires Electron'); return null }
-        const bridge = (window as any).chronicleElectron
-        const buf = await file.arrayBuffer()
-        const base64 = btoa(String.fromCharCode(...new Uint8Array(buf)))
-        const name = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
-        await bridge.writeBase64(`data/assets/${name}`, base64)
-        return `/data/assets/${encodeURIComponent(name)}`
+        const safeName = file.name.replace(/[^\w.\-一-鿿]/g, '_')
+        const isPost = currentSource.value === 'post' && props.postSlug
+        const destDir = isPost ? `data/posts/${props.postSlug}` : 'data/assets'
+        const urlBase = isPost ? `/data/posts/${props.postSlug}` : '/data/assets'
+        if (isElec) {
+            const buf = await file.arrayBuffer()
+            const base64 = btoa(String.fromCharCode(...new Uint8Array(buf)))
+            await (window as any).chronicleElectron.writeBase64(`${destDir}/${safeName}`, base64)
+        } else {
+            const buf = await file.arrayBuffer()
+            const resp = await fetch('/api/import', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/octet-stream', 'x-filename': encodeURIComponent(safeName), 'x-dest': encodeURIComponent(destDir) },
+                body: new Blob([new Uint8Array(buf)]),
+            })
+            if (!resp.ok) return null
+        }
+        return `${urlBase}/${encodeURIComponent(safeName)}`
     } catch (e) {
         console.error('upload failed', e)
         return null
@@ -830,21 +856,53 @@ watch(() => props.selectionMode, () => {
     overflow: hidden;
 }
 
+.sidebar-source-switch {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+.sidebar-source-switch .sidebar-items {
+    gap: 6px;
+}
+
+.sidebar-source-switch .icon-svg, .sidebar-source-switch :deep(svg){
+    width: 16px;
+    height: 16px;
+}
+
+.sidebar-divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 4px 0 8px;
+}
+
 .cloud-leftbar {
     background: transparent;
     border: none;
     box-shadow: none;
     padding: .5rem;
     margin-left: .75rem;
+    font-size: .9rem;
     overflow-y: auto;
     width: min(240px, 20%);
     gap: .5rem;
     flex-shrink: 0;
 }
 
+.cloud-leftbar .sidebar-items {
+    border-radius: 8px;
+}
+
 .view-toggle {
-    height: 32px;
+    height: 26px;
     border-radius: 12px;
+}
+
+.view-toggle .segment-control-item {
+    padding: 0 .8rem;
+    font-size: .85rem;
 }
 
 .view-btn {
@@ -1283,4 +1341,5 @@ watch(() => props.selectionMode, () => {
     justify-content: center;
     background: rgba(0, 0, 0, 0.12);
 }
+
 </style>

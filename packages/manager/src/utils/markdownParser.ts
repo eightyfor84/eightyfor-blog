@@ -9,6 +9,23 @@ import { stripMarkdown, extractExcerpt } from '@chronicle/shared/utils'
 // Inline rendering (file cards, images, katex) still handled by processEmphasis/convertToHtml.
 const blockMd = new MarkdownIt({ html: true, linkify: false, typographer: false, breaks: false });
 
+// Allow custom protocols
+blockMd.validateLink = (url: string) => /^(https?:|file:|mailto:|\/|#|asset:|post:|[a-zA-Z][a-zA-Z0-9+.-]*:)/i.test(String(url));
+const _blockNormalizeLink = blockMd.normalizeLink.bind(blockMd);
+blockMd.normalizeLink = (url: string) => {
+  if (url.startsWith('asset://')) {
+    const resolved = '/data/assets/' + url.slice(8);
+    console.log('[blockMd.normalizeLink] asset:// →', resolved);
+    return resolved;
+  }
+  if (url.startsWith('post://')) {
+    const resolved = '/editor/article?id=' + url.slice(7);
+    console.log('[blockMd.normalizeLink] post:// →', resolved);
+    return resolved;
+  }
+  return _blockNormalizeLink(url);
+};
+
 // ── Math protection (mirrors chronicleMarkdown.ts) ────────
 function mathPh(type: 'I' | 'B', idx: number): string { return `<!--cm ${type}${idx}-->`; }
 
@@ -77,6 +94,12 @@ function sanitizeImageUrl(url: string) {
   const trimmed = String(url || '').trim()
   if (!trimmed) return ''
   if (/^(javascript|vbscript):/i.test(trimmed)) return ''
+  // Resolve custom protocols
+  if (trimmed.startsWith('asset://')) {
+    const resolved = '/data/assets/' + trimmed.slice(8)
+    console.log('[sanitizeImageUrl] asset:// →', resolved)
+    return resolved
+  }
   return trimmed
 }
 
@@ -118,6 +141,7 @@ export interface ContentBlock {
 
 // 处理粗体、斜体、粗斜体，isHeading为true时只处理斜体
 export function processEmphasis(text: string, isHeading = false): string {
+  if (text.includes('asset://')) console.log('[processEmphasis] input contains asset://:', text.slice(0, 200))
   let processed = text
 
   // 0. Placeholder for HTML tags, escaped dollar signs AND escaped brackets
@@ -204,7 +228,19 @@ export function processEmphasis(text: string, isHeading = false): string {
       // Define types
       let type = '', icon = '', targetUrl = cleanUrl, displayType = ''
 
-      if (scheme === 'mailto') {
+      if (scheme === 'asset') {
+	        // asset://file → public shared resource
+	        type = 'File'
+	        displayType = 'Asset'
+	        icon = Icons.file
+	        targetUrl = '/data/assets/' + (payload || cleanUrl.slice(8))
+	      } else if (scheme === 'post') {
+	        // post://slug → cross-post link
+	        type = 'Link'
+	        displayType = 'Post'
+	        icon = Icons.link
+	        targetUrl = '/editor/article?id=' + (payload || cleanUrl.slice(7))
+	      } else if (scheme === 'mailto') {
         type = 'Email';
         // show actual address (payload) as subtitle (remove protocol if present) and use person icon
         displayType = (payload || cleanUrl).replace(/^([a-zA-Z][\w+.-]*:)?\/\/?/, '')

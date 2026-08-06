@@ -322,6 +322,12 @@ function renderBlockHtml(block: ContentBlock): string {
           if (/^https?:\/\//i.test(src)) {
               return match
           }
+          // Resolve custom protocols
+          if (src.startsWith('asset://')) {
+              const resolved = `/data/assets/${src.slice(8)}`
+              console.log('[renderBlockHtml] asset:// →', resolved)
+              return `src="${resolved}"`
+          }
           // If we have a local mapping (from upload), use it
           if (props.assetMap![src]) {
               return `src=\"${props.assetMap![src]}\"`

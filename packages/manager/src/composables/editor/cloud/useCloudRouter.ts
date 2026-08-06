@@ -10,10 +10,7 @@
  */
 
 import type { Ref } from 'vue'
-import {
-  allocateId,
-  validateId,
-} from './useCloudRelay'
+// Aurora: uses dataAccess directly — no cloud imports needed
 
 // ══════════════════════════════════════════════════════
 // Core 回调接口
@@ -59,64 +56,16 @@ function editorPath(base: string, type?: 'article' | 'slides') {
 /**
  * validate-id 结果 → 实际动作。全由服务端返回驱动。
  */
-async function handleValidateResult(params: {
-  candidateId: string
-  vdata: { valid: boolean; reason?: string } | null
-  type: 'article' | 'slides'
-  cp: string
-  editorBasePath: string
-  ctx: CloudRouteContext
-}): Promise<boolean> {
-  const { candidateId, vdata, type, cp, editorBasePath, ctx } = params
-  const { router, showToast, t, actions: { createPost, openPost } } = ctx
-
-  if (!vdata) return false
-
-  if (vdata.reason === 'conflict') {
-    try {
-      const { type: actualType } = await openPost({ source: 'cloud', id: candidateId })
-      router.replace({ path: editorPath(editorBasePath, actualType), query: { id: candidateId } })
-      return true
-    } catch {
-      return false
-    }
-  }
-
-  if (vdata.valid) {
-    await createPost({ source: 'cloud', type, preAllocatedId: candidateId })
-    router.replace({ path: cp, query: { id: `new-${candidateId}` } })
-    return true
-  }
-
-  showToast(t('editor.validateFailed'))
-  router.replace({ path: cp, query: { id: 'new' } })
-  return true
-}
-
 // ══════════════════════════════════════════════════════
 
 export async function resolveEditorRoute(ctx: CloudRouteContext): Promise<boolean> {
   const {
     queryId, editorType, editorBasePath,
-    isCloudAuthenticated, goToLogin,
-    router, fetchWithAuth,
-    skeletonStatus, showToast, t,
-    actions: { createPost, openPost },
+    router, skeletonStatus,
+    actions: { openPost },
   } = ctx
 
   if (!queryId) return false
-
-  const type = editorType.value
-  const cp = editorPath(editorBasePath, type)
-
-  if (queryId === 'new') {
-    const { id } = await createPost({ source: 'cloud', type })
-    if (id) {
-      router.replace({ path: cp, query: { id: `new-${id}` } })
-      return true
-    }
-    return false
-  }
 
   if (queryId === '__about__') {
     await openPost({ source: 'about' })
@@ -124,33 +73,14 @@ export async function resolveEditorRoute(ctx: CloudRouteContext): Promise<boolea
     return true
   }
 
-  if (queryId.startsWith('new-')) {
-    const candidateId = queryId.slice(4)
-    if (!candidateId) {
-      router.replace({ path: cp, query: { id: 'new' } })
-      return true
-    }
-    try {
-      const vdata = await validateId(fetchWithAuth, candidateId)
-      return await handleValidateResult({ candidateId, vdata, type, cp, editorBasePath, ctx })
-    } catch {
-      return false
-    }
-  }
-
+  // Open existing post by UUID — no more id=new routing
   skeletonStatus.value = 'editor.skeletonLoadingPost'
   try {
     const { type: actualType } = await openPost({ source: 'cloud', id: queryId })
     router.replace({ path: editorPath(editorBasePath, actualType), query: { id: queryId } })
     return true
-  } catch (e: any) {
-    if (e?.message === 'POST_NOT_FOUND') {
-      skeletonStatus.value = 'editor.skeletonValidatingId'
-      try {
-        const vdata = await validateId(fetchWithAuth, queryId)
-        return await handleValidateResult({ candidateId: queryId, vdata, type, cp, editorBasePath, ctx })
-      } catch { return false }
-    }
-    throw e
+  } catch {
+    // Post not found — fall back to core (local blank)
+    return false
   }
 }

@@ -25,8 +25,31 @@ const md = new MarkdownIt({
   breaks: false,
 });
 
-// Allow file:/// URLs for Electron local images (default validateLink blocks file:)
-md.validateLink = (url: string) => /^(https?:|file:|mailto:|\/|#|[a-zA-Z][a-zA-Z0-9+.-]*:)/i.test(String(url));
+// Allow file:/// URLs and custom protocols: asset://, post://
+md.validateLink = (url: string) => /^(https?:|file:|mailto:|\/|#|asset:|post:|[a-zA-Z][a-zA-Z0-9+.-]*:)/i.test(String(url));
+
+// Current post context — set by BlogEditor when post changes
+let _postSlug = ''
+export function setPreviewPostSlug(slug: string) { _postSlug = slug }
+
+// Resolve URLs:
+//   asset://file  → /data/assets/file       (public)
+//   post://slug   → /editor/article?id=slug  (cross-post)
+//   file.png      → /data/posts/<slug>/file  (private, relative path)
+const _mdNormalizeLink = md.normalizeLink.bind(md);
+md.normalizeLink = (url: string) => {
+  if (url.startsWith('asset://')) return '/data/assets/' + url.slice(8);
+  if (url.startsWith('post://')) return '/editor/article?id=' + url.slice(7);
+  // Relative path — resolve to post directory, encode non-ASCII filenames
+  if (_postSlug && !url.startsWith('/') && !/^[a-zA-Z][\w+.-]*:/.test(url)) {
+    const base = _postSlug === '__about__' ? '/data/__about__' : `/data/posts/${_postSlug}`;
+    const encoded = url.split('/').map(seg => { try { decodeURI(seg); return seg } catch { return encodeURI(seg) } }).join('/');
+    const resolved = `${base}/${encoded}`;
+    console.log('[markdownPreview] relative →', resolved);
+    return resolved;
+  }
+  return _mdNormalizeLink(url);
+};
 
 md.use(markdownItFootnote);
 

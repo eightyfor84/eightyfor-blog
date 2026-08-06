@@ -47,6 +47,7 @@ export interface FileMenuOptions {
   postDate: Ref<string>
   postUpdated: Ref<string>
   postTags: Ref<string[]>
+  postSlug: Ref<string>
   postFont: Ref<string>
   postAuthor: Ref<string>
   postAIGenerated: Ref<boolean>
@@ -76,7 +77,7 @@ export function useFileMenu(options: FileMenuOptions) {
     refreshCloudAuthState, goToLogin, isDirty, t, fetchWithAuth,
     router, route,
     postId, postTitle, isDefaultTitle, postStatus, postDate, postUpdated,
-    postTags, postFont, postAuthor, postAIGenerated,
+    postTags, postSlug, postFont, postAuthor, postAIGenerated,
     localValue, savedContent, savedFm, buildSavedFm,
     currentFileHandle, currentFilePath,
     createPost, openPost, resetEditor,
@@ -220,7 +221,7 @@ export function useFileMenu(options: FileMenuOptions) {
     postStatus.value = 'local'
     postDate.value = ''; postUpdated.value = ''
     postTags.value = []; postFont.value = 'sans'
-    postAuthor.value = ''; postAIGenerated.value = false
+    postAuthor.value = ''; postAIGenerated.value = false; postSlug.value = ''
     localValue.value = ''; savedContent.value = ''
     savedFm.value = buildSavedFm()
   }
@@ -281,10 +282,11 @@ export function useFileMenu(options: FileMenuOptions) {
   // 新建
   // ══════════════════════════════════════════════════════
 
-  /** 新建文档——导航到 ?id=new，由 initLoad 统一处理（Aurora: 无 cloud/local 区分） */
+  /** 新建文档——走 createPost，与地址栏导航同一套逻辑 */
   async function createNew(type: 'article' | 'slides') {
-    const doNew = () => {
-      router.push({ path: ep(type as 'article' | 'slides'), query: { id: 'new' } })
+    const doNew = async () => {
+      await createPost({ source: 'local', type })
+      router.replace(ep(type))
       activeModal.value = 'none'
     }
     if (isDirty.value) handleUnsavedCheck(doNew)

@@ -33,8 +33,36 @@ const md = new MarkdownIt({
   breaks: false,
 });
 
-// Allow file:/// URLs for Electron local images (default validateLink blocks file:)
-md.validateLink = (url: string) => /^(https?:|file:|mailto:|\/|#|[a-zA-Z][a-zA-Z0-9+.-]*:)/i.test(String(url));
+// Allow file:/// URLs and custom protocols: asset://, post://
+md.validateLink = (url: string) => /^(https?:|file:|mailto:|\/|#|asset:|post:|[a-zA-Z][a-zA-Z0-9+.-]*:)/i.test(String(url));
+
+// ── Custom protocol resolution ─────────────────────────
+// Hook into normalizeLink — EVERY link/image URL passes through here.
+//   asset://<file>  → /assets/<file>           public shared asset
+//   post://<slug>   → /post/<slug>             cross-post link
+//   <file>          → /post/<id>/<file>        private post asset (relative path)
+// Non-ASCII filenames are encoded via encodeURI.
+let _currentPostId = ''
+export function setRenderPostId(id: string) { _currentPostId = id }
+
+function encodeFilename(url: string): string {
+  // Split path into segments, encode each segment individually
+  return url.split('/').map(seg => {
+    try { decodeURI(seg); return seg } catch { return encodeURI(seg) }
+  }).join('/')
+}
+
+const _normalizeLink = md.normalizeLink.bind(md);
+md.normalizeLink = (url: string) => {
+  if (url.startsWith('asset://')) return '/assets/' + encodeURI(url.slice(8));
+  if (url.startsWith('post://')) return '/post/' + url.slice(7);
+  // Relative path → resolve to post directory
+  if (_currentPostId && !url.startsWith('/') && !/^[a-zA-Z][\w+.-]*:/.test(url)) {
+    const base = _currentPostId === '__about__' ? '/about' : `/post/${_currentPostId}`;
+    return `${base}/${encodeFilename(url)}`;
+  }
+  return _normalizeLink(url);
+};
 
 md.use(markdownItFootnote);
 

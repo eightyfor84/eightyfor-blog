@@ -18,13 +18,6 @@
                         <span class="icon-svg more-icon" v-html="Icons.edit"></span> {{ t('editor.meta') || 'Properties'
                         }}
                     </button>
-                    <button v-if="postStatus === 'modifying'" @click="restorePost(); showMoreMenu = false">
-                        <span class="icon-svg more-icon" v-html="Icons.undo"></span> {{ t('editor.restore') }}
-                    </button>
-                    <hr>
-                    <button @click="saveAs(); showMoreMenu = false">
-                        <span class="icon-svg more-icon" v-html="Icons.save"></span> {{ t('editor.saveAs') }}
-                    </button>
                     <hr>
                     <button :class="{ active: editorTheme === 'dark' }"
                         @click="editorTheme = 'dark'; showMoreMenu = false">
@@ -56,10 +49,6 @@
                     <span class="icon-svg" v-html="Icons.redo"></span>
                 </button>
                 <span class="ribbon-sep"></span>
-                <button v-if="!isAbout" class="ribbon-btn qat-btn qat-save" @click="() => handleTopRightSave('draft')"
-                    :disabled="isSaving" title="Save (Ctrl+S)">
-                    <span class="icon-svg" v-html="Icons.save"></span>
-                </button>
             </div>
 
             <!-- Tab bar (responsive, config-driven) -->
@@ -95,9 +84,9 @@
                 <div class="ribbon-title-area">
                     <input v-model="postTitle" class="ribbon-title-input" :placeholder="t('editor.untitled')"
                         spellcheck="false" :readonly="profile.titleReadonly" />
-                    <span v-if="profile.showStatus" :class="['ribbon-status', postStatus]">{{ $t('status.' + (postStatus ||
-                        'published'))
-                    }}</span>
+                    <span v-if="profile.showStatus" :class="['ribbon-status', postStatus, { clickable: isCloudEditing }]"
+                        @click="toggleStatus" :title="isCloudEditing ? $t('editor.toggleStatus') : ''"
+                    >{{ $t('status.' + (postStatus || 'published')) }}</span>
                     <span class="ribbon-save-status" :class="{ building: isBuilding, saving: isSaving, dirty: isDirty, new: isNewAndClean && !isDirty }"
                         @click="showStatusPopover = !showStatusPopover" @blur="showStatusPopover = false" tabindex="0">
                         <span class="icon-svg"
@@ -132,23 +121,33 @@
                 <button class="ribbon-btn" @click="openPrintPreview()" title="Print (Ctrl+P)">
                     <span class="icon-svg" v-html="Icons.print"></span>
                 </button>
-                <button v-if="postStatus === 'modifying'" class="ribbon-btn ribbon-btn-danger icon-label-btn"
-                    @click="restorePost()" title="Restore">
-                    <span class="icon-svg" v-html="Icons.undo"></span>
-                    <span class="btn-label label">{{ t('editor.restore') }}</span>
-                </button>
-                <!-- About page: save button → confirmation dialog -->
-                <button v-if="profile.primaryAction === 'save'" class="ribbon-btn ribbon-btn-primary icon-label-btn"
-                    @click="openSaveModal('draft')" :disabled="isSaving" title="Save">
-                    <span class="icon-svg" v-html="Icons.save"></span>
-                    <span class="btn-label label">{{ t('editor.save') }}</span>
-                </button>
-                <!-- Regular post: publish/upload button -->
-                <button v-if="profile.showPublish" class="ribbon-btn ribbon-btn-primary icon-label-btn"
-                    @click="openSaveModal('publish')" :disabled="isSaving" title="Publish">
-                    <span class="icon-svg" v-html="Icons.publish"></span>
-                    <span class="btn-label label">{{ isCloudEditing ? t('editor.publish') : t('editor.upload') }}</span>
-                </button>
+
+                <!-- Split save button: left=Save, right=dropdown -->
+                <div class="ribbon-split-btn">
+                    <button class="ribbon-btn ribbon-btn-primary icon-label-btn"
+                        @click="handleSplitSave" :disabled="isSaving" :title="isCloudEditing ? t('editor.save') : t('editor.file.savedToFile')">
+                        <span class="icon-svg" v-html="Icons.save"></span>
+                        <span class="btn-label label">{{ isSaving ? t('editor.saving') : t('editor.save') }}</span>
+                    </button>
+                    <button class="ribbon-btn ribbon-btn-primary split-chevron"
+                        @click="showSaveMenu = !showSaveMenu" :disabled="isSaving" title="More options">
+                        <span class="icon-svg" v-html="Icons.chevron"></span>
+                    </button>
+                    <div v-if="showSaveMenu" class="dropdown-backdrop" @click="showSaveMenu = false"></div>
+                    <Transition name="dropdown">
+                    <div v-if="showSaveMenu" class="more-dropdown save-dropdown">
+                        <button @click="saveAs(); showSaveMenu = false">
+                            <span class="icon-svg more-icon" v-html="Icons.save"></span> {{ t('editor.saveAs') }}
+                        </button>
+                        <button v-if="!isCloudEditing" @click="openImportModal(); showSaveMenu = false">
+                            <span class="icon-svg more-icon" v-html="Icons.publish"></span> {{ t('editor.addToWorkspace') || 'Add to Workspace' }}
+                        </button>
+                        <button @click="openFileMenu(); fileTab = 'export'; showSaveMenu = false">
+                            <span class="icon-svg more-icon" v-html="Icons.export"></span> {{ t('editor.file.export') }}
+                        </button>
+                    </div>
+                    </Transition>
+                </div>
             </div>
         </div>
 
@@ -315,6 +314,8 @@
                 <div v-if="activeModal === 'media'" class="modal-body media-manager-layout">
                     <FilePicker selectionMode="multiple" :allowLocalPick="!isCloudEditing"
                         :allowUpload="isCloudAuthenticated()"
+                        :source="isCloudEditing ? 'post' : 'assets'"
+                        :postSlug="postSlug || postId || undefined"
                         :initialFiles="displayedFiles.map(f => ({ name: f.name, uploadedUrl: f.url, preview: f.thumb || f.url }))"
                         @select="handleMediaPicked" @cancel="activeModal = 'none'" />
                 </div>
@@ -382,17 +383,12 @@
                     <input v-model="postTitle" class="modal-input" :placeholder="t('editor.titlePlaceholder')" />
                 </div>
                 <div class="form-group">
+                    <label>Slug</label>
+                    <input v-model="postSlug" class="modal-input" :class="{ 'input-error': slugError }" @focus="slugError = false" :placeholder="!postId ? (postTitle || tempTitle || 'untitled').toLowerCase().replace(/[^\w\s-]/g,'').replace(/[\s_]+/g,'-').replace(/-+/g,'-').replace(/^-+|-+$/g,'').slice(0,80) : ''" :disabled="!!postId" />
+                </div>
+                <div class="form-group">
                     <label>{{ t('editor.tagsLabel') }}</label>
                     <div class="tags-input-container">
-                        <div class="tags-list">
-                            <span class="tag-badge" v-for="tag in sortTags(postTags)" :key="tag"
-                                :class="{ featured: tag === 'featured' }">
-                                {{ tag === 'featured' ? $t('tag.featured') : tag }}
-                                <button class="tag-remove" @click="removeTag(tag)">
-                                    <span class="icon-svg" v-html="Icons.close"></span>
-                                </button>
-                            </span>
-                        </div>
                         <div class="tag-controls">
                             <input v-model="tagInput" class="modal-input small-input"
                                 :placeholder="t('editor.addTagPlaceholder')" @keyup.enter="addTag" />
@@ -401,6 +397,15 @@
                                 @click="toggleFeatured" :title="$t('tag.featured')">
                                 {{ $t('tag.featured') }}
                             </button>
+                        </div>
+                        <div class="tags-list">
+                            <span class="tag-badge" v-for="tag in sortTags(postTags)" :key="tag"
+                                :class="{ featured: tag === 'featured' }">
+                                {{ tag === 'featured' ? $t('tag.featured') : tag }}
+                                <button class="tag-remove" @click="removeTag(tag)">
+                                    <span class="icon-svg" v-html="Icons.close"></span>
+                                </button>
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -416,86 +421,85 @@
         </div>
     </div>
 
-    <!-- Group 3: Save/Publish Modals -->
-    <div v-if="['draft', 'publish'].includes(activeModal)" class="modal-overlay">
+    <!-- About page: simple save confirmation -->
+    <div v-if="activeModal === 'aboutSave'" class="modal-overlay">
         <div class="modal-content small-modal">
             <div class="modal-header">
-                <h3 v-if="isAboutMode">{{ t('editor.save') }}</h3>
-                <h3 v-else>{{ activeModal === 'draft' ? (isCloudEditing ? t('editor.saveDraft') : t('editor.save')) :
-                    (isCloudEditing ? t('editor.publishNow') : t('editor.upload')) }}</h3>
+                <h3>{{ t('editor.save') }}</h3>
                 <button class="close-btn" @click="activeModal = 'none'">
                     <span class="icon-svg" v-html="Icons.close"></span>
                 </button>
             </div>
             <div class="modal-body">
-                <!-- About mode: simple confirmation -->
-                <template v-if="isAboutMode">
-                    <p class="about-save-confirm">{{ t('editor.confirmAboutSave') || 'Save about page content?' }}</p>
-                </template>
-                <!-- Normal mode: full form -->
-                <template v-else>
-                    <div class="form-group">
-                        <label>{{ t('editor.postTitle') }}</label>
-                        <input v-model="tempTitle" class="modal-input" :placeholder="t('editor.titlePlaceholder')"
-                            @keyup.enter="doSave()" autofocus />
-                    </div>
-
-                    <div v-if="activeModal === 'publish' && !isCloudAuthenticated()"
-                        class="login-placeholder upload-login-placeholder">
-                        <p>{{ t('editor.file.loginRequired') }}</p>
-                        <button class="primary-btn" @click="goToLogin('publish-post')">{{ t('editor.file.login')
-                        }}</button>
-                    </div>
-
-                    <div v-if="activeModal === 'publish' && isCloudAuthenticated()" class="form-group">
-                        <label>{{ t('editor.tagsLabel') }}</label>
-                        <div class="tags-input-container">
-                            <div class="tags-list">
-                                <span class="tag-badge" v-for="tag in sortTags(postTags)" :key="tag"
-                                    :class="{ featured: tag === 'featured' }">
-                                    {{ tag === 'featured' ? $t('tag.featured') : tag }}
-                                    <button class="tag-remove" @click="removeTag(tag)">
-                                        <span class="icon-svg" v-html="Icons.close"></span>
-                                    </button>
-                                </span>
-                            </div>
-                            <div class="tag-controls">
-                                <input v-model="tagInput" class="modal-input small-input"
-                                    :placeholder="t('editor.addTagPlaceholder')" @keyup.enter="addTag" />
-                                <button class="secondary-btn small-btn" @click="addTag">{{ t('editor.addTag')
-                                }}</button>
-                                <button class="secondary-btn small-btn"
-                                    :class="{ active: postTags.includes('featured') }" @click="toggleFeatured"
-                                    :title="$t('tag.featured')">
-                                    {{ $t('tag.featured') }}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div v-if="activeModal === 'publish' && isCloudAuthenticated()" class="form-group">
-                        <label>{{ t('editor.authorLabel') }}</label>
-                        <input v-model="postAuthor" class="modal-input" :placeholder="t('editor.authorPlaceholder')" />
-                    </div>
-
-                    <div v-if="activeModal === 'publish' && isCloudAuthenticated()" class="form-group">
-                        <CheckRow v-model="postAIGenerated" :title="$t('editor.aiGeneratedLabel')" />
-                    </div>
-                </template>
-
+                <p class="about-save-confirm">{{ t('editor.confirmAboutSave') || 'Save about page content?' }}</p>
                 <div class="modal-actions">
                     <button class="secondary-btn" @click="activeModal = 'none'">{{ t('editor.cancel') }}</button>
-                    <button v-if="activeModal === 'draft'" class="primary-btn" @click="doSave('draft')"
-                        :disabled="isSaving || isBuilding || !tempTitle.trim()">
-                        {{ isSaving ? t('editor.saving') : isBuilding ? t('editor.building') : t('editor.saveDraft') }}
+                    <button class="primary-btn" @click="doSave(); activeModal = 'none'"
+                        :disabled="isSaving">
+                        {{ isSaving ? t('editor.saving') : t('editor.save') }}
                     </button>
-                    <button v-else-if="activeModal === 'publish' && isCloudEditing" class="primary-btn"
-                        @click="doSave('publish')" :disabled="isSaving || isBuilding || !tempTitle.trim()">
-                        {{ isSaving ? t('editor.saving') : isBuilding ? t('editor.building') : t('editor.publishNow') }}
-                    </button>
-                    <button v-else class="primary-btn" @click="doSave('upload')"
-                        :disabled="!isCloudAuthenticated() || isSaving || isBuilding || !tempTitle.trim()">
-                        {{ isSaving ? t('editor.saving') : isBuilding ? t('editor.building') : t('editor.upload') }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import to workspace modal (local → repo) -->
+    <div v-if="activeModal === 'import'" class="modal-overlay">
+        <div class="modal-content small-modal">
+            <div class="modal-header">
+                <h3>{{ t('editor.addToWorkspace') || 'Add to Workspace' }}</h3>
+                <button class="close-btn" @click="activeModal = 'none'">
+                    <span class="icon-svg" v-html="Icons.close"></span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>{{ t('editor.postTitle') }}</label>
+                    <input v-model="tempTitle" class="modal-input" :placeholder="t('editor.titlePlaceholder')"
+                        @keyup.enter="doImport()" autofocus />
+                </div>
+                <div class="form-group">
+                    <label>Slug</label>
+                    <input v-model="postSlug" class="modal-input" :class="{ 'input-error': slugError }"
+                        @focus="slugError = false"
+                        :placeholder="(tempTitle || postTitle || 'untitled').toLowerCase().replace(/[^\w\s-]/g,'').replace(/[\s_]+/g,'-').replace(/-+/g,'-').replace(/^-+|-+$/g,'').slice(0,80)" />
+                </div>
+                <div class="form-group">
+                    <label>{{ t('editor.tagsLabel') }}</label>
+                    <div class="tags-input-container">
+                        <div class="tag-controls">
+                            <input v-model="tagInput" class="modal-input small-input"
+                                :placeholder="t('editor.addTagPlaceholder')" @keyup.enter="addTag" />
+                            <button class="secondary-btn small-btn" @click="addTag">{{ t('editor.addTag') }}</button>
+                            <button class="secondary-btn small-btn"
+                                :class="{ active: postTags.includes('featured') }" @click="toggleFeatured"
+                                :title="$t('tag.featured')">
+                                {{ $t('tag.featured') }}
+                            </button>
+                        </div>
+                        <div class="tags-list">
+                            <span class="tag-badge" v-for="tag in sortTags(postTags)" :key="tag"
+                                :class="{ featured: tag === 'featured' }">
+                                {{ tag === 'featured' ? $t('tag.featured') : tag }}
+                                <button class="tag-remove" @click="removeTag(tag)">
+                                    <span class="icon-svg" v-html="Icons.close"></span>
+                                </button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>{{ t('editor.authorLabel') }}</label>
+                    <input v-model="postAuthor" class="modal-input" :placeholder="t('editor.authorPlaceholder')" />
+                </div>
+                <div class="form-group">
+                    <CheckRow v-model="postAIGenerated" :title="$t('editor.aiGeneratedLabel')" />
+                </div>
+                <div class="modal-actions">
+                    <button class="secondary-btn" @click="activeModal = 'none'">{{ t('editor.cancel') }}</button>
+                    <button class="primary-btn" @click="doImport()"
+                        :disabled="isSaving || !tempTitle.trim()">
+                        {{ isSaving ? t('editor.saving') : (t('editor.add') || 'Add') }}
                     </button>
                 </div>
             </div>
@@ -651,13 +655,25 @@ import { useI18n } from 'vue-i18n'
 // Aurora: cloud relay uses dataAccess directly — no fetchWithAuth needed.
 // Retained as null to satisfy composable parameter contracts.
 const fetchWithAuth: any = null
+
+// Slug validation — format + min length. Conflicts get -2/-3 suffix server-side.
+const slugError = ref(false)
+const slugRe = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+function validateSlug(): boolean {
+  if (!!postId.value) return true
+  const val = postSlug.value.trim()
+  if (!val) return true
+  const chars = val.replace(/-/g, '')
+  if (!slugRe.test(val) || chars.length < 3) { slugError.value = true; return false }
+  slugError.value = false; return true
+}
 import { settingsStore } from '../composables/settingsApi.ts'
 import { Icons } from '../utils/icons.ts'
 
 /** Hollow ring icon for new/unsaved state — 2.5px stroke, 12px outer diameter */
 
 import { convertToHtml } from '../utils/markdownParser.ts'
-import { renderPreview } from '../utils/markdownPreview.ts'
+import { renderPreview, setPreviewPostSlug } from '../utils/markdownPreview.ts'
 import { sortTags } from '../utils/tagUtils.ts'
 import { formatDate as formatDateUtil, formatDateTime } from '../utils/dateUtils.ts'
 import { debounce } from '../utils/debounce.ts'
@@ -725,6 +741,7 @@ const isAboutMode = computed(() => editorQueryId.value === '__about__')
 // ── Editor profile — 按页面类型封装 UI 差异 ──
 const { profile, isAbout } = useEditorProfile({ editorQueryId, isCloudEditing })
 const activeModal = ref('none')
+const showSaveMenu = ref(false)
 
 // ── 单例 ToolDropdown ──
 const ddRef = ref<InstanceType<typeof ToolDropdown> | null>(null)
@@ -787,7 +804,7 @@ function goToLogin(nextUrl: string) {
 // ══════════════════════════════════════════════════════
 const {
   postTitle, isDefaultTitle, postDate, postUpdated,
-  postTags, postFont, postAuthor, postAIGenerated, slideshowConfig,
+  postTags, postSlug, postFont, postAuthor, postAIGenerated, slideshowConfig,
   tagInput, postId, postStatus,
   savedContent, savedFm, fmChanged,
   buildSavedFm, addTag, removeTag, toggleFeatured,
@@ -840,12 +857,14 @@ const {
   handleLocalFiles, onEditorPaste, onEditorDrop, onEditorDropCapture,
   doInsertTextFile, doInsertCodeBlock, doInsertFileCard, flushPendingFiles,
   resolveLocalFileUrls, applyUrlMappings,
+  extractLocalUrls, getFileFromUrl,
 } = useEditorMedia({
   editorBodyRef: editorBodyRef as Ref<any>,
   activeModal, isCloudEditing,
   isCloudAuthenticated, refreshCloudAuthState,
   showToast, t, fetchWithAuth,
   CDN_BASE_URL, API_BASE_URL, isElectron,
+  postSlug, postId,
 })
 
 // ═══ Mermaid helpers ═══
@@ -931,12 +950,12 @@ const {
   buildFileContent, exportAsHTML, exportAsPPTX,
   triggerAstroBuild,
   buildPrintSnapshot, buildStandalonePrintHtml, openPrintPreview,
-  handleTopRightSave, openSaveModal, closeModals,
+  handleTopRightSave, closeModals,
   tempTitle,
 } = useEditorFile({
   editorType, editorBasePath, localValue,
   postTitle, isDefaultTitle, postId, postStatus: postStatus as any,
-  postDate, postUpdated, postTags, postFont, postAuthor, postAIGenerated,
+  postDate, postUpdated, postTags, postSlug, postFont, postAuthor, postAIGenerated,
   slideshowConfig,
   isCloudEditing, isAboutMode,
   isCloudAuthenticated, refreshCloudAuthState, goToLogin,
@@ -974,7 +993,7 @@ const {
   isCloudAuthenticated, refreshCloudAuthState, goToLogin, fetchWithAuth,
   postId, postTitle, isDefaultTitle,
   postStatus: postStatus as any, postDate, postUpdated,
-  postTags, postFont, postAuthor, postAIGenerated, slideshowConfig,
+  postTags, postSlug, postFont, postAuthor, postAIGenerated, slideshowConfig,
   localValue, savedContent, savedFm,
   buildSavedFm, readAuthorFromDetail, readAiGeneratedFromDetail,
   currentFileHandle, currentFilePath,
@@ -1026,7 +1045,7 @@ const {
   router, route,
   postId, postTitle, isDefaultTitle,
   postStatus, postDate, postUpdated,
-  postTags, postFont, postAuthor, postAIGenerated,
+  postTags, postSlug, postFont, postAuthor, postAIGenerated,
   localValue, savedContent, savedFm, buildSavedFm,
   currentFileHandle, currentFilePath,
   createPost, openPost, resetEditor,
@@ -1053,11 +1072,84 @@ async function doRestore() {
 
 function openMetaModal() { activeModal.value = 'meta' }
 
+// ═══ Status toggle ──────────────────────────────────
+function toggleStatus() {
+  if (!isCloudEditing.value) return
+  postStatus.value = postStatus.value === 'published' ? 'draft' : 'published'
+}
+
+// ═══ Split save button ═══
+function handleSplitSave() {
+  console.log('[handleSplitSave] isCloudEditing:', isCloudEditing.value, 'postStatus:', postStatus.value, 'postId:', postId.value)
+  if (isCloudEditing.value) {
+    // Repo: save preserving current status
+    const action = postStatus.value === 'published' ? 'publish' : 'draft'
+    console.log('[handleSplitSave] → cloud save, action:', action)
+    void doSave(action)
+  } else {
+    // Local: save to file
+    console.log('[handleSplitSave] → local save')
+    void saveLocalDirect()
+  }
+}
+
+function openImportModal() {
+  tempTitle.value = postTitle.value
+  activeModal.value = 'import'
+}
+
+async function doImport() {
+  // Apply modal fields
+  if (tempTitle.value?.trim()) postTitle.value = tempTitle.value.trim()
+  if (!postDate.value) postDate.value = new Date().toISOString()
+  postStatus.value = 'published'
+
+  // Derive slug + ensure uniqueness so file copy target matches savePost
+  let slug = (postTitle.value || 'untitled').toLowerCase().replace(/[^\w\s-]/g, '').replace(/[\s_]+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80)
+  const { readJson } = await import('../data/dataAccess')
+  const idx: Record<string, any> = (await readJson('data/posts/index.json')) ?? {}
+  if (idx[slug]) {
+    let n = 2
+    while (idx[`${slug}-${n}`]) n++
+    slug = `${slug}-${n}`
+  }
+  postSlug.value = slug
+  postId.value = slug // Important: set postId so savePost uses this slug
+
+  // Copy local file references to post directory, preserving original filenames
+  const imgRefs = [...localValue.value.matchAll(/!\[([^\]]*)\]\(([^)\s]+)/g)]
+  console.log('[doImport] imgRefs:', imgRefs.map(m => ({ alt: m[1], url: m[2] })))
+  if (imgRefs.length > 0) {
+    const { copyToPost } = await import('../composables/editor/cloud/useCloudRelay')
+    for (const m of imgRefs) {
+      const altText = m[1]
+      const url = m[2]
+      const file = await getFileFromUrl(url, altText)
+      if (file && (file as any).name) {
+        const newName = await copyToPost(slug, file)
+        if (newName) {
+          localValue.value = localValue.value.split(url).join(newName)
+        }
+      }
+    }
+  }
+
+  // doSave handles preSave → buildFileContent → savePost
+  await doSave('publish')
+  activeModal.value = 'none'
+  // Switch to repo mode — navigate to the new post
+  if (postId.value) {
+    router.push({ path: editorBasePath + '/article', query: { id: postId.value } })
+  }
+}
+
 // ═══ Handle unsaved option ═══
 async function handleUnsavedOption(action: 'save' | 'discard') {
   if (action === 'save') {
-    if (isCloudEditing.value) { await doSave('draft') }
-    else { await saveLocalDirect() }
+    if (isCloudEditing.value) {
+      const act = postStatus.value === 'published' ? 'publish' : 'draft'
+      await doSave(act)
+    } else { await saveLocalDirect() }
   }
   savedContent.value = localValue.value
   savedFm.value = buildSavedFm()
@@ -1090,6 +1182,11 @@ watch(localValue, (val) => {
 })
 watch(fmChanged, () => {}, { flush: 'sync' })
 
+// Sync post slug to preview renderer for private asset resolution
+watch([postSlug, postId], () => {
+  setPreviewPostSlug(postSlug.value || postId.value || '')
+}, { immediate: true })
+
 // Popstate handler — 浏览器前进后退时触发 initLoad。
 function onPopstate() {
   if (route.path.startsWith(editorBasePath) && route.path !== editorBasePath + '/print') {
@@ -1097,6 +1194,11 @@ function onPopstate() {
   }
 }
 window.addEventListener('popstate', onPopstate)
+
+// Load slug when opening an existing post (id IS the slug)
+watch(() => postId.value, (id) => {
+  if (id) postSlug.value = id
+})
 
 // Route query watch — initLoad 内部 router.replace 不触发 popstate，需手动监听。
 // 仅监听 query.id 变化，忽略同值替换（Vue Router 同值不触发）。
@@ -1150,7 +1252,11 @@ function onKeydown(e: KeyboardEvent) {
   if (key === 's') {
     e.preventDefault(); e.stopPropagation()
     if (e.shiftKey) { saveAs(); return }
-    if (!isCloudEditing.value) { void saveLocalDirect() } else { openSaveModal('publish') }
+    if (!isCloudEditing.value) { void saveLocalDirect() }
+    else {
+      const act = postStatus.value === 'published' ? 'publish' : 'draft'
+      void doSave(act)
+    }
     return
   }
   if (key === 'p') { e.preventDefault(); e.stopPropagation(); openPrintPreview(); return }
@@ -1356,6 +1462,14 @@ onUnmounted(() => {
     line-height: 1;
 }
 
+.ribbon-status.clickable {
+    cursor: pointer;
+    user-select: none;
+}
+.ribbon-status.clickable:hover {
+    filter: brightness(0.9);
+}
+
 .ribbon-status.local {
     color: var(--text-primary);
     background: transparent;
@@ -1374,12 +1488,6 @@ onUnmounted(() => {
     border: 1px solid var(--status-success);
 }
 
-.ribbon-status.modifying {
-    color: var(--status-warning);
-    background: var(--status-warning-bg);
-    border: 1px solid var(--status-warning);
-}
-
 .ribbon-save-status {
     width: 18px;
     height: 18px;
@@ -1389,6 +1497,7 @@ onUnmounted(() => {
     justify-content: center;
     flex-shrink: 0;
     color: var(--status-success);
+    transition: color 0.15s, opacity 0.15s;
 }
 
 .ribbon-save-status .icon-svg {
@@ -1565,6 +1674,36 @@ onUnmounted(() => {
 
 .ribbon-btn.ribbon-btn-primary:hover:not(:disabled) {
     background: color-mix(in srgb, var(--accent-color) 80%, var(--component-text-primary));
+}
+
+/* ── Split save button ── */
+.ribbon-split-btn {
+    display: inline-flex;
+    align-items: center;
+    position: relative;
+}
+.ribbon-split-btn > .ribbon-btn-primary:first-child {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-right: 1px solid rgba(255,255,255,0.25);
+}
+.ribbon-split-btn .split-chevron {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    padding: 0;
+    min-width: 24px;
+}
+.ribbon-split-btn .split-chevron .icon-svg {
+    width: 14px;
+    height: 14px;
+}
+.ribbon-split-btn .save-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 4px;
+    min-width: 180px;
+    z-index: 1001;
 }
 
 .ribbon-btn-danger {
@@ -2096,12 +2235,6 @@ onUnmounted(() => {
     border: 1px solid var(--status-success);
 }
 
-.status-chip.modifying {
-    color: var(--status-warning);
-    background: var(--status-warning-bg);
-    border: 1px solid var(--status-warning);
-}
-
 .toolbar-btn.danger-btn {
     color: var(--status-error);
 }
@@ -2132,7 +2265,7 @@ onUnmounted(() => {
     margin-bottom: 12px;
 }
 
-.form-group label {
+.form-group label:not(.check-row) {
     display: block;
     margin-bottom: 8px;
     font-size: 14px;
@@ -2143,8 +2276,8 @@ onUnmounted(() => {
     width: 100%;
     /* Ensure no overflow */
     box-sizing: border-box;
-    padding: 10px;
-    font-size: 16px;
+    padding: 8px 12px;
+    font-size: .95rem;
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
     color: var(--text-primary);
@@ -2154,6 +2287,18 @@ onUnmounted(() => {
 
 .modal-input:focus {
     border-color: var(--accent-color);
+}
+
+.modal-input:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+    background: var(--component-bg-hover);
+}
+
+.modal-input.input-error {
+    border-color: #e15759;
+    box-shadow: 0 0 0 1px #e15759;
+    transition: border-color .15s, box-shadow .15s;
 }
 
 .modal-actions {
@@ -2253,20 +2398,21 @@ onUnmounted(() => {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    min-height: 28px;
+    min-height: 0px;
 }
 
 .tag-badge {
     background: var(--accent-color-bg);
     color: var(--component-text-primary);
     font-size: 12px;
-    padding: 2px 8px;
+    padding: 2px 8px 2px 10px;
     border-radius: 4px;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
     border: none;
     user-select: none;
+    min-height: 0;
 }
 
 .tag-badge.featured {
@@ -2287,13 +2433,17 @@ onUnmounted(() => {
     height: 14px;
 }
 
+.tag-badge.featured .tag-remove {
+    color: var(--featured);
+}
+
 .tag-remove:hover {
     color: var(--text-primary);
 }
 
-.tag-remove .icon-svg {
-    width: 12px;
-    height: 12px;
+.tag-remove .icon-svg, .tag-remove :deep(svg){
+    width: 14px;
+    height: 14px;
 }
 
 .tag-controls {

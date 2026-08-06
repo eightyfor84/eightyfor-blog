@@ -90,61 +90,73 @@
 
 /* ── Toolbar: Sort controls ────────────────────────────────────────── */
 
-.chronicle-fb-sort {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.3rem;
-    flex-direction: row;
+.chronicle-fb-sort-group {
+    display: inline-flex;
+    align-items: stretch;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    height: 32px;
 }
 
 .chronicle-fb-sort-select {
     appearance: none;
     -webkit-appearance: none;
-    -moz-appearance: none;
-    padding: 0.3rem 0.5rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    text-align: right;
-    border: none;
-    border-radius: 8px;
-    height: 32px;
+    border: none !important;
+    border-right: 1px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    padding: 0 0.6rem;
+    height: 100%;
     background: transparent;
-    font-size: 0.9rem;
-    color: var(--component-text-primary);
     transition: background 0.2s ease, color 0.2s ease;
+    font-size: 0.85rem;
+    color: var(--component-text-primary);
     cursor: pointer;
+    outline: none;
+    box-shadow: none;
+    margin: 0;
+    min-width: 0;
+    width: auto;
 }
 
 .chronicle-fb-sort-select option {
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    border: 2px solid var(--select-option-border-color);
-    border-radius: 8px;
-    padding: 8px 12px;
     background: var(--component-bg);
     color: var(--text-primary);
 }
 
+.chronicle-fb-sort-select:hover,
 .chronicle-fb-sort-select:focus {
-    outline: none;
-    box-shadow: none;
-    background: color-mix(in srgb, var(--component-text-primary-hover) 20%, transparent);
-}
-
-.chronicle-fb-sort-select:hover {
     background: color-mix(in srgb, var(--component-text-primary-hover) 20%, transparent);
 }
 
 .chronicle-fb-sort-toggle {
-    padding: 0.4rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0 0.5rem !important;
+    height: 100%;
+    min-width: 28px;
+    background: transparent;
+    transition: background 0.2s ease, color 0.2s ease;
+    color: var(--component-text-secondary);
+    cursor: pointer;
+    outline: none;
+    box-shadow: none;
+    margin: 0;
+    gap: 0;
+}
+
+.chronicle-fb-sort-toggle:hover {
+    background: color-mix(in srgb, var(--component-text-primary-hover) 20%, transparent);
+    color: var(--component-text-primary-hover);
 }
 
 .chronicle-fb-sort-toggle svg {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
+    display: block;
 }
 
 .chronicle-fb-sort-toggle.desc svg {
@@ -428,7 +440,6 @@
 .batch-bar {
     position: absolute;
     bottom: 12px;
-    left: 16px;
     right: 16px;
     z-index: 10;
     display: flex;

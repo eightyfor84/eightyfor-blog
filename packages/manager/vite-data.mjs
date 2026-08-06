@@ -1,6 +1,7 @@
 // Minimal data layer middleware for Vite dev server.
 // Serves /data/ and /.chronicle/ static files + CRUD for /api/* routes.
-import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, unlinkSync, statSync, readdirSync, copyFileSync } from 'node:fs'
+import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, unlinkSync, statSync, readdirSync, copyFileSync, renameSync } from 'node:fs'
+import { execSync } from 'node:child_process'
 import { join, extname, basename, dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -60,7 +61,7 @@ export default function chronicleData() {
             let served = false
             for (const prefix of ['/data/', '/.chronicle/']) {
               if (urlPath.startsWith(prefix)) {
-                const fp = join(repoRoot, urlPath)
+                const fp = join(repoRoot, decodeURIComponent(urlPath))
                 if (existsSync(fp) && statSync(fp).isFile()) {
                   const types = { '.json':'application/json','.yml':'text/yaml','.yaml':'text/yaml','.md':'text/markdown','.webp':'image/webp','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml','.ico':'image/x-icon','.css':'text/css' }
                   res.setHeader('Content-Type', types[extname(fp)] || 'application/octet-stream')
@@ -70,21 +71,30 @@ export default function chronicleData() {
               }
             }
             if (served) return
+            // If path is under /data/ or /.chronicle/ but file doesn't exist → 404
+            // (prevents Vite SPA fallback from returning index.html for missing assets)
+            if (urlPath.startsWith('/data/') || urlPath.startsWith('/.chronicle/')) {
+              return notFound(res, 'File not found')
+            }
           }
 
           // ── POST /api/settings ──────────────────────────
           if (method === 'POST' && urlPath === '/api/settings') {
             const body = await readBody(req)
             if (!body) return notFound(res)
-            const wsKeys = ['backendTheme','backendAccent','backendFont','backendLocale','backendBackground','backendBackgroundMeta','frontendCodeDir','frontendBuildTargetDir','autoBuildOnPublish','buildGranularity','scheduledBuildEnabled','scheduledBuildMode','scheduledBuildMinute','scheduledBuildHour','scheduledBuildWeekday','scheduledBuildCron','frontendUrl']
+
+            // Pure settings: site.yml + .chronicle/workspace.json
+            const wsKeys = ['backendTheme','backendAccent','backendFont','backendLocale','backendBackground','backendBackgroundMeta','frontendCodeDir','frontendBuildTargetDir','autoBuildOnPublish','buildGranularity','scheduledBuildEnabled','scheduledBuildMode','scheduledBuildMinute','scheduledBuildHour','scheduledBuildWeekday','scheduledBuildCron','frontendUrl','gitAutoCommit','gitAutoPush','gitCommitTemplate','previewAutoOpen','previewPort']
             const siteFields = {}, wsFields = {}
             for (const [k, v] of Object.entries(body)) { if (wsKeys.includes(k)) wsFields[k] = v; else siteFields[k] = v }
+            console.log('[vite-data] /api/settings siteFields keys:', Object.keys(siteFields), 'wsFields keys:', Object.keys(wsFields))
             // Merge with existing data (don't overwrite untouched fields)
             if (Object.keys(siteFields).length) {
               ensureDir(dataDir); const siteFile = join(dataDir, 'site.yml')
               const existing = existsSync(siteFile) ? readFileSync(siteFile, 'utf-8').split('\n').reduce((acc, line) => { const m = line.match(/^([\w-]+):\s*(.*)$/); if (m) acc[m[1]] = JSON.parse(m[2]); return acc }, {}) : {}
               Object.assign(existing, siteFields)
               writeFileSync(siteFile, Object.entries(existing).map(([k,v]) => `${k}: ${JSON.stringify(v)}`).join('\n') + '\n')
+              console.log('[vite-data] site.yml written')
             }
             if (Object.keys(wsFields).length) {
               ensureDir(join(repoRoot, '.chronicle')); const wsFile = join(repoRoot, '.chronicle', 'workspace.json')
@@ -93,6 +103,7 @@ export default function chronicleData() {
               // Remove undefined values
               for (const k of Object.keys(existing)) { if (existing[k] === undefined) delete existing[k] }
               writeFileSync(wsFile, JSON.stringify(existing, null, 2) + '\n')
+              console.log('[vite-data] workspace.json written')
             }
             return ok(res, { success: true })
           }
@@ -105,33 +116,119 @@ export default function chronicleData() {
           // ── POST /api/post (save) ───────────────────────
           if (method === 'POST' && urlPath === '/api/post') {
             const body = await readBody(req)
-            if (!body?.id && !body?.slug) return notFound(res, 'Missing id or slug')
+            console.log('[vite-data] POST /api/post body keys:', body ? Object.keys(body) : 'null')
+            console.log('[vite-data] body:', JSON.stringify({ ...body, content: body?.content ? (body.content.slice(0, 150) + '...') : undefined }, null, 2))
+
+            // Direct index.json write
+            if (body?._index) {
+              console.log('[vite-data] → _index branch: writing index.json')
+              ensureDir(join(dataDir, 'posts'))
+              const idxPath = join(dataDir, 'posts', 'index.json')
+              writeFileSync(idxPath, JSON.stringify(body._index, null, 2) + '\n')
+              console.log('[vite-data] _index written OK to', idxPath)
+              return ok(res, { success: true })
+            }
+            // Content-only write (from dataAccess.writeText) — write .md file only, index by saveIndex
+            if (!body.id && body.slug && body.content) {
+              console.log('[vite-data] → content-only write: slug=', body.slug)
+              const postDir = join(dataDir, 'posts', body.slug); ensureDir(postDir)
+              const mdPath = join(postDir, 'index.md')
+              writeFileSync(mdPath, body.content, 'utf-8')
+              console.log('[vite-data] index.md written OK to', mdPath)
+              return ok(res, { slug: body.slug })
+            }
+
+            // Full save: write content + update index in one call
+            if (!body?.id && !body?.slug) {
+              console.error('[vite-data] FULL SAVE REJECTED: Missing id or slug. body:', JSON.stringify(body))
+              return notFound(res, 'Missing id or slug')
+            }
+            if (!body?.content) {
+              console.error('[vite-data] FULL SAVE REJECTED: Missing content. body keys:', Object.keys(body))
+              return notFound(res, 'Missing content')
+            }
+
+            console.log('[vite-data] → full-save branch: id=', body.id, 'slug=', body.slug)
             const idxFile = join(dataDir, 'posts', 'index.json')
             const idx = existsSync(idxFile) ? JSON.parse(readFileSync(idxFile, 'utf-8')) : {}
+            console.log('[vite-data] index.json has', Object.keys(idx).length, 'entries')
             let id = body.id, slug = body.slug
             if (!slug && id) slug = idx[id]?.slug
-            if (!slug) { const tm = (body.content || '').match(/^title:\s*(.+)$/m); slug = (tm?.[1]?.trim() || 'untitled').toLowerCase().replace(/[^\w\s-]/g, '').replace(/[\s_]+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80) }
-            if (!id) { for (const [eid, e] of Object.entries(idx)) { if (e.slug === slug) { id = eid; break } } }
-            if (id && idx[id]) { const e = idx[id]; e.slug = slug; e.status = body.status ?? e.status ?? 'draft'; const dm = (body.content || '').match(/^date:\s*(.+)$/m); if (dm) e.date = dm[1].trim(); const tm = (body.content || '').match(/^title:\s*(.+)$/m); if (tm) e.title = tm[1].trim() }
-            else if (id) { idx[id] = { slug, title: (body.content || '').match(/^title:\s*(.+)$/m)?.[1]?.trim() || 'untitled', date: new Date().toISOString(), tags: [], status: body.status ?? 'draft' } }
+            if (!slug) { const tm = body.content.match(/^title:\s*(.+)$/m); slug = (tm?.[1]?.trim() || 'untitled').toLowerCase().replace(/[^\w\s-]/g, '').replace(/[\s_]+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80) }
+            if (!id) { id = crypto.randomUUID(); for (const [eid, e] of Object.entries(idx)) { if (e.slug === slug) { id = eid; break } } }
+            console.log('[vite-data] resolved: id=', id, 'slug=', slug)
+            if (idx[id]) { const e = idx[id]; e.slug = slug; e.status = body.status ?? 'draft'; const dm = body.content.match(/^date:\s*(.+)$/m); if (dm) e.date = dm[1].trim(); const tm = body.content.match(/^title:\s*(.+)$/m); if (tm) e.title = tm[1].trim() }
+            else { idx[id] = { slug, title: body.content.match(/^title:\s*(.+)$/m)?.[1]?.trim() || 'untitled', date: new Date().toISOString(), tags: [], status: body.status ?? 'draft' } }
             const postDir = join(dataDir, 'posts', slug); ensureDir(postDir)
-            if (body.content) writeFileSync(join(postDir, 'index.md'), body.content, 'utf-8')
-            ensureDir(join(dataDir, 'posts')); writeFileSync(idxFile, JSON.stringify(idx, null, 2) + '\n')
-            return ok(res, { id: id || '', slug, status: idx[id]?.status ?? 'draft' })
+            const mdPath = join(postDir, 'index.md')
+            writeFileSync(mdPath, body.content, 'utf-8')
+            console.log('[vite-data] index.md written to', mdPath, 'size:', Buffer.byteLength(body.content, 'utf-8'))
+            writeFileSync(idxFile, JSON.stringify(idx, null, 2) + '\n')
+            console.log('[vite-data] index.json written to', idxFile)
+            console.log('[vite-data] full-save DONE: id=', id, 'slug=', slug, 'status=', idx[id].status)
+            return ok(res, { id, slug, status: idx[id].status })
+          }
+
+          // ── PUT /api/post (rename title / slug) ──────────
+          if (method === 'PUT' && urlPath === '/api/post') {
+            const body = await readBody(req)
+            if (!body?.id) return notFound(res, 'Missing id')
+            const oldSlug = body.id
+            const newTitle = body.title?.trim()
+            const newSlug = body.slug?.trim()
+
+            const idxFile = join(dataDir, 'posts', 'index.json')
+            const idx = existsSync(idxFile) ? JSON.parse(readFileSync(idxFile, 'utf-8')) : {}
+            const entry = idx[oldSlug]
+            if (!entry) return notFound(res, `Post not found: ${oldSlug}`)
+
+            // Update title in .md frontmatter
+            if (newTitle && newTitle !== entry.title) {
+              const mdPath = join(dataDir, 'posts', oldSlug, 'index.md')
+              if (existsSync(mdPath)) {
+                let content = readFileSync(mdPath, 'utf-8')
+                content = content.replace(/^title:\s*.+$/m, `title: ${newTitle}`)
+                writeFileSync(mdPath, content, 'utf-8')
+              }
+              entry.title = newTitle
+            }
+
+            // Rename slug → move directory + update index key
+            if (newSlug && newSlug !== oldSlug) {
+              const oldDir = join(dataDir, 'posts', oldSlug)
+              const newDir = join(dataDir, 'posts', newSlug)
+              if (existsSync(oldDir)) {
+                if (existsSync(newDir)) return notFound(res, `Slug already exists: ${newSlug}`)
+                renameSync(oldDir, newDir)
+              }
+              idx[newSlug] = entry
+              delete idx[oldSlug]
+            }
+
+            writeFileSync(idxFile, JSON.stringify(idx, null, 2) + '\n')
+            console.log('[vite-data] RENAMED post:', oldSlug, '→', newSlug || oldSlug)
+            return ok(res, { id: newSlug || oldSlug, title: entry.title })
           }
 
           // ── DELETE /api/post?id=xxx ─────────────────────
           if (method === 'DELETE' && urlPath === '/api/post') {
-            const q = new URL(req.url || '', 'http://localhost').searchParams; const id = q.get('id'); if (!id) return notFound(res, 'Missing id')
+            const q = new URL(req.url || '', 'http://localhost').searchParams; const slug = q.get('id'); if (!slug) return notFound(res, 'Missing id')
             const idxFile = join(dataDir, 'posts', 'index.json'); const idx = existsSync(idxFile) ? JSON.parse(readFileSync(idxFile, 'utf-8')) : {}
-            const s = idx[id]?.slug; if (s) { const d = join(dataDir, 'posts', s); if (existsSync(d)) rmSync(d, { recursive: true, force: true }) }
-            delete idx[id]; ensureDir(join(dataDir, 'posts')); writeFileSync(idxFile, JSON.stringify(idx, null, 2) + '\n'); return json(res, null, 204)
+            // slug is the directory name AND the index key
+            const postDir = join(dataDir, 'posts', slug)
+            if (existsSync(postDir)) rmSync(postDir, { recursive: true, force: true })
+            delete idx[slug]
+            ensureDir(join(dataDir, 'posts'))
+            writeFileSync(idxFile, JSON.stringify(idx, null, 2) + '\n')
+            console.log('[vite-data] DELETED post:', slug)
+            return json(res, null, 204)
           }
 
-          // ── POST /api/upload ────────────────────────────
-          if (method === 'POST' && urlPath === '/api/upload') {
+          // ── POST /api/import ────────────────────────────
+          if (method === 'POST' && urlPath === '/api/import') {
             const name = decodeURIComponent(String(req.headers['x-filename'] || `upload-${Date.now()}`)); const safe = basename(name)
-            const chunks = []; req.on('data', c => chunks.push(c)); req.on('end', () => { const dir = join(dataDir, 'assets'); ensureDir(dir); writeFileSync(join(dir, safe), Buffer.concat(chunks)); ok(res, { url: `/data/assets/${encodeURIComponent(safe)}` }) })
+            const destRel = req.headers['x-dest'] ? decodeURIComponent(String(req.headers['x-dest'])) : 'data/assets'
+            const chunks = []; req.on('data', c => chunks.push(c)); req.on('end', () => { const dir = join(repoRoot, destRel); ensureDir(dir); writeFileSync(join(dir, safe), Buffer.concat(chunks)); ok(res, { url: `/${destRel}/${encodeURIComponent(safe)}` }) })
             return
           }
 
@@ -150,7 +247,7 @@ export default function chronicleData() {
             if (!dirAbs.startsWith(repoRoot)) return ok(res, [])
             if (!existsSync(dirAbs)) { ensureDir(dirAbs); return ok(res, []) }
             const entries = readdirSync(dirAbs, { withFileTypes: true })
-            const files = entries.filter(e => e.isFile() && !e.name.startsWith('.')).map(e => ({
+            const files = entries.filter(e => (e.isFile() || e.isDirectory()) && !e.name.startsWith('.')).map(e => ({
               name: e.name, url: `/${dirRel.replace(/^\/+/, '')}/${encodeURIComponent(e.name)}`,
               path: `/${dirRel.replace(/^\/+/, '')}/${encodeURIComponent(e.name)}`,
               thumb: `/${dirRel.replace(/^\/+/, '')}/${encodeURIComponent(e.name)}`, type: 'file',
@@ -168,10 +265,11 @@ export default function chronicleData() {
 
           // ── GET /api/post?id=xxx ───────────────────────
           if (method === 'GET' && urlPath === '/api/post') {
-            const q = new URL(req.url || '', 'http://localhost').searchParams; const id = q.get('id'); if (!id) return notFound(res)
-            const idxFile = join(dataDir, 'posts', 'index.json'); const idx = existsSync(idxFile) ? JSON.parse(readFileSync(idxFile, 'utf-8')) : {}; const e = idx[id]
-            if (!e) return notFound(res); let content = ''; try { content = readFileSync(join(dataDir, 'posts', e.slug, 'index.md'), 'utf-8') } catch (_) {}
-            return ok(res, { id, slug: e.slug, content, ...e })
+            const q = new URL(req.url || '', 'http://localhost').searchParams; const slug = q.get('id'); if (!slug) return notFound(res)
+            const idxFile = join(dataDir, 'posts', 'index.json'); const idx = existsSync(idxFile) ? JSON.parse(readFileSync(idxFile, 'utf-8')) : {}; const e = idx[slug]
+            if (!e) return notFound(res)
+            let content = ''; try { content = readFileSync(join(dataDir, 'posts', slug, 'index.md'), 'utf-8') } catch (_) {}
+            return ok(res, { id: slug, slug, content, ...e })
           }
 
           // ── POST /api/copy-file ────────────────────────
@@ -193,6 +291,43 @@ export default function chronicleData() {
             } catch (_) {}
             copyFileSync(srcAbs, destAbs)
             return ok(res, { success: true, url: `/${destRel}` })
+          }
+
+          // ── POST /api/git/sync ─────────────────────────
+          if (method === 'POST' && urlPath === '/api/git/sync') {
+            try {
+              const result = execSync('git add -A && git commit -m "Sync: Chronicle save" && git push', {
+                cwd: repoRoot, timeout: 30000, encoding: 'utf-8'
+              })
+              console.log('[vite-data] git sync OK')
+              return ok(res, { success: true, output: result })
+            } catch (e) {
+              console.error('[vite-data] git sync failed:', e.message)
+              return json(res, { success: false, error: e.message }, 500)
+            }
+          }
+
+          // ── POST /api/reindex ──────────────────────────
+          if (method === 'POST' && urlPath === '/api/reindex') {
+            const idx = {}
+            const postsDir = join(dataDir, 'posts')
+            if (existsSync(postsDir)) {
+              for (const name of readdirSync(postsDir)) {
+                if (name.startsWith('.') || name === 'index.json') continue
+                const mdPath = join(postsDir, name, 'index.md')
+                if (!existsSync(mdPath)) continue
+                const content = readFileSync(mdPath, 'utf-8')
+                const fm = {}
+                const mm = content.match(/^---\n([\s\S]*?)\n---/)
+                if (mm) mm[1].split('\n').forEach(l => { const m = l.match(/^([\w-]+):\s*(.*)/); if (m) fm[m[1]] = m[2].trim() })
+                idx[name] = { title: fm.title || name, date: fm.date || new Date().toISOString(), tags: fm.tags ? fm.tags.split(',').map(s => s.trim()).filter(Boolean) : [], status: fm.status || 'draft', summary: fm.summary || '', font: fm.font || 'sans', author: fm.author || '', aiGenerated: fm.aiGenerated === 'true', type: fm.type || (fm.marp === 'true' ? 'slides' : 'article') }
+              }
+            }
+            const idxFile = join(postsDir, 'index.json')
+            if (existsSync(idxFile) && !existsSync(join(postsDir))) ensureDir(postsDir)
+            ensureDir(postsDir)
+            writeFileSync(idxFile, JSON.stringify(idx, null, 2) + '\n')
+            return ok(res, { count: Object.keys(idx).length })
           }
 
           // ── GET /api/storage ────────────────────────────

@@ -82,7 +82,6 @@ const overviewCards = computed(() => {
   const allPosts = posts.value || []
   const publishedPosts = allPosts.filter((item) => item.status === 'published').length
   const draftPosts = allPosts.filter((item) => item.status === 'draft').length
-  const modifyingPosts = allPosts.filter((item) => item.status === 'modifying').length
   const featuredPosts = allPosts.filter((item) => {
     const tags = Array.isArray(item.tags) ? item.tags : []
     return tags.some((tag) => String(tag) === 'featured' || String(tag) === '精选')
@@ -94,7 +93,7 @@ const overviewCards = computed(() => {
 
   return [
     { label: t('dashboard.totalPosts'), value: publishedPosts, note: featuredPosts > 0 ? t('dashboard.featuredCount', { count: featuredPosts }) : '', noteClass: featuredPosts > 0 ? 'featured-note' : '' },
-    { label: t('dashboard.drafts'), value: draftPosts, note: t('dashboard.modifyingCount', { count: modifyingPosts }), noteClass: modifyingPosts > 0 ? 'warning-note' : '' },
+    { label: t('dashboard.drafts'), value: draftPosts, note: '', noteClass: '' },
     { label: t('dashboard.storageUsage'), value: formatBytes(totalUsed), note: topCat ? `${l[topCat[0]] || topCat[0]}: ${formatBytes(topCat[1] as number)}` : '', noteClass: '' },
     { label: t('dashboard.templateVersion'), value: templateInfo.value.version || 'N/A', note: templateInfo.value.name || t('dashboard.templateError'), noteClass: templateError.value ? 'error-note' : '' },
   ]
@@ -277,7 +276,6 @@ const projectUsed = computed(() => storageData.value.total)
 .badge { padding: .25rem .55rem; border-radius: 999px; font-size: .78rem; background: var(--component-bg-hover); }
 .badge.published { color: var(--status-success); }
 .badge.draft { color: var(--component-text-secondary); }
-.badge.modifying { color: var(--status-warning); }
 .tag-rank li { display: flex; justify-content: space-between; align-items: center; gap: .6rem; }
 .tag-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tag-count { color: var(--component-text-secondary); }

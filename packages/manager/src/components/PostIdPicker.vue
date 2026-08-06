@@ -34,7 +34,7 @@
         </svg>
       </button>
       <span v-if="selectedTitle" class="selected-chip" :title="selectedIdForSubmit || selectedTitle">
-        {{ selectedTitle }}
+        {{ selectedTitle }}<span v-if="showId && selectedIdForSubmit" class="selected-id">{{ selectedIdForSubmit }}</span>
       </span>
     </template>
 
@@ -99,11 +99,15 @@ const props = withDefaults(defineProps<{
   name?: string
   placeholder?: string
   clearOnFocus?: boolean
+  publishedOnly?: boolean
+  showId?: boolean
 }>(), {
   mode: 'input',
   name: '',
   placeholder: '',
-  clearOnFocus: false
+  clearOnFocus: false,
+  publishedOnly: false,
+  showId: false,
 })
 
 const emit = defineEmits<{ (e: 'update:modelValue', value: PickerModelValue): void }>()
@@ -146,7 +150,13 @@ const selectedTitle = computed(() => {
 })
 
 const hasSelection = computed(() => !!selectedIdForSubmit.value || !!selectedTitle.value)
-const displayInputText = computed(() => selectedDisplayTitle.value || inputText.value)
+const displayInputText = computed(() => {
+  const base = selectedDisplayTitle.value || inputText.value
+  if (props.showId && selectedIdForSubmit.value && selectedDisplayTitle.value) {
+    return `${base}  (${selectedIdForSubmit.value})`
+  }
+  return base
+})
 const hasInputContent = computed(() => !isPanelMode.value && String(displayInputText.value || '').trim().length > 0)
 const isPopoverVisible = computed(() => open.value && activePickerInstanceId.value === instanceId)
 
@@ -174,7 +184,7 @@ async function loadPublishedPosts() {
     const idx = await readJson<Record<string, any>>('data/posts/index.json')
     if (!idx) return
     const all = Object.entries(idx).map(([id, entry]: [string, any]) => ({ id, ...entry }))
-    posts.value = all.filter((item) => String(item?.status || '') === 'published'||String(item?.status || '') === 'modifying')
+    posts.value = props.publishedOnly ? all.filter((item) => String(item?.status || '') === 'published') : all
     loaded.value = true
   } finally {
     loading.value = false
@@ -391,17 +401,26 @@ onBeforeUnmount(() => {
 .selected-chip {
   display: inline-flex;
   align-items: center;
+  gap: 6px;
   height: 30px;
   border-radius: 999px;
   padding: 0 10px;
   background: color-mix(in srgb, var(--accent-color) 16%, transparent);
   border: 1px solid color-mix(in srgb, var(--accent-color) 40%, var(--border-color));
   color: var(--text-primary);
-  max-width: 360px;
+  max-width: 420px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.selected-id {
+  font-family: var(--mono-font-stack, 'SF Mono', 'Cascadia Code', monospace);
+  font-size: 0.8em;
+  opacity: 0.55;
+  white-space: nowrap;
+}
+
 
 .clear-btn {
   flex: 0 0 auto;

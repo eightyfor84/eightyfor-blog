@@ -8,7 +8,6 @@
 import type { DraftMeta } from './useCloudRelay'
 
 export interface CloudSaveContract {
-  allocateId: (fetchWithAuth: any) => Promise<string | null>
   savePost: (fetchWithAuth: any, payload: { id?: string; content: string; status: string }) => Promise<Record<string, any> | null>
   saveDraft: (id: string, content: string, meta: DraftMeta) => void
   clearDraft: (id: string) => void
@@ -36,38 +35,38 @@ export interface SaveContext {
 }
 
 export function createCloudSave(c: CloudSaveContract) {
-  const { allocateId, savePost, saveDraft, clearDraft, fetchWithAuth } = c
+  const { savePost, saveDraft, clearDraft, fetchWithAuth } = c
 
   /**
-   * 本地上传 — 分配云端 ID → 保存草稿 → 跳转 → 递归发布。
-   * 草稿是容灾：如果 publish 失败，下次从草稿恢复。
-   */
-  async function upload(ctx: SaveContext): Promise<string | null> {
-    const newId = await allocateId(fetchWithAuth)
-    if (!newId) return null
-
-    saveDraft(newId, ctx.localValue, ctx.draftMeta)
-    return newId
-  }
-
-  /**
-   * 云端保存 — preSave → buildFileContent → savePost。
+   * 保存 — preSave → buildFileContent → savePost。
    * @param status 'draft' | 'published'
    */
   async function save(status: string, ctx: SaveContext) {
+    console.log('[cloudSave] ═══════════════════════════════════════')
+    console.log('[cloudSave] save() called: status=', status, 'postId=', ctx.postId)
+    console.log('[cloudSave] localValue length:', ctx.localValue?.length ?? 0)
+    console.log('[cloudSave] calling preSave...')
     const processed = await ctx.preSave(ctx.localValue)
-    if (ctx.setLocalValue) ctx.setLocalValue(processed)
+    console.log('[cloudSave] preSave returned, length:', processed?.length ?? 0)
+    if (ctx.setLocalValue) {
+      ctx.setLocalValue(processed)
+      console.log('[cloudSave] setLocalValue called')
+    }
+    console.log('[cloudSave] calling buildFileContent...')
     const content = ctx.buildFileContent()
+    console.log('[cloudSave] buildFileContent returned, length:', content?.length ?? 0)
+    console.log('[cloudSave] content first 200 chars:', content?.slice(0, 200))
+    if (!content) { console.error('[cloudSave] buildFileContent returned empty!'); return { result: null, processed } }
+    console.log('[cloudSave] calling savePost with id=', ctx.postId || undefined, 'status=', status)
     const result = await savePost(fetchWithAuth, { id: ctx.postId || undefined, content, status })
-
+    console.log('[cloudSave] savePost result:', result ? JSON.stringify({ id: result.id, status: result.status }) : 'NULL/FAILED')
     if (result) {
-      try { clearDraft(status) } catch {}
+      try { clearDraft(status); console.log('[cloudSave] clearDraft called') } catch {}
     }
     return { result, processed }
   }
 
   return {
-    upload,
     save:     (status: string, ctx: SaveContext) => save(status, ctx),
     saveDraft: (ctx: SaveContext) => save('draft', ctx),
     publish:  (ctx: SaveContext) => save('published', ctx),

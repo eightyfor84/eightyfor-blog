@@ -2,7 +2,7 @@
  * useEditorMedia — 媒体文件管理（上传、粘贴、拖放、本地文件解析）
  *
  * 职责：
- *   1. 媒体上传（File → FormData → POST /api/upload）
+ *   1. 媒体导入（File → POST /api/import）
  *   2. 粘贴/拖放拦截（ClipboardEvent / DragEvent → insertMarkdown）
  *   3. 本地文件 URL 解析（blob:/file: → File → 上传到服务器）
  *   4. 文件到 Markdown 转换（音频/视频/文档/文本类型前缀）
@@ -12,7 +12,7 @@
  */
 import { ref, computed, reactive, nextTick, type Ref } from 'vue'
 import { Icons } from '../../../utils/icons'
-import { uploadFile, fetchServerFiles } from '../cloud/useCloudRelay'
+import { uploadFile, fetchServerFiles, copyToPost } from '../cloud/useCloudRelay'
 
 export interface EditorMediaOptions {
   editorBodyRef: Ref<any>
@@ -26,6 +26,8 @@ export interface EditorMediaOptions {
   CDN_BASE_URL: string
   API_BASE_URL: string
   isElectron: boolean
+  postSlug?: Ref<string>
+  postId?: Ref<string | null>
 }
 
 export function useEditorMedia(options: EditorMediaOptions) {
@@ -33,6 +35,7 @@ export function useEditorMedia(options: EditorMediaOptions) {
     editorBodyRef, activeModal, isCloudEditing, isCloudAuthenticated,
     refreshCloudAuthState, showToast, t, fetchWithAuth,
     CDN_BASE_URL, API_BASE_URL, isElectron,
+    postSlug, postId,
   } = options
 
   // ══════════════════════════════════════════════════════
@@ -142,8 +145,22 @@ export function useEditorMedia(options: EditorMediaOptions) {
     const editor = editorBodyRef.value?.editorRef as any
     if (!editor?.insertAtCursor) return
     const ext = name.split('.').pop()?.toLowerCase() || ''
-    const markdownPath = /^(https?:|blob:|data:|file:|\/|(?:audio|video|document|text|other):)/i.test(path)
-      ? path : `${CDN_BASE_URL}${path}`
+    // Public assets → asset://, private post assets → filename (relative), external → as-is
+    let markdownPath: string
+    const assetMatch = path.match(/(?:^|\/)data\/assets\/(.+)$/)
+    const privateMatch = path.match(/(?:^|\/)data\/(?:posts\/[^/]+|__about__)\/(.+)$/)
+    if (assetMatch) {
+      markdownPath = `asset://${assetMatch[1]}`
+    } else if (privateMatch) {
+      markdownPath = privateMatch[1]  // just the filename — relative to post/about dir
+    } else if (/^(https?:|blob:|data:|file:|\/|(?:audio|video|document|text|other):)/i.test(path)) {
+      markdownPath = path
+    } else if (path.includes('/')) {
+      markdownPath = `${CDN_BASE_URL}${path}`
+    } else {
+      // Bare filename — private asset, relative to post directory
+      markdownPath = path
+    }
     const insertText = ['jpg','jpeg','png','gif','webp','svg','bmp'].includes(ext)
       ? `\n![${name}](${encodeMarkdownUrl(markdownPath)})\n`
       : `\n[${name}](${encodeMarkdownUrl(markdownPath)})\n`
@@ -237,10 +254,20 @@ export function useEditorMedia(options: EditorMediaOptions) {
    */
   async function doInsertFileCard(file: File) {
     if (isCloudEditing.value) {
+      // Repo mode: copy to post directory → private asset (relative path)
+      const slug = postSlug?.value?.trim() || postId?.value || ''
+      const name = await copyToPost(slug, file)
+      if (name) {
+        insertMediaMarkdown(file.name, name)
+        showToast('Copied to post')
+        return
+      }
+      // Copy failed — fall back to public
       showToast('Uploading...')
       uploadMediaFile(file).then((url) => { if (url) insertMediaMarkdown(file.name, url) })
       return
     }
+    // Local mode: blob/file URL
     const [markdownUrl, rawUrl] = await Promise.all([fileToMarkdownUrl(file), fileToUrl(file)])
     fileMap.set(rawUrl, file)
     insertMediaMarkdown(file.name, markdownUrl)
@@ -337,17 +364,45 @@ export function useEditorMedia(options: EditorMediaOptions) {
   // 本地文件 URL → 服务器 URL 解析（发布时调用）
   // ══════════════════════════════════════════════════════
 
-  /** 提取 markdown 中的 blob: 和 file:// 本地 URL */
+  /** 提取 markdown 中的所有本地/相对文件引用 */
   function extractLocalUrls(markdown: string): string[] {
-    const pattern = /(?:(?:audio|video|document|text|other):)?(?:blob:https?:\/\/[^)\s\]]+|file:\/\/\/[^)\s\]]+)/gi
-    const matches = markdown.match(pattern)
-    return matches ? [...new Set(matches)] : []
+    // Match: blob:*, file://*, bare filenames with known extensions, relative paths
+    const sources: string[] = []
+    // Image syntax: ![alt](url) — capture only URL, not title after space
+    const imgRe = /!\[[^\]]*\]\(([^)\s]+)/g
+    let m: RegExpExecArray | null
+    while ((m = imgRe.exec(markdown)) !== null) sources.push(m[1])
+    // Link syntax: [text](url)
+    const linkRe = /\[[^\]]*\]\(([^)\s]+)/g
+    while ((m = linkRe.exec(markdown)) !== null) sources.push(m[1])
+    // Filter to local references only
+    const localExts = /\.(jpg|jpeg|png|gif|webp|svg|bmp|ico|mp4|webm|mkv|mov|avi|mp3|wav|ogg|pdf|doc|docx|ppt|pptx|xls|xlsx|zip|rar|7z)$/i
+    return [...new Set(sources.filter(u =>
+      u.startsWith('blob:') || u.startsWith('file://') ||
+      (localExts.test(u) && !u.startsWith('http') && !u.startsWith('asset://') && !u.startsWith('post://') && !u.startsWith('/') && !u.startsWith('#'))
+    ))]
   }
 
   /** 从本地 URL 解析 File 对象——先查 fileMap，再尝试 Electron IPC 读盘 */
-  async function getFileFromUrl(rawUrl: string): Promise<File | null> {
+  async function getFileFromUrl(rawUrl: string, fallbackName?: string): Promise<File | null> {
     const cached = fileMap.get(rawUrl)
     if (cached) return cached
+    // Fallback: fetch blob URL directly (e.g., images pasted into CodeMirror)
+    if (rawUrl.startsWith('blob:')) {
+      try {
+        const resp = await fetch(rawUrl)
+        const blob = await resp.blob()
+        const ext = blob.type.split('/')[1] || 'png'
+        // Use alt text if it looks like a filename (has extension), otherwise append ext
+        let filename: string
+        if (fallbackName && /\.[a-z0-9]+$/i.test(fallbackName)) {
+          filename = fallbackName
+        } else {
+          filename = (fallbackName || 'image') + '.' + ext
+        }
+        return new File([blob], filename, { type: blob.type })
+      } catch { return null }
+    }
     if (isElectron && rawUrl.startsWith('file://')) {
       try {
         let filePath = rawUrl.replace(/^file:\/\//, '')
@@ -372,21 +427,26 @@ export function useEditorMedia(options: EditorMediaOptions) {
    */
   async function resolveLocalFileUrls(markdown: string): Promise<Record<string, string>> {
     const urls = extractLocalUrls(markdown)
+    console.log('[resolveLocalFileUrls] found urls:', urls)
     if (urls.length === 0) return {}
     const mapping: Record<string, string> = {}
     for (const fullUrl of urls) {
       const rawUrl = fullUrl.replace(/^(audio|video|document|text|other):/, '')
+      console.log('[resolveLocalFileUrls] looking up:', rawUrl)
       const file = await getFileFromUrl(rawUrl)
+      console.log('[resolveLocalFileUrls] file found:', !!file, file ? (file as any).name : null)
       if (!file) continue
       try {
         const cloudUrl = await uploadMediaFile(file)
+        console.log('[resolveLocalFileUrls] uploaded:', cloudUrl)
         if (cloudUrl) {
           const prefix = fullUrl.match(/^(audio|video|document|text|other):/)?.[0] || ''
           mapping[fullUrl] = prefix ? prefix + encodeMarkdownUrl(cloudUrl) : encodeMarkdownUrl(cloudUrl)
           fileMap.delete(rawUrl)
         }
-      } catch {}
+      } catch (e) { console.error('[resolveLocalFileUrls] upload error:', e) }
     }
+    console.log('[resolveLocalFileUrls] mapping:', mapping)
     return mapping
   }
 

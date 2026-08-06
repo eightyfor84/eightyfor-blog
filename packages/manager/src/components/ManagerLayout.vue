@@ -740,10 +740,7 @@ onMounted(async () => {
 
 
 
-  // apply modern-select class to existing select elements site-wide
-  try {
-    document.querySelectorAll('select').forEach((s) => s.classList.add('modern-select'))
-  } catch (e) { }
+  // Only wrap selects that are explicitly marked as modern-select in the template
 
   // Helper to wrap a select element if not already wrapped
   function wrapSelectElement(el: Element) {
@@ -999,6 +996,38 @@ async function rebuildFrontend() {
     isAvailable.value = true
   }
 }
+
+async function previewSite() {
+  isRebuilding.value = true
+  isAvailable.value = false
+  try {
+    await triggerBuild({
+      source: t('notification.source.localPreview') as string,
+      reason: 'preview',
+      t: (k: string) => t(k) as string,
+    })
+  } catch {} finally {
+    isRebuilding.value = false
+    isAvailable.value = true
+  }
+}
+
+async function syncNow() {
+  try {
+    const { showToast } = useToast()
+    const isElec = typeof window !== 'undefined' && !!(window as any).chronicleElectron?.isElectron
+    if (isElec) {
+      await (window as any).chronicleElectron.invoke('git:sync')
+    } else {
+      const resp = await fetch('/api/git/sync', { method: 'POST' })
+      if (!resp.ok) throw new Error((await resp.json()).error || 'Sync failed')
+    }
+    showToast(t('nav.synced'), { status: 'success' })
+  } catch (e: any) {
+    const { showToast } = useToast()
+    showToast(e?.message || t('nav.syncFailed'), { status: 'error' })
+  }
+}
 </script>
 
 <template>
@@ -1109,20 +1138,14 @@ async function rebuildFrontend() {
             </div>
             <div class="quick-sep"></div>
             <div class="quick-section">
-              <button @click="quickOpen = false; rebuildFrontend()" :disabled="!isAvailable || nc.isBuilding.value"
-                :class="{ inprogress: isRebuilding || nc.isBuilding.value }">
+              <button @click="quickOpen = false; syncNow()">
                 <span class="icon-svg" v-html="ShellIcons.sync"></span>
-                {{isRebuilding? t('settings.building') : t('nav.buildNow')}}
+                {{t('nav.syncNow')}}
               </button>
-              <button @click="quickOpen = false; openFrontend()">
+              <button @click="quickOpen = false; previewSite()" :disabled="!isAvailable || nc.isBuilding.value"
+                :class="{ inprogress: isRebuilding || nc.isBuilding.value }">
                 <span class="icon-svg" v-html="ShellIcons.link"></span>
-                {{t('nav.visitSite')}}
-              </button>
-            </div>
-            <div class="quick-sep"></div>
-            <div class="quick-section">
-              <button class="quick-logout" @click="doQuit()">
-                {{t('security.logout')}}
+                {{isRebuilding? t('settings.building') : t('nav.previewSite')}}
               </button>
             </div>
           </div>

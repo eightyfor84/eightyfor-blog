@@ -31,7 +31,7 @@ import {
   renderMermaidBlocksInMarkdown,
 } from './useStaticRenderer'
 import { createCloudSave } from '../cloud/useCloudSave'
-import { allocateId, savePost, saveDraft as _saveDraft, clearDraft as _clearDraft, saveAbout } from '../cloud/useCloudRelay'
+import { savePost, saveDraft as _saveDraft, clearDraft as _clearDraft, saveAbout } from '../cloud/useCloudRelay'
 import type { DraftMeta } from '../cloud/useCloudRelay'
 
 /**
@@ -46,10 +46,11 @@ export interface EditorFileOptions {
   postTitle: Ref<string>
   isDefaultTitle: Ref<boolean>
   postId: Ref<string | null>
-  postStatus: Ref<'local' | 'draft' | 'published' | 'modifying' | 'building'>
+  postStatus: Ref<'local' | 'draft' | 'published' | 'building'>
   postDate: Ref<string>
   postUpdated: Ref<string>
   postTags: Ref<string[]>
+  postSlug: Ref<string>
   postFont: Ref<string>
   postAuthor: Ref<string>
   postAIGenerated: Ref<boolean>
@@ -97,7 +98,7 @@ export interface EditorFileOptions {
 export function useEditorFile(options: EditorFileOptions) {
   const {
     editorType, editorBasePath, localValue, postTitle, isDefaultTitle, postId, postStatus,
-    postDate, postUpdated, postTags, postFont, postAuthor, postAIGenerated,
+    postDate, postUpdated, postTags, postSlug, postFont, postAuthor, postAIGenerated,
     slideshowConfig, isCloudEditing, isAboutMode,
     isCloudAuthenticated, refreshCloudAuthState, goToLogin,
     buildSavedFm, normalizeBody, activeModal, showToast, t,
@@ -134,6 +135,7 @@ export function useEditorFile(options: EditorFileOptions) {
    *   - 合并 slideshowConfig 面板设置（theme, ratio, footer）
    */
   function buildFileContent(): string {
+    console.log('[buildFileContent] building...')
     const now = new Date().toISOString()
     const fm: Record<string, any> = {
       title: postTitle.value || '',
@@ -142,10 +144,13 @@ export function useEditorFile(options: EditorFileOptions) {
       tags: postTags.value.length ? postTags.value : [],
       author: postAuthor.value || '',
       aiGenerated: postAIGenerated.value || false,
+      status: postStatus.value === 'local' ? 'draft' : postStatus.value,
     }
     if (editorType.value !== 'slides') {
       fm.font = postFont.value || 'sans'
     }
+    // Slug lives in the directory name, NOT in frontmatter.
+    // Derived on save by deriveSlug() / doImport() — not auto-filled into input.
     let body = localValue.value
     if (editorType.value === 'slides') {
       const { marp, cleanBody } = extractMarpKeys(body, CHRONICLE_FM_KEYS)
@@ -158,7 +163,10 @@ export function useEditorFile(options: EditorFileOptions) {
       if (ss.ratio && !fm.size) fm.size = ss.ratio
       if (ss.footer && !fm.footer) fm.footer = ss.footer
     }
-    return stringifyFrontmatter(fm, body)
+    const result = stringifyFrontmatter(fm, body)
+    console.log('[buildFileContent] result length:', result?.length ?? 0, 'slug:', postSlug.value, 'title:', fm.title)
+    console.log('[buildFileContent] frontmatter keys:', Object.keys(fm).join(', '))
+    return result
   }
 
   // ══════════════════════════════════════════════════════
@@ -191,10 +199,13 @@ export function useEditorFile(options: EditorFileOptions) {
    */
   async function saveFile() {
     try {
+      console.log('[saveFile] currentFileHandle:', !!currentFileHandle.value, 'currentFilePath:', currentFilePath.value)
       if (currentFileHandle.value) {
         if (!postDate.value) postDate.value = new Date().toISOString()
         const contents = buildFileContent()
+        console.log('[saveFile] writing via file handle, content length:', contents.length)
         const ok = await writeFileHandle(currentFileHandle.value, contents)
+        console.log('[saveFile] writeFileHandle returned:', ok)
         if (ok) {
           savedContent.value = editorType.value === 'slides' ? localValue.value : normalizeBody(localValue.value)
           savedFm.value = buildSavedFm()
@@ -204,8 +215,9 @@ export function useEditorFile(options: EditorFileOptions) {
           return true
         }
       }
+      console.log('[saveFile] no handle, falling back to saveAs')
       return await saveAs()
-    } catch (e) { console.error('saveFile failed', e); return false }
+    } catch (e) { console.error('[saveFile] failed', e); return false }
   }
 
   /**
@@ -392,13 +404,6 @@ export function useEditorFile(options: EditorFileOptions) {
   // 保存 / 发布流程
   // ══════════════════════════════════════════════════════
 
-  /** 打开保存/发布弹窗 */
-  function openSaveModal(type: 'draft' | 'publish') {
-    refreshCloudAuthState()
-    tempTitle.value = postTitle.value
-    activeModal.value = type
-  }
-
   /** 关闭所有模态框 */
   function closeModals() {
     activeModal.value = 'none'
@@ -406,10 +411,11 @@ export function useEditorFile(options: EditorFileOptions) {
 
   /**
    * 本地直接保存（不弹窗）。
-   * Ctrl+S 在本地模式下调用此函数。
+   * 本地模式下调用此函数。
    */
   async function saveLocalDirect(titleArg?: string) {
     try {
+      console.log('[saveLocalDirect] called, titleArg:', titleArg)
       const titleToKeep = (titleArg && titleArg.trim())
         ? titleArg.trim()
         : (isDefaultTitle.value ? t('editor.untitled') : postTitle.value)
@@ -421,14 +427,17 @@ export function useEditorFile(options: EditorFileOptions) {
       if (!postDate.value) postDate.value = now
       savedContent.value = editorType.value === 'slides' ? localValue.value : normalizeBody(localValue.value)
       savedFm.value = buildSavedFm()
+      console.log('[saveLocalDirect] calling saveFile')
       return await saveFile()
-    } catch (e) { console.error('saveLocalDirect failed', e); return false }
+    } catch (e) { console.error('[saveLocalDirect] failed', e); return false }
   }
 
-  /** 工具栏右上角保存按钮的入口：本地直接保存，云端弹窗 */
-  function handleTopRightSave(_type: 'draft' | 'publish') {
+  /** 工具栏保存按钮入口：本地直接写文件，仓库直接写盘保持当前 status */
+  function handleTopRightSave(_type?: 'draft' | 'publish') {
     if (!isCloudEditing.value) { void saveLocalDirect(); return }
-    openSaveModal(_type)
+    // Repo: status preserved — draft stays draft, published stays published
+    const action = _type || (postStatus.value === 'published' ? 'publish' : 'draft') as 'draft' | 'publish'
+    void doSave(action)
   }
 
   /**
@@ -438,14 +447,21 @@ export function useEditorFile(options: EditorFileOptions) {
    * 路径 2: 上传      → 分配云端 ID → 递归 doSave('publish')
    * 路径 3: 云端草稿/发布 → POST /api/post → 可选触发 Astro 构建
    *
-   * @param action 保存意图：'local' | 'draft' | 'publish' | 'upload' | 'unsaved'
+   * @param action 'local' → 写本地文件 ｜ 'draft'/'publish' → 写仓库，决定 status
    */
-  async function doSave(action?: 'local' | 'draft' | 'publish' | 'upload' | 'unsaved') {
-    // ══ About 页面特殊处理 — 独立于 cloud/post 保存链路 ══
+  async function doSave(action?: 'local' | 'draft' | 'publish') {
+    console.log('[doSave] ═══════════════════════════════════════════════')
+    console.log('[doSave] action:', action, 'postId:', postId.value, 'isCloudEditing:', isCloudEditing.value)
+    console.log('[doSave] isAboutMode:', isAboutMode.value, 'hasPreSave:', !!preSave, 'postStatus:', postStatus.value)
+    console.log('[doSave] activeModal:', activeModal.value)
+    // ══ About 页面 — 同仓库保存流程，写 data/__about/index.md ══
     if (isAboutMode.value) {
+      console.log('[doSave] → about branch')
       isSaving.value = true
       try {
-        const ok = await saveAbout(fetchWithAuth, localValue.value)
+        const content = buildFileContent()
+        const ok = await saveAbout(fetchWithAuth, content)
+        console.log('[doSave] saveAbout returned:', ok)
         if (!ok) throw new Error('Save failed')
         savedContent.value = editorType.value === 'slides' ? localValue.value : normalizeBody(localValue.value)
         activeModal.value = 'none'
@@ -453,6 +469,7 @@ export function useEditorFile(options: EditorFileOptions) {
         const settings = settingsStore.value
         if (settings?.autoBuildOnPublish) { try { await triggerAstroBuild('__about__') } catch {} }
       } catch (e: any) {
+        console.error('[doSave] about save failed:', e)
         showToast((e?.message || t('editor.saveFailed')) as string, { status: 'error', position: 'bottom-center', shape: 'capsule' })
       } finally { isSaving.value = false }
       return
@@ -460,8 +477,11 @@ export function useEditorFile(options: EditorFileOptions) {
 
     // ══ 绿色分支：preSave contract 存在时，委托 cloud/useCloudSave ══
     if (preSave && action !== 'local') {
+      console.log('[doSave] → preSave/cloud branch')
       const intent = action || (activeModal.value || 'draft')
+      console.log('[doSave] intent:', intent)
       if (intent === 'local') {
+        console.log('[doSave] intent is local, skipping cloud')
         // 本地保存不走 cloud
       } else {
         const cloudCtx = {
@@ -481,59 +501,36 @@ export function useEditorFile(options: EditorFileOptions) {
           showToast,
           t,
         }
+        console.log('[doSave] creating cloud save with postId:', cloudCtx.postId)
         const cloud = createCloudSave({
-          allocateId: (fwa) => allocateId(fwa),
           savePost: (fwa, payload) => savePost(fwa, payload),
           saveDraft: (id, content, meta) => _saveDraft(id, content, meta),
           clearDraft: (id) => _clearDraft(id),
           fetchWithAuth,
         })
 
-        // ── 保存成功后的通用状态更新 ──
-        const onSaved = (newId?: string | null, newStatus?: string) => {
-          if (newId) postId.value = newId
-          if (newStatus) postStatus.value = newStatus as typeof postStatus.value
-          postUpdated.value = new Date().toISOString()
-          savedContent.value = editorType.value === 'slides' ? localValue.value : normalizeBody(localValue.value)
-          savedFm.value = buildSavedFm()
-          activeModal.value = 'none'
-          closeModals()
-        }
-
         isSaving.value = true
         try {
-          if (intent === 'upload' || (intent === 'publish' && !isCloudEditing.value)) {
-            // 本地上传 — 先发布，成功后再切云端跟踪
-            if (!requireCloudAuth('create-cloud-post')) return
-            const newId = await cloud.upload(cloudCtx)
-            if (!newId) return
-            cloudCtx.postId = newId
-            const { result, processed } = await cloud.publish(cloudCtx)
-            if (result) {
-              if (processed) localValue.value = processed
-              _clearDraft(newId)  // 清除 upload 时存的临时草稿
-              onSaved(newId, 'published')
-              const targetPath = editorBasePath + '/' + editorType.value
-              router.replace({ path: targetPath, query: { id: newId } })
-              if (settingsStore.value?.autoBuildOnPublish) void triggerAstroBuild(newId)
-            }
-          } else if (intent === 'publish') {
-            const { result, processed } = await cloud.publish(cloudCtx)
-            if (result) {
-              if (processed) localValue.value = processed
-              onSaved(result.id || null, 'published')
-              if (settingsStore.value?.autoBuildOnPublish) void triggerAstroBuild(postId.value || '')
-            }
+          const status = intent === 'publish' ? 'published' : 'draft'
+          console.log('[doSave] computed status:', status)
+          console.log('[doSave] calling cloud.save...')
+          const { result, processed } = await cloud.save(status, cloudCtx)
+          console.log('[doSave] cloud.save returned: result=', result ? JSON.stringify(result) : 'null', 'processed len=', processed?.length ?? 0)
+          if (result) {
+            if (processed) localValue.value = processed
+            if (result.id) postId.value = result.id
+            postStatus.value = status as typeof postStatus.value
+            postUpdated.value = new Date().toISOString()
+            savedContent.value = editorType.value === 'slides' ? localValue.value : normalizeBody(localValue.value)
+            savedFm.value = buildSavedFm()
+            activeModal.value = 'none'
+            showToast(t('editor.saved') as string, { status: 'success', position: 'bottom-center', shape: 'capsule' })
+            console.log('[doSave] save SUCCESS, postId now:', postId.value)
           } else {
-            // draft — 已发布文章保存草稿 → modifying
-            const draftStatus = (postStatus.value === 'published' || postStatus.value === 'modifying') ? 'modifying' : 'draft'
-            const { result, processed } = await cloud.save(draftStatus, cloudCtx)
-            if (result) {
-              if (processed) localValue.value = processed
-              onSaved(result.id || null, draftStatus)
-            }
+            console.error('[doSave] cloud.save returned null/empty result')
           }
         } catch (e: any) {
+          console.error('[doSave] cloud save exception:', e)
           showToast((e?.message || t('editor.saveFailed')) as string, { status: 'error', position: 'bottom-center', shape: 'capsule' })
         } finally { isSaving.value = false }
         return
@@ -542,6 +539,7 @@ export function useEditorFile(options: EditorFileOptions) {
 
     // ── 路径 1: 本地保存 ──
     const intent = action || (activeModal.value || 'draft')
+    console.log('[doSave] → local save branch, intent:', intent)
     if (intent === 'local' || !intent && (!isCloudEditing.value && activeModal.value !== 'publish')) {
       const titleToKeep = (tempTitle.value && tempTitle.value.trim())
         ? tempTitle.value
@@ -555,9 +553,12 @@ export function useEditorFile(options: EditorFileOptions) {
       savedContent.value = editorType.value === 'slides' ? localValue.value : normalizeBody(localValue.value)
       savedFm.value = buildSavedFm()
       activeModal.value = 'none'
-      await saveFile()
+      console.log('[doSave] calling saveFile...')
+      const fileResult = await saveFile()
+      console.log('[doSave] saveFile returned:', fileResult)
       return
     }
+    console.log('[doSave] ⚠️ No branch matched! action:', action, 'activeModal:', activeModal.value, 'isCloudEditing:', isCloudEditing.value)
   }
 
   // 打印预览
@@ -674,7 +675,6 @@ export function useEditorFile(options: EditorFileOptions) {
     requireCloudAuth,
     // 模态框
     handleTopRightSave,
-    openSaveModal,
     closeModals,
     // 打印
     buildPrintSnapshot,

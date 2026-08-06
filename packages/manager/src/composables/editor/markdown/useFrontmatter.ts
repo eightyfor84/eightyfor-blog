@@ -37,7 +37,7 @@ export interface ApiPost {
   font: string
   author: string
   aiGenerated: boolean
-  status: 'local' | 'draft' | 'published' | 'modifying'
+  status: 'local' | 'draft' | 'published'
   type?: string
   slideshow?: Record<string, any>
   /** Marp 透传键（theme, size, paginate 等），不含 marp:true（Chronicle 层管） */
@@ -143,20 +143,26 @@ export function cloudDetailToApiPost(detail: Record<string, any>): ApiPost {
 
   const type = detectType(rawMeta)
 
+  // Parse frontmatter from content — the source of truth.
+  // Index.json fields are only fallback when frontmatter is missing.
+  const fmParsed = parseFrontmatter(rawContent).meta
+
   return {
     id: detail.id || null,
-    title: detail.title || '',
-    date: detail.date || '',
-    updatedAt: detail.updatedAt || '',
-    tags: Array.isArray(detail.tags) ? detail.tags : [],
-    font: detail.font || 'sans',
-    author: detail.author || detail.meta?.author || '',
-    aiGenerated: detail.aiGenerated === true || detail.aiGenerated === 'true' || detail.aiGenerated === '1',
-    status: detail.status || 'draft',
+    title: fmParsed.title || detail.title || '',
+    date: fmParsed.date || detail.date || '',
+    updatedAt: fmParsed.updatedAt || detail.updatedAt || '',
+    tags: Array.isArray(fmParsed.tags) ? fmParsed.tags
+      : Array.isArray(detail.tags) ? detail.tags : [],
+    font: fmParsed.font || detail.font || 'sans',
+    author: fmParsed.author || detail.author || detail.meta?.author || '',
+    aiGenerated: fmParsed.aiGenerated === true ||
+      detail.aiGenerated === true || detail.aiGenerated === 'true' || detail.aiGenerated === '1',
+    status: fmParsed.status || detail.status || 'draft',
     type,
     slideshow: detail.slideshow || {},
     marp,
-    content: bodyContent,
+    content: bodyContent.replace(/^\n+/, ''),
     _source: 'cloud',
   }
 }
@@ -170,17 +176,20 @@ export function cloudDetailToApiPost(detail: Record<string, any>): ApiPost {
  * @param data 关于页 API 返回的数据
  */
 export function aboutToApiPost(data: { content?: string; lastModified?: string }): ApiPost {
-  const content = String(data.content || '')
+  const raw = String(data.content || '')
+  // Parse frontmatter — strip leading blank lines from body
+  const { meta, content: rawBody } = parseFrontmatter(raw)
+  const content = rawBody.replace(/^\n+/, '')
   return {
     id: '__about__',
-    title: 'About',
-    date: data.lastModified || '',
+    title: meta.title || 'About',
+    date: meta.date || data.lastModified || '',
     updatedAt: data.lastModified || '',
-    tags: [],
-    font: 'sans',
-    author: '',
-    aiGenerated: false,
-    status: 'published',
+    tags: Array.isArray(meta.tags) ? meta.tags : [],
+    font: meta.font || 'sans',
+    author: meta.author || '',
+    aiGenerated: meta.aiGenerated === true,
+    status: meta.status || 'published',
     type: 'article',
     slideshow: {},
     marp: {},
@@ -266,6 +275,7 @@ export interface SavedFm {
   aiGenerated: boolean
   font?: string
   slideshow?: Record<string, any>
+  status?: string
 }
 
 /**
@@ -276,7 +286,7 @@ export interface SavedFm {
 export const CHRONICLE_FM_KEYS = new Set([
   'title', 'date', 'updatedAt', 'tags', 'font', 'author',
   'aiGenerated', 'type', 'slideshow',
-  'slug', 'summary', 'status',
+  'summary', 'status',
 ])
 
 /** 既非 Chronicle FM 也非 Marp FM 的元数据键——解析时直接丢弃，不进入 marp 记录 */
@@ -461,7 +471,7 @@ export function useEditorFrontmatter(options: EditorFrontmatterOptions) {
   )
 
   const postId = ref<string | null>(null)
-  const postStatus = ref<'local' | 'draft' | 'published' | 'modifying' | 'building'>('local')
+  const postStatus = ref<'local' | 'draft' | 'published' | 'building'>('local')
   const postTags = ref<string[]>([])
   const postFont = ref<string>('sans')
   const postAuthor = ref<string>('')
@@ -469,6 +479,7 @@ export function useEditorFrontmatter(options: EditorFrontmatterOptions) {
   const postAIGenerated = ref<boolean>(false)
   const postDate = ref<string>('')
   const postUpdated = ref<string>('')
+  const postSlug = ref<string>('')
   const tagInput = ref('')
 
   function readAuthorFromDetail(detail: any): string {
@@ -510,6 +521,7 @@ export function useEditorFrontmatter(options: EditorFrontmatterOptions) {
       aiGenerated: postAIGenerated.value,
       font: editorType.value === 'slides' ? undefined : postFont.value,
       slideshow: editorType.value === 'slides' ? { ...slideshowConfig.value } : undefined,
+      status: postStatus.value,
     }
   }
 
@@ -525,13 +537,14 @@ export function useEditorFrontmatter(options: EditorFrontmatterOptions) {
       postAuthor.value !== s.author ||
       postAIGenerated.value !== s.aiGenerated ||
       (!isSlides && postFont.value !== (s.font || 'sans')) ||
-      (isSlides && JSON.stringify(slideshowConfig.value || {}) !== JSON.stringify(s.slideshow || {}))
+      (isSlides && JSON.stringify(slideshowConfig.value || {}) !== JSON.stringify(s.slideshow || {})) ||
+      postStatus.value !== (s.status || 'draft')
     )
   })
 
   return {
     postTitle, isDefaultTitle, postDate, postUpdated,
-    postTags, postFont, postAuthor, postAIGenerated,
+    postTags, postSlug, postFont, postAuthor, postAIGenerated,
     slideshowConfig, tagInput,
     postId, postStatus,
     savedContent, savedFm,

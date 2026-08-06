@@ -25,7 +25,7 @@ import {
   type ApiPost,
 } from '../markdown/useFrontmatter'
 import {
-  allocateId,
+  // allocateId removed — slug derived from content on first save
   fetchPost,
   fetchAbout,
   getDraft,
@@ -53,10 +53,11 @@ export interface EditorSessionOptions {
   postId: Ref<string | null>
   postTitle: Ref<string>
   isDefaultTitle: Ref<boolean>
-  postStatus: Ref<'local' | 'draft' | 'published' | 'modifying' | 'building'>
+  postStatus: Ref<'local' | 'draft' | 'published' | 'building'>
   postDate: Ref<string>
   postUpdated: Ref<string>
   postTags: Ref<string[]>
+  postSlug: Ref<string>
   postFont: Ref<string>
   postAuthor: Ref<string>
   postAIGenerated: Ref<boolean>
@@ -94,7 +95,7 @@ export function useEditorSession(options: EditorSessionOptions) {
     editorType, editorQueryId, editorBasePath, route, router, t, showToast,
     isCloudAuthenticated, refreshCloudAuthState, goToLogin, fetchWithAuth,
     postId, postTitle, isDefaultTitle, postStatus, postDate, postUpdated,
-    postTags, postFont, postAuthor, postAIGenerated, slideshowConfig,
+    postTags, postSlug, postFont, postAuthor, postAIGenerated, slideshowConfig,
     localValue, savedContent, savedFm, buildSavedFm,
     readAuthorFromDetail, readAiGeneratedFromDetail,
     currentFileHandle, currentFilePath,
@@ -213,6 +214,7 @@ export function useEditorSession(options: EditorSessionOptions) {
     postDate.value = metadata.date || ''
     postUpdated.value = ''
     postTags.value = metadata.tags || []
+    postSlug.value = ''
     postFont.value = metadata.type === 'slides' ? 'sans' : (metadata.font || 'sans')
     postAuthor.value = metadata.author || ''
     postAIGenerated.value = metadata.aiGenerated || false
@@ -242,8 +244,8 @@ export function useEditorSession(options: EditorSessionOptions) {
       } else {
         skeletonStatus.value = 'editor.skeletonAllocatingId'
         try {
-          const id = await allocateId(fetchWithAuth)
-          if (id) { pid = id; pstatus = 'draft' }
+          // Slug derived from content on first save — no UUID allocation needed
+          pid = ''; pstatus = 'draft'
         } catch {}
         if (!pid) { showToast(t('editor.allocateFailed')); pstatus = 'local' }
       }
