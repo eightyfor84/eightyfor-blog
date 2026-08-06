@@ -6,7 +6,9 @@ status: published
 summary: A Marp-powered slideshow introducing Chronicle's philosophy and features.
 font: sans
 marp: true
-type: slides
+theme: chronicle
+accent-color: #e92
+tinted-bg: true
 ---
 
 # Chronicle Aurora

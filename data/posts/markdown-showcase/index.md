@@ -130,13 +130,10 @@ Preview:
 
 Hotlink images from CDNs, image hosts, or anywhere with a public URL. Build pipeline downloads and optimizes them.
 
-![External example](https://images.unsplash.com/photo-1506905925346-0f8a8d692192?w=800 "Photo by Unsplash — processed by Chronicle's image pipeline")
+![External example](https://picsum.photos/id/29/800/600 "Photo by Lorem Picsum — processed by Chronicle's image pipeline")
 
 > Chronicle's build pipeline auto-compresses all images to WebP and AVIF, regardless of source. The browser receives a `<picture>` element with multiple format fallbacks.
 
-## Emoji
-
-Chronicle :rocket: supports :sparkles: emoji shortcodes :tada:
 
 ---
 
