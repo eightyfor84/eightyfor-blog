@@ -13,7 +13,7 @@ friendsPage: true
 traffic: true
 rss: true
 sitemap: true
-homepageMode: list
+homepageMode: split
 singleColumnHomepage: false
 cardVisibility:
 
