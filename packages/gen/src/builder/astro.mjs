@@ -10,7 +10,7 @@
  */
 
 import { execSync, spawn } from 'node:child_process';
-import { cpSync, existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync, chmodSync, renameSync, symlinkSync, openSync, readSync, closeSync } from 'node:fs';
+import { cpSync, existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync, chmodSync, renameSync, symlinkSync, statSync, openSync, readSync, closeSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join, resolve, parse, basename, dirname } from 'node:path';
 import { createRequire } from 'node:module';
