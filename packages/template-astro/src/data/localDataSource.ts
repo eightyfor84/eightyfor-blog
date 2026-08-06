@@ -410,6 +410,8 @@ export function getPostBySlug(slug: string): LocalPost | null {
         }
     }
 
+    // Collection info is already on meta from index.json (set by rebuildPostIndex).
+    // For breadcrumb navigation (multiple collections), use getPostCollections().
     return { ...meta, content, compiledHtml };
 }
 
@@ -514,7 +516,7 @@ export function getProfile(): Record<string, unknown> {
     return data
 }
 
-/** Get collections data (single-file JSON with legacy fallback) */
+/** Get collections data (single-file YAML) */
 export function getCollections(): Record<string, unknown> {
     const data = readDataFile(COLLECTION_FILE)
     if (data) {

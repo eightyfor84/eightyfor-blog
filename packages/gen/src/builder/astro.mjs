@@ -14,6 +14,7 @@ import { cpSync, existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, rm
 import { createHash } from 'node:crypto';
 import { join, resolve, parse, basename, dirname } from 'node:path';
 import { createRequire } from 'node:module';
+import { rebuildPostIndex } from './indexer.mjs';
 
 const require = createRequire(import.meta.url);
 const imageProcessor = require('../processor/image.cjs');
@@ -272,6 +273,12 @@ export async function runBuild({ dataDir, codeDir, targetDir, granularity }) {
   mkdirSync(genCache, { recursive: true })
   writeFileSync(cacheFile, JSON.stringify(cacheMap), 'utf-8')
   console.log(`[chronicle-gen] Image compression: ${compressedCount} compressed, ${skippedCount} skipped, ${compressedTotal} total`)
+
+  // 2b. Rebuild posts/index.json (article index + collection assignments, one pass)
+  try {
+    const count = rebuildPostIndex(dataDir)
+    console.log(`[chronicle-gen] Post index rebuilt: ${count} posts indexed`)
+  } catch (e) { console.warn('[chronicle-gen] Post index rebuild skipped:', e.message) }
 
   // 3. Run Astro build
   console.log('[chronicle-gen] Building in:', codeDir);

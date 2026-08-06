@@ -7,10 +7,124 @@ import { createHash } from 'node:crypto'
 let previewServer = null
 import { join, extname, basename, dirname, resolve, parse } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import YAML from 'yaml'
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 const repoRoot = resolve(__dirname, '..', '..')
 const dataDir = join(repoRoot, 'data')
+
+// ── Post Index Builder ───────────────────────────────────────
+// Canonical implementation lives in packages/gen/src/builder/indexer.mjs.
+// We inline a copy here as a reliable fallback for the Vite dev server,
+// and attempt to import the canonical version at startup.
+// Both produce identical output (posts + collection assignments in one pass).
+
+/** Parse simple YAML frontmatter from markdown text */
+function parseFrontmatter(raw) {
+  const fm = {}
+  if (!raw.startsWith('---')) return fm
+  const end = raw.indexOf('---', 3)
+  if (end === -1) return fm
+  const block = raw.slice(3, end)
+  for (const line of block.split('\n')) {
+    const m = line.match(/^(\w[\w-]*):\s*(.*)/)
+    if (!m) continue
+    const key = m[1]; let val = m[2].trim()
+    if (val === 'true') val = true
+    else if (val === 'false') val = false
+    else if (val === 'null' || val === '~' || val === '') val = null
+    else if (/^\d+(\.\d+)?$/.test(val)) val = Number(val)
+    else val = val.replace(/^"(.*)"$/, '$1').replace(/^'(.*)'$/, '$1')
+    if (key === 'tags' && typeof val === 'string') val = val.split(',').map(s => s.trim()).filter(Boolean)
+    fm[key] = val
+  }
+  return fm
+}
+
+/** Build collection→post reverse index from collections.yml */
+function buildCollectionIndex(dataDir) {
+  const map = new Map()
+  const file = join(dataDir, 'collections.yml')
+  if (!existsSync(file)) return map
+  try {
+    const data = YAML.parse(readFileSync(file, 'utf-8'))
+    const cols = Array.isArray(data) ? data : (data?.collections || [])
+    function walk(nodes, colName, parents) {
+      if (!Array.isArray(nodes)) return
+      for (const node of nodes) {
+        if (node?.type === 'post' && node.id) {
+          const cp = parents.length > 0 ? `${colName} / ${parents.join(' / ')}` : colName
+          map.set(String(node.id), { collection: colName, collectionPath: cp })
+        }
+        if (node?.type === 'group' && Array.isArray(node.children)) {
+          walk(node.children, colName, [...parents, node.title || 'Untitled'])
+        }
+      }
+    }
+    for (const col of cols) { if (col.name && Array.isArray(col.nodes)) walk(col.nodes, col.name, []) }
+  } catch {}
+  return map
+}
+
+/** Build complete posts index (articles + collections, one pass) */
+function buildPostIndexLocal(dataDir) {
+  const postsDir = join(dataDir, 'posts')
+  const index = {}
+  if (!existsSync(postsDir)) return index
+  const colIdx = buildCollectionIndex(dataDir)
+  for (const entry of readdirSync(postsDir, { withFileTypes: true })) {
+    if (!entry.isDirectory() || entry.name.startsWith('.') || entry.name.startsWith('_')) continue
+    const slug = entry.name
+    const mdPath = join(postsDir, slug, 'index.md')
+    if (!existsSync(mdPath)) continue
+    const raw = readFileSync(mdPath, 'utf-8')
+    const fm = parseFrontmatter(raw)
+    const ci = colIdx.get(slug)
+    const out = {
+      title: fm.title || slug,
+      date: fm.date || new Date().toISOString(),
+      tags: Array.isArray(fm.tags) ? fm.tags : [],
+      status: fm.status || 'draft',
+      summary: fm.summary || '',
+      font: fm.font,
+      author: fm.author,
+      aiGenerated: fm.aiGenerated,
+      type: fm.marp ? 'slides' : (fm.type || 'article'),
+    }
+    if (ci) { out.collection = ci.collection; out.collectionPath = ci.collectionPath }
+    index[slug] = out
+  }
+  return index
+}
+
+/** Rebuild and write index.json. Returns count of posts indexed. */
+function rebuildPostIndexLocal(dataDir) {
+  const index = buildPostIndexLocal(dataDir)
+  const indexFile = join(dataDir, 'posts', 'index.json')
+  mkdirSync(dirname(indexFile), { recursive: true })
+  writeFileSync(indexFile, JSON.stringify(index, null, 2) + '\n', 'utf-8')
+  return Object.keys(index).length
+}
+
+// Try to use the canonical indexer from gen; fall back to local copy.
+// Top-level await is used so the choice is settled before any requests arrive.
+let rebuildPostIndex = rebuildPostIndexLocal
+try {
+  const mod = await import('../gen/src/builder/indexer.mjs')
+  rebuildPostIndex = mod.rebuildPostIndex
+  console.log('[vite-data] Using canonical indexer from gen package')
+} catch (e) {
+  console.warn('[vite-data] Using inline indexer (gen package not available):', e.message)
+}
+
+// Build index.json on CMS startup so posts/collections are current
+// before any UI request arrives.
+try {
+  const startupCount = rebuildPostIndex(dataDir)
+  console.log('[vite-data] Startup index built:', startupCount, 'posts')
+} catch (e) {
+  console.warn('[vite-data] Startup index build failed:', e.message)
+}
 
 function json(res, data, status = 200) { res.statusCode = status; res.setHeader('Content-Type','application/json'); res.end(JSON.stringify(data)) }
 const ok = (res, d) => json(res, d, 200)
@@ -414,10 +528,25 @@ export default function chronicleData() {
               writeFileSync(cacheFile, JSON.stringify(cacheMap), 'utf-8')
               console.log('[vite-data] compression done:', totalCompressed, 'compressed,', totalSkipped, 'skipped')
 
-              // Build
-              execSync('npm run build', {
-                cwd: codeDir, timeout: 180000, encoding: 'utf-8', stdio: 'pipe',
-                env: { ...process.env, CHRONICLE_DATA_DIR: dataSrc, DATA_SOURCE: 'local' }
+              // Rebuild index.json (articles + collection assignments) before Astro reads it
+              const idxCount = rebuildPostIndex(dataSrc)
+              console.log('[vite-data] Post index rebuilt:', idxCount, 'posts')
+
+              // Build (async — keeps event loop alive so Vite HMR stays connected)
+              const { exec } = await import('node:child_process')
+              await new Promise((resolve, reject) => {
+                exec('npm run build', {
+                  cwd: codeDir, timeout: 180000, encoding: 'utf-8',
+                  env: { ...process.env, CHRONICLE_DATA_DIR: dataSrc, DATA_SOURCE: 'local' }
+                }, (error, stdout, stderr) => {
+                  if (error) {
+                    console.error('[vite-data] astro build stderr:', stderr)
+                    reject(error)
+                  } else {
+                    if (stdout) console.log('[vite-data] astro build stdout:', stdout.slice(0, 500))
+                    resolve()
+                  }
+                })
               })
               console.log('[vite-data] astro build OK')
 
@@ -511,25 +640,14 @@ export default function chronicleData() {
 
           // ── POST /api/reindex ──────────────────────────
           if (method === 'POST' && urlPath === '/api/reindex') {
-            const idx = {}
-            const postsDir = join(dataDir, 'posts')
-            if (existsSync(postsDir)) {
-              for (const name of readdirSync(postsDir)) {
-                if (name.startsWith('.') || name === 'index.json') continue
-                const mdPath = join(postsDir, name, 'index.md')
-                if (!existsSync(mdPath)) continue
-                const content = readFileSync(mdPath, 'utf-8')
-                const fm = {}
-                const mm = content.match(/^---\n([\s\S]*?)\n---/)
-                if (mm) mm[1].split('\n').forEach(l => { const m = l.match(/^([\w-]+):\s*(.*)/); if (m) fm[m[1]] = m[2].trim() })
-                idx[name] = { title: fm.title || name, date: fm.date || new Date().toISOString(), tags: fm.tags ? fm.tags.split(',').map(s => s.trim()).filter(Boolean) : [], status: fm.status || 'draft', summary: fm.summary || '', font: fm.font || 'sans', author: fm.author || '', aiGenerated: fm.aiGenerated === 'true', type: fm.type || (fm.marp === 'true' ? 'slides' : 'article') }
-              }
+            try {
+              const count = rebuildPostIndex(dataDir)
+              console.log('[vite-data] Post index rebuilt:', count, 'posts')
+              return ok(res, { count })
+            } catch (e) {
+              console.error('[vite-data] Reindex failed:', e.message)
+              return json(res, { error: e.message }, 500)
             }
-            const idxFile = join(postsDir, 'index.json')
-            if (existsSync(idxFile) && !existsSync(join(postsDir))) ensureDir(postsDir)
-            ensureDir(postsDir)
-            writeFileSync(idxFile, JSON.stringify(idx, null, 2) + '\n')
-            return ok(res, { count: Object.keys(idx).length })
           }
 
           // ── GET /api/storage ────────────────────────────

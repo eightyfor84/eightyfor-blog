@@ -202,6 +202,18 @@ export function useSchemaForm(schemaId: string) {
         ok = await writeJson(mapping.filePath, payload)
       }
 
+      // After saving collections, rebuild the full post index
+      // (rebuildPostIndex handles both article metadata and collection assignments)
+      if (ok && activeSchemaId.value === 'chronicle:collections') {
+        try {
+          const resp = await fetch('/api/reindex', { method: 'POST' })
+          if (resp.ok) {
+            const result = await resp.json()
+            console.log('[useSchemaForm] post index rebuilt:', result.count, 'posts')
+          }
+        } catch {}
+      }
+
       return ok
     } catch {
       return false

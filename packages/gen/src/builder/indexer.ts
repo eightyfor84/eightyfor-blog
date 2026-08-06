@@ -1,16 +1,28 @@
 /**
- * Chronicle Gen — Search Index Builder
+ * Chronicle Gen — Post Index Builder (TypeScript re-export)
  *
- * Generates a client-side search index (search-index.json) at build time.
- * This replaces the runtime server-side /api/search endpoint for static deployments.
- *
- * The index is a Fuse.js-compatible list of {id, title, summary, tags, slug} objects.
- * For now this is a placeholder — actual implementation will read from postStore.
+ * The canonical implementation lives in indexer.mjs (plain ESM)
+ * so both .mjs and .ts consumers can import it directly.
+ * This file provides type annotations for TypeScript consumers.
  */
 
-// Placeholder: search index generation will be implemented in Phase 2
-// when we add client-side search with Fuse.js / Pagefind.
-
-export async function generateSearchIndex(_postsDir: string, _outputPath: string): Promise<void> {
-  console.log('[chronicle-gen] Search index generation not yet implemented')
+export interface IndexEntry {
+  title: string
+  date: string
+  tags: string[]
+  status: string
+  summary?: string
+  font?: string
+  author?: string
+  aiGenerated?: boolean
+  type?: 'article' | 'slides'
+  collection?: string
+  collectionPath?: string
 }
+
+export interface IndexOutput {
+  [slug: string]: IndexEntry
+}
+
+// Re-export the canonical implementations from indexer.mjs
+export { buildPostIndex, rebuildPostIndex } from './indexer.mjs'

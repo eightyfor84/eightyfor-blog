@@ -26,6 +26,25 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Cache template node_modules
+        uses: actions/cache@v4
+        with:
+          path: packages/template-astro/node_modules
+          key: tmpl-${{ runner.os }}-${{ hashFiles('packages/template-astro/package-lock.json') }}
+
+      - name: Cache gen node_modules
+        uses: actions/cache@v4
+        with:
+          path: packages/gen/node_modules
+          key: gen-${{ runner.os }}-${{ hashFiles('packages/gen/package-lock.json') }}
+
+      - name: Cache gen-cache (compressed images)
+        uses: actions/cache@v4
+        with:
+          path: .chronicle/gen-cache
+          key: gencache-${{ runner.os }}-${{ github.sha }}
+          restore-keys: gencache-${{ runner.os }}-
+
       - name: Install template dependencies
         run: npm install
         working-directory: packages/template-astro

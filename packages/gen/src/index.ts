@@ -16,10 +16,5 @@
  */
 
 export { runBuild } from './builder/astro.js'
-
-// Future exports:
-// export { processImages } from './processor/image.js'
-// export { compileMarkdown } from './processor/markdown.js'
-// export { generateSearchIndex } from './builder/indexer.js'
-// export { syncFromNotion } from './sync/notion.js'
-// export { watchContent } from './sync/watcher.js'
+export { buildPostIndex, rebuildPostIndex } from './builder/indexer.js'
+export type { IndexEntry, IndexOutput } from './builder/indexer.js'

@@ -413,6 +413,8 @@ function onKeyDown(e: KeyboardEvent) {
 async function loadPosts() {
   loading.value = true
   try {
+    // index.json is kept current by /api/reindex (called on mount and refresh).
+    // It already contains both article metadata and collection assignments.
     const idx = await readJson<Record<string, any>>('data/posts/index.json')
     if (idx) {
       posts.value = Object.entries(idx).map(([id, entry]: [string, any]) => ({ id, ...entry }))

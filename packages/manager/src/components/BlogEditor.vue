@@ -1104,8 +1104,15 @@ async function doImport() {
   if (!postDate.value) postDate.value = new Date().toISOString()
   postStatus.value = 'published'
 
-  // Derive slug + ensure uniqueness so file copy target matches savePost
-  let slug = (postTitle.value || 'untitled').toLowerCase().replace(/[^\w\s-]/g, '').replace(/[\s_]+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80)
+  // Use custom slug if user entered one; otherwise derive from title.
+  // Must pass the same validation as validateSlug().
+  const fallbackSlug = (postTitle.value || 'untitled').toLowerCase().replace(/[^\w\s-]/g, '').replace(/[\s_]+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80)
+  const custom = postSlug.value?.trim()
+  const slugRe = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+  let slug = fallbackSlug
+  if (custom && slugRe.test(custom) && custom.replace(/-/g, '').length >= 3) {
+    slug = custom
+  }
   const { readJson } = await import('../data/dataAccess')
   const idx: Record<string, any> = (await readJson('data/posts/index.json')) ?? {}
   if (idx[slug]) {
