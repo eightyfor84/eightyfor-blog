@@ -5,4 +5,4 @@ status: published
 ---
 
 
-等我考完期末，就速速回朝~
+完蛋了，copilot把我开盒了

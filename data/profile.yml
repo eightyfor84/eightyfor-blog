@@ -1,11 +1,11 @@
 $about_edit: ""
 showProfileCard: true
 name: Vincent Chen
-bio: 地球ol休闲玩家
+bio: 苦涩信管男大，地球ol休闲玩家
 location: Tsinghua University
 links:
   - label: Github
-    url: https://github.com/vanvanhasnophi/chronicle
+    url: https://github.com/vanvanhasnophi/chronicle-aurora
   - label: Bilibili
     url: https://space.bilibili.com/441276248
   - label: Email
