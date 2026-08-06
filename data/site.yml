@@ -2,7 +2,7 @@
 siteName: Chronicle Demo
 siteDescription: A local-first, git-backed Jamstack blogging platform. Write in Markdown, sync with Git, deploy anywhere.
 frontendTheme: follow
-frontendAccent: "#3b82f6"
+frontendAccent: "#36a32e"
 frontendFont: sans
 frontendLocale: follow
 searchSuggestions: true
