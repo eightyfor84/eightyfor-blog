@@ -628,15 +628,15 @@ export default function chronicleData() {
           if (method === 'POST' && urlPath === '/api/git/sync') {
             try {
               // Stage all changes; skip commit if nothing to commit (avoids non-zero exit)
-              execSync('git add -A', { cwd: repoRoot, timeout: 10000, encoding: 'utf-8' })
+              execSync('git add -A', { cwd: repoRoot, timeout: 15000, encoding: 'utf-8' })
               try {
                 execSync('git diff --cached --quiet', { cwd: repoRoot, timeout: 5000 })
               } catch {
                 // There are staged changes — commit them
-                execSync('git commit -m "Sync: Chronicle save"', { cwd: repoRoot, timeout: 10000, encoding: 'utf-8' })
+                execSync('git commit -m "Sync: Chronicle save"', { cwd: repoRoot, timeout: 15000, encoding: 'utf-8' })
               }
-              // Push regardless (there may be unpushed commits)
-              const result = execSync('git push', { cwd: repoRoot, timeout: 30000, encoding: 'utf-8' })
+              // Push — 120s timeout for slow HTTPS connections
+              const result = execSync('git push', { cwd: repoRoot, timeout: 120000, maxBuffer: 10 * 1024 * 1024, encoding: 'utf-8' })
               console.log('[vite-data] git sync OK')
               return ok(res, { success: true, output: result })
             } catch (e) {
