@@ -14,7 +14,6 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@chronicle/shared": "*",
     "sharp": "^0.34.5"
   },
   "devDependencies": {
