@@ -681,18 +681,24 @@ function selectFile(f: any) {
 function removeSelected(idx: number) { selectedEntries.value.splice(idx, 1) }
 
 function confirmSelection() {
+    // Normalize asset URLs to asset:// protocol
+    const toAsset = (u: string) => (u && u.includes('/data/assets/')) ? `asset://${u.split('/data/assets/')[1]}` : u
+
     if (allowMultiple) {
         if (selectedEntries.value.length === 0) return
         const entries = selectedEntries.value.slice().map((item: any) => ({
             ...item,
-            uploadedUrl: item.url || item.uploadedUrl
+            url: toAsset(item.url),
+            uploadedUrl: toAsset(item.url || item.uploadedUrl)
         }))
         emit('select', entries)
     } else {
         if (selectedEntries.value.length === 0) return
+        const item = selectedEntries.value[0]
         const entry = {
-            ...selectedEntries.value[0],
-            uploadedUrl: selectedEntries.value[0].url || selectedEntries.value[0].uploadedUrl
+            ...item,
+            url: toAsset(item.url),
+            uploadedUrl: toAsset(item.url || item.uploadedUrl)
         }
         emit('select', entry)
     }

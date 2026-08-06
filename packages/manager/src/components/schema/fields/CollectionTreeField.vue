@@ -28,7 +28,7 @@
           <div class="collection-modal__fields-layout">
             <div class="collection-modal__preview">
               <div v-if="activeCollection.cover" class="cover-preview">
-                <img :src="activeCollection.cover" alt="cover" />
+                <img :src="resolveUrl(activeCollection.cover)" alt="cover" />
               </div>
               <div v-else class="cover-placeholder">
                 <span class="icon-svg" v-html="Icons.image"></span>
@@ -188,6 +188,12 @@ function addRootNode() {
 }
 
 function openFilePicker() { isFilePickerOpen.value = true }
+
+function resolveUrl(url: string): string {
+  if (!url) return ''
+  if (url.startsWith('asset://')) return '/data/assets/' + url.slice(8)
+  return url
+}
 
 function handleFilePickerSelect(entry: any) {
   if (!entry || !activeCollection.value) return

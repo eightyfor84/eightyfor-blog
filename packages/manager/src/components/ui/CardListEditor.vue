@@ -36,7 +36,7 @@
         <div class="card-list__item-content">
           <div class="card-list__preview">
             <div v-if="props.showImage" class="card-list__media">
-              <img v-if="row.card.avatar" :src="row.card.avatar" :alt="row.card.name || ''" loading="lazy" />
+              <img v-if="row.card.avatar" :src="resolveUrl(row.card.avatar)" :alt="row.card.name || ''" loading="lazy" />
               <div v-else class="card-list__media-placeholder"></div>
             </div>
             <div class="card-list__content">
@@ -140,6 +140,12 @@ const emptyLabel = computed(() => props.emptyText || t('settings.friendCardEmpty
 const dragButtonTitle = computed(() => props.dragTitle || t('settings.friendCardDragHint'))
 const editButtonTitle = computed(() => props.editTitle || t('settings.friendCardEdit'))
 const removeButtonTitle = computed(() => props.removeTitle || t('settings.friendCardRemove'))
+
+function resolveUrl(url: string): string {
+  if (!url) return ''
+  if (url.startsWith('asset://')) return '/data/assets/' + url.slice(8)
+  return url
+}
 
 type RenderRow = { key: string; index: number; card: CardListItem }
 

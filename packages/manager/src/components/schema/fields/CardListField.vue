@@ -36,7 +36,7 @@
           <!-- Preview: image + key text fields -->
           <div v-if="imageKey || titleKey || subtitleKey" class="card-modal__preview">
             <div v-if="imageKey && draftCard[imageKey]" class="card-modal__preview-media">
-              <img :src="draftCard[imageKey]" :alt="draftCard[titleKey] || ''" />
+              <img :src="resolveUrl(draftCard[imageKey])" :alt="draftCard[titleKey] || ''" />
             </div>
             <div class="card-modal__preview-text">
               <strong v-if="titleKey">{{ draftCard[titleKey] || t('settings.friendCardUnnamed') }}</strong>
@@ -96,6 +96,12 @@ const cardPropSchemas = computed(() => cardItemSchema.value.properties || {})
 const titleKey = computed(() => props.schema['x-card-title-key'] || 'name')
 const imageKey = computed(() => props.schema['x-card-image-key'] || 'avatar')
 const subtitleKey = computed(() => props.schema['x-card-subtitle-key'] || 'intro')
+
+function resolveUrl(url: string): string {
+  if (!url) return ''
+  if (url.startsWith('asset://')) return '/data/assets/' + url.slice(8)
+  return url
+}
 
 // Build ordered field list from schema properties
 const cardFields = computed(() => {

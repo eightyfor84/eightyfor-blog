@@ -1,0 +1,23 @@
+# Chronicle Aurora
+siteName: Blogs →
+siteDescription: Love what you wanna love, be what you wanna be.
+frontendTheme: follow
+frontendAccent: "#51a32e"
+frontendFont: sans
+frontendLocale: follow
+searchSuggestions: false
+relatedPosts: false
+collectionPage: true
+aboutPage: true
+friendsPage: true
+traffic: true
+rss: true
+sitemap: false
+gaMeasurementId: G-VPZBFWJ7FJ
+icpNumber: 京ICP备2025153813号-1
+homepageMode: split
+singleColumnHomepage: false
+cardVisibility:
+
+comment:
+

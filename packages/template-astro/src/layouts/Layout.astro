@@ -36,7 +36,7 @@ const pageMeta = typeof meta === 'string' ? { description: meta } : (meta || {})
 const featureFlags = resolveFeatureFlags(settings?.featureFlags || Astro.props.featureFlags);
 const mediaDomain = String(process.env.MEDIA_DOMAIN || '').replace(/\/$/, '');
 const frontendDomain = String(process.env.FRONTEND_DOMAIN || '').replace(/\/$/, '');
-const backendMediaBase = import.meta.env.DEV ? 'http://localhost:3000' : '';
+const backendMediaBase = '';
 const backgroundBaseUrls = [mediaDomain, backendMediaBase, frontendDomain, ''];
 
 function resolveMediaUrl(value: any) {

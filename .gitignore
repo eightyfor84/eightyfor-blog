@@ -18,6 +18,7 @@ data/branding
 dist/
 
 # REMOVE when deploying to production
-data/
 site.legacy/
-.chronicle/
+
+
+*.bak

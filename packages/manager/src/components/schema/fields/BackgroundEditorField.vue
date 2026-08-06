@@ -20,10 +20,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import BackgroundEditorModal from '../../BackgroundEditorModal.vue'
 import { useI18n } from 'vue-i18n'
 import { resolveMediaUrl } from '../../../utils/backgroundSettings'
+import { readYaml, writeText } from '../../../data/dataAccess'
 
 const { t }= useI18n()
 
@@ -49,13 +50,38 @@ const internalUrl = ref(typeof props.modelValue === 'string' ? props.modelValue 
 const internalMeta = ref(props.meta || null)
 const internalSourcePath = ref(props.sourcePath || '')
 const internalSourceName = ref(props.sourceName || '')
+const initialized = ref(false)
 
-// Sync from props when API data arrives after mount
+// On mount: auto-discover background from data/background/ directory
+onMounted(async () => {
+  try {
+    // Read metadata from background.yml
+    const bgYml = await readYaml<Record<string, any>>('data/background/background.yml')
+    if (bgYml) {
+      internalMeta.value = bgYml
+      emit('update:meta', bgYml)
+    }
+    // Auto-discover image
+    const { readDir } = await import('../../../data/dataAccess')
+    const files = await readDir('data/background')
+    const imgs = files.filter((f: string) => /\.(jpg|jpeg|png|gif|webp|avif|svg)$/i.test(f) && !f.startsWith('.'))
+    if (imgs.length > 0 && !internalUrl.value) {
+      internalUrl.value = `/data/background/${imgs[0]}`
+      emit('update:modelValue', internalUrl.value)
+    }
+  } catch {} finally { initialized.value = true }
+})
+
+// Sync from props (schema form may load stale data from site.yml — ignore after init)
 watch(() => props.modelValue, (v) => {
+  if (initialized.value) return // ignore schema form data after our own init
   const url = typeof v === 'string' ? v : v?.url || ''
   if (url) internalUrl.value = url
 })
-watch(() => props.meta, (v) => { if (v) internalMeta.value = v })
+watch(() => props.meta, (v) => {
+  if (initialized.value) return
+  if (v) internalMeta.value = v
+})
 watch(() => props.sourcePath, (v) => { if (v) internalSourcePath.value = v })
 watch(() => props.sourceName, (v) => { if (v) internalSourceName.value = v })
 
@@ -63,17 +89,18 @@ const backgroundUrl = computed(() => internalUrl.value)
 const backgroundMeta = computed(() => internalMeta.value)
 const backgroundSourcePath = computed(() => internalSourcePath.value)
 const backgroundSourceName = computed(() => internalSourceName.value)
-
 const previewUrl = computed(() => resolveMediaUrl(internalUrl.value))
 
 function openEditor() { bgEditorOpen.value = true }
 
-function clearBg() {
+async function clearBg() {
   internalUrl.value = ''
-  internalMeta.value = null
+  internalMeta.value = {}
   internalSourcePath.value = ''
   internalSourceName.value = ''
-  emitUpdate()
+  emit('update:modelValue', '')
+  emit('update:meta', {})
+  await persistBg('')
 }
 
 async function onBgSave(m: any) {
@@ -101,12 +128,29 @@ async function onBgSave(m: any) {
     } catch (_) { /* best-effort */ }
   }
 
-  emitUpdate()
+  emit('update:modelValue', internalUrl.value)
+  emit('update:meta', internalMeta.value)
+  await persistBg(internalUrl.value)
 }
 
-function emitUpdate() {
-  emit('update:modelValue', internalUrl.value)
-  if (internalMeta.value) emit('update:meta', internalMeta.value)
+async function persistBg(url: string) {
+  // Write metadata to data/background/background.yml
+  const meta = internalMeta.value || {}
+  const { mode, posX, posY, size, blur, overlayLightColor, overlayLightOpacity, overlayDarkColor, overlayDarkOpacity } = meta
+  const yml = [
+    '# Chronicle Aurora — Site Background',
+    `mode: ${mode || 'cover'}`,
+    `posX: ${posX ?? 50}`,
+    `posY: ${posY ?? 50}`,
+    `size: ${size ?? 100}`,
+    `blur: ${blur ?? 0}`,
+    `overlayLightColor: "${overlayLightColor || '#ffffff'}"`,
+    `overlayLightOpacity: ${overlayLightOpacity ?? 0}`,
+    `overlayDarkColor: "${overlayDarkColor || '#000000'}"`,
+    `overlayDarkOpacity: ${overlayDarkOpacity ?? 0}`,
+    '',
+  ].join('\n')
+  try { await writeText('data/background/background.yml', yml) } catch {}
 }
 </script>
 

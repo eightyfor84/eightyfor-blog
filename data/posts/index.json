@@ -1,0 +1,178 @@
+{
+  "249931ea-c899-45a5-9daa-9b6fe0089a41": {
+    "title": "AuthorDNA 项目总览",
+    "date": "2026-05-17T17:21:40.969Z",
+    "tags": [
+      "authordna"
+    ],
+    "status": "published",
+    "summary": "\"<p style=\"color: 51a32e\">本技术文档以 6 层方法对当前代码库进行剖析：从战略视角到运行环境，逐层描述产品目标、业务场景、模块划分、核心逻辑架构、技术实现细节与运行/部署要求，便于产品、设计、工程和运维对齐。</p>",
+    "font": "sans",
+    "author": "",
+    "aiGenerated": false,
+    "type": "article"
+  },
+  "3e246f38-0651-477f-9cb9-6dd9127ac659": {
+    "title": "SSG + CSR 混合架构技术方案",
+    "date": "2026-04-27T03:46:38.051Z",
+    "tags": [
+      "featured",
+      "Astro",
+      "version 2.0"
+    ],
+    "status": "published",
+    "summary": "",
+    "font": "sans",
+    "author": "",
+    "aiGenerated": false,
+    "type": "article"
+  },
+  "45175cf3-db12-4dda-8a62-f36d0d2c3d51": {
+    "title": "A story",
+    "date": "2026-05-20T01:00:51.820Z",
+    "tags": [
+      "featured",
+      "story"
+    ],
+    "status": "published",
+    "summary": "",
+    "font": "serif",
+    "author": "",
+    "aiGenerated": false,
+    "type": "article"
+  },
+  "6940f292-4d74-416d-bee7-3e6f7e33a595": {
+    "title": "【引用】解释模型预测的统一方法",
+    "date": "2026-02-17T11:44:26.238Z",
+    "tags": [
+      "quote"
+    ],
+    "status": "published",
+    "summary": "解释模型预测的统一方法",
+    "font": "sans",
+    "author": "",
+    "aiGenerated": false,
+    "type": "article"
+  },
+  "6c96284f-a6ec-44d8-a0ed-acce66641cde": {
+    "title": "乌萨奇？到！",
+    "date": "2026-02-11T13:56:09.188Z",
+    "tags": [
+      "usagi"
+    ],
+    "status": "published",
+    "summary": "\"",
+    "font": "sans",
+    "author": "",
+    "aiGenerated": false,
+    "type": "article"
+  },
+  "6d879241-fa6c-4099-82a5-066853046b9a": {
+    "title": "26S2：新生",
+    "date": "2026-05-03T21:33:32.203Z",
+    "tags": [
+      "featured"
+    ],
+    "status": "published",
+    "summary": "Stay tuned...",
+    "font": "sans",
+    "author": "",
+    "aiGenerated": false,
+    "type": "article"
+  },
+  "88394cb9-6f3b-4c20-a950-e6d74ea912a0": {
+    "title": "Chronicle README",
+    "date": "2026-05-30T10:56:56.153Z",
+    "tags": [
+      "README"
+    ],
+    "status": "published",
+    "summary": "Chronicle",
+    "font": "sans",
+    "author": "",
+    "aiGenerated": false,
+    "type": "article"
+  },
+  "8a877784-76cd-4b0a-a669-4c30cc3a32ec": {
+    "title": "2026上半主题：杀破狼",
+    "date": "2026-02-24T15:49:32.221Z",
+    "tags": [
+      "featured",
+      "semi-annual-theme"
+    ],
+    "status": "published",
+    "summary": "待完善",
+    "font": "sans",
+    "author": "",
+    "aiGenerated": false,
+    "type": "article"
+  },
+  "8bdc8e47-40ee-4660-8274-81421658eb38": {
+    "title": "Chronicle of \"Chronicle\"",
+    "date": "2026-02-13T02:52:33.502Z",
+    "tags": [
+      "featured",
+      "chronicle"
+    ],
+    "status": "published",
+    "summary": "一次社团课 2018 我接触编程不算很早，开始于初中学校社团的 VB 6.0 的课程。那节社团课，看着老社员做的各种小游戏，对编程一窍不通的我，瞬间对 VB 这个老掉牙的新东西来了兴趣。 Visual Basic 6.0 的界面 可以说，会用“画图”的人，上手 Visual Basic 一般都很快。我的第一行代码不是hello world，而是 仅仅学会 VB",
+    "font": "serif",
+    "author": "Vincent Chen",
+    "aiGenerated": false,
+    "type": "article"
+  },
+  "9fad38a2-cf83-476b-bbab-5c097a1180fc": {
+    "title": "What's New in Chronicle 2.0 / Chronicle 2.0 新特性",
+    "date": "2026-06-14T09:44:07.852Z",
+    "tags": [
+      "featured",
+      "changelog",
+      "version 2.0"
+    ],
+    "status": "published",
+    "summary": "Chronicle 2.0.2 — June 14, 2026 / 2026年6月14日 Chronicle 2.0 is a major release bringing a redesigned editor, file management overhaul, CMS dashboard and post-manager redesigns, Electron desktop",
+    "font": "sans",
+    "author": "Eightyfor",
+    "aiGenerated": true,
+    "type": "article"
+  },
+  "a8f190a9-016c-4aae-94e9-8d94214d7bf6": {
+    "title": "Untitled Post",
+    "date": "2026-05-25T21:54:15.073Z",
+    "tags": [],
+    "status": "draft",
+    "summary": "",
+    "font": "sans",
+    "author": "",
+    "aiGenerated": false,
+    "type": "article"
+  },
+  "b792d6ca-5efb-405e-84d2-609f056d4be9": {
+    "title": "2.0更新规划",
+    "date": "2026-03-20T03:06:39.816Z",
+    "tags": [
+      "featured",
+      "changelog",
+      "version 2.0"
+    ],
+    "status": "published",
+    "summary": "新功能",
+    "font": "sans",
+    "author": "",
+    "aiGenerated": false,
+    "type": "article"
+  },
+  "f3372aca-8f34-4a28-afc0-914489410ab7": {
+    "title": "概率论知识点",
+    "date": "2026-08-01T22:32:17.035Z",
+    "tags": [
+      "statistics"
+    ],
+    "status": "published",
+    "summary": "第1章：概率论基础 本章介绍了概率论的基本概念、公理、计数方法、条件概率和独立性，为后续学习统计推断奠定了基础。 1.1 基本概念 样本空间 (Sample Space, S)：一个实验所有可能结果的集合。 事件 (Event, A)：样本空间的子集，即某些结果的集合。 事件运算： 补集 (Aᶜ)：事件A不发生。 交集 (A∩B)：事件A和B同时发生。 并集 (A∪B)：事件A或B至少一个发生。",
+    "font": "sans",
+    "author": "",
+    "aiGenerated": true,
+    "type": "article"
+  }
+}

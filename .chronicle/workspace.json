@@ -18,5 +18,10 @@
     "overlayDarkOpacity": 70,
     "overlayColor": "#000000",
     "overlayOpacity": 70
-  }
+  },
+  "gitAutoCommit": false,
+  "gitAutoPush": false,
+  "gitCommitTemplate": "Update: {title}",
+  "previewAutoOpen": true,
+  "previewPort": 4321
 }

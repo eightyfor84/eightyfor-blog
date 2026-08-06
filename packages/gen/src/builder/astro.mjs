@@ -10,7 +10,8 @@
  */
 
 import { execSync, spawn } from 'node:child_process';
-import { cpSync, existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync, chmodSync, renameSync, symlinkSync } from 'node:fs';
+import { cpSync, existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync, chmodSync, renameSync, symlinkSync, openSync, readSync, closeSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { join, resolve, parse, basename, dirname } from 'node:path';
 import { createRequire } from 'node:module';
 
@@ -140,39 +141,8 @@ async function ensureBackgroundCompressed(settings, dataDir) {
 // ── Settings sync ─────────────────────────────────────────
 
 async function syncBuildSettings(dataDir, codeDir) {
-  const settingsSource = join(dataDir, 'settings.json');
-  if (!existsSync(settingsSource)) {
-    throw new Error(`Settings file not found: ${settingsSource}`);
-  }
-
-  // Read & parse settings
-  let settings;
-  try { settings = JSON.parse(readFileSync(settingsSource, 'utf-8')); } catch { settings = {}; }
-
-  // Auto-compress backgrounds before build
-  await ensureBackgroundCompressed(settings, dataDir);
-
-  // Write back to data/settings.json (in case compression updated it)
-  const updatedContent = JSON.stringify(settings, null, 2);
-  writeFileSync(settingsSource, updatedContent, 'utf-8');
-
-  // Sync to Astro project
-  const targetDirs = [
-    join(codeDir, 'public', 'server', 'data'),
-    join(codeDir, 'src', 'data'),
-  ];
-  for (const target of targetDirs) {
-    mkdirSync(target, { recursive: true });
-    writeFileSync(join(target, 'settings.json'), updatedContent);
-  }
-
-  // Clean up any legacy symlinks/copies from previous builds
-  const publicDataDir = join(codeDir, 'public', 'server', 'data');
-  mkdirSync(publicDataDir, { recursive: true });
-  for (const dir of ['background', 'branding', 'upload', 'manager-background']) {
-    const stale = join(publicDataDir, dir);
-    try { rmSync(stale, { recursive: true, force: true }); } catch (e) {}
-  }
+  // Aurora: template reads YAML directly via CHRONICLE_DATA_DIR.
+  // Public assets are selectively copied post-build — no full data/ symlink needed.
 }
 
 // ── Output sync ───────────────────────────────────────────
@@ -249,10 +219,61 @@ export async function runBuild({ dataDir, codeDir, targetDir, granularity }) {
 
   const startTime = Date.now();
 
-  // 1. Sync settings + auto-compress backgrounds
+  // 1. Sync settings + symlink data
   await syncBuildSettings(dataDir, codeDir);
 
-  // 2. Run Astro build
+  // 2. Compress images into .chronicle/gen-cache/
+  const shoip = await import('sharp')
+  const sharpMod = shoip.default || shoip
+  const IMAGE_EXTS = /\.(jpg|jpeg|png|gif|svg)$/i
+  const genCache = resolve(dataDir, '..', '.chronicle', 'gen-cache')
+  const cacheFile = join(genCache, '.cache.json')
+  const cacheMap = existsSync(cacheFile) ? JSON.parse(readFileSync(cacheFile, 'utf-8')) : {}
+  let compressedTotal = 0, compressedCount = 0, skippedCount = 0
+  async function compressDir(srcDir, cacheDir) {
+    if (!existsSync(srcDir)) return
+    for (const entry of readdirSync(srcDir, { withFileTypes: true })) {
+      const n = entry.name
+      if (n.startsWith('.') || n === 'index.md' || n === 'index.json') continue
+      const src = join(srcDir, n)
+      if (entry.isDirectory()) { await compressDir(src, join(cacheDir, n)) }
+      else if (IMAGE_EXTS.test(n)) {
+        compressedTotal++
+        const base = parse(n).name
+        const relKey = src.replace(dataDir + '/', '')
+        const st = statSync(src)
+        const fd = openSync(src, 'r')
+        const head = Buffer.alloc(512)
+        readSync(fd, head, 0, 512, 0)
+        closeSync(fd)
+        const hash = createHash('sha1').update(head).digest('hex')
+        const cacheSig = `${st.mtimeMs}:${st.size}:${hash}`
+        const webpOut = join(cacheDir, `${base}.webp`)
+        const avifOut = join(cacheDir, `${base}.avif`)
+        if (cacheMap[relKey] === cacheSig && existsSync(webpOut) && existsSync(avifOut)) {
+          skippedCount++; continue
+        }
+        mkdirSync(cacheDir, { recursive: true })
+        try { await sharpMod(src).webp({ quality: 80, effort: 4 }).toFile(webpOut); compressedCount++ } catch {}
+        try { await sharpMod(src).avif({ quality: 55, effort: 4 }).toFile(avifOut) } catch {}
+        cacheMap[relKey] = cacheSig
+      }
+    }
+  }
+  await compressDir(join(dataDir, 'assets'), join(genCache, 'assets'))
+  const postsDir = join(dataDir, 'posts')
+  if (existsSync(postsDir)) {
+    for (const slug of readdirSync(postsDir)) {
+      const postDir = join(postsDir, slug)
+      if (slug === 'index.json' || !existsSync(postDir) || !statSync(postDir).isDirectory()) continue
+      await compressDir(postDir, join(genCache, 'post_attachment', slug))
+    }
+  }
+  mkdirSync(genCache, { recursive: true })
+  writeFileSync(cacheFile, JSON.stringify(cacheMap), 'utf-8')
+  console.log(`[chronicle-gen] Image compression: ${compressedCount} compressed, ${skippedCount} skipped, ${compressedTotal} total`)
+
+  // 3. Run Astro build
   console.log('[chronicle-gen] Building in:', codeDir);
   execSync('npm run build', {
     cwd: codeDir,
@@ -273,7 +294,45 @@ export async function runBuild({ dataDir, codeDir, targetDir, granularity }) {
     throw new Error(`Build output not found: ${distDir}`);
   }
 
-  // 3. Sync output to target
+  // 3. Copy public assets into dist (gen-cache + originals)
+  if (existsSync(genCache)) {
+    cpSync(genCache, distDir, { recursive: true, force: true })
+    console.log('[chronicle-gen] gen-cache synced to dist')
+  }
+  // Background + avatar
+  for (const sub of ['background', 'avatar']) {
+    const src = join(dataDir, sub)
+    if (existsSync(src)) {
+      cpSync(src, join(distDir, 'data', sub), { recursive: true, force: true })
+    }
+  }
+  // Public assets
+  const srcAssets = join(dataDir, 'assets')
+  if (existsSync(srcAssets)) {
+    cpSync(srcAssets, join(distDir, 'assets'), { recursive: true, force: true })
+  }
+  // Post attachments
+  const postsSource = join(dataDir, 'posts')
+  if (existsSync(postsSource)) {
+    for (const slug of readdirSync(postsSource)) {
+      const pd = join(postsSource, slug)
+      if (slug === 'index.json' || !existsSync(pd) || !statSync(pd).isDirectory()) continue
+      const dst = join(distDir, 'post_attachment', slug)
+      mkdirSync(dst, { recursive: true })
+      cpSync(pd, dst, { recursive: true, force: true,
+        filter: src => !src.endsWith('.md') && !src.endsWith('index.json') && !src.includes('/.') })
+    }
+  }
+  // About attachments
+  const aboutSrc = join(dataDir, '__about__')
+  if (existsSync(aboutSrc)) {
+    const dst = join(distDir, 'about')
+    mkdirSync(dst, { recursive: true })
+    cpSync(aboutSrc, dst, { recursive: true, force: true,
+      filter: src => !src.endsWith('.md') && !src.includes('/.') })
+  }
+
+  // 4. Sync output to target
   const result = syncBuildOutputByGranularity(distDir, targetDir, granularity || 'full');
   const duration = Date.now() - startTime;
 

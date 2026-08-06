@@ -110,6 +110,8 @@ export function backgroundRelToUrl(rel: string): string {
 
 export function resolveMediaUrl(url: string): string {
   if (!url) return ''
+  // asset:// protocol → /data/assets/
+  if (url.startsWith('asset://')) return '/data/assets/' + url.slice(8)
   if (url.startsWith('/')) return url
   return `/${url}`
 }

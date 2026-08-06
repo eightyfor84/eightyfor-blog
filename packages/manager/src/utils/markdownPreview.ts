@@ -12,7 +12,7 @@ import MarkdownIt from 'markdown-it';
 import markdownItFootnote from 'markdown-it-footnote';
 import { Icons } from './icons';
 import DOMPurify from 'dompurify';
-import { SANITIZE_CONFIG } from '@chronicle/shared/utils';
+import { SANITIZE_CONFIG } from '@chronicle/shared/src/utils';
 
 // ═══════════════════════════════════════════════════════════
 //  Config — must match chronicleMarkdown.ts in template-astro
@@ -42,7 +42,7 @@ md.normalizeLink = (url: string) => {
   if (url.startsWith('post://')) return '/editor/article?id=' + url.slice(7);
   // Relative path — resolve to post directory, encode non-ASCII filenames
   if (_postSlug && !url.startsWith('/') && !/^[a-zA-Z][\w+.-]*:/.test(url)) {
-    const base = _postSlug === '__about__' ? '/data/__about__' : `/data/posts/${_postSlug}`;
+    const base = _postSlug === '__about__' ? '/data/__about__' : `/data/posts/${_postSlug}`; // manager uses filesystem path
     const encoded = url.split('/').map(seg => { try { decodeURI(seg); return seg } catch { return encodeURI(seg) } }).join('/');
     const resolved = `${base}/${encoded}`;
     console.log('[markdownPreview] relative →', resolved);

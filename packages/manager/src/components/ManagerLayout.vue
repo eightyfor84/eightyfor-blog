@@ -138,6 +138,8 @@ function writeBackgroundMetaVars(scope: 'frontend' | 'backend', meta: any) {
 }
 
 function preloadBackgroundImage(url: string): Promise<boolean> {
+  // Resolve asset:// before passing to browser
+  if (url.startsWith('asset://')) url = '/data/assets/' + url.slice(8)
   return new Promise((resolve) => {
     try {
       if (!url) {
@@ -944,6 +946,8 @@ async function cycleAndSaveTheme() {
 }
 const isRebuilding = ref(false)
 const isAvailable = ref(true)
+const previewRunning = ref(false)
+const previewUrl = ref('')
 const quickOpen = ref(false)
 
 // ── Notification Center ──
@@ -1001,15 +1005,19 @@ async function previewSite() {
   isRebuilding.value = true
   isAvailable.value = false
   try {
-    await triggerBuild({
-      source: t('notification.source.localPreview') as string,
-      reason: 'preview',
-      t: (k: string) => t(k) as string,
-    })
+    const resp = await fetch('/api/build/preview', { method: 'POST' })
+    const data = await resp.json()
+    if (data.previewUrl) { previewUrl.value = data.previewUrl; previewRunning.value = true }
   } catch {} finally {
     isRebuilding.value = false
     isAvailable.value = true
   }
+}
+
+async function stopPreview() {
+  try { await fetch('/api/build/preview/stop', { method: 'POST' }) } catch {}
+  previewRunning.value = false
+  previewUrl.value = ''
 }
 
 async function syncNow() {
@@ -1145,7 +1153,11 @@ async function syncNow() {
               <button @click="quickOpen = false; previewSite()" :disabled="!isAvailable || nc.isBuilding.value"
                 :class="{ inprogress: isRebuilding || nc.isBuilding.value }">
                 <span class="icon-svg" v-html="ShellIcons.link"></span>
-                {{isRebuilding? t('settings.building') : t('nav.previewSite')}}
+                {{isRebuilding ? t('settings.building') : t('nav.previewSite')}}
+              </button>
+              <button v-if="previewRunning" @click="quickOpen = false; stopPreview()">
+                <span class="icon-svg" v-html="ShellIcons.close"></span>
+                {{ t('nav.stopPreview') || 'Stop Preview' }}
               </button>
             </div>
           </div>

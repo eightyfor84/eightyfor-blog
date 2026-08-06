@@ -581,6 +581,7 @@
     "frontendBackground": {
       "type": "string",
       "x-widget": "background-editor",
+      "x-persist": false,
       "x-tab": "template-appearance",
       "x-group": "background",
       "x-order": 1,
@@ -592,6 +593,7 @@
     "frontendBackgroundMeta": {
       "type": "string",
       "x-widget": "hidden",
+      "x-persist": false,
       "x-tab": "template-appearance",
       "x-group": "background",
       "x-order": 2,

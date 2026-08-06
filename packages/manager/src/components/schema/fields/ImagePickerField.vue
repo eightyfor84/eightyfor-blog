@@ -23,7 +23,7 @@
       </button>
     </div>
     <div v-if="modelValue" class="image-preview" style="margin-top:.5rem;">
-      <img :src="modelValue" alt="preview" style="max-width:200px; max-height:150px; border-radius:8px;" />
+      <img :src="displayUrl" alt="preview" style="max-width:200px; max-height:150px; border-radius:8px;" />
     </div>
   </div>
 
@@ -48,7 +48,7 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { Icons } from '../../../utils/icons'
 import FilePicker from '../../FilePicker.vue'
 const { t } = useI18n()
@@ -62,6 +62,14 @@ const props = defineProps<{
 }>()
 
 const isPickerOnly = computed(() => !!(props.schema?.['x-picker-only']))
+const targetDir = computed(() => (props.schema as any)?.['x-target-dir'] || '')
+// Resolve asset:// for browser display
+const displayUrl = computed(() => {
+  const url = props.modelValue
+  if (!url) return ''
+  if (url.startsWith('asset://')) return '/data/assets/' + url.slice(8)
+  return url
+})
 
 const emit = defineEmits<{
   'update:modelValue': [value: string]
@@ -69,17 +77,52 @@ const emit = defineEmits<{
 
 const isFilePickerOpen = ref(false)
 
+// Auto-discover from target directory on mount
+onMounted(async () => {
+  const dir = targetDir.value
+  if (!dir) return
+  try {
+    const { readDir } = await import('../../../data/dataAccess')
+    const files = await readDir(dir)
+    const imgs = files.filter((f: string) => /\.(jpg|jpeg|png|gif|webp|avif|svg)$/i.test(f) && !f.startsWith('.') && !f.endsWith('.yml'))
+    if (imgs.length > 0 && !props.modelValue) {
+      emit('update:modelValue', `/${dir}/${imgs[0]}`)
+    }
+  } catch {}
+})
+
 function onInput(e: Event) {
   emit('update:modelValue', (e.target as HTMLInputElement).value)
 }
 
 function openPicker() { isFilePickerOpen.value = true }
 
-function handleFilePickerSelect(entry: any) {
+async function handleFilePickerSelect(entry: any) {
   if (!entry) return
   const picked = Array.isArray(entry) ? entry[0] : entry
-  const url = picked.uploadedUrl || picked.url
-  if (url) emit('update:modelValue', url)
+  let url = picked.uploadedUrl || picked.url
+  if (!url) return
+
+  // Resolve asset:// → file path for copy
+  const filePath = url.startsWith('asset://') ? `data/assets/${url.slice(8)}` : url.replace(/^\//, '')
+
+  // Auto-copy to target directory if configured
+  const dir = targetDir.value
+  if (dir && !url.startsWith(`/${dir}/`) && !url.startsWith('asset://')) {
+    const ext = (url.match(/\.\w+$/)?.[0]) || '.jpg'
+    const dest = `${dir}/avatar${ext}`
+    try {
+      const isElec = typeof window !== 'undefined' && !!(window as any).chronicleElectron?.isElectron
+      if (isElec) {
+        await (window as any).chronicleElectron.copyFile(filePath, dest)
+      } else {
+        await fetch('/api/copy-file', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ source: filePath, dest }) })
+      }
+      url = `/${dest}`
+    } catch (_) {}
+  }
+
+  emit('update:modelValue', url)
   isFilePickerOpen.value = false
 }
 

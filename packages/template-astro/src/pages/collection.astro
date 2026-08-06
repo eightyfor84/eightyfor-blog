@@ -189,7 +189,7 @@ try {
       }
 
           // ── Page lifecycle scope ──
-    let scope
+    let scope = createScope()
     function createScope() {
       const listeners = [], bodyNodes = [];
       return {

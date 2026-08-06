@@ -1,7 +1,7 @@
 // Defer importing KaTeX to runtime to avoid blocking initial bundle parsing.
 let _katex: any = null
 import { Icons } from './icons'
-import { stripMarkdown, extractExcerpt } from '@chronicle/shared/utils'
+import { stripMarkdown, extractExcerpt } from '@chronicle/shared/src/utils'
 
 function escapeAttr(s: string) {
   return s.replace(/&/g, '&amp;')

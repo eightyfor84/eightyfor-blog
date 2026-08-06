@@ -1,8 +1,11 @@
 // Minimal data layer middleware for Vite dev server.
 // Serves /data/ and /.chronicle/ static files + CRUD for /api/* routes.
-import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, unlinkSync, statSync, readdirSync, copyFileSync, renameSync } from 'node:fs'
-import { execSync } from 'node:child_process'
-import { join, extname, basename, dirname, resolve } from 'node:path'
+import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, unlinkSync, statSync, readdirSync, copyFileSync, renameSync, symlinkSync, cpSync, openSync, readSync, closeSync } from 'node:fs'
+import { execSync, spawn } from 'node:child_process'
+import { createHash } from 'node:crypto'
+
+let previewServer = null
+import { join, extname, basename, dirname, resolve, parse } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
@@ -82,6 +85,15 @@ export default function chronicleData() {
           if (method === 'POST' && urlPath === '/api/settings') {
             const body = await readBody(req)
             if (!body) return notFound(res)
+
+            // Generic file write via _rawPath (used by writeText for YAML files)
+            if (body._rawPath && body._rawContent !== undefined) {
+              const absPath = join(repoRoot, body._rawPath)
+              ensureDir(dirname(absPath))
+              writeFileSync(absPath, body._rawContent, 'utf-8')
+              console.log('[vite-data] _rawPath written:', body._rawPath)
+              return ok(res, { success: true })
+            }
 
             // Pure settings: site.yml + .chronicle/workspace.json
             const wsKeys = ['backendTheme','backendAccent','backendFont','backendLocale','backendBackground','backendBackgroundMeta','frontendCodeDir','frontendBuildTargetDir','autoBuildOnPublish','buildGranularity','scheduledBuildEnabled','scheduledBuildMode','scheduledBuildMinute','scheduledBuildHour','scheduledBuildWeekday','scheduledBuildCron','frontendUrl','gitAutoCommit','gitAutoPush','gitCommitTemplate','previewAutoOpen','previewPort']
@@ -291,6 +303,196 @@ export default function chronicleData() {
             } catch (_) {}
             copyFileSync(srcAbs, destAbs)
             return ok(res, { success: true, url: `/${destRel}` })
+          }
+
+          // ── POST /api/build/preview ────────────────────
+          if (method === 'POST' && urlPath === '/api/build/preview') {
+            try {
+              const codeDir = join(repoRoot, 'packages', 'template-astro')
+              // Stop existing preview
+              if (previewServer) { try { previewServer.close() } catch {}; previewServer = null }
+              const dataSrc = join(repoRoot, 'data')
+
+              // Compress images into .chronicle/gen-cache/
+              console.log('[vite-data] loading sharp...')
+              const sharpMod = (await import('sharp')).default
+              console.log('[vite-data] sharp loaded:', !!sharpMod)
+              const genCache = join(repoRoot, '.chronicle', 'gen-cache')
+              // Load compression cache: { "relative/path": sourceMtimeMs }
+              const cacheFile = join(genCache, '.cache.json')
+              const cacheMap = existsSync(cacheFile) ? JSON.parse(readFileSync(cacheFile, 'utf-8')) : {}
+              const IMG_RE = /\.(jpg|jpeg|png|gif|svg)$/i
+              let totalCompressed = 0, totalSkipped = 0
+              const dataRoot = join(repoRoot, 'data')
+              const CONCURRENCY = 4
+
+              // Collect all image paths first, then compress in parallel
+              function collectImages(srcDir) {
+                const imgs = []
+                if (!existsSync(srcDir)) return imgs
+                for (const entry of readdirSync(srcDir, { withFileTypes: true })) {
+                  const n = entry.name
+                  if (n.startsWith('.') || n === 'index.md' || n === 'index.json') continue
+                  const src = join(srcDir, n)
+                  if (entry.isDirectory()) { imgs.push(...collectImages(src)) }
+                  else if (IMG_RE.test(n)) imgs.push(src)
+                }
+                return imgs
+              }
+
+              async function compressAll(srcDirs) {
+                const all = []
+                for (const { src, cache } of srcDirs) {
+                  for (const img of collectImages(src)) {
+                    all.push({ img, cacheDir: cache || join(genCache, dirname(img.replace(dataRoot + '/', ''))) })
+                  }
+                }
+                for (let i = 0; i < all.length; i += CONCURRENCY) {
+                  await Promise.all(all.slice(i, i + CONCURRENCY).map(async ({ img, cacheDir }) => {
+                    const base = parse(img).name
+                    const relKey = img.replace(dataRoot + '/', '')
+                    const st = statSync(img)
+                    const fd = openSync(img, 'r')
+                    const head = Buffer.alloc(512); readSync(fd, head, 0, 512, 0); closeSync(fd)
+                    const hash = createHash('sha1').update(head).digest('hex')
+                    const cacheSig = `${st.mtimeMs}:${st.size}:${hash}`
+                    const webpOut = join(cacheDir, `${base}.webp`)
+                    const avifOut = join(cacheDir, `${base}.avif`)
+                    if (cacheMap[relKey] === cacheSig && existsSync(webpOut) && existsSync(avifOut)) { totalSkipped++; return }
+                    mkdirSync(cacheDir, { recursive: true })
+                    try { await sharpMod(img).webp({ quality: 80, effort: 4 }).toFile(webpOut); totalCompressed++ } catch {}
+                    try { await sharpMod(img).avif({ quality: 55, effort: 4 }).toFile(avifOut) } catch {}
+                    cacheMap[relKey] = cacheSig
+                  }))
+                }
+              }
+
+              // Build source dir list
+              const srcDirs = [{ src: join(dataSrc, 'assets'), cache: join(genCache, 'assets') }]
+              const postsSrc = join(dataSrc, 'posts')
+              if (existsSync(postsSrc)) {
+                for (const slug of readdirSync(postsSrc)) {
+                  const d = join(postsSrc, slug)
+                  if (slug === 'index.json' || !existsSync(d) || !statSync(d).isDirectory()) continue
+                  srcDirs.push({ src: d, cache: join(genCache, 'post_attachment', slug) })
+                }
+              }
+              await compressAll(srcDirs)
+              // Compress background + avatar with aggressive settings (display-size-aware)
+              async function compressAggressive(srcDir, cacheDir, quality) {
+                if (!existsSync(srcDir)) return
+                for (const entry of readdirSync(srcDir, { withFileTypes: true })) {
+                  const n = entry.name
+                  if (n.startsWith('.') || n.endsWith('.yml')) continue
+                  const src = join(srcDir, n)
+                  if (entry.isFile() && IMG_RE.test(n)) {
+                    const base = parse(n).name
+                    mkdirSync(cacheDir, { recursive: true })
+                    try { await sharpMod(src).webp({ quality, effort: 6 }).toFile(join(cacheDir, `${base}.webp`)); totalCompressed++ } catch {}
+                    try { await sharpMod(src).avif({ quality: Math.max(20, quality - 25), effort: 6 }).toFile(join(cacheDir, `${base}.avif`)) } catch {}
+                  }
+                }
+              }
+              // Background: quality based on blur — more blur = more compression
+              const bgYml = join(dataSrc, 'background', 'background.yml')
+              let bgQuality = 60
+              try {
+                if (existsSync(bgYml)) {
+                  const bgText = readFileSync(bgYml, 'utf-8')
+                  const blurMatch = bgText.match(/^blur:\s*(\d+)/m)
+                  const blur = blurMatch ? Number(blurMatch[1]) : 0
+                  // Blur 0→70q, Blur 20→50q, Blur 50→35q
+                  bgQuality = Math.max(30, Math.min(75, 70 - blur * 0.8))
+                }
+              } catch {}
+              await compressAggressive(join(dataSrc, 'background'), join(genCache, 'data', 'background'), bgQuality)
+              // Avatar: small display size → aggressive compression
+              await compressAggressive(join(dataSrc, 'avatar'), join(genCache, 'data', 'avatar'), 50)
+
+              // Save cache
+              mkdirSync(genCache, { recursive: true })
+              writeFileSync(cacheFile, JSON.stringify(cacheMap), 'utf-8')
+              console.log('[vite-data] compression done:', totalCompressed, 'compressed,', totalSkipped, 'skipped')
+
+              // Build
+              execSync('npm run build', {
+                cwd: codeDir, timeout: 180000, encoding: 'utf-8', stdio: 'pipe',
+                env: { ...process.env, CHRONICLE_DATA_DIR: dataSrc, DATA_SOURCE: 'local' }
+              })
+              console.log('[vite-data] astro build OK')
+
+              // Copy gen-cache (compressed) + originals to dist
+              const distDir = join(codeDir, 'dist')
+              if (existsSync(genCache)) {
+                cpSync(genCache, distDir, { recursive: true, force: true })
+                console.log('[vite-data] gen-cache synced to dist')
+              }
+              // Copy background + avatar to dist/data/
+              for (const sub of ['background', 'avatar']) {
+                const src = join(dataSrc, sub)
+                if (existsSync(src)) {
+                  cpSync(src, join(distDir, 'data', sub), { recursive: true, force: true })
+                  console.log('[vite-data]', sub, 'synced to dist')
+                }
+              }
+              // Copy original assets to dist/assets/ for /assets/photo.jpg requests
+              const srcAssets = join(dataSrc, 'assets')
+              if (existsSync(srcAssets)) {
+                cpSync(srcAssets, join(distDir, 'assets'), { recursive: true, force: true })
+                console.log('[vite-data] originals synced to dist/assets')
+              }
+              // Copy post images to dist/post/<slug>/
+              if (existsSync(postsSrc)) {
+                for (const slug of readdirSync(postsSrc)) {
+                  const pd = join(postsSrc, slug)
+                  if (slug === 'index.json' || !existsSync(pd) || !statSync(pd).isDirectory()) continue
+                  const dst = join(distDir, 'post_attachment', slug)
+                  mkdirSync(dst, { recursive: true })
+                  cpSync(pd, dst, { recursive: true, force: true,
+                    filter: src => !src.endsWith('.md') && !src.endsWith('index.json') && !src.includes('/.') })
+                }
+                console.log('[vite-data] post attachments synced to dist/post_attachment')
+              }
+              // Copy about attachments + compress them
+              const aboutSrc = join(dataSrc, '__about__')
+              if (existsSync(aboutSrc)) {
+                await compressAggressive(aboutSrc, join(genCache, 'about'), 65)
+                const dst = join(distDir, 'about')
+                mkdirSync(dst, { recursive: true })
+                cpSync(aboutSrc, dst, { recursive: true, force: true,
+                  filter: src => !src.endsWith('.md') && !src.includes('/.') })
+                console.log('[vite-data] about synced to dist/about')
+              }
+              // Read port
+              let port = 4321
+              try { const ws = JSON.parse(readFileSync(join(repoRoot, '.chronicle', 'workspace.json'), 'utf-8')); if (ws.previewPort) port = ws.previewPort } catch {}
+              // Serve dist/ via simple static server (no SSR, no middleware)
+              const { createServer: _cs } = await import('node:http')
+              const { extname: _en, join: _jn } = await import('node:path')
+              const mimes = { '.html':'text/html','.css':'text/css','.js':'application/javascript','.json':'application/json','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml','.webp':'image/webp','.ico':'image/x-icon','.woff2':'font/woff2' }
+              previewServer = _cs((req, res) => {
+                let url = decodeURIComponent(req.url.split('?')[0])
+                if (url === '/') url = '/index.html'
+                let fp = _jn(distDir, url)
+                if (existsSync(fp) && statSync(fp).isDirectory()) fp = _jn(fp, 'index.html')
+                if (!existsSync(fp) || !statSync(fp).isFile()) fp = _jn(distDir, 'index.html')
+                res.setHeader('Content-Type', mimes[_en(fp)] || 'application/octet-stream')
+                try { res.end(readFileSync(fp)) } catch { res.statusCode = 404; res.end('Not found') }
+              }).listen(port)
+              previewServer.unref()
+              const previewUrl = `http://localhost:${port}`
+              console.log('[vite-data] preview server at', previewUrl)
+              return ok(res, { success: true, previewUrl })
+            } catch (e) {
+              console.error('[vite-data] build preview failed:', e.message)
+              return json(res, { success: false, error: e.message }, 500)
+            }
+          }
+
+          // ── POST /api/build/preview/stop ────────────────
+          if (method === 'POST' && urlPath === '/api/build/preview/stop') {
+            if (previewServer) { try { previewServer.close() } catch {}; previewServer = null }
+            return ok(res, { success: true })
           }
 
           // ── POST /api/git/sync ─────────────────────────

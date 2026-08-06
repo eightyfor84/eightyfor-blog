@@ -41,16 +41,21 @@ export async function triggerBuild(opts: BuildOptions): Promise<void> {
   const bt = nc.startBuild(`${t('settings.building')} · ${opts.source}`)
   if (!bt) return
   const { nid, clientBuildId } = bt
-  nc.update(nid, { message: nc.buildDetail(detailLabels, clientBuildId, opts.source) })
+  const baseMsg = nc.buildDetail(detailLabels, clientBuildId, opts.source)
+  nc.update(nid, { message: baseMsg })
 
   if (!isElectron()) {
-    nc.update(nid, {
-      state: 'failed',
-      level: 'error',
-      title: t('settings.buildFailed'),
-      message: 'Build requires Electron runtime.',
-    })
-    throw new Error('Build requires Electron runtime.')
+    // Browser mode: use vite dev server endpoint
+    try {
+      const resp = await fetch('/api/build/preview', { method: 'POST' })
+      const data = await resp.json()
+      if (!resp.ok || !data.success) throw new Error(data.error || 'Build failed')
+      nc.update(nid, { state: 'completed', level: 'success', title: t('settings.buildCompleted'), message: baseMsg })
+      return
+    } catch (e: any) {
+      nc.update(nid, { state: 'failed', level: 'error', title: t('settings.buildFailed'), message: e.message })
+      throw e
+    }
   }
 
   try {
@@ -61,8 +66,6 @@ export async function triggerBuild(opts: BuildOptions): Promise<void> {
       postId: opts.postId,
       reason: opts.reason || 'publish',
     })
-
-    const baseMsg = nc.buildDetail(detailLabels, clientBuildId, opts.source)
 
     if (!result.success) {
       throw new Error(result.error || 'Build failed')

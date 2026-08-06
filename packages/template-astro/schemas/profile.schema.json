@@ -89,6 +89,8 @@
       "type": "string",
       "x-widget": "image-picker",
       "x-picker-only": true,
+      "x-persist": false,
+      "x-target-dir": "data/avatar",
       "x-group": "profile",
       "x-order": 2,
       "title": {
@@ -157,28 +159,6 @@
       "title": {
         "en": "Links",
         "zh-CN": "链接"
-      }
-    },
-    "avatar": {
-      "type": "string",
-      "x-widget": "image-picker",
-      "x-tab": "profile-main",
-      "x-group": "profile",
-      "x-order": 1,
-      "title": {
-        "en": "Avatar",
-        "zh-CN": "头像"
-      }
-    },
-    "avatarSource": {
-      "type": "string",
-      "x-widget": "hidden",
-      "x-tab": "profile-main",
-      "x-group": "profile",
-      "x-order": 2,
-      "title": {
-        "en": "Avatar Source",
-        "zh-CN": "头像源文件"
       }
     }
   }

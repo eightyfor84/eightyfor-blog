@@ -15,7 +15,7 @@ import katex from 'katex';
 import { Icons } from './icons';
 import DOMPurify from 'dompurify';
 import { JSDOM } from 'jsdom';
-import { SANITIZE_CONFIG } from '@chronicle/shared/utils';
+import { SANITIZE_CONFIG } from '@chronicle/shared/src/utils';
 
 // DOMPurify needs a DOM window at build time (SSG runs in Node.js).
 const purifyWindow = new JSDOM('').window as unknown as Window & typeof globalThis;
@@ -55,10 +55,10 @@ function encodeFilename(url: string): string {
 const _normalizeLink = md.normalizeLink.bind(md);
 md.normalizeLink = (url: string) => {
   if (url.startsWith('asset://')) return '/assets/' + encodeURI(url.slice(8));
-  if (url.startsWith('post://')) return '/post/' + url.slice(7);
-  // Relative path → resolve to post directory
+  if (url.startsWith('post://')) return '/post_attachment/' + url.slice(7);
+  // Relative path → resolve to post attachment directory
   if (_currentPostId && !url.startsWith('/') && !/^[a-zA-Z][\w+.-]*:/.test(url)) {
-    const base = _currentPostId === '__about__' ? '/about' : `/post/${_currentPostId}`;
+    const base = _currentPostId === '__about__' ? '/about' : `/post_attachment/${_currentPostId}`;
     return `${base}/${encodeFilename(url)}`;
   }
   return _normalizeLink(url);
@@ -502,16 +502,25 @@ function renderImageWrapper(src: string, alt?: string, title?: string, width?: s
       </div>
     </div>`;
   }
-  // title attribute → caption (markdown: "title text" in quotes after URL)
   const captionHtml = (title && title.trim()) ? `<div class="md-image-caption">${escapeAttr(title.trim())}</div>` : '';
-  // Apply size to wrapper, not <img> — wrapper is the "viewport", img fills it.
   const cssDim = (v: string) => v ? v.includes('%') ? v : v + 'px' : '';
   const wrapperStyle = (width || height)
     ? ` style="${width ? 'width:' + cssDim(width) + ';' : ''}${height ? 'height:' + cssDim(height) + ';' : ''}max-width:100%"`
     : '';
+
+  // Generate <picture> with WebP/AVIF sources for images with known extensions (not SVG or external)
+  const hasExt = /\.(jpg|jpeg|png|gif)(\?|$)/i.test(src);
+  const imgTag = hasExt
+    ? `<picture>
+      <source srcset="${escapeAttr(src.replace(/\.(jpg|jpeg|png|gif)$/i, '.avif'))}" type="image/avif">
+      <source srcset="${escapeAttr(src.replace(/\.(jpg|jpeg|png|gif)$/i, '.webp'))}" type="image/webp">
+      <img src="${escapeAttr(src)}" alt="${escapeAttr(alt || '')}" class="md-image" loading="lazy" decoding="async" onload="this.classList.add('loaded')" onerror="this.closest('.md-image-wrapper').dataset.error='1'" />
+    </picture>`
+    : `<img src="${escapeAttr(src)}" alt="${escapeAttr(alt || '')}" class="md-image" loading="lazy" decoding="async" onload="this.classList.add('loaded')" onerror="this.closest('.md-image-wrapper').dataset.error='1'" />`;
+
   return `<div class="md-image-container">
     <div class="md-image-wrapper" data-placeholder-text="Loading..."${wrapperStyle}>
-      <img src="${escapeAttr(src)}" alt="${escapeAttr(alt || '')}" class="md-image" loading="lazy" decoding="async" onload="this.classList.add('loaded')" onerror="this.closest('.md-image-wrapper').dataset.error='1'" />
+      ${imgTag}
       <span class="md-placeholder-text" aria-hidden="true">Loading...</span>
     </div>
     ${captionHtml}
@@ -612,11 +621,12 @@ function postProcessHtml(html: string): string {
       return renderImageWrapper(src, extractAttr(_m, 'alt'), extractAttr(_m, 'title'), extractAttr(_m, 'width'), extractAttr(_m, 'height'));
     }
   );
-  // Also handle inline images (not wrapped in <p>)
+  // Also handle inline images (not wrapped in <p>), skip those inside <picture>
   result = result.replace(
-    /<img\s[^>]*src="([^"]+)"[^>]*>/g,
-    (_m, src) => {
-      if (_m.includes('class="md-image"')) return _m;
+    /(?:<picture>[\s\S]*?<\/picture>)|(<img\s[^>]*src="([^"]+)"[^>]*>)/g,
+    (_m, imgTag, src) => {
+      if (!imgTag) return _m; // <picture> block — leave as-is
+      if (_m.includes('class="md-image"')) return imgTag;
       return renderImageWrapper(src, extractAttr(_m, 'alt'), extractAttr(_m, 'title'), extractAttr(_m, 'width'), extractAttr(_m, 'height'));
     }
   );

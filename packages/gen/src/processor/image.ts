@@ -65,6 +65,49 @@ export interface BackgroundResult extends CompressResult {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// Batch compression: scan assets/ and posts/ → gen-cache
+// ═══════════════════════════════════════════════════════════════
+
+const IMAGE_EXTS = /\.(jpg|jpeg|png|gif|svg)$/i
+
+export interface BatchCompressResult {
+  total: number; compressed: number; skipped: number; errors: string[]
+}
+
+export async function batchCompress(options: {
+  sourceDir: string; cacheDir: string
+}): Promise<BatchCompressResult> {
+  const { sourceDir, cacheDir } = options
+  const result: BatchCompressResult = { total: 0, compressed: 0, skipped: 0, errors: [] }
+  if (!fs.existsSync(sourceDir)) return result
+
+  for (const entry of fs.readdirSync(sourceDir, { withFileTypes: true })) {
+    const name = entry.name
+    if (name.startsWith('.') || name === 'index.md' || name === 'index.json') continue
+
+    const src = path.join(sourceDir, name)
+    if (entry.isDirectory()) {
+      const sub = await batchCompress({ sourceDir: src, cacheDir: path.join(cacheDir, name) })
+      result.total += sub.total; result.compressed += sub.compressed
+      result.skipped += sub.skipped; result.errors.push(...sub.errors)
+    } else if (IMAGE_EXTS.test(name)) {
+      result.total++
+      const base = path.parse(name).name
+      const out = cacheDir
+      if (!fs.existsSync(out)) fs.mkdirSync(out, { recursive: true })
+      try {
+        await sharp(src).webp({ quality: 80, effort: 4 }).toFile(path.join(out, `${base}.webp`))
+        result.compressed++
+      } catch (e: any) { result.errors.push(`${name}: ${e.message}`) }
+      try {
+        await sharp(src).avif({ quality: 55, effort: 4 }).toFile(path.join(out, `${base}.avif`))
+      } catch (e: any) {}
+    }
+  }
+  return result
+}
+
+// ═══════════════════════════════════════════════════════════════
 // Helpers
 // ═══════════════════════════════════════════════════════════════
 

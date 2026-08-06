@@ -173,11 +173,23 @@ export function useSchemaForm(schemaId: string) {
         ? (Array.isArray(data.value) ? data.value : [])
         : { ...data.value as Record<string, any> }
 
+      // Strip fields that have their own persistence (x-persist: false)
+      if (!isArraySchema && schema.value?.properties) {
+        for (const [key, prop] of Object.entries(schema.value.properties as Record<string, any>)) {
+          if (prop['x-persist'] === false) {
+            delete payload[key]
+            delete payload[`${key}Meta`]
+          }
+        }
+      }
+
       // Inject meta refs into payload (e.g. backgroundMeta ← metaRefs.background)
       if (!isArraySchema) {
         for (const [key, meta] of Object.entries(metaRefs.value)) {
           if (meta) {
             const metaKey = `${key}Meta`
+            const prop = schema.value?.properties?.[key] as Record<string, any> | undefined
+            if (prop?.['x-persist'] === false) continue // skip self-persisting fields
             payload[metaKey] = typeof meta === 'string' ? meta : JSON.stringify(meta)
           }
         }

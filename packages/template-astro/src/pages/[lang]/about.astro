@@ -27,32 +27,25 @@ const aboutEnabled = featureFlags.aboutPage !== false;
 const profile = getProfile() as Record<string, any>;
 const showProfileCard = settings?.about?.showProfileCard !== false;
 
-// About markdown — match localDataSource.ts resolveDataDir()
+// About markdown — same pipeline as post rendering
+import { setRenderPostId } from '../../utils/chronicleMarkdown';
 const DATA_DIR = process.env.CHRONICLE_DATA_DIR
   ? path.resolve(process.env.CHRONICLE_DATA_DIR)
   : path.resolve(process.cwd(), '..', '..', 'data');
-const aboutPath = path.join(DATA_DIR, 'about.md');
+const aboutPath = path.join(DATA_DIR, '__about__', 'index.md');
 
 let aboutHtml = '';
 let lastModified: string | null = null;
 try {
   if (fs.existsSync(aboutPath)) {
     const raw = fs.readFileSync(aboutPath, 'utf-8');
-    let content = raw;
-    const lines = raw.split('\n');
-    if (lines[0]?.trim() === '---') {
-      let i = 1;
-      while (i < lines.length && lines[i].trim() !== '---') {
-        const m = lines[i].match(/^lastModified:\s*(.+)/);
-        if (m) lastModified = m[1].trim();
-        i++;
-      }
-      content = lines.slice(i + 1).join('\n');
-    }
-    if (!lastModified) {
-      const stat = fs.statSync(aboutPath);
-      lastModified = stat.mtime.toISOString().slice(0, 10);
-    }
+    const bodyMatch = raw.match(/^---\n[\s\S]*?\n---\n\n?/);
+    const content = bodyMatch ? raw.slice(bodyMatch[0].length) : raw;
+    const lastModMatch = raw.match(/^lastModified:\s*(.+)$/m);
+    if (lastModMatch) lastModified = lastModMatch[1].trim();
+    if (!lastModified) lastModified = fs.statSync(aboutPath).mtime.toISOString().slice(0, 10);
+
+    setRenderPostId('__about__');
     aboutHtml = renderChronicleMarkdown(content);
   }
 } catch {}
@@ -82,16 +75,15 @@ const metaDescription = profile?.bio
             showProfileCard && (profile?.name || profile?.avatar || profile?.bio) ? (
               <div class="about-profile-card">
                 {profile.avatar ? (
-                  <img
-                    class="about-avatar"
-                    src={profile.avatar}
-                    alt={profile.name || ''}
-                    loading="lazy"
-                    decoding="async"
-                    style="cursor:pointer"
-                    data-source={(profile.avatarSource && !profile.avatarSource.startsWith('/') && !profile.avatarSource.startsWith('http')) ? `/server/data/upload/${profile.avatarSource}` : (profile.avatarSource || profile.avatar)}
-                    onclick="window.__openFilePreview?.({ url: event.target.dataset.source || event.target.src, title: event.target.alt, type: 'image' })"
-                  />
+                  profile.avatar.match(/\.(jpg|jpeg|png|gif)$/i) ? (
+                    <picture>
+                      <source srcset={profile.avatar.replace(/\.(jpg|jpeg|png|gif)$/i, '.avif')} type="image/avif" />
+                      <source srcset={profile.avatar.replace(/\.(jpg|jpeg|png|gif)$/i, '.webp')} type="image/webp" />
+                      <img class="about-avatar" src={profile.avatar} alt={profile.name || ''} loading="lazy" decoding="async" style="cursor:pointer" onclick="window.__openFilePreview?.({ url: event.target.src, title: event.target.alt, type: 'image' })" />
+                    </picture>
+                  ) : (
+                    <img class="about-avatar" src={profile.avatar} alt={profile.name || ''} loading="lazy" decoding="async" style="cursor:pointer" onclick="window.__openFilePreview?.({ url: event.target.src, title: event.target.alt, type: 'image' })" />
+                  )
                 ) : null}
                 <div class="about-profile-body">
                   {profile.name ? <h2 class="about-name">{profile.name}</h2> : null}
