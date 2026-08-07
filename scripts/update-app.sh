@@ -145,12 +145,31 @@ PRE_MERGE_REF=$(git rev-parse HEAD)
 
 MERGE_OUTPUT=$(git merge "$UPSTREAM_BRANCH" --no-edit --allow-unrelated-histories -X theirs 2>&1) && MERGE_OK=true || MERGE_OK=false
 if $MERGE_OK; then
-  success "Merge complete — data/ protected by .gitattributes"
+  success "Merge complete"
 else
   echo -e "${RED}$(echo "$MERGE_OUTPUT" | tail -20)${NC}"
   err "Merge failed unexpectedly."
   say "To abort:  git merge --abort"
   exit 1
+fi
+
+# ── Clean up data/ files introduced by upstream ───────────────
+#
+# .gitattributes merge=ours handles conflicts on existing files.
+# But files that ONLY exist in upstream (no local counterpart)
+# are not conflicts — git adds them. This removes those.
+
+NEW_DATA_FILES=$(git diff --name-only --diff-filter=A "$PRE_MERGE_REF" -- data/ 2>/dev/null || true)
+if [ -n "$NEW_DATA_FILES" ]; then
+  say ""
+  say "🧹 Removing data/ files introduced by upstream…"
+  echo "$NEW_DATA_FILES" | while read -r f; do
+    say "   rm $f"
+    git rm --cached -- "$f" 2>/dev/null || true
+    rm -f "$f"
+  done
+  # Also clean untracked data/ files
+  git clean -fd -- data/ 2>/dev/null || true
 fi
 
 # ── Report ───────────────────────────────────────────────────
