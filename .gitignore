@@ -13,6 +13,11 @@ node_modules/
 # Agent
 CLAUDE.md
 
+# Astro — track type declarations, ignore dev artifacts
+.astro/collections/
+.astro/dev.json
+.astro/settings.json
+
 # temp assets
 data/branding
 dist/
