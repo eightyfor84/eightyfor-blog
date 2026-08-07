@@ -9,7 +9,9 @@ const dataDir = process.env.CHRONICLE_DATA_DIR || join(process.cwd(), '..', '..'
 const coverHtmlPath = join(dataDir, 'homepage-cover.html');
 const raw = existsSync(coverHtmlPath) ? readFileSync(coverHtmlPath, 'utf-8') : '';
 const coverHtml = raw
-  ? raw.replace('{{themePostPath}}', themePostPath || '')
+  ? raw
+      .replace(/\{\{themePostPath\}\}/g, themePostPath || '')
+      .replace(/\{\{locale\}\}/g, locale || '')
   : '';
 
 const siteTitle = siteName || 'Chronicle';
@@ -41,7 +43,7 @@ const FALLBACK_COVER_HTML = `<style>
 </div>`;
 ---
 
-<div class:list={['home-cover-deck', isSplit ? 'home-cover-deck--split' : '']}>
+<div class:list={['home-cover-deck', isSplit ? 'home-cover-deck--split' : '']} data-locale={locale}>
   <div class:list={['hero', isSplit ? 'hero--split' : 'home-cover-hero']} id={isSplit ? 'split-hero' : undefined}>
     <Fragment set:html={coverHtml || FALLBACK_COVER_HTML} />
   </div>
