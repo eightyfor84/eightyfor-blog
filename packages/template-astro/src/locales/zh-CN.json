@@ -103,8 +103,10 @@
     }
   },
   "friends": {
-    "title": "友人",
-    "viewStory": "查看故事"
+    "title": "朋友",
+    "viewStory": "查看故事",
+    "learnMore": "点击了解更多",
+    "disabled": "该页面已被功能开关关闭。"
   },
   "settings": {
     "locale": {

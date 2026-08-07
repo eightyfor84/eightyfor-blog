@@ -253,6 +253,8 @@ export interface LocalSettings {
     singleColumnHomepage?: boolean;
     cardVisibility?: { author?: boolean; taxonomy?: boolean; activity?: boolean };
     gaMeasurementId?: string;
+    icpNumber?: string;
+    defaultPerformanceMode?: string;
     comment?: CommentConfig;
 }
 
@@ -498,6 +500,7 @@ export function getPublicSettings(): LocalSettings {
         cardVisibility: raw.cardVisibility || {},
         gaMeasurementId: raw.gaMeasurementId,
         icpNumber: raw.icpNumber || '',
+        defaultPerformanceMode: raw.defaultPerformanceMode || 'auto',
         comment: raw.comment || {},
     };
 }

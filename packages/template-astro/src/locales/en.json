@@ -104,7 +104,9 @@
   },
   "friends": {
     "title": "Friends",
-    "viewStory": "View Story"
+    "viewStory": "View Story",
+    "learnMore": "Click to learn More",
+    "disabled": "This page has been disabled by the feature switch."
   },
   "settings": {
     "locale": {

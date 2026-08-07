@@ -1,10 +1,10 @@
 ---
 title: Site Configuration
 date: 2026-08-07T07:39:14.750Z
-updatedAt: 2026-08-07T10:30:48.208Z
+updatedAt: 2026-08-07T11:22:15.027Z
 tags: guide, site
 author: Eightyfor
-aiGenerated: false
+aiGenerated: true
 status: published
 font: sans
 ---
@@ -43,19 +43,38 @@ Only relevant for sites hosted in mainland China. When provided, it renders in t
 
 | Field | Description | Datatype | Sample |
 | --- | --- | --- | --- |
-| `homepageMode` | Homepage layout mode | `split`, `cover` or `cards`  | `split` |
+| `homepageMode` | Homepage layout mode | `"split"` \| `"cover"` \| `"cards"`  | `split` |
 | `singleColumnHomepage` | Force the post stream into a single narrow column regardless of screen width. | boolean | `false` |
 | `cardVisibility` | Selectively hide sidebar cards on the homepage. Keys: `author`, `taxonomy`, `activity`. | object | `{ author: false }` |
 
 #### `homepageMode`
 
-The default `"split"` layout places a sidebar of cards on the left and the post stream on the right. This is information-dense and works well for most sites. A single-column mode centers the post list for a minimal, blog-focused feel.
+- **Split (default):**  Combining the features of other 2 modes. Showing a cover with Hero on first screen, and the information card peeking slighty from the bottom. 
+- **Cards:** Streamed info cards, including the latest articles, author info, and more.
+- **Cover:** A full screen cover (freely editable via HTML), used to display site title and more.
+
+**Preview:**
+
+Cards:
+![Cards Mode](image-2.png "Homepage in cards mode" =70%x)
+Cover:
+![Cover Mode](image-4.png "Homepage in cover mode" =70%x)
+Split:
+![Split Mode](image-3.png "Homepage in split mode, scroll down to view cards" =70%x)
+
 
 #### `singleColumnHomepage`
+> Only in `cards` and `split` mode
 
-When `true`, forces the post list into a narrow reading column even on wide screens. Independent of `homepageMode` — you can have a split layout with a single-column post area. Useful for text-heavy blogs where readability matters more than information density.
+When `true`, forces the stream cards into a narrow reading column even on wide screens. 
+
+![Single Column](image-5.png "Split homepage in Single Column" =70%x)
+
+![Multi Column](image-6.png "Split homepage in Multiple Column" =70%x)
+
 
 #### `cardVisibility`
+> Only in `cards` and `split` mode
 
 Controls which sidebar cards appear. The available keys are `author` (the profile card), `taxonomy` (tag cloud and collection links), and `activity` (recent comments and interactions). Set a key to `false` to hide that card. Omitted keys default to visible. This is cosmetic only — the underlying data is unaffected.
 
@@ -64,13 +83,15 @@ Controls which sidebar cards appear. The available keys are `author` (the profil
 | Field | Description | Datatype | Sample |
 | --- | --- | --- | --- |
 | `frontendTheme` | Color scheme. `"follow"` matches the visitor's OS preference. | `"follow"` \| `"light"` \| `"dark"` | `follow` |
-| `frontendAccent` | Accent color in hex. Used for links, buttons, selection highlights, and the homepage gradient. | string | `#36a32e` |
-| `frontendFont` | Body typeface family. Affects all text across the site. | `"sans"` \| `"serif"` \| `"mono"` | `sans` |
-| `frontendLocale` | UI language for navigation, buttons, dates, and search. Does not translate post content. | `"follow"` \| `"en"` \| `"zh"` | `follow` |
+| `frontendAccent` | Accent color in hex. Used for links, buttons, selection highlights, and the homepage gradient. | string (valid #Hex code for RGB) | `#36a32e` |
+| `frontendFont` | Body typeface family. Affects all text (except post content) across the site. | `"sans"` \| `"serif"` \| `"mono"` | `sans` |
+| `frontendLocale` | Default UI language for navigation, buttons, dates, and search. Does not translate post content. | `"follow"` \| `"en"` \| `"zh"` | `follow` |
 
 #### `frontendTheme`
 
 Picks the color scheme. `"follow"` (default) respects the visitor's OS-level light/dark preference and avoids a jarring theme flash. `"light"` and `"dark"` force a specific mode regardless of system setting.
+
+![Dark Mode Homepage](image-7.png "Homepage in Dark Mode" =70%x)
 
 #### `frontendAccent`
 
@@ -80,19 +101,31 @@ A hex color code that tints links, buttons, text selection, and the homepage her
 
 Sets the reading typeface. `"sans"` is clean and modern — the default. `"serif"` evokes a literary, traditional feel. `"mono"` suits technical or code-oriented sites. Headings, code blocks, and UI chrome use separate styling and are not affected by this setting.
 
+*This does not affect the font in posts.*   
+You can configure the font for a single article in the CMS editor or its frontmatter.
+![Post Page in Serif Font](image-10.png "Post Page in Serif Font, Post not affected" =70%x)
+
 #### `frontendLocale`
 
-Controls the UI language for navigation labels, button text, date formatting, and the search interface. `"follow"` detects from the browser's `Accept-Language` header — the best choice for a multilingual audience. This does NOT translate post content; each post's language is determined by its `[lang]` route segment.
+Controls the default UI language for navigation labels, button text, date formatting, and the search interface. `"follow"` detects from the browser's `Accept-Language` header — the best choice for a multilingual audience. This does NOT translate post content; each post's language is fixed.
+
+
 
 ### Performance
 
 | Field | Description | Datatype | Sample |
 | --- | --- | --- | --- |
-| `defaultPerformanceMode` | Image quality strategy. `"auto"` balances quality and file size based on viewport. | `"auto"` \| `"performance"` \| `"quality"` | `auto` |
+| `defaultPerformanceMode` | Default visual-effects tier — controls backdrop blur, glow, and GPU-composited effects. User can override via a toggle in the site header. | `"auto"` \| `"full"` \| `"reduced"` | `auto` |
 
 #### `defaultPerformanceMode`
 
-Trades image quality against page weight. `"auto"` (default) balances based on viewport and device pixel ratio — the right choice 95% of the time. `"performance"` serves smaller, lower-quality images for visitors on metered connections. `"quality"` always requests high-resolution assets. The CI/CD pipeline handles compression; this setting tells the template which variant to load.
+Sets the default visual-effects tier before the user makes an explicit choice. This controls CSS effects like backdrop blur, box shadows, glow overlays, and other GPU-composited work — **not image quality or compression** (those are handled at build time by CI/CD).
+
+- **`auto` (default):** Detects device capability at runtime. Fewer than 4 CPU cores, less than 4 GB memory, or `prefers-reduced-motion` → behaves like `reduced`. Otherwise → `full`. Right choice 95% of the time.
+- **`full`:** All visual effects enabled unconditionally. Best on desktop and flagship phones; may cause fan spin on low-end devices.
+- **`reduced`:** No backdrop blur, no glow, no expensive CSS filters. Lighter and faster on older hardware.
+
+The user's choice is saved to `localStorage` and persists across sessions. This setting only determines the starting point before the user toggles.
 
 ### Feature Toggles
 
@@ -148,13 +181,5 @@ Master switch for analytics. When `true` AND `gaMeasurementId` is set, the Googl
 #### `gaMeasurementId`
 
 Your Google Analytics 4 measurement ID in the format `G-XXXXXXXXXX`. The script loads asynchronously via the `astro-google-analytics` integration and does not block page rendering. Leave empty to disable GA entirely.
-
-## How settings relate to other configs
-
-Site config is the foundation. The other configuration files depend on it:
-
-- `post://profile-config` — the author card appears on the homepage only if `cardVisibility.author` is not explicitly `false`. The profile's `name` is also used as the fallback author for posts that don't specify one.
-- `post://friend-config` — the entire `/friends` page is gated by `friendsPage`. Card colors come from `frontendAccent` and the active theme.
-- `post://c8n-config` — the collection sidebar is gated by `collectionPage`. Nav styling inherits from `frontendFont` and `frontendTheme`.
 
 Start with site config. Get the title, description, and appearance right. Then move on to profile, friends, and collections — each builds on what you set here.

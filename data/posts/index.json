@@ -10,7 +10,7 @@
     "summary": "",
     "font": "sans",
     "author": "Eightyfor",
-    "aiGenerated": false,
+    "aiGenerated": true,
     "type": "article",
     "collection": "Chronicle Guide",
     "collectionPath": "Chronicle Guide / Configuration"
@@ -26,7 +26,7 @@
     "summary": "",
     "font": "sans",
     "author": "Eightyfor",
-    "aiGenerated": false,
+    "aiGenerated": true,
     "type": "article",
     "collection": "Chronicle Guide",
     "collectionPath": "Chronicle Guide / Configuration"
@@ -73,7 +73,7 @@
     "summary": "",
     "font": "sans",
     "author": "Eightyfor",
-    "aiGenerated": false,
+    "aiGenerated": true,
     "type": "article",
     "collection": "Chronicle Guide",
     "collectionPath": "Chronicle Guide / Configuration"
@@ -89,7 +89,7 @@
     "summary": "",
     "font": "sans",
     "author": "Eightyfor",
-    "aiGenerated": false,
+    "aiGenerated": true,
     "type": "article",
     "collection": "Chronicle Guide",
     "collectionPath": "Chronicle Guide / Configuration"
