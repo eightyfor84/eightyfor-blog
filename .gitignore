@@ -16,6 +16,7 @@ CLAUDE.md
 # temp assets
 data/branding
 dist/
+.chronicle/gen-cache
 
 # REMOVE when deploying to production
 site.legacy/
