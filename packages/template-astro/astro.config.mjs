@@ -10,6 +10,7 @@ const __dirname = dirname(__filename);
 const pkg = JSON.parse(readFileSync(join(__dirname, 'package.json'), 'utf-8'));
 
 export default defineConfig({
+  site: process.env.CHRONICLE_SITE_URL || 'http://localhost:4321',
   output: 'static',
   // Astro 7 native prefetch on hover
   prefetch: { defaultStrategy: 'hover' },

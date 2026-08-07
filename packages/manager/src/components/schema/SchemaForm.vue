@@ -230,7 +230,7 @@ function handleReset() { emit('reset') }
   padding: 0.6rem;
   border-radius: 12px;
   background: var(--component-bg-blur);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
   border: 1px solid var(--border-color);
   z-index: 100;
 }

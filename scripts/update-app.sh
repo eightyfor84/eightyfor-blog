@@ -8,11 +8,9 @@
 #   bash scripts/update-app.sh
 #
 # Strategy:
-#   Everything outside data/  → upstream wins (framework update)
-#   Everything inside data/   → local wins (your content, always)
-#
-#   Achieved via .git/info/attributes (data/* merge=ours) + -X theirs.
-#   .git/info/attributes is not tracked — upstream merges can't touch it.
+#   Backup data/ → merge upstream → restore data/ from backup.
+#   No merge strategies, no .gitattributes — just replace the
+#   entire data/ tree with the pre-merge version. Simple and reliable.
 #
 # The upstream remote is auto-detected from git:
 #   1. "upstream" remote if present
@@ -34,6 +32,13 @@ success(){ say "✓ $1" "$GREEN"; }
 warn()   { say "⚠ $1" "$YELLOW"; }
 err()    { say "✗ $1" "$RED"; }
 
+cleanup() {
+  if [ -n "${BACKUP_DIR:-}" ] && [ -d "$BACKUP_DIR" ]; then
+    rm -rf "$BACKUP_DIR"
+  fi
+}
+trap cleanup EXIT
+
 # ── Locate repo root ─────────────────────────────────────────
 
 REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || {
@@ -44,9 +49,9 @@ cd "$REPO_ROOT"
 
 # ── Pre-flight checks ────────────────────────────────────────
 
-# Uncommitted changes
-if ! git diff-index --quiet HEAD -- 2>/dev/null; then
-  warn "You have uncommitted changes — these may cause merge conflicts."
+# Uncommitted changes (excluding data/ — we handle that separately)
+if ! git diff-index --quiet HEAD -- . ':!data' 2>/dev/null; then
+  warn "You have uncommitted changes outside data/ — these may cause merge conflicts."
   read -rp "        Continue anyway? [y/N] " answer
   [[ "${answer,,}" =~ ^y ]] || exit 0
 fi
@@ -86,7 +91,7 @@ UPSTREAM_BRANCH="$UPSTREAM_REMOTE/main"
 if ! git rev-parse --verify "$UPSTREAM_BRANCH" &>/dev/null; then
   UPSTREAM_BRANCH="$UPSTREAM_REMOTE/master"
 fi
-UPSTREAM_BRANCH_NAME=$(echo "$UPSTREAM_BRANCH" | cut -d/ -f2-)  # "main" or "master"
+UPSTREAM_BRANCH_NAME=$(echo "$UPSTREAM_BRANCH" | cut -d/ -f2-)
 
 if [ "$CURRENT_BRANCH" != "$UPSTREAM_BRANCH_NAME" ]; then
   say "→ Switching from $CURRENT_BRANCH to $UPSTREAM_BRANCH_NAME…"
@@ -97,26 +102,7 @@ if [ "$CURRENT_BRANCH" != "$UPSTREAM_BRANCH_NAME" ]; then
   }
 fi
 
-# ── One-time setup: merge driver for data/ ────────────────────
-#
-# Uses .git/info/attributes (NOT .gitattributes) so upstream
-# merges can never overwrite this configuration.
-
-GIT_ATTR=".git/info/attributes"
-ATTR_LINE="data/* merge=ours"
-
-if ! git config merge.ours.driver &>/dev/null; then
-  say "→ Configuring merge.ours.driver (one-time setup)…"
-  git config merge.ours.driver true
-fi
-
-if ! grep -qF "$ATTR_LINE" "$GIT_ATTR" 2>/dev/null; then
-  say "→ Adding data/* merge=ours to .git/info/attributes (one-time setup)…"
-  mkdir -p "$(dirname "$GIT_ATTR")"
-  echo "$ATTR_LINE" >> "$GIT_ATTR"
-fi
-
-# ── Fetch & merge ────────────────────────────────────────────
+# ── Fetch ────────────────────────────────────────────────────
 
 say ""
 say "┌──────────────────────────────────────────┐" "$BOLD"
@@ -138,39 +124,59 @@ if [ "$UPSTREAM_COMMITS" -eq 0 ]; then
   exit 0
 fi
 
+# ── Backup data/ ─────────────────────────────────────────────
+
+say ""
+say "📦 Backing up data/…"
+
+BACKUP_DIR=$(mktemp -d)
+if [ -d data ]; then
+  cp -r data "$BACKUP_DIR/"
+  success "data/ backed up ($(du -sh data | cut -f1))"
+else
+  warn "No data/ directory found — nothing to back up"
+fi
+
+# ── Merge ────────────────────────────────────────────────────
+
+say ""
 say "🔀 Merging $UPSTREAM_BRANCH → $UPSTREAM_BRANCH_NAME ($UPSTREAM_COMMITS commit(s))"
-say "   data/* → local wins   |   everything else → upstream wins"
 
 PRE_MERGE_REF=$(git rev-parse HEAD)
 
 MERGE_OUTPUT=$(git merge "$UPSTREAM_BRANCH" --no-edit --allow-unrelated-histories -X theirs 2>&1) && MERGE_OK=true || MERGE_OK=false
-if $MERGE_OK; then
-  success "Merge complete"
-else
+if ! $MERGE_OK; then
   echo -e "${RED}$(echo "$MERGE_OUTPUT" | tail -20)${NC}"
-  err "Merge failed unexpectedly."
+  err "Merge failed."
   say "To abort:  git merge --abort"
   exit 1
 fi
+success "Merge complete"
 
-# ── Clean up data/ files introduced by upstream ───────────────
-#
-# .gitattributes merge=ours handles conflicts on existing files.
-# But files that ONLY exist in upstream (no local counterpart)
-# are not conflicts — git adds them. This removes those.
+# ── Restore data/ ────────────────────────────────────────────
 
-NEW_DATA_FILES=$(git diff --name-only --diff-filter=A "$PRE_MERGE_REF" -- data/ 2>/dev/null || true)
-if [ -n "$NEW_DATA_FILES" ]; then
-  say ""
-  say "🧹 Removing data/ files introduced by upstream…"
-  echo "$NEW_DATA_FILES" | while read -r f; do
-    say "   rm $f"
-    git rm --cached -- "$f" 2>/dev/null || true
-    rm -f "$f"
-  done
-  # Also clean untracked data/ files
-  git clean -fd -- data/ 2>/dev/null || true
+say ""
+say "🛡  Restoring data/ from backup…"
+
+# Remove whatever the merge put in data/
+git rm -rf --cached --quiet data/ 2>/dev/null || true
+rm -rf data/
+
+# Restore from backup
+if [ -d "$BACKUP_DIR/data" ]; then
+  cp -r "$BACKUP_DIR/data" data
+  git add data/
+else
+  # No local data/ existed — also remove any upstream data/ from the merge
+  say "   No local data/ to restore — upstream data/ removed"
 fi
+
+# Amend the merge commit so data/ is correct in history
+git commit --amend --no-edit 2>&1 || {
+  warn "Could not amend merge commit — data/ changes are staged, commit them manually."
+}
+
+success "data/ restored — your content is untouched"
 
 # ── Report ───────────────────────────────────────────────────
 
@@ -180,7 +186,7 @@ say "│  ✅  Update complete!                     │" "$GREEN"
 say "└──────────────────────────────────────────┘" "$GREEN"
 say ""
 say "  Framework updated to upstream."
-say "  Your data/ is exactly as it was before."
+say "  data/ = your local version (backup → restore)."
 say ""
 say "  Review the changes:"
 say "    git log ${PRE_MERGE_REF}..HEAD --oneline -- . ':!data'"

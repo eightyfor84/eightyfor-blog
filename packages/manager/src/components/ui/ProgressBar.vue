@@ -57,7 +57,7 @@ const pct = computed(() => {
   position: relative;
   height: 6px;
   border-radius: 3px;
-  background: var(--surface-alt, #2a2a2a);
+  background: var(--app-bg-primary);
   overflow: hidden;
 }
 

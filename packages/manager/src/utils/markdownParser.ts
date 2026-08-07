@@ -9,17 +9,21 @@ import { stripMarkdown, extractExcerpt } from '@chronicle/shared/utils'
 // Inline rendering (file cards, images, katex) still handled by processEmphasis/convertToHtml.
 const blockMd = new MarkdownIt({ html: true, linkify: false, typographer: false, breaks: false });
 
+// Resolve custom protocols
+function resolveAssetUrl(file: string): string { return '/data/assets/' + file }
+function resolvePostUrl(slug: string): string  { return '/editor/article?id=' + slug }
+
 // Allow custom protocols
 blockMd.validateLink = (url: string) => /^(https?:|file:|mailto:|\/|#|asset:|post:|[a-zA-Z][a-zA-Z0-9+.-]*:)/i.test(String(url));
 const _blockNormalizeLink = blockMd.normalizeLink.bind(blockMd);
 blockMd.normalizeLink = (url: string) => {
   if (url.startsWith('asset://')) {
-    const resolved = '/data/assets/' + url.slice(8);
+    const resolved = resolveAssetUrl(url.slice(8));
     console.log('[blockMd.normalizeLink] asset:// →', resolved);
     return resolved;
   }
   if (url.startsWith('post://')) {
-    const resolved = '/editor/article?id=' + url.slice(7);
+    const resolved = resolvePostUrl(url.slice(7));
     console.log('[blockMd.normalizeLink] post:// →', resolved);
     return resolved;
   }
@@ -233,13 +237,13 @@ export function processEmphasis(text: string, isHeading = false): string {
 	        type = 'File'
 	        displayType = 'Asset'
 	        icon = Icons.file
-	        targetUrl = '/data/assets/' + (payload || cleanUrl.slice(8))
+	        targetUrl = resolveAssetUrl(payload || cleanUrl.slice(8))
 	      } else if (scheme === 'post') {
 	        // post://slug → cross-post link
 	        type = 'Link'
 	        displayType = 'Post'
 	        icon = Icons.link
-	        targetUrl = '/editor/article?id=' + (payload || cleanUrl.slice(7))
+	        targetUrl = resolvePostUrl(payload || cleanUrl.slice(7))
 	      } else if (scheme === 'mailto') {
         type = 'Email';
         // show actual address (payload) as subtitle (remove protocol if present) and use person icon
@@ -294,6 +298,11 @@ export function processEmphasis(text: string, isHeading = false): string {
       else if (!type && ['zip', 'rar', '7z', 'tar', 'gz'].includes(ext)) {
         type = 'Archive'; icon = Icons.archive
       }
+
+      // Resolve asset:// and post:// in target URL
+      // (handles nested protocols e.g. link:post://slug → targetUrl should be /editor/article?id=slug)
+      if (targetUrl.startsWith('asset://')) targetUrl = resolveAssetUrl(targetUrl.slice(8))
+      else if (targetUrl.startsWith('post://')) targetUrl = resolvePostUrl(targetUrl.slice(7))
 
       if (type) {
         const safeName = escapeAttr(text)

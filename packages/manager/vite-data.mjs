@@ -360,9 +360,18 @@ export default function chronicleData() {
 
           // ── DELETE /api/files?path=xxx ──────────────────
           if (method === 'DELETE' && urlPath === '/api/files') {
-            const q = new URL(req.url || '', 'http://localhost').searchParams; const fp = String(q.get('path') || ''); const name = basename(decodeURIComponent(fp).split('/').pop() || '')
-            const abs = join(dataDir, 'assets', name); if (!abs.startsWith(join(dataDir, 'assets'))) return notFound(res, 'Invalid path')
-            if (existsSync(abs)) unlinkSync(abs); return json(res, null, 204)
+            const q = new URL(req.url || '', 'http://localhost').searchParams
+            let fp = String(q.get('path') || '').replace(/^\/+/, '')
+            if (!fp) return notFound(res, 'Missing path')
+            // Resolve asset:// protocol → data/assets/
+            if (fp.startsWith('asset://')) {
+              fp = join('data', 'assets', fp.slice('asset://'.length))
+            }
+            const abs = join(repoRoot, fp)
+            // Safety: ensure resolved path is within repoRoot
+            if (!abs.startsWith(repoRoot)) return notFound(res, 'Invalid path')
+            if (existsSync(abs)) unlinkSync(abs)
+            return json(res, null, 204)
           }
 
           // ── GET /api/files ─────────────────────────────
@@ -402,7 +411,12 @@ export default function chronicleData() {
           if (method === 'POST' && urlPath === '/api/copy-file') {
             const body = await readBody(req)
             if (!body?.source || !body?.dest) return notFound(res, 'Missing source or dest')
-            const srcAbs = join(repoRoot, String(body.source).replace(/^\//, ''))
+            let srcRel = String(body.source).replace(/^\//, '')
+            // Resolve asset:// protocol → data/assets/
+            if (srcRel.startsWith('asset://')) {
+              srcRel = join('data', 'assets', srcRel.slice('asset://'.length))
+            }
+            const srcAbs = join(repoRoot, srcRel)
             const destRel = String(body.dest).replace(/^\//, '')
             const destAbs = join(repoRoot, destRel)
             if (!existsSync(srcAbs)) return notFound(res, 'Source not found')
@@ -627,9 +641,16 @@ export default function chronicleData() {
           // ── POST /api/git/sync ─────────────────────────
           if (method === 'POST' && urlPath === '/api/git/sync') {
             try {
-              const result = execSync('git add -A && git commit -m "Sync: Chronicle save" && git push', {
-                cwd: repoRoot, timeout: 30000, encoding: 'utf-8'
-              })
+              // Stage all changes; skip commit if nothing to commit (avoids non-zero exit)
+              execSync('git add -A', { cwd: repoRoot, timeout: 15000, encoding: 'utf-8' })
+              try {
+                execSync('git diff --cached --quiet', { cwd: repoRoot, timeout: 5000 })
+              } catch {
+                // There are staged changes — commit them
+                execSync('git commit -m "Sync: Chronicle save"', { cwd: repoRoot, timeout: 15000, encoding: 'utf-8' })
+              }
+              // Push — 120s timeout for slow HTTPS connections
+              const result = execSync('git push', { cwd: repoRoot, timeout: 120000, maxBuffer: 10 * 1024 * 1024, encoding: 'utf-8' })
               console.log('[vite-data] git sync OK')
               return ok(res, { success: true, output: result })
             } catch (e) {

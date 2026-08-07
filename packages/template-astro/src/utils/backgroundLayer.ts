@@ -192,8 +192,8 @@ export async function stageBackgroundLayer(
     const shouldForceReload = layer.getAttribute('data-force-reload') === 'true';
     if (normalizedUrl === currentBackgroundUrl && layer.classList.contains('is-ready') && !shouldForceReload) {
       if (surfaceEl) {
-        const root = getComputedStyle(document.documentElement).getPropertyValue('--app-bg-primary') || '';
-        surfaceEl.style.background = root || 'transparent';
+        /* const root = getComputedStyle(document.documentElement).getPropertyValue('--app-bg-primary') || '';
+        surfaceEl.style.background = root || 'transparent'; */
       }
       if (overlayEl) {
         overlayEl.style.background = overlayValue || 'transparent';
@@ -268,8 +268,8 @@ export async function stageBackgroundLayer(
 
     // 第二步：设置surface
     if (surfaceEl) {
-      const root = getComputedStyle(document.documentElement).getPropertyValue('--app-bg-primary') || '';
-      surfaceEl.style.background = root || 'transparent';
+      /* const root = getComputedStyle(document.documentElement).getPropertyValue('--app-bg-primary') || '';
+      surfaceEl.style.background = root || 'transparent'; */
     }
 
     // 第三步：设置图片样式（但不立即加载图片）

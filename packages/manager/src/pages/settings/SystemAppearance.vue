@@ -8,7 +8,7 @@
         <h3>{{ $t('settings.language') }}</h3>
         <div class="form-row">
           <label>{{ $t('settings.backendLanguage') }}</label>
-          <select v-model="uiBackendLocale" class="modern-select">
+          <select v-model="uiBackendLocale" class="inline-select">
             <option value="follow">{{ $t('settings.followBrowser') }}</option>
             <option value="zh-CN">中文 (简体)</option>
             <option value="en">English</option>
@@ -20,7 +20,7 @@
         <h3>{{ $t('settings.typography') }}</h3>
         <div class="form-row">
           <label>{{ $t('settings.backendFont') }}</label>
-          <select v-model="uiBackendFont" class="modern-select">
+          <select v-model="uiBackendFont" class="inline-select">
             <option value="sans">{{ $t('settings.sansSerif') }}</option>
             <option value="serif">{{ $t('settings.serif') }}</option>
           </select>
@@ -31,7 +31,7 @@
         <h3>{{ $t('settings.theme') }}</h3>
         <div class="form-row">
           <label>{{ $t('settings.backendMode') }}</label>
-          <select v-model="uiBackendTheme" class="modern-select">
+          <select v-model="uiBackendTheme" class="inline-select">
             <option value="follow">{{ $t('settings.followSystem') }}</option>
             <option value="light">{{ $t('theme.light') }}</option>
             <option value="dark">{{ $t('theme.dark') }}</option>
@@ -80,7 +80,7 @@
 </template>
 
 <script setup lang="ts">
-import { readYaml, readJson, writeJson } from '../../data/dataAccess';
+import { readYaml, readJson, writeJson, deleteFile } from '../../data/dataAccess';
 import { computed, ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import useToast from '../../composables/useToast.ts'
@@ -201,10 +201,16 @@ function ensureMeta() {
   }
 }
 
-function clearBackground() {
+async function clearBackground() {
+  // Delete the background image file from .chronicle/
+  if (uiBackendBackground.value) {
+    const filePath = uiBackendBackground.value.replace(/^\//, '')
+    try { await deleteFile(filePath) } catch {}
+  }
   uiBackendBackground.value = ''
   uiBackendBackgroundSourcePath.value = ''
   uiBackendBackgroundSourceName.value = ''
+  applyBackgroundToDom()
 }
 
 // Aurora: no background compression — CI/CD handles it for frontend, backend is local
@@ -264,7 +270,7 @@ function applyBackgroundToDom() {
       overlayEl.style.background = activeOverlay
     }
     if (surfaceEl) {
-      try { surfaceEl.style.background = getComputedStyle(document.documentElement).getPropertyValue('--app-bg-primary') || 'transparent' } catch (e) { }
+      /* try { surfaceEl.style.background = getComputedStyle(document.documentElement).getPropertyValue('--app-bg-primary') || 'transparent' } catch (e) { }*/
     }
   } catch (e) { }
 }
@@ -277,16 +283,22 @@ async function save() {
     const ext = (uiBackendBackground.value.match(/\.\w+$/)?.[0]) || '.jpg'
     const source = uiBackendBackground.value
     const dest = '.chronicle/background' + ext
+    let copied = false
     try {
       const isElec = typeof window !== 'undefined' && !!(window as any).chronicleElectron?.isElectron
       if (isElec) {
         const bridge = (window as any).chronicleElectron
-        await bridge.copyFile(source.replace(/^\//, ''), dest)
+        copied = await bridge.copyFile(source.replace(/^\//, ''), dest)
       } else {
-        await fetch('/api/copy-file', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ source, dest }) })
+        const resp = await fetch('/api/copy-file', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ source, dest }) })
+        copied = resp.ok
       }
+    } catch (e) { console.error('[SystemAppearance] copyFile failed:', e) }
+    if (copied) {
       uiBackendBackground.value = '/' + dest
-    } catch (_) { /* best-effort */ }
+    } else {
+      console.warn('[SystemAppearance] copyFile returned false — image NOT copied to .chronicle/')
+    }
   }
 
   // Only save meta and UI settings — background image is directory-based

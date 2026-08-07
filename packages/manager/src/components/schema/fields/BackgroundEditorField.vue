@@ -24,7 +24,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import BackgroundEditorModal from '../../BackgroundEditorModal.vue'
 import { useI18n } from 'vue-i18n'
 import { resolveMediaUrl } from '../../../utils/backgroundSettings'
-import { readYaml, writeText } from '../../../data/dataAccess'
+import { readYaml, writeText, deleteFile } from '../../../data/dataAccess'
 
 const { t }= useI18n()
 
@@ -94,6 +94,11 @@ const previewUrl = computed(() => resolveMediaUrl(internalUrl.value))
 function openEditor() { bgEditorOpen.value = true }
 
 async function clearBg() {
+  // Delete the background image file from data/background/
+  if (internalUrl.value) {
+    const filePath = internalUrl.value.replace(/^\//, '')
+    try { await deleteFile(filePath) } catch {}
+  }
   internalUrl.value = ''
   internalMeta.value = {}
   internalSourcePath.value = ''
@@ -116,16 +121,27 @@ async function onBgSave(m: any) {
   // Auto-copy to data/background/ if image is outside the directory
   if (url && !url.startsWith('/data/background/')) {
     const ext = (url.match(/\.\w+$/)?.[0]) || '.jpg'
+    const dest = 'data/background/background' + ext
+    let copied = false
     try {
       const isElec = typeof window !== 'undefined' && !!(window as any).chronicleElectron?.isElectron
       if (isElec) {
         const bridge = (window as any).chronicleElectron
-        await bridge.copyFile(url.replace(/^\//, ''), 'data/background/background' + ext)
+        copied = await bridge.copyFile(url.replace(/^\//, ''), dest)
       } else {
-        await fetch('/api/copy-file', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ source: url, dest: 'data/background/background' + ext }) })
+        const resp = await fetch('/api/copy-file', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ source: url, dest }),
+        })
+        copied = resp.ok
       }
+    } catch (e) { console.error('[BackgroundEditorField] copyFile failed:', e) }
+    if (copied) {
       internalUrl.value = '/data/background/background' + ext
-    } catch (_) { /* best-effort */ }
+    } else {
+      console.warn('[BackgroundEditorField] copyFile returned false — image NOT copied to data/background/')
+    }
   }
 
   emit('update:modelValue', internalUrl.value)

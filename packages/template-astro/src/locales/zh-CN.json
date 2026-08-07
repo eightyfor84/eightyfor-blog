@@ -17,6 +17,7 @@
   "inblog": {
     "toc-title": "目录",
     "backToBlogs": "返回博客列表",
+    "anonymousAuthor": "匿名",
     "wordSing": "{count} 字",
     "wordPlural": "{count} 字",
     "min": "分钟",
@@ -44,7 +45,7 @@
     "daySuffix": "日"
   },
   "home": {
-    "title": "Chronicle for Eightyfor",
+    "title": "Chronicle for Aurora",
     "tagline": "Love what you wanna love, be what you wanna be.<br/>爱我所爱，自成一派。",
     "viewBlogs": "查看博客",
     "viewThemePost": "阅读主题文章",
@@ -102,8 +103,10 @@
     }
   },
   "friends": {
-    "title": "友人",
-    "viewStory": "查看故事"
+    "title": "朋友",
+    "viewStory": "查看故事",
+    "learnMore": "点击了解更多",
+    "disabled": "该页面已被功能开关关闭。"
   },
   "settings": {
     "locale": {

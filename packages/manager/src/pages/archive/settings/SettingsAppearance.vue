@@ -171,6 +171,7 @@ import BackgroundEditorModal from '../../../components/BackgroundEditorModal.vue
 import { hexToRgbString } from '../../../utils/colorUtils'
 import { normalizeBackgroundRecord, normalizeUploadRelPath, resolveBackgroundSourceName, resolveBackgroundSourcePath, resolveBackgroundUrl } from '../../../utils/backgroundSettings'
 import { Icons } from '../../../utils/icons'
+import { deleteFile } from '../../../data/dataAccess'
 
 const { locale } = useI18n()
 const uiFrontendLocale = ref('follow')
@@ -354,12 +355,22 @@ function ensureMetaForTarget(target: 'frontend' | 'backend') {
   }
 }
 
-function clearBackground(target: 'frontend' | 'backend') {
+async function clearBackground(target: 'frontend' | 'backend') {
   if (target === 'frontend') {
+    // Delete the frontend background image file from data/background/
+    if (uiFrontendBackground.value) {
+      const filePath = uiFrontendBackground.value.replace(/^\//, '')
+      try { await deleteFile(filePath) } catch {}
+    }
     uiFrontendBackground.value = ''
     uiFrontendBackgroundSourcePath.value = ''
     uiFrontendBackgroundSourceName.value = ''
   } else {
+    // Delete the backend background image file from .chronicle/
+    if (uiBackendBackground.value) {
+      const filePath = uiBackendBackground.value.replace(/^\//, '')
+      try { await deleteFile(filePath) } catch {}
+    }
     uiBackendBackground.value = ''
     uiBackendBackgroundSourcePath.value = ''
     uiBackendBackgroundSourceName.value = ''

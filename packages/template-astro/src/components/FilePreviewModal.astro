@@ -91,6 +91,11 @@ import '@chronicle/shared/src/styles/chronicle-markdown.css';
     const url = el.getAttribute('data-url') || (el as any).dataset?.url || '';
     const name = el.getAttribute('data-name') || (el as any).dataset?.name || '';
     const hinted = el.getAttribute('data-type') || (el as any).dataset?.type || '';
+    // Link/Post type → navigate, not file preview
+    if (hinted === 'Link' || hinted === 'Post') {
+      window.open(url, '_blank', 'noopener');
+      return;
+    }
     if (/^https?:\/\//i.test(url)) { window.open(url, '_blank', 'noopener'); return; }
     if (/^mailto:/i.test(url)) { window.location.href = url; return; }
     _fpEnsure().then(() => _fpOpen!({ url, title: name, type: hinted }));

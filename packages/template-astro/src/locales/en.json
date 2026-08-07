@@ -17,6 +17,7 @@
   "inblog": {
     "toc-title": "Table of Contents",
     "backToBlogs": "Back to Posts",
+    "anonymousAuthor": "Anonymous",
     "wordSing": "{count} word",
     "wordPlural": "{count} words",
     "min": "min",
@@ -44,7 +45,7 @@
     "daySuffix": ""
   },
   "home": {
-    "title": "Chronicle for Eightyfor",
+    "title": "Chronicle Aurora",
     "tagline": "Love what you wanna love, be what you wanna be.<br/>爱我所爱，自成一派。",
     "viewBlogs": "View Blogs",
     "viewThemePost": "Read Theme Post",
@@ -103,7 +104,9 @@
   },
   "friends": {
     "title": "Friends",
-    "viewStory": "View Story"
+    "viewStory": "View Story",
+    "learnMore": "Click to learn More",
+    "disabled": "This page has been disabled by the feature switch."
   },
   "settings": {
     "locale": {

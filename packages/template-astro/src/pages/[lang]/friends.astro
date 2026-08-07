@@ -20,17 +20,6 @@ const settings = await loadSiteSettings();
 const featureFlags = resolveFeatureFlags(settings?.featureFlags);
 const friendsEnabled = featureFlags.friendsPage !== false;
 
-const DEFAULT_FRIENDS = [
-  {
-    style: 'left-lg',
-    name: 'Waiwai',
-    avatar: 'https://file.eightyfor.top/data/upload/pic/1770999133303_vne7_177099908700-992.webp',
-    intro: '非常乐意并享受被人挂网上的感觉',
-    homeUrl: 'https://example.com',
-    storyPostId: '',
-  },
-];
-
 type FriendCardStyle = 'left-sm' | 'left-lg' | 'top-lg';
 
 type FriendCard = {
@@ -116,7 +105,7 @@ const metaDescription = locale === 'zh-CN'
                       <a class="friend-card__story" href={storyHref}>
                         {t('friends.viewStory')}
                       </a>
-                    ) : null}
+                    ) : <p class="friend-card__nostory">{t('friends.learnMore')}</p>}
                   </div>
                 </div>
               </article>
@@ -127,7 +116,7 @@ const metaDescription = locale === 'zh-CN'
     ) : (
       <div class="feature-disabled-page">
         <h1>{t('friends.title')}</h1>
-        <p>该页面已被功能开关关闭。</p>
+        <p>{t('friends.disabled')}</p>
       </div>
     )}
   </div>
@@ -250,24 +239,25 @@ const metaDescription = locale === 'zh-CN'
   align-items: start;
   justify-items: start;
   min-height: 3.8rem;
+  padding: 0 1px;
   overflow: hidden;
 }
 
 .friend-card__intro,
-.friend-card__story {
+.friend-card__story,
+.friend-card__nostory {
   margin: 0;
   grid-area: 1 / 1;
   color: var(--component-text-secondary);
-  line-height: 1.8;
   transition: opacity .2s ease, transform .2s ease;
 }
 
-.friend-card__story {
+.friend-card__story,
+.friend-card__nostory {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: .35rem 0;
-  color: var(--accent-color);
   font-weight: 600;
   text-decoration: none;
   opacity: 0;
@@ -275,12 +265,16 @@ const metaDescription = locale === 'zh-CN'
   pointer-events: none;
 }
 
+.friend-card__story {
+  color: var(--accent-color);
+}
+
 .friend-card:hover .friend-card__intro {
   opacity: 0;
   transform: translateY(-8px);
 }
 
-.friend-card:hover .friend-card__story {
+.friend-card:hover .friend-card__story, .friend-card:hover .friend-card__nostory {
   opacity: 1;
   transform: translateY(0);
   pointer-events: auto;
@@ -300,6 +294,24 @@ const metaDescription = locale === 'zh-CN'
   border-radius: 12px;
 }
 
+.friend-card--left-sm .friend-card__copy {
+  height: 90px;
+}
+
+
+.friend-card--left-sm .friend-card__heading {
+  font-size: 1.2rem;
+}
+
+.friend-card--left-sm .friend-card__body {
+  gap: .5rem;
+}
+
+.friend-card--left-sm .friend-card__intro, .friend-card--left-sm .friend-card__story {
+  line-height: 1.4;
+  font-size: .95rem;
+}
+
 .friend-card--left-lg {
   width: 100%;
   max-width: 500px;
@@ -312,6 +324,10 @@ const metaDescription = locale === 'zh-CN'
   width: 200px;
   height: 200px;
   border-radius: 12px;
+}
+
+.friend-card--left-lg .friend-card__copy {
+  height: 170px;
 }
 
 .friend-card--top-lg {
@@ -327,6 +343,10 @@ const metaDescription = locale === 'zh-CN'
   height: 360px;
   max-height: 360px;
   border-radius: 12px;
+}
+
+.friend-card--top-lg .friend-card__copy {
+  min-height: 170px;
 }
 
 .feature-disabled-page {

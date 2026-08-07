@@ -1,12 +1,12 @@
 {
-  "backendTheme": "dark",
+  "backendTheme": "follow",
   "backendLocale": "en",
   "backendFont": "sans",
   "backendAccent": "#2ea35f",
   "backendBackgroundMeta": {
-    "url": "/data/assets/1781278106120_ajp7_b38dcf199f69f6390e9dd915e8bbd5a8.jpg",
-    "sourcePath": "data/assets/1781278106120_ajp7_b38dcf199f69f6390e9dd915e8bbd5a8.jpg",
-    "sourceName": "1781278106120_ajp7_b38dcf199f69f6390e9dd915e8bbd5a8.jpg",
+    "url": "asset://meow.jpg",
+    "sourcePath": "asset://meow.jpg",
+    "sourceName": "meow.jpg",
     "mode": "cover",
     "posX": 50,
     "posY": 50,

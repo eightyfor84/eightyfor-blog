@@ -1,3 +1,4 @@
+import type { APIRoute } from 'astro';
 import { getPublishedPosts } from '../data/localDataSource';
 import { loadSiteSettings } from '../utils/siteSettings';
 import { buildLocalizedPath } from '../utils/routeLocale';
@@ -20,7 +21,7 @@ interface Post {
 
 function normalizeBaseUrl(rawUrl: unknown) {
   const value = String(rawUrl || '').trim();
-  if (!value) return 'https://blog.eightyfor.top';
+  if (!value) return '';
   if (/^https?:\/\//i.test(value)) return value.replace(/\/$/, '');
   return `https://${value.replace(/\/$/, '')}`;
 }
@@ -79,9 +80,9 @@ async function loadPosts(): Promise<Post[]> {
   }
 }
 
-export async function GET() {
+export const GET: APIRoute = async ({ site }) => {
   const settings = await loadSiteSettings();
-  const baseUrl = normalizeBaseUrl(settings?.frontendUrl);
+  const baseUrl = normalizeBaseUrl(settings?.frontendUrl) || (site ? site.origin : '');
   const siteTitle = String(settings?.siteName || 'Chronicle').trim();
   const siteDescription = String(settings?.siteDescription || 'Latest posts from Chronicle').trim();
   const feedTitle = `${siteTitle} RSS`;

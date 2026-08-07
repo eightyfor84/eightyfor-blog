@@ -45,6 +45,19 @@ md.validateLink = (url: string) => /^(https?:|file:|mailto:|\/|#|asset:|post:|[a
 let _currentPostId = ''
 export function setRenderPostId(id: string) { _currentPostId = id }
 
+let _currentLocale = 'en'
+export function setRenderLocale(locale: string) { _currentLocale = locale }
+
+/** Resolve asset://<file> → /assets/<file> */
+export function resolveAssetUrl(file: string): string {
+  return '/assets/' + encodeURI(file)
+}
+
+/** Resolve post://<slug> → /{lang}/post/<slug> */
+export function resolvePostUrl(slug: string): string {
+  return '/' + _currentLocale + '/post/' + encodeURI(slug)
+}
+
 function encodeFilename(url: string): string {
   // Split path into segments, encode each segment individually
   return url.split('/').map(seg => {
@@ -54,8 +67,8 @@ function encodeFilename(url: string): string {
 
 const _normalizeLink = md.normalizeLink.bind(md);
 md.normalizeLink = (url: string) => {
-  if (url.startsWith('asset://')) return '/assets/' + encodeURI(url.slice(8));
-  if (url.startsWith('post://')) return '/post_attachment/' + url.slice(7);
+  if (url.startsWith('asset://')) return resolveAssetUrl(url.slice(8));
+  if (url.startsWith('post://')) return resolvePostUrl(url.slice(7));
   // Relative path → resolve to post attachment directory
   if (_currentPostId && !url.startsWith('/') && !/^[a-zA-Z][\w+.-]*:/.test(url)) {
     const base = _currentPostId === '__about__' ? '/about' : `/post_attachment/${_currentPostId}`;
@@ -65,6 +78,27 @@ md.normalizeLink = (url: string) => {
 };
 
 md.use(markdownItFootnote);
+
+// ── post:// links: open in new tab ──────────────────────
+// post://<slug> normalizes to /post/<slug> (cross-post detail page).
+// Distinguish from post attachments (/post_attachment/…) and assets.
+const _astroLinkOpen = md.renderer.rules.link_open || function(tokens: any, idx: number, options: any, _env: any, self: any) {
+  return self.renderToken(tokens, idx, options);
+};
+md.renderer.rules.link_open = function(tokens: any, idx: number, options: any, env: any, self: any) {
+  const token = tokens[idx];
+  const hrefIndex = token.attrIndex('href');
+  if (hrefIndex >= 0) {
+    const href = token.attrs![hrefIndex][1];
+    // /{lang}/post/<slug> = cross-post link, NOT /post_attachment/…
+    if (/^\/[a-z]{2}\/post\/[^/]+$/.test(href)) {
+      token.attrSet('target', '_blank');
+      token.attrSet('rel', 'noopener');
+      token.attrSet('data-post-link', '');
+    }
+  }
+  return _astroLinkOpen(tokens, idx, options, env, self);
+};
 
 // Strip brackets from footnote refs: [1] → 1
 md.renderer.rules.footnote_caption = (tokens: any, idx: number) => {
@@ -248,7 +282,11 @@ md.inline.ruler.before('link', 'chronicle_file_card', (state: any, silent: boole
     // mailto: keeps the full href as data-url; link:/mailto: show stripped URL as subtitle
     const isMailto = prefixMatch?.type === 'Email';
     const isLink   = prefixMatch?.type === 'Link';
-    const cardUrl  = isMailto ? href : (prefixMatch ? prefixMatch.actualUrl : href);
+    const rawUrl   = isMailto ? href : (prefixMatch ? prefixMatch.actualUrl : href);
+    // Resolve asset:// and post:// in the URL after type-prefix stripping
+    const cardUrl  = rawUrl.startsWith('asset://') ? resolveAssetUrl(rawUrl.slice(8))
+                   : rawUrl.startsWith('post://') ? resolvePostUrl(rawUrl.slice(7))
+                   : rawUrl;
     const subtitle = (isMailto || isLink) ? (prefixMatch?.actualUrl || href) : undefined;
 
     const token = state.push('html_inline', '', 0);
@@ -647,8 +685,11 @@ function postProcessHtml(html: string): string {
  *   3. Restore math placeholders → katex-placeholder HTML
  *   4. Post-process → CodeChunk, file cards, image wrappers
  */
-export function renderChronicleMarkdown(content: string): string {
+export function renderChronicleMarkdown(content: string, locale?: string): string {
   if (!content) return '';
+
+  // Set locale synchronously before rendering — avoids SSG parallel-build race
+  if (locale) _currentLocale = locale;
 
   // Step 1: Protect math
   const { text, mathBlocks } = protectMath(content);

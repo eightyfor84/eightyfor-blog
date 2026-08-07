@@ -253,6 +253,8 @@ export interface LocalSettings {
     singleColumnHomepage?: boolean;
     cardVisibility?: { author?: boolean; taxonomy?: boolean; activity?: boolean };
     gaMeasurementId?: string;
+    icpNumber?: string;
+    defaultPerformanceMode?: string;
     comment?: CommentConfig;
 }
 
@@ -389,7 +391,7 @@ export function getPublishedPosts(): PostMeta[] {
 }
 
 /** Get a single post with content */
-export function getPostBySlug(slug: string): LocalPost | null {
+export function getPostBySlug(slug: string, locale?: string): LocalPost | null {
     const posts = getAllPosts();
     const meta = posts.find(p => p.id === slug || p.slug === slug);
     if (!meta) return null;
@@ -398,13 +400,15 @@ export function getPostBySlug(slug: string): LocalPost | null {
     const raw = fs.readFileSync(mdPath, "utf-8");
     const content = meta?.type === "slides" ? raw : stripFrontmatter(raw);
 
-    // Render markdown to HTML (cached)
-    let compiledHtml = _htmlCache.get(slug) || '';
+    // Render markdown to HTML (cached per locale — SSG builds en/zh in parallel)
+    const loc = locale || 'en';
+    const cacheKey = slug + ':' + loc;
+    let compiledHtml = _htmlCache.get(cacheKey) || '';
     if (!compiledHtml && content) {
         try {
             setRenderPostId(slug);
-            compiledHtml = renderChronicleMarkdown(content);
-            _htmlCache.set(slug, compiledHtml);
+            compiledHtml = renderChronicleMarkdown(content, loc);
+            _htmlCache.set(cacheKey, compiledHtml);
         } catch (e) {
             console.warn('[localDataSource] Failed to render markdown for', slug, e);
         }
@@ -416,7 +420,7 @@ export function getPostBySlug(slug: string): LocalPost | null {
 }
 
 /** @deprecated Use getPostBySlug — slug is now the sole identifier */
-export function getPostById(id: string): LocalPost | null { return getPostBySlug(id); }
+export function getPostById(id: string, locale?: string): LocalPost | null { return getPostBySlug(id, locale); }
 
 /** Search posts by keyword */
 export function searchPosts(keyword: string, tags?: string[]): PostMeta[] {
@@ -496,6 +500,7 @@ export function getPublicSettings(): LocalSettings {
         cardVisibility: raw.cardVisibility || {},
         gaMeasurementId: raw.gaMeasurementId,
         icpNumber: raw.icpNumber || '',
+        defaultPerformanceMode: raw.defaultPerformanceMode || 'auto',
         comment: raw.comment || {},
     };
 }

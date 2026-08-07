@@ -2,7 +2,7 @@
   <div class="form-row">
     <label v-if="label">{{ label }}</label>
     <select
-      class="modern-select"
+      class="inline-select"
       :value="modelValue"
       :disabled="disabled"
       @change="onChange"

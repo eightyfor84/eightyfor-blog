@@ -123,12 +123,6 @@
     "methods": "Methods",
     "statuses": "Status Codes"
   },
-  "home": {
-    "title": "Chronicle for Eightyfor",
-    "tagline": "Love what you wanna love, be what you wanna be.<br/>爱我所爱，自成一派。",
-    "viewBlogs": "View Blogs",
-    "viewThemePost": "Read Theme Post"
-  },
   "file": {
     "library": "Files",
     "import": "Import",
@@ -765,7 +759,7 @@
     "mathBlock": "Block",
     "aiGeneratedLabel": "AI Generated",
     "authorLabel": "Author",
-    "authorPlaceholder": "Enter author name (eightyfor as default)",
+    "authorPlaceholder": "Enter author name",
     "confirmAboutSave": "Do you want to save changes to the about page now?",
     "insertAsText": "Insert as text",
     "insertAsCode": "Insert as code",

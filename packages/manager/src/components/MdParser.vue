@@ -391,11 +391,29 @@ async function handleGlobalClick(e: MouseEvent) {
     }
   }
 
+  // post:// cross-post link — open in new tab/window
+  const postLink = target.closest('a[data-post-link]') as HTMLAnchorElement
+  if (postLink) {
+    e.preventDefault()
+    e.stopPropagation()
+    window.open(postLink.href, '_blank')
+    return
+  }
+
   // File Card Click
   const cardEl = target.closest('.file-card') as HTMLElement
   if (cardEl) {
       // If the card is an anchor (mailto/link), allow native navigation and do not open preview
       if (cardEl.tagName === 'A') {
+        return
+      }
+      const cardType = cardEl.getAttribute('data-type') || ''
+      // Link/Post type → navigate, not file preview
+      if (cardType === 'Link' || cardType === 'Post') {
+        e.preventDefault()
+        e.stopPropagation()
+        const url = cardEl.getAttribute('data-url') || ''
+        if (url) window.open(url, '_blank')
         return
       }
       e.stopPropagation()
