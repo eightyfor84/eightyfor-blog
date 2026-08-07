@@ -135,7 +135,7 @@ const previewType = computed(() => props.schema['x-preview-type'] || 'none')
   border-radius: 10px;
   overflow: hidden;
   pointer-events: none;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--accent-color) 14%, transparent), color-mix(in srgb, var(--component-text-secondary) 8%, transparent));
+  background: var(--component-bg-blur-alt);
   position: relative;
 }
 

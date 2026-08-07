@@ -22,7 +22,7 @@
           <div class="controls">
             <div class="control-row" >
               <label>Mode</label>
-              <select v-model="meta.mode" class="modern-select" style="width: 100%;">
+              <select v-model="meta.mode" class="inline-select" style="width: 100%;">
                 <option value="cover">{{t('backgroundEditor.cover')}}</option>
                 <option value="contain">{{t('backgroundEditor.contain')}}</option>
                 <option value="fill">{{t('backgroundEditor.stretch')}}</option>

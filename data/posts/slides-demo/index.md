@@ -1,21 +1,23 @@
 ---
 title: Chronicle Presentation
 date: 2026-08-04
+updatedAt: 2026-08-07T07:00:05.382Z
 tags: slides, demo, featured
+author: 
+aiGenerated: false
 status: published
-summary: A Marp-powered slideshow introducing Chronicle's philosophy and features.
-font: sans
 marp: true
 theme: chronicle
 accent-color: #e92
 tinted-bg: true
 ---
 
+<!-- paginate: true -->
+<!-- _paginate: false -->
+<!-- _class: lead -->
 # Chronicle Aurora
 
 ## Local-first · Git-backed · Jamstack
-
-![bg right:40%](https://images.unsplash.com/photo-1515879218367-8466d910auj7)
 
 ---
 
@@ -117,8 +119,7 @@ collections.yml:
     - type: group
       title: Deep Dives
       children:
-        - id: markdown-showcase
-          type: post
+      	...
 ```
 
 Posts → Groups → Breadcrumbs → Navigation. All automatic.
@@ -140,9 +141,11 @@ cd packages/manager && npm install && npm run dev
 
 ---
 
+<!-- _paginate: false -->
+<!-- _class: lead -->
 # Thank You
 
-**Chronicle Aurora**
+**Chronicle Aurora**  
 *Your words. Your files. Your control.*
 
-[github.com/eightyfor/chronicle-aurora](https://github.com/eightyfor/chronicle-aurora)
+[github.com/vanvanhasnophi/chronicle-aurora](https://github.com/vanvanhasnophi/chronicle-aurora)

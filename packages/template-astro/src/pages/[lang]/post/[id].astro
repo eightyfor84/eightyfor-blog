@@ -29,7 +29,7 @@ export async function getStaticPaths() {
   ]));
 }
 
-const routeLang = Astro.params.lang === 'en' ? 'en' : 'zh';
+const routeLang = Astro.params.lang;
 const locale = toContentLocale(routeLang);
 const backToBlogs = buildLocalizedPath(routeLang, '/blogs');
 const searchForTags = buildLocalizedPath(routeLang, '/search?tags=');
@@ -48,7 +48,7 @@ let error = null;
 let settings: Record<string, any> = {};
 
 // ── Local data source ──────────────────────────────────
-const localPost = getPostById(id);
+const localPost = getPostById(id, routeLang);
 if (localPost) {
   post = {
     id: localPost.id,
@@ -136,7 +136,7 @@ if (post && post.content) {
 }
 
 // 获取作者名和AI生成标记
-const authorName = post?.author || settings?.authorName || 'Eightyfor';
+const authorName = post?.author || t('inblog.anonymousAuthor');
 const isAI = post?.aiGenerated || false;
 
 function buildMetaDescription(input: any, fallbackLocale: string) {

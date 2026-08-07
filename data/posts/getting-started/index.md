@@ -1,11 +1,12 @@
 ---
 title: Getting Started
 date: 2026-08-02
+updatedAt: 2026-08-07T08:23:44.402Z
 tags: guide, setup
+author: 
+aiGenerated: false
 status: published
-summary: A quick guide to setting up your Chronicle blog — from clone to first post.
 font: sans
-type: article
 ---
 
 ## Prerequisites
@@ -18,7 +19,7 @@ type: article
 
 ```bash
 # Clone the repo
-git clone https://github.com/eightyfor/chronicle-aurora.git
+git clone https://github.com/vanvanhasnophi/chronicle-aurora.git
 cd chronicle-aurora
 
 # Install dependencies
@@ -30,15 +31,16 @@ cd ../gen && npm install
 cd ../manager && npm run dev
 ```
 
-Open `http://localhost:5173` in your browser — you're in the CMS.
+Then open `http://localhost:5173` in your browser to enter the CMS.
+
+![Landing Page](image.png "CMS Landing Page in Dark Mode" =70%x)
 
 ## Writing Your First Post
 
-1. Click **New Post** in the sidebar
-2. Enter a title and tags
-3. Click **Create**
-4. Write in the Markdown editor — preview updates live on the right
-5. Click **Publish** to mark it ready for deployment
+1. Click **Editor** on the landing page, OR go to **Content -> Posts** and click **New Post** on the right top.
+2. Write in the Markdown editor — preview updates live on the right
+3. Click The Chevron `▼` next to the **Save Button** and click **Add to workspace** to add it to your repo.
+   > You can enter the **Metadata**(title, tags, author, etc.) before confirming addition.
 
 Each post is stored as a directory under `data/posts/<slug>/`:
 
@@ -69,12 +71,19 @@ All site config lives in `data/`:
 | `profile.yml` | Author name, bio, avatar, links |
 | `collections.yml` | Post groupings with nested structure |
 | `friends.yml` | Blogroll / friends page |
+| `background/` | Background source & its appearance |
 
 Hand-edit these files or use the CMS Settings panel — both work.
+
+#### Reference Guide
+[Site Configuration](link:post://site-config)
+[Profile Configuration](link:post://profile-config)  
+[Collections Guide](link:post://c8n-config)
+[Friends Management](link:post://friend-config)
+
 
 ## Next Steps
 
 - Explore the **Markdown Showcase** post to see all formatting options
 - Set up a **Collection** to group related posts
 - Customize your theme in **Settings → Site**
-- Add your avatar and background in **Settings → Profile**

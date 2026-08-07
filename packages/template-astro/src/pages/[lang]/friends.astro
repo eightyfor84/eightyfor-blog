@@ -20,17 +20,6 @@ const settings = await loadSiteSettings();
 const featureFlags = resolveFeatureFlags(settings?.featureFlags);
 const friendsEnabled = featureFlags.friendsPage !== false;
 
-const DEFAULT_FRIENDS = [
-  {
-    style: 'left-lg',
-    name: 'Waiwai',
-    avatar: 'https://file.eightyfor.top/data/upload/pic/1770999133303_vne7_177099908700-992.webp',
-    intro: '非常乐意并享受被人挂网上的感觉',
-    homeUrl: 'https://example.com',
-    storyPostId: '',
-  },
-];
-
 type FriendCardStyle = 'left-sm' | 'left-lg' | 'top-lg';
 
 type FriendCard = {

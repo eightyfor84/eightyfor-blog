@@ -17,6 +17,7 @@
   "inblog": {
     "toc-title": "目录",
     "backToBlogs": "返回博客列表",
+    "anonymousAuthor": "匿名",
     "wordSing": "{count} 字",
     "wordPlural": "{count} 字",
     "min": "分钟",
@@ -44,7 +45,7 @@
     "daySuffix": "日"
   },
   "home": {
-    "title": "Chronicle for Eightyfor",
+    "title": "Chronicle for Aurora",
     "tagline": "Love what you wanna love, be what you wanna be.<br/>爱我所爱，自成一派。",
     "viewBlogs": "查看博客",
     "viewThemePost": "阅读主题文章",

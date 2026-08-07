@@ -1,10 +1,14 @@
-# Chronicle Demo Site
 siteName: Chronicle Demo
 siteDescription: A local-first, git-backed Jamstack blogging platform. Write in Markdown, sync with Git, deploy anywhere.
+icpNumber: ""
+homepageMode: split
+singleColumnHomepage: false
+cardVisibility: {}
 frontendTheme: follow
 frontendAccent: "#36a32e"
 frontendFont: sans
 frontendLocale: follow
+defaultPerformanceMode: auto
 searchSuggestions: true
 relatedPosts: true
 collectionPage: true
@@ -13,8 +17,4 @@ friendsPage: true
 traffic: true
 rss: true
 sitemap: true
-homepageMode: split
-singleColumnHomepage: false
-cardVisibility:
-
-comment:
+gaMeasurementId: ""

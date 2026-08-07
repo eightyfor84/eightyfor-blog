@@ -1,0 +1,10 @@
+# Chronicle Aurora — Site Background
+mode: cover
+posX: 50
+posY: 50
+size: 100
+blur: 0
+overlayLightColor: "#ffffff"
+overlayLightOpacity: 0
+overlayDarkColor: "#000000"
+overlayDarkOpacity: 0

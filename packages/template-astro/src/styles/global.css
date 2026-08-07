@@ -186,8 +186,8 @@
   --app-bg-secondary: #f0f0f0;
   --component-bg: #ffffff;
   --component-bg-alt: #f7f7f7;
-  --component-bg-blur: rgba(230, 230, 230, 0.8);
-  --component-bg-blur-alt: rgba(232, 232, 232, 0.5);
+  --component-bg-blur: rgba(240, 240, 240, 0.8);
+  --component-bg-blur-alt: rgba(242, 242, 242, 0.5);
   --component-bg-accent: color-mix(in srgb, var(--accent-color) 30%, #fffb);
   --component-bg-accent-blur: color-mix(in srgb, var(--accent-color) 35%, #fffb);
   --component-bg-accent-ghost: color-mix(in srgb, var(--accent-color) 45%, #fff7);
@@ -279,8 +279,8 @@
     --app-bg-secondary: #f0f0f0;
     --component-bg: #ffffff;
     --component-bg-alt: #f7f7f7;
-    --component-bg-blur: rgba(230, 230, 230, 0.8);
-    --component-bg-blur-alt: rgba(232, 232, 232, 0.5);
+    --component-bg-blur: rgba(240, 240, 240, 0.8);
+    --component-bg-blur-alt: rgba(242, 242, 242, 0.5);
     --component-bg-accent: color-mix(in srgb, var(--accent-color) 30%, #fffb);
     --component-bg-accent-blur: color-mix(in srgb, var(--accent-color) 35%, #fffb);
     --component-bg-accent-ghost: color-mix(in srgb, var(--accent-color) 45%, #fff7);
@@ -527,7 +527,7 @@ html.is-mobile .toc-float {
   background: var(--component-bg-blur);
 }
 
-.modern-select {
+.inline-select {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -546,24 +546,24 @@ html.is-mobile .toc-float {
   /* reserve more space for larger arrow */
 }
 
-.modern-select:hover {
+.inline-select:hover {
   border-color: var(--border-color-blur);
   background: var(--component-bg-hover);
 }
 
-.modern-select:focus {
+.inline-select:focus {
   outline: none;
   background-color: var(--component-bg-active);
   box-shadow: var(--shadow-elev-2);
   border-color: var(--accent-color);
 }
 /* Hide native IE arrow */
-.modern-select::-ms-expand {
+.inline-select::-ms-expand {
   display: none;
 }
 
 /* Option styles (browser support varies) */
-.modern-select option {
+.inline-select option {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -577,7 +577,7 @@ html.is-mobile .toc-float {
 }
 
 /* Compact variant */
-.modern-select.compact {
+.inline-select.compact {
   padding: 6px 32px 6px 8px;
   border-radius: 8px;
   font-size: 0.9rem;
@@ -590,12 +590,12 @@ html.is-mobile .toc-float {
   box-shadow: none;
 }
 
-.modern-select:disabled {
+.inline-select:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-.modern-select[disabled] {
+.inline-select[disabled] {
   background-image: none;
   border-color: var(--border-color-blur);
   color: var(--component-text-secondary-disabled);
@@ -607,7 +607,7 @@ html.is-mobile .toc-float {
   position: relative;
 }
 
-.select-wrap .modern-select {
+.select-wrap .inline-select {
   display: block;
   /* fill the wrapper */
   width: 100%;

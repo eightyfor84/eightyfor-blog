@@ -360,9 +360,18 @@ export default function chronicleData() {
 
           // ── DELETE /api/files?path=xxx ──────────────────
           if (method === 'DELETE' && urlPath === '/api/files') {
-            const q = new URL(req.url || '', 'http://localhost').searchParams; const fp = String(q.get('path') || ''); const name = basename(decodeURIComponent(fp).split('/').pop() || '')
-            const abs = join(dataDir, 'assets', name); if (!abs.startsWith(join(dataDir, 'assets'))) return notFound(res, 'Invalid path')
-            if (existsSync(abs)) unlinkSync(abs); return json(res, null, 204)
+            const q = new URL(req.url || '', 'http://localhost').searchParams
+            let fp = String(q.get('path') || '').replace(/^\/+/, '')
+            if (!fp) return notFound(res, 'Missing path')
+            // Resolve asset:// protocol → data/assets/
+            if (fp.startsWith('asset://')) {
+              fp = join('data', 'assets', fp.slice('asset://'.length))
+            }
+            const abs = join(repoRoot, fp)
+            // Safety: ensure resolved path is within repoRoot
+            if (!abs.startsWith(repoRoot)) return notFound(res, 'Invalid path')
+            if (existsSync(abs)) unlinkSync(abs)
+            return json(res, null, 204)
           }
 
           // ── GET /api/files ─────────────────────────────
@@ -402,7 +411,12 @@ export default function chronicleData() {
           if (method === 'POST' && urlPath === '/api/copy-file') {
             const body = await readBody(req)
             if (!body?.source || !body?.dest) return notFound(res, 'Missing source or dest')
-            const srcAbs = join(repoRoot, String(body.source).replace(/^\//, ''))
+            let srcRel = String(body.source).replace(/^\//, '')
+            // Resolve asset:// protocol → data/assets/
+            if (srcRel.startsWith('asset://')) {
+              srcRel = join('data', 'assets', srcRel.slice('asset://'.length))
+            }
+            const srcAbs = join(repoRoot, srcRel)
             const destRel = String(body.dest).replace(/^\//, '')
             const destAbs = join(repoRoot, destRel)
             if (!existsSync(srcAbs)) return notFound(res, 'Source not found')

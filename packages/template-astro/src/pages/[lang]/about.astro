@@ -46,7 +46,7 @@ try {
     if (!lastModified) lastModified = fs.statSync(aboutPath).mtime.toISOString().slice(0, 10);
 
     setRenderPostId('__about__');
-    aboutHtml = renderChronicleMarkdown(content);
+    aboutHtml = renderChronicleMarkdown(content, Astro.params.lang);
   }
 } catch {}
 

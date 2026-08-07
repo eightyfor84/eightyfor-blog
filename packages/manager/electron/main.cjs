@@ -730,6 +730,10 @@ ipcMain.handle('fs:writeText', async (_event, relativePath, content) => {
 
 ipcMain.handle('fs:deleteDir', async (_event, relativePath) => {
   try {
+    // Resolve asset:// protocol → data/assets/
+    if (relativePath.startsWith('asset://')) {
+      relativePath = path.join('data', 'assets', relativePath.slice('asset://'.length))
+    }
     const absPath = resolveRepoPath(relativePath)
     if (!fs.existsSync(absPath)) return true
     fs.rmSync(absPath, { recursive: true, force: true })
@@ -742,6 +746,10 @@ ipcMain.handle('fs:deleteDir', async (_event, relativePath) => {
 
 ipcMain.handle('fs:deleteFile', async (_event, relativePath) => {
   try {
+    // Resolve asset:// protocol → data/assets/
+    if (relativePath.startsWith('asset://')) {
+      relativePath = path.join('data', 'assets', relativePath.slice('asset://'.length))
+    }
     const absPath = resolveRepoPath(relativePath)
     if (!fs.existsSync(absPath)) return true
     fs.unlinkSync(absPath)
@@ -785,6 +793,10 @@ ipcMain.handle('fs:copyFile', async (_event, sourceAbs, destRel) => {
   try {
     if (typeof sourceAbs !== 'string' || !sourceAbs) return false
     if (typeof destRel !== 'string' || !destRel) return false
+    // Resolve asset:// protocol → data/assets/
+    if (sourceAbs.startsWith('asset://')) {
+      sourceAbs = path.join(DATA_DIR, 'assets', sourceAbs.slice('asset://'.length))
+    }
     const destAbs = resolveRepoPath(destRel)
     const destDir = path.dirname(destAbs)
     if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true, mode: 0o775 })

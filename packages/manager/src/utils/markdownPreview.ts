@@ -32,14 +32,18 @@ md.validateLink = (url: string) => /^(https?:|file:|mailto:|\/|#|asset:|post:|[a
 let _postSlug = ''
 export function setPreviewPostSlug(slug: string) { _postSlug = slug }
 
+// Resolve custom protocols
+function resolveAssetUrl(file: string): string { return '/data/assets/' + file }
+function resolvePostUrl(slug: string): string  { return '/editor/article?id=' + slug }
+
 // Resolve URLs:
 //   asset://file  → /data/assets/file       (public)
 //   post://slug   → /editor/article?id=slug  (cross-post)
 //   file.png      → /data/posts/<slug>/file  (private, relative path)
 const _mdNormalizeLink = md.normalizeLink.bind(md);
 md.normalizeLink = (url: string) => {
-  if (url.startsWith('asset://')) return '/data/assets/' + url.slice(8);
-  if (url.startsWith('post://')) return '/editor/article?id=' + url.slice(7);
+  if (url.startsWith('asset://')) return resolveAssetUrl(url.slice(8));
+  if (url.startsWith('post://')) return resolvePostUrl(url.slice(7));
   // Relative path — resolve to post directory, encode non-ASCII filenames
   if (_postSlug && !url.startsWith('/') && !/^[a-zA-Z][\w+.-]*:/.test(url)) {
     const base = _postSlug === '__about__' ? '/data/__about__' : `/data/posts/${_postSlug}`; // manager uses filesystem path
@@ -52,6 +56,25 @@ md.normalizeLink = (url: string) => {
 };
 
 md.use(markdownItFootnote);
+
+// ── post:// links: open in new tab/window ───────────────
+// post://<slug> normalizes to /editor/article?id=<slug> (cross-post editor link).
+const _previewLinkOpen = md.renderer.rules.link_open || function(tokens: any, idx: number, options: any, _env: any, self: any) {
+  return self.renderToken(tokens, idx, options);
+};
+md.renderer.rules.link_open = function(tokens: any, idx: number, options: any, env: any, self: any) {
+  const token = tokens[idx];
+  const hrefIndex = token.attrIndex('href');
+  if (hrefIndex >= 0) {
+    const href = token.attrs![hrefIndex][1];
+    if (href.startsWith('/editor/article?id=')) {
+      token.attrSet('target', '_blank');
+      token.attrSet('rel', 'noopener');
+      token.attrSet('data-post-link', '');
+    }
+  }
+  return _previewLinkOpen(tokens, idx, options, env, self);
+};
 
 // Strip brackets from footnote refs: [1] → 1
 md.renderer.rules.footnote_caption = (tokens: any, idx: number) => {
@@ -262,7 +285,11 @@ md.inline.ruler.before('link', 'chronicle_file_card', (state, silent) => {
     const activePrefix = effectivePrefix || prefixMatch;
     const isMailto = activePrefix?.type === 'Email';
     const isLink   = activePrefix?.type === 'Link';
-    const cardUrl  = isMailto ? href : (activePrefix ? activePrefix.actualUrl : href);
+    const rawUrl   = isMailto ? href : (activePrefix ? activePrefix.actualUrl : href);
+    // Resolve asset:// and post:// in the URL after type-prefix stripping
+    const cardUrl  = rawUrl.startsWith('asset://') ? resolveAssetUrl(rawUrl.slice(8))
+                   : rawUrl.startsWith('post://') ? resolvePostUrl(rawUrl.slice(7))
+                   : rawUrl;
     const subtitle = (isMailto || isLink) ? (activePrefix?.actualUrl || href) : undefined;
 
     const token = state.push('html_inline', '', 0);

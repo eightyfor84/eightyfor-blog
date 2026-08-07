@@ -1,4 +1,36 @@
 {
+  "c8n-config": {
+    "title": "Collections Guide",
+    "date": "2026-08-07T07:40:52.022Z",
+    "tags": [
+      "collections",
+      "guide"
+    ],
+    "status": "published",
+    "summary": "",
+    "font": "sans",
+    "author": "Eightyfor",
+    "aiGenerated": false,
+    "type": "article",
+    "collection": "Chronicle Guide",
+    "collectionPath": "Chronicle Guide / Configuration"
+  },
+  "friend-config": {
+    "title": "Friends Management",
+    "date": "2026-08-07T07:41:27.554Z",
+    "tags": [
+      "friends",
+      "guide"
+    ],
+    "status": "published",
+    "summary": "",
+    "font": "sans",
+    "author": "Eightyfor",
+    "aiGenerated": false,
+    "type": "article",
+    "collection": "Chronicle Guide",
+    "collectionPath": "Chronicle Guide / Configuration"
+  },
   "getting-started": {
     "title": "Getting Started",
     "date": "2026-08-02",
@@ -7,8 +39,10 @@
       "setup"
     ],
     "status": "published",
-    "summary": "A quick guide to setting up your Chronicle blog — from clone to first post.",
+    "summary": "",
     "font": "sans",
+    "author": null,
+    "aiGenerated": false,
     "type": "article",
     "collection": "Chronicle Guide",
     "collectionPath": "Chronicle Guide"
@@ -28,6 +62,38 @@
     "collection": "Chronicle Guide",
     "collectionPath": "Chronicle Guide"
   },
+  "profile-config": {
+    "title": "Profile Configuration",
+    "date": "2026-08-07T07:40:03.556Z",
+    "tags": [
+      "guide",
+      "profile"
+    ],
+    "status": "published",
+    "summary": "",
+    "font": "sans",
+    "author": "Eightyfor",
+    "aiGenerated": false,
+    "type": "article",
+    "collection": "Chronicle Guide",
+    "collectionPath": "Chronicle Guide / Configuration"
+  },
+  "site-config": {
+    "title": "Site Configuration",
+    "date": "2026-08-07T07:39:14.750Z",
+    "tags": [
+      "guide",
+      "site"
+    ],
+    "status": "published",
+    "summary": "",
+    "font": "sans",
+    "author": "Eightyfor",
+    "aiGenerated": false,
+    "type": "article",
+    "collection": "Chronicle Guide",
+    "collectionPath": "Chronicle Guide / Configuration"
+  },
   "slides-demo": {
     "title": "Chronicle Presentation",
     "date": "2026-08-04",
@@ -37,8 +103,9 @@
       "featured"
     ],
     "status": "published",
-    "summary": "A Marp-powered slideshow introducing Chronicle's philosophy and features.",
-    "font": "sans",
+    "summary": "",
+    "author": null,
+    "aiGenerated": false,
     "type": "slides",
     "collection": "Chronicle Guide",
     "collectionPath": "Chronicle Guide"

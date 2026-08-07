@@ -210,8 +210,8 @@ body[data-backend-theme="light"] {
   --app-bg-secondary: #f0f0f0;
   --component-bg: #ffffff;
   --component-bg-alt: #f7f7f7;
-  --component-bg-blur: rgba(230, 230, 230, 0.8);
-  --component-bg-blur-alt: rgba(232, 232, 232, 0.5);
+  --component-bg-blur: rgba(240, 240, 240, 0.8);
+  --component-bg-blur-alt: rgba(242, 242, 242, 0.5);
   --component-bg-accent: color-mix(in srgb, var(--accent-color) 30%, #fffb);
   --component-bg-accent-blur: color-mix(in srgb, var(--accent-color) 35%, #fffb);
   --component-bg-accent-ghost: color-mix(in srgb, var(--accent-color) 45%, #fff7);
@@ -357,8 +357,8 @@ body[data-backend-theme="dark"] {
   --app-bg-secondary: #f0f0f0;
   --component-bg: #ffffff;
   --component-bg-alt: #f7f7f7;
-  --component-bg-blur: rgba(230, 230, 230, 0.8);
-  --component-bg-blur-alt: rgba(232, 232, 232, 0.5);
+  --component-bg-blur: rgba(240, 240, 240, 0.8);
+  --component-bg-blur-alt: rgba(242, 242, 242, 0.5);
   --component-bg-accent: color-mix(in srgb, var(--accent-color) 30%, #fffb);
   --component-bg-accent-blur: color-mix(in srgb, var(--accent-color) 35%, #fffb);
   --component-bg-accent-ghost: color-mix(in srgb, var(--accent-color) 45%, #fff7);
@@ -429,8 +429,8 @@ body[data-backend-theme="dark"] {
     --app-bg-secondary: #f0f0f0;
     --component-bg: #ffffff;
     --component-bg-alt: #f7f7f7;
-    --component-bg-blur: rgba(230, 230, 230, 0.8);
-    --component-bg-blur-alt: rgba(232, 232, 232, 0.5);
+    --component-bg-blur: rgba(240, 240, 240, 0.8);
+    --component-bg-blur-alt: rgba(242, 242, 242, 0.5);
     --component-bg-accent: color-mix(in srgb, var(--accent-color) 30%, #fffb);
     --component-bg-accent-blur: color-mix(in srgb, var(--accent-color) 35%, #fffb);
     --component-bg-accent-ghost: color-mix(in srgb, var(--accent-color) 45%, #fff7);
@@ -485,7 +485,7 @@ body[data-backend-theme="dark"] {
   }
 }
 
-
+/* Text style settings */
 
 i,
 em {
@@ -500,6 +500,11 @@ a {
 
 a:hover {
   color: var(--accent-color-dark);
+}
+
+strong, b{
+  font-weight: 600;
+  font-variation-settings: 'wght' 600;
 }
 
 body {
@@ -882,7 +887,7 @@ html.is-mobile .toc-float {
   background: var(--component-bg-blur);
 }
 
-.modern-select {
+.inline-select {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -893,6 +898,7 @@ html.is-mobile .toc-float {
   color: var(--text-primary);
   font-size: 0.95rem;
   transition: all 0.2s ease;
+  background-color: var(--app-bg-primary);
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='var(--text-primary) text' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>");
   background-repeat: no-repeat;
   background-position: right 12px center;
@@ -901,17 +907,17 @@ html.is-mobile .toc-float {
   /* reserve more space for larger arrow */
 }
 
-.modern-select:hover {
+.inline-select:hover {
   border-color: var(--border-color-blur);
   background: var(--component-bg-hover);
 }
 
-.modern-select:hover option {
+.inline-select:hover option {
   color: var(--text-primary);
   background: var(--component-bg);
 }
 
-.modern-select:focus {
+.inline-select:focus {
   outline: none;
   background-color: var(--component-bg-active);
   box-shadow: var(--shadow-elev-2);
@@ -978,7 +984,7 @@ html.is-mobile .toc-float {
 }
 
 /* Hide native IE arrow */
-.modern-select::-ms-expand {
+.inline-select::-ms-expand {
   display: none;
 }
 
@@ -993,7 +999,7 @@ select:hover option {
 }
 
 /* Option styles (browser support varies) */
-.modern-select option {
+.inline-select option {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -1007,7 +1013,7 @@ select:hover option {
 }
 
 /* Compact variant */
-.modern-select.compact {
+.inline-select.compact {
   padding: 6px 32px 6px 8px;
   border-radius: 8px;
   font-size: 0.9rem;
@@ -1020,12 +1026,12 @@ select:hover option {
   box-shadow: none;
 }
 
-.modern-select:disabled {
+.inline-select:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-.modern-select[disabled] {
+.inline-select[disabled] {
   background-image: none;
   border-color: var(--border-color-blur);
   color: var(--component-text-secondary-disabled);
@@ -1151,7 +1157,7 @@ select:hover option {
   position: relative;
 }
 
-.select-wrap .modern-select {
+.select-wrap .inline-select {
   display: block;
   /* fill the wrapper */
   width: 100%;
@@ -1457,7 +1463,7 @@ html {
   box-sizing: border-box;
   padding: 10px 14px;
   font-size: .95rem;
-  background: var(--bg-secondary);
+  background: var(--app-bg-primary);
   border: 1px solid var(--border-color);
   color: var(--text-primary);
   border-radius: 8px;
@@ -1479,7 +1485,7 @@ html {
   box-sizing: border-box;
   padding: 10px 14px;
   font-size: .95rem;
-  background: var(--bg-secondary);
+  background: var(--app-bg-primary);
   border: 1px solid var(--border-color);
   color: var(--text-primary);
   border-radius: 8px;

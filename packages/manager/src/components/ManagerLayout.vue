@@ -249,8 +249,8 @@ async function stageBackgroundLayer(
 
     try {
       if (surfaceEl) {
-        const root = getComputedStyle(document.documentElement).getPropertyValue('--app-bg-primary') || ''
-        surfaceEl.style.background = root || 'transparent'
+        /* const root = getComputedStyle(document.documentElement).getPropertyValue('--app-bg-primary') || ''
+        surfaceEl.style.background = root || 'transparent' */
       }
       if (overlayEl) overlayEl.style.background = overlayValue || 'transparent'
       if (imgEl) {
@@ -742,7 +742,7 @@ onMounted(async () => {
 
 
 
-  // Only wrap selects that are explicitly marked as modern-select in the template
+  // Only wrap selects that are explicitly marked as inline-select in the template
 
   // Helper to wrap a select element if not already wrapped
   function wrapSelectElement(el: Element) {
@@ -776,7 +776,7 @@ onMounted(async () => {
 
   // Initial wrap for existing selects
   try {
-    document.querySelectorAll('select.modern-select').forEach((sel) => wrapSelectElement(sel))
+    document.querySelectorAll('select.inline-select').forEach((sel) => wrapSelectElement(sel))
   } catch (e) { }
 
   // Observe DOM additions to wrap dynamically inserted selects
@@ -785,11 +785,11 @@ onMounted(async () => {
       for (const m of mutations) {
         m.addedNodes.forEach((n) => {
           if (!(n instanceof Element)) return
-          if ((n as Element).matches && (n as Element).matches('select.modern-select')) {
+          if ((n as Element).matches && (n as Element).matches('select.inline-select')) {
             wrapSelectElement(n as Element)
           }
           try {
-            ; (n as Element).querySelectorAll && (n as Element).querySelectorAll('select.modern-select').forEach((s) => wrapSelectElement(s))
+            ; (n as Element).querySelectorAll && (n as Element).querySelectorAll('select.inline-select').forEach((s) => wrapSelectElement(s))
           } catch (e) { }
         })
       }
@@ -968,16 +968,6 @@ function normalizeFrontendUrl(frontendUrl: string) {
   if (!frontendUrl) return '/'
   if (/^[a-zA-Z]+:\/\//.test(frontendUrl)) return frontendUrl
   return `https://${frontendUrl.replace(/^\/+/, '')}`
-}
-
-
-
-async function openFrontend() {
-  try {
-    const settings = await getSettings()
-    const frontendUrl = normalizeFrontendUrl(settings.frontendUrl || 'blog.eightyfor.top')
-    window.open(frontendUrl, '_blank')
-  } catch (e) { }
 }
 
 function openEditor() {
