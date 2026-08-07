@@ -13,6 +13,20 @@
     "collection": "AuthorDNA",
     "collectionPath": "AuthorDNA"
   },
+  "26s3": {
+    "title": "26S3: Infinite Memory Storage Bank \"何处寻\"",
+    "date": "2026-08-08T01:14:51.820Z",
+    "tags": [
+      "featured",
+      "SBTI"
+    ],
+    "status": "published",
+    "summary": "",
+    "font": "sans",
+    "author": "Eightyfor",
+    "aiGenerated": false,
+    "type": "article"
+  },
   "3e246f38-0651-477f-9cb9-6dd9127ac659": {
     "title": "SSG + CSR 混合架构技术方案",
     "date": "2026-04-27T03:46:38.051Z",

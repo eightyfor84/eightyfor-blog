@@ -12,6 +12,10 @@
         width: 100%;
     }
 
+    /* ── multilingual ── */
+    :lang(zh-CN) .lang-en,
+    :lang(en) .lang-zh { display: none; }
+
     /* ── Cover content ── */
 
     .cover-title {
@@ -109,7 +113,7 @@
                 <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                     <path d="M8 5v14l11-7z" />
                 </svg>
-                {{locale="zh"?"开始阅读":"Start Reading"}}
+<span class="lang-zh">阅读主题文章</span><span class="lang-en">View Theme Post</span>
             </a>
         </div>
     </div>

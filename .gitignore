@@ -14,9 +14,9 @@ node_modules/
 CLAUDE.md
 
 # Astro — track type declarations, ignore dev artifacts
-.astro/collections/
-.astro/dev.json
-.astro/settings.json
+packages/template-astro/.astro/collections/
+packages/template-astro/.astro/dev.json
+packages/template-astro/.astro/settings.json
 
 # temp assets
 data/branding
