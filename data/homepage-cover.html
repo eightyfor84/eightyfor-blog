@@ -1,0 +1,116 @@
+<style>
+
+    .home-cover-deck {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 0 20px;
+        height: 100%;
+        width: 100%;
+    }
+
+    /* ── Cover content ── */
+
+    .cover-title {
+        font-size: min(70vh, 40vw);
+        font-weight: 800;
+        font-stretch: condensed;
+        font-variation-settings: "wght" 800;
+        color: var(--app-text-primary);
+        opacity: .2;
+        margin: 0 0 1rem 0;
+        line-height: .9;
+        letter-spacing: -0.04em;
+    }
+
+    .cover-floating {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 100%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .cover-subtitle {
+        font-size: 1.15rem;
+        color: var(--app-text-secondary);
+        margin: 0 0 1rem 0;
+        line-height: 1.6;
+    }
+
+    .cover-actions {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .cover-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 28px;
+        background: var(--component-bg-blur);
+        color: var(--app-text-primary);
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        transition: filter 0.2s, transform 0.2s;
+    }
+
+    .cover-cta:hover {
+        filter: brightness(1.6);
+        transform: scale(1.05);
+        color: #000;
+    }
+
+    .cover-cta svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .cover-ghost {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 11px 24px;
+        background: transparent;
+        color: var(--app-text-secondary);
+        border: 1px solid var(--app-border-color, rgba(128, 128, 128, .25));
+        border-radius: 8px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        transition: color 0.2s, border-color 0.2s;
+    }
+
+    .cover-ghost:hover {
+        color: var(--app-text-primary);
+        border-color: var(--app-text-secondary);
+    }
+</style>
+<div class="hero-inner">
+    <h1 class="cover-title">IMSB</h1>
+    <div class="cover-floating">
+        <p class="cover-subtitle">Infinite Memory Storage Bank<br>"何处寻"</p>
+        <div class="cover-actions">
+            <a href="post/26s3" class="cover-cta">
+                <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M8 5v14l11-7z" />
+                </svg>
+                {{locale="zh"?"开始阅读":"Start Reading"}}
+            </a>
+        </div>
+    </div>
+</div>
