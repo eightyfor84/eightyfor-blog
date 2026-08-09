@@ -21,7 +21,7 @@
       "SBTI"
     ],
     "status": "published",
-    "summary": "",
+    "summary": "没想好。",
     "font": "sans",
     "author": "Eightyfor",
     "aiGenerated": false,
@@ -36,7 +36,7 @@
       "version 2.0"
     ],
     "status": "published",
-    "summary": "",
+    "summary": "强制 SSG：站点必须整体采用静态站点生成，最终产物为纯静态文件，部署于 CDN 弱服务器：尽可能降低服务端计算压力，优先使用静态托管和边缘缓存 CMS 驱动：内容由后台 CMS 管理，更新时机不可预测",
     "font": "sans",
     "aiGenerated": false,
     "type": "article"
@@ -49,7 +49,7 @@
       "story"
     ],
     "status": "published",
-    "summary": "",
+    "summary": "Shower - Rapeter",
     "font": "serif",
     "author": null,
     "aiGenerated": false,
@@ -76,7 +76,7 @@
       "usagi"
     ],
     "status": "published",
-    "summary": "",
+    "summary": "乌萨奇",
     "font": "sans",
     "aiGenerated": false,
     "type": "article"
@@ -160,7 +160,7 @@
     "date": "2026-05-25T21:54:15.073Z",
     "tags": [],
     "status": "draft",
-    "summary": "",
+    "summary": "…",
     "font": "sans",
     "aiGenerated": false,
     "type": "article"
@@ -190,7 +190,7 @@
       "version 3.0"
     ],
     "status": "published",
-    "summary": "",
+    "summary": "不再需要维护服务器。写完文章，点一下 Sync，内容通过 Git 推送到 GitHub Pages / Cloudflare Pages，自动构建上线。HTTPS、CDN 全免费。",
     "font": "sans",
     "author": "Eightyfor",
     "aiGenerated": true,
