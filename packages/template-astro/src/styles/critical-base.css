@@ -1,0 +1,80 @@
+/* ── Critical CSS: Base (all pages) ────────────────────────────────
+   Inlined in <head> to prevent CLS when full CSS loads asynchronously.
+   Covers: reset, nav shell geometry — everything shared across pages.
+
+   Colours reference tokens from /critical-tokens.css (blocking <link>).
+   Every var() carries a dark-theme fallback so the skeleton paints
+   correctly even if the tokensheet hasn't resolved yet.
+
+   Update in sync with: global.css :root tokens, app.css shell. */
+
+/* ── Reset + base ── */
+:root, html, body {
+  margin:0; padding:0;
+  background:var(--app-bg-primary,#121212); color:var(--app-text-primary,#e0e0e0);
+  font-family:-apple-system,BlinkMacSystemFont,'InterVariable','Inter','Segoe UI',sans-serif;
+  text-rendering:optimizeLegibility; -webkit-font-smoothing:antialiased; color-scheme:dark;
+}
+html { overflow:hidden; }
+body { min-width:320px; min-height:100vh; }
+
+/* ── Shell ── */
+#app { display:flex; flex-direction:column; height:100vh; }
+#chronicle-bg-layer { position:fixed; inset:0; z-index:-9999; pointer-events:none; }
+
+/* ── Nav header (fixed) ── */
+.nav-header {
+  position:fixed; top:0; left:0; right:0; z-index:9999;
+  height:70px; box-sizing:border-box;
+  background:var(--component-bg-blur,rgba(34,34,34,0.9)); backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border-color-blur,rgba(169,169,169,0.2));
+}
+.nav-content {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:0 2rem; height:100%; max-width:1200px; margin:0 auto;
+}
+.main-content {
+  flex:1; overflow-y:auto; overflow-x:hidden;
+  padding-top:70px; height:100vh; box-sizing:border-box;
+}
+.app-title { font-size:1.5rem; font-weight:bold; color:var(--app-text-primary,#e0e0e0); margin:0; }
+.nav-link { color:var(--app-text-secondary,#a9a9a9); text-decoration:none; padding:0.5rem 1rem; border-radius:4px; }
+.nav-links { display:flex; gap:2rem; }
+.nav-actions { margin-left:auto; display:flex; align-items:center; gap:0.75rem; }
+.nav-setting-btn {
+  background:transparent; border:none; color:var(--app-text-secondary,#a9a9a9); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  width:40px; height:40px; border-radius:6px;
+}
+
+/* ── Nav: prevent content leakage ──
+   Items hidden by default, revealed by JS when full CSS is loaded.
+   Without these, settings-menu renders in-flow (all items visible),
+   both nav-link-full and nav-link-collapsed show side-by-side,
+   and menu-toggle shows both hamburger + close icons. */
+.nav-settings-menu { position:fixed; opacity:0; pointer-events:none }
+.nav-link-swap { position:relative; display:inline-flex; align-items:center; justify-content:center }
+.nav-link-full { display:inline-block }
+.nav-link-collapsed { position:absolute; max-width:0; opacity:0; overflow:hidden }
+.nav-close { display:none }
+.menu-toggle { display:none }
+.menu-toggle .menu-icon,
+.menu-toggle .close-icon { position:absolute }
+.menu-toggle .close-icon { opacity:0 }
+/* reading-header is hidden unless JS enables swap mode (article pages) */
+.reading-header { display:none }
+
+/* ── Links ── */
+a { color:var(--accent-color,#2ea35f); }
+
+/* ── Mobile (≤768px) ── */
+@media (max-width:768px) {
+  .nav-header { height:50px; }
+  .main-content { padding-top:50px; }
+  .nav-content { padding:0 1.5rem; }
+  /* Mobile: show hamburger, use text labels not icons */
+  .menu-toggle { display:flex; position:relative }
+  .nav-link-collapsed { display:none; position:static }
+  /* Mobile nav links are off-screen overlay until opened */
+  .nav-links { position:fixed; top:0; left:0; right:0; bottom:0; opacity:0; transform:translateY(-100%); pointer-events:none }
+}

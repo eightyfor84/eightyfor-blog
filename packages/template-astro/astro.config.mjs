@@ -31,6 +31,49 @@ export default defineConfig({
   // for SPA navigation; page loads are simply not pre-warmed on hover/link visibility.
   integrations: [
     icon(),
+
+    // ── Defer Astro CSS: move component CSS off the critical path ──
+    // Astro bundles all component <style> blocks into /_astro/*.css <link> tags
+    // in <head>. These are render-blocking by default. This integration
+    // rewrites them to use media="print" + onload, so the browser paints with
+    // the inline skeleton CSS first, then applies the full bundle without
+    // blocking. A <noscript> fallback preserves styling with JS disabled.
+    (function chronicleDeferAstroCSS() {
+      return {
+        name: 'chronicle-defer-astro-css',
+        hooks: {
+          'astro:build:done': async ({ dir, pages }) => {
+            const CSS_LINK_RE = /<link\s+rel="stylesheet"\s+href="(\/_astro\/[^"]+\.css)"\s*\/?>/gi;
+            const outDir = typeof dir === 'string' ? dir : (dir.pathname || fileURLToPath(dir));
+
+            for (const page of pages) {
+              let relPath = page.pathname || '';
+              if (!relPath) continue;
+
+              // Normalize: directory paths → index.html
+              if (relPath.endsWith('/')) relPath += 'index.html';
+              if (!relPath.endsWith('.html')) continue;
+
+              const filePath = join(outDir, relPath);
+              if (!existsSync(filePath)) continue;
+
+              let html = readFileSync(filePath, 'utf-8');
+              let count = 0;
+
+              html = html.replace(CSS_LINK_RE, (match, href) => {
+                count++;
+                return `<link rel="stylesheet" href="${href}" media="print" onload="this.onload=null;this.media='all'"><noscript><link rel="stylesheet" href="${href}"></noscript>`;
+              });
+
+              if (count > 0) {
+                writeFileSync(filePath, html);
+                console.log(`[chronicle-defer-css] ${relPath}: deferred ${count} CSS file(s)`);
+              }
+            }
+          },
+        },
+      };
+    })(),
   ],
   server: { port: 4321 },
   vite: {

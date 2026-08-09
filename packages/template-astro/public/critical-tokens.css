@@ -1,0 +1,121 @@
+/* ── Critical tokens: dark + light theme fundamentals ────────────
+   Blocking <link> — small enough to cache forever at the edge.
+   Only first-paint-visible tokens. No hover/active/highlight/disabled
+   states, no syntax highlighting, no scrollbar/form styles.
+
+   Full token set (including interaction states) lives in global.css,
+   loaded asynchronously. Update both files together. */
+
+/* ═══ Dark theme (default) ═══ */
+:root {
+  /* Font */
+  --app-font-stack-inter: -apple-system, BlinkMacSystemFont, 'InterVariable', 'Inter', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --app-font-stack: var(--app-font-stack-inter);
+  --app-text-wght: 400;
+  font-family: var(--app-font-stack);
+  color-scheme: dark;
+
+  /* Brand */
+  --accent-color-default: #2ea35f;
+  --accent-color: var(--accentColor, var(--accent-color-default));
+  --accent-color-dark: color-mix(in srgb, var(--accent-color) 80%, #000);
+  --accent-color-bg: color-mix(in srgb, var(--accent-color) 15%, transparent);
+  --recommended-accent-text: #fff;
+  --featured: #ffd700;
+  --featured-bg: color-mix(in srgb, var(--featured) 15%, transparent);
+
+  /* Backgrounds */
+  --app-bg-primary: #121212;
+  --app-bg-secondary: #1e1e1e;
+  --component-bg: #222222;
+  --component-bg-alt: #2a2a2a;
+  --component-bg-blur: rgba(34, 34, 34, 0.9);
+  --component-bg-blur-alt: rgba(72, 72, 72, 0.5);
+
+  /* Text */
+  --app-text-primary: #e0e0e0;
+  --app-text-secondary: #a9a9a9;
+  --component-text-primary: #d4d4d4;
+  --component-text-secondary: #a5a5a5;
+
+  /* Borders & shadows */
+  --border-color: color-mix(in srgb, var(--app-text-secondary) 20%, transparent);
+  --border-color-blur: rgba(113, 113, 113, 0.2);
+  --shadow-elev-1: 0 4px 12px rgba(0, 0, 0, 0.3);
+
+  /* Background image layer */
+  --frontend-bg-image: none;
+  --frontend-bg-pos: 50% 50%;
+  --frontend-bg-size: 100%;
+  --frontend-bg-blur: 0px;
+  --frontend-bg-opacity: 0;
+  --frontend-bg-overlay-light: transparent;
+  --frontend-bg-overlay-dark: transparent;
+  --frontend-bg-overlay: transparent;
+
+  /* Legacy aliases */
+  --text-primary: var(--app-text-primary);
+  --text-secondary: var(--app-text-secondary);
+  --text-inactive: var(--app-text-secondary);
+  --text-on-accent: #fff;
+
+  /* Base */
+  color: var(--app-text-primary);
+  background-color: transparent;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ═══ Light theme ═══ */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --app-text-wght: 430;
+  --recommended-accent-text: #fff;
+
+  --app-bg-primary: #f9f9f9;
+  --app-bg-secondary: #f0f0f0;
+  --component-bg: #ffffff;
+  --component-bg-alt: #f7f7f7;
+  --component-bg-blur: rgba(240, 240, 240, 0.8);
+  --component-bg-blur-alt: rgba(242, 242, 242, 0.5);
+
+  --app-text-primary: #111;
+  --app-text-secondary: #444;
+  --component-text-primary: #222;
+  --component-text-secondary: #555;
+
+  --featured: #c58f00;
+  --featured-bg: rgba(242, 234, 212, 0.9);
+  --border-color: color-mix(in srgb, var(--app-text-secondary) 20%, transparent);
+  --border-color-blur: rgba(28, 28, 28, 0.12);
+  --shadow-elev-1: 0 4px 12px rgba(0, 0, 0, 0.2);
+  --frontend-bg-overlay: var(--frontend-bg-overlay-light);
+}
+
+/* ═══ System light (no explicit theme set) ═══ */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+    --app-text-wght: 430;
+    --app-bg-primary: #f9f9f9;
+    --app-bg-secondary: #f0f0f0;
+    --component-bg: #ffffff;
+    --component-bg-alt: #f7f7f7;
+    --component-bg-blur: rgba(240, 240, 240, 0.8);
+    --component-bg-blur-alt: rgba(242, 242, 242, 0.5);
+    --app-text-primary: #111;
+    --app-text-secondary: #444;
+    --component-text-primary: #222;
+    --component-text-secondary: #555;
+    --featured: #c58f00;
+    --featured-bg: rgba(242, 234, 212, 0.9);
+    --border-color: color-mix(in srgb, var(--app-text-secondary) 20%, transparent);
+    --border-color-blur: rgba(28, 28, 28, 0.12);
+    --shadow-elev-1: 0 4px 12px rgba(0, 0, 0, 0.2);
+    --frontend-bg-overlay: var(--frontend-bg-overlay-light);
+    --text-primary: var(--app-text-primary);
+    --text-secondary: var(--app-text-secondary);
+    --text-inactive: var(--app-text-secondary);
+  }
+}
