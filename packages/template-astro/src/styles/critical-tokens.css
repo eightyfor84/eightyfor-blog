@@ -1,5 +1,5 @@
 /* ── Critical tokens: dark + light theme fundamentals ────────────
-   Blocking <link> — small enough to cache forever at the edge.
+   Inlined in <head> via Layout.astro's criticalTokensCSS variable.
    Only first-paint-visible tokens. No hover/active/highlight/disabled
    states, no syntax highlighting, no scrollbar/form styles.
 

@@ -2,6 +2,8 @@
    Injected alongside critical-base.css on homepage routes.
    Covers: split/cover/cards geometry, hero deck, card grid shell.
 
+   Tokens are inlined before this block — no fallback needed.
+
    Update in sync with: [lang]/index.astro, HomeCoverDeck.astro,
    CardStyleHomeDeck.astro. */
 
@@ -68,7 +70,7 @@
 .stream-card {
   display:grid; grid-template-columns:110px minmax(0,1fr);
   gap:.85rem; padding:1rem; border:1px solid var(--border-color-blur); border-radius:14px;
-  background:var(--component-bg-blur-alt,rgba(72,72,72,0.5));
+  background:var(--component-bg-blur-alt);
 }
 .stream-card__body { display:grid; gap:.55rem; }
 .stream-card__top { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; }

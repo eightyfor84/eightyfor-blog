@@ -2,16 +2,15 @@
    Inlined in <head> to prevent CLS when full CSS loads asynchronously.
    Covers: reset, nav shell geometry — everything shared across pages.
 
-   Colours reference tokens from /critical-tokens.css (blocking <link>).
-   Every var() carries a dark-theme fallback so the skeleton paints
-   correctly even if the tokensheet hasn't resolved yet.
+   Tokens are inlined immediately before this block — var() refs resolve
+   on first paint without any fallback needed.
 
    Update in sync with: global.css :root tokens, app.css shell. */
 
 /* ── Reset + base ── */
 :root, html, body {
   margin:0; padding:0;
-  background:var(--app-bg-primary,#121212); color:var(--app-text-primary,#e0e0e0);
+  background:var(--app-bg-primary); color:var(--app-text-primary);
   font-family:-apple-system,BlinkMacSystemFont,'InterVariable','Inter','Segoe UI',sans-serif;
   text-rendering:optimizeLegibility; -webkit-font-smoothing:antialiased; color-scheme:dark;
 }
@@ -26,8 +25,8 @@ body { min-width:320px; min-height:100vh; }
 .nav-header {
   position:fixed; top:0; left:0; right:0; z-index:9999;
   height:70px; box-sizing:border-box;
-  background:var(--component-bg-blur,rgba(34,34,34,0.9)); backdrop-filter:blur(16px);
-  border-bottom:1px solid var(--border-color-blur,rgba(169,169,169,0.2));
+  background:var(--component-bg-blur); backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border-color-blur);
 }
 .nav-content {
   display:flex; justify-content:space-between; align-items:center;
@@ -37,12 +36,12 @@ body { min-width:320px; min-height:100vh; }
   flex:1; overflow-y:auto; overflow-x:hidden;
   padding-top:70px; height:100vh; box-sizing:border-box;
 }
-.app-title { font-size:1.5rem; font-weight:bold; color:var(--app-text-primary,#e0e0e0); margin:0; }
-.nav-link { color:var(--app-text-secondary,#a9a9a9); text-decoration:none; padding:0.5rem 1rem; border-radius:4px; }
+.app-title { font-size:1.5rem; font-weight:bold; color:var(--app-text-primary); margin:0; }
+.nav-link { color:var(--app-text-secondary); text-decoration:none; padding:0.5rem 1rem; border-radius:4px; }
 .nav-links { display:flex; gap:2rem; }
 .nav-actions { margin-left:auto; display:flex; align-items:center; gap:0.75rem; }
 .nav-setting-btn {
-  background:transparent; border:none; color:var(--app-text-secondary,#a9a9a9); cursor:pointer;
+  background:transparent; border:none; color:var(--app-text-secondary); cursor:pointer;
   display:flex; align-items:center; justify-content:center;
   width:40px; height:40px; border-radius:6px;
 }
@@ -65,7 +64,7 @@ body { min-width:320px; min-height:100vh; }
 .reading-header { display:none }
 
 /* ── Links ── */
-a { color:var(--accent-color,#2ea35f); }
+a { color:var(--accent-color); }
 
 /* ── Mobile (≤768px) ── */
 @media (max-width:768px) {

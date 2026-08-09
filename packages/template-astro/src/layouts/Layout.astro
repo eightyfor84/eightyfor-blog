@@ -1,4 +1,5 @@
 ---
+import { readFileSync } from 'node:fs';
 import { ClientRouter } from 'astro:transitions';
 import NavHeader from '../components/NavHeader.astro';
 import FilePreviewModal from '../components/FilePreviewModal.astro';
@@ -12,6 +13,11 @@ import criticalPost from '../styles/critical-post.css?raw';
 import criticalBlogs from '../styles/critical-blogs.css?raw';
 import '../styles/global.css';
 import '../styles/app.css';
+
+// Inline critical tokens to eliminate the network RTT for the blocking <link>.
+// Previously served as /critical-tokens.css — now baked into every page's <head>
+// so that var() references in the skeleton resolve on first paint without a fetch.
+const criticalTokensCSS = readFileSync('src/styles/critical-tokens.css', 'utf-8');
 
 // Assemble critical CSS based on page type — only inject what this page needs.
 const pathname = Astro.url.pathname;
@@ -213,11 +219,9 @@ try {
       })();
     </script>
 
-    <!-- Critical tokens: dark + light theme fundamentals (~1.5 KB).
-         Blocking <link> — but cacheable forever at the edge.
-         Without these, every var() in the skeleton resolves to its fallback,
-         causing a colour flash for light-theme users. -->
-    <link rel="stylesheet" href="/critical-tokens.css" />
+    <!-- Critical tokens: inlined to eliminate network RTT.
+         Tokens must resolve before the skeleton CSS below paints. -->
+    <style is:inline set:html={criticalTokensCSS}></style>
 
     <!-- Custom properties from SSR (before skeleton so var() refs resolve first-paint) -->
     <style define:vars={{
@@ -255,7 +259,7 @@ try {
       }
     </style>
 
-    <!-- Critical CSS skeleton (geometry only — colours via var() from critical-tokens.css) -->
+    <!-- Critical CSS skeleton (geometry + colours — tokens are inline above) -->
     <style is:inline set:html={criticalCSS}></style>
 
     <script define:vars={{ frontendTheme, frontendAccent, frontendBackground, frontendBackgroundMeta, frontendFont, featureFlags, GA_MEASUREMENT_ID }}>
