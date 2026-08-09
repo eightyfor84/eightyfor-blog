@@ -1,5 +1,5 @@
 import { defineMiddleware } from 'astro:middleware';
-import { buildLocalizedPath, getRouteLocaleFromPath, toContentLocale } from './utils/routeLocale';
+import { getRouteLocaleFromPath, toContentLocale } from './utils/routeLocale';
 
 function mergeVaryHeader(current: string | null, value: string): string {
   const parts = new Set(
@@ -12,23 +12,6 @@ function mergeVaryHeader(current: string | null, value: string): string {
   return Array.from(parts).join(', ');
 }
 
-function getCookieLocale(cookieHeader: string): 'en' | 'zh-CN' | 'follow' | undefined {
-  const cookieMatch = cookieHeader.match(/(?:^|;\s*)locale=([^;]+)/);
-
-  if (!cookieMatch) return undefined;
-
-  const value = decodeURIComponent(cookieMatch[1]);
-  if (value === 'en' || value === 'zh-CN' || value === 'follow') {
-    return value;
-  }
-
-  return undefined;
-}
-
-function getBrowserLocale(acceptLanguage: string): 'en' | 'zh-CN' {
-  return acceptLanguage.includes('zh') ? 'zh-CN' : 'en';
-}
-
 export const onRequest = defineMiddleware(async (context, next) => {
   const pathname = context.url.pathname;
   const isApiPath = pathname.startsWith('/api/');
@@ -37,13 +20,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const isHtmlPage = !isApiPath && !isCssAsset && !hasExtension;
 
   const routeLocale = getRouteLocaleFromPath(pathname);
-  const cookieLocale = getCookieLocale(context.request.headers.get('cookie') || '');
-  const acceptLanguage = context.request.headers.get('accept-language') || '';
-  const browserLocale = getBrowserLocale(acceptLanguage);
-  const preferredLocale = cookieLocale === 'en' || cookieLocale === 'zh-CN'
-    ? cookieLocale
-    : browserLocale;
-  const detectedLocale = routeLocale ? toContentLocale(routeLocale) : preferredLocale;
+  // Static SSG: locale is determined by URL prefix (/zh/ or /en/).
+  // Request headers (cookie, accept-language) are only relevant in SSR mode.
+  // During prerender they are unavailable — do NOT access context.request.headers.
+  const detectedLocale = routeLocale ? toContentLocale(routeLocale) : 'zh-CN';
 
   // 完全禁用中间件的自动重定向功能
   // 所有重定向逻辑由各个页面自己处理

@@ -66,11 +66,10 @@ const searchIndex = posts.map(p => ({
   tags: p.tags || [],
 }));
 
-// Get URL params for initial state
-const url = new URL(Astro.request.url);
-// 支持新格式：?tags=tag1,tag2&keyword=搜索词
-const keywordParam = url.searchParams.get("keyword") || "";
-const tagsParam = url.searchParams.get("tags") || "";
+// URL params for initial state — only available client-side (SSG)
+const url = Astro.url;
+const keywordParam = "";
+const tagsParam = "";
 
 // 处理旧格式兼容性
 const initialTitle = keywordParam || url.searchParams.get("title") || "";

@@ -997,7 +997,10 @@ async function previewSite() {
   try {
     const resp = await fetch('/api/build/preview', { method: 'POST' })
     const data = await resp.json()
-    if (data.previewUrl) { previewUrl.value = data.previewUrl; previewRunning.value = true }
+    if (data.previewUrl) {
+      previewUrl.value = data.previewUrl; previewRunning.value = true
+      window.open(data.previewUrl, '_blank', 'noopener')
+    }
   } catch {} finally {
     isRebuilding.value = false
     isAvailable.value = true

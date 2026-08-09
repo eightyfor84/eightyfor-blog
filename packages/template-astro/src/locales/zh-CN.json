@@ -12,7 +12,8 @@
     "files": "文件管理",
     "settings": "设置",
     "newPost": "写文章",
-    "about": "关于"
+    "about": "关于",
+    "menu": "菜单"
   },
   "inblog": {
     "toc-title": "目录",

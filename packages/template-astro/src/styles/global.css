@@ -26,7 +26,7 @@
   /* Core brand */
   --accent-color-default: #2ea35f;
   --accent-color: var(--accent-color-default);
-  --accent-color-dark: #24804a;
+  --accent-color-dark: color-mix(in srgb, var(--accent-color) 80%, #000);
   --accent-color-bg: color-mix(in srgb, var(--accent-color) 15%, transparent);
   --accent-color-hover: color-mix(in srgb, var(--accent-color) 80%, transparent);
   --recommended-accent-text: #fff;
@@ -332,12 +332,12 @@ em {
 a {
   font-weight: 500;
   font-variation-settings: 'wght' 500;
-  color: var(--accent-color);
+  color: var(--accent-color-dark);
   text-decoration: inherit;
 }
 
 a:hover {
-  color: var(--accent-color-dark);
+  color: var(--accent-color);
 }
 
 body {
@@ -439,13 +439,13 @@ button {
 }
 
 .float-btn.primary {
-  background: var(--accent-color);
+  background: var(--accent-color-dark);
   color: #fff;
   border: background;
 }
 
 .float-btn.primary:hover {
-  background: color-mix(in srgb, var(--accent-color) 60%, #fff);
+  background: color-mix(in srgb, var(--accent-color-dark) 60%, #fff);
   color: #111;
 }
 
@@ -495,13 +495,13 @@ button:focus-visible {
 }
 
 button.primary {
-  background: var(--accent-color);
+  background: var(--accent-color-dark);
   color: var(--text-on-accent);
   transition: all 0.3s ease;
 }
 
 html:not(.is-mobile) button.primary:hover {
-  background: var(--accent-color-dark);
+  background: var(--accent-color);
 }
 
 button.secondary {
@@ -511,13 +511,15 @@ button.secondary {
 }
 
 
-/* Hide desktop inline/floating TOC on mobile (app has html.is-mobile) */
-html.is-mobile .markdown-toc {
-  display: none !important;
-}
+/* Hide desktop inline/floating TOC on mobile */
+@media (max-width: 768px) {
+  .markdown-toc {
+    display: none !important;
+  }
 
-html.is-mobile .toc-float {
-  display: none !important;
+  .toc-float {
+    display: none !important;
+  }
 }
 
 

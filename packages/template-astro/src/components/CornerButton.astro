@@ -1,6 +1,10 @@
 ---
 import type { TocItem } from '../utils/toc';
+import { getTranslation, getLocale } from '../utils/i18n';
 interface LinkItem { href: string; label: string }
+
+const locale = getLocale(Astro.locals);
+const t = (key: string) => getTranslation(locale, key);
 
 interface Props {
   id: string;
@@ -33,17 +37,17 @@ const isMenu = template === 'menu';
   <div class:list={['cb__btn', { 'cb--primary': isPrimary }, { 'cb--btt': isBtt }, { 'is-capsule': capsule }]} style={capsule ? `width:${capsuleWidth}px` : ''}>
     <div class="cb__icons">
       {isBtt && (
-        <button class="cb__slot" data-action="scrollToTop" title="回到顶部" aria-label="回到顶部">
+        <button class="cb__slot" data-action="scrollToTop" title={t('misc.backToTop')} aria-label={t('misc.backToTop')}>
           <svg class="cb__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
         </button>
       )}
       {isTocList && (
-        <button class="cb__slot" data-menu="toc-list" title="目录" aria-label="目录">
+        <button class="cb__slot" data-menu="toc-list" title={t('inblog.toc-title')} aria-label={t('inblog.toc-title')}>
           <svg class="cb__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
       )}
       {isLinkList && (
-        <button class="cb__slot" data-menu="link-list" title="菜单" aria-label="菜单">
+        <button class="cb__slot" data-menu="link-list" title={t('nav.menu')} aria-label={t('nav.menu')}>
           <svg class="cb__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
       )}
@@ -143,7 +147,7 @@ const isMenu = template === 'menu';
     width:calc(100vw - 60px)!important;max-height:60vh;border-radius:12px;
     background:var(--component-bg-blur);border-color:var(--border-color);
     color:var(--component-text-primary);box-shadow:var(--shadow-elev-3);
-    z-index:1400!important;cursor:default;overflow:auto;
+    z-index:1400!important;cursor:default;overflow:hidden;
     transition:left calc(700ms * var(--transition-duration)) cubic-bezier(0.22,0.9,0.36,1),
                bottom calc(600ms * var(--transition-duration)) cubic-bezier(0.22,0.9,0.36,1),
                width calc(360ms * var(--transition-duration)) cubic-bezier(0.22,0.3,0.36,1),
@@ -169,7 +173,7 @@ const isMenu = template === 'menu';
   /* Layer 0 — content face: relative, fades in slow on open, fades out fast on close */
   .cb__content { position:relative;opacity:0;pointer-events:none;transition:opacity calc(120ms * var(--transition-duration)) ease;padding:8px;z-index:0 }
   .cb__content [hidden] { display:none !important }
-  .cb__btn.cb--open .cb__content { opacity:1;pointer-events:auto;transition:opacity calc(600ms * var(--transition-duration)) ease }
+  .cb__btn.cb--open .cb__content { opacity:1;pointer-events:auto;overflow-y:auto;overscroll-behavior:contain;max-height:calc(60vh - 16px);transition:opacity calc(600ms * var(--transition-duration)) ease }
 
   /* === Slots === */
   .cb__slot { width:50px;height:50px;display:flex;align-items:center;justify-content:center;background:none;border:none;color:inherit;cursor:pointer;padding:0;line-height:0 }

@@ -11,16 +11,6 @@ pre{
 
 }
 
-html.is-mobile .nav-header {
-  height:50px;
-}
-
-html.is-mobile .app-title{
-  font-size: 1.2rem;
-  transform: translateY(.1rem);
-  vertical-align: middle;
-}
-
 .nav-header {
   background: var(--component-bg-blur);
   backdrop-filter: blur(16px);
@@ -39,7 +29,7 @@ html.is-mobile .app-title{
   background: transparent;
   border-bottom-color: transparent;
   backdrop-filter: none;
-  
+
 }
 
 .nav-content {
@@ -50,10 +40,6 @@ html.is-mobile .app-title{
   height: 100%;
   max-width: 1200px;
   margin: 0 auto;
-}
-
-html.is-mobile .nav-content {
-  padding: 0 1.5rem;
 }
 
 
@@ -204,68 +190,6 @@ html.is-mobile .nav-content {
   gap: 0.75rem;
 }
 
-@media (max-width: 768px) {
-  .menu-toggle {
-    display: flex;
-  }
-
-  .nav-links {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 100dvh;
-    background: var(--app-bg-secondary);
-    /* Solid background for menu */
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    transform: translateY(-100%);
-    transition: transform 0.3s ease;
-    z-index: 101;
-    /* Behind toggle, above content */
-    gap: 30px;
-  }
-
-  .nav-links .nav-close {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    background: transparent;
-    border: none;
-    color: var(--text-primary);
-    width: 44px;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 110;
-  }
-
-  .nav-links .nav-close .nav-close-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center
-  }
-
-  .nav-links .nav-close .nav-close-icon svg {
-    width: 32px;
-    height: 32px;
-    display: block;
-    stroke: currentColor
-  }
-
-  .nav-links.mobile-open {
-    transform: translateY(0);
-    z-index: 999;
-  }
-
-  .nav-link {
-    font-size: 1.5em;
-  }
-}
-
 .nav-link {
   color: var(--text-inactive);
   text-decoration: none;
@@ -343,12 +267,6 @@ html.immersive:not(.focus) .main-content {
   mask-size: 100% 100%;
 }
 
-
-html.is-mobile .main-content {
-  padding-top: 50px;
-  /* 手机上使用更短的渐隐长度 */
-  --top-fade-length: 50px;
-}
 
 .main-content.unscrollable {
   overflow: hidden;
@@ -455,3 +373,86 @@ html.is-mobile .main-content {
   white-space: nowrap;
 }
 
+/* ═══════════════════════════════════════════════════════════
+   Mobile overrides — MUST be after all base rules so source
+   order wins when specificity is equal (prevents CLS).
+   ═══════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .nav-header {
+    height: 50px;
+  }
+
+  .app-title {
+    font-size: 1.2rem;
+    transform: translateY(.1rem);
+    vertical-align: middle;
+  }
+
+  .nav-content {
+    padding: 0 1.5rem;
+  }
+
+  .main-content {
+    padding-top: 50px;
+    --top-fade-length: 50px;
+  }
+
+  .menu-toggle {
+    display: flex;
+  }
+
+  .nav-links {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 100dvh;
+    background: var(--app-bg-secondary);
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transform: translateY(-100%);
+    transition: transform 0.3s ease;
+    z-index: 101;
+    gap: 30px;
+  }
+
+  .nav-links .nav-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 110;
+  }
+
+  .nav-links .nav-close .nav-close-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center
+  }
+
+  .nav-links .nav-close .nav-close-icon svg {
+    width: 32px;
+    height: 32px;
+    display: block;
+    stroke: currentColor
+  }
+
+  .nav-links.mobile-open {
+    transform: translateY(0);
+    z-index: 999;
+  }
+
+  .nav-link {
+    font-size: 1.5em;
+  }
+}

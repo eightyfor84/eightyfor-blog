@@ -21,7 +21,7 @@
 }
 .cta-btn {
     display: inline-block;
-    background: #2ea35f;
+    background: var(--accent-color-dark);
     color: white;
     padding: 12px 24px;
     border-radius: 6px;
@@ -31,5 +31,7 @@
     transition: background 0.3s;
 }
 .cta-btn:hover {
-    background: #24804a;
+    filter: brightness(1.8);
+    scale: 1.05;
+    color: black;
 }
