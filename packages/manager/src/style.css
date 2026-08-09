@@ -73,13 +73,13 @@
   --component-bg-accent-ghost: color-mix(in srgb, var(--accent-color) 35%, #0008);
 
   /* Background highlight states */
-  --app-bg-primary-hover: rgba(255, 255, 255, 0.04);
-  --app-bg-primary-active: rgba(255, 255, 255, 0.08);
-  --app-bg-secondary-hover: rgba(255, 255, 255, 0.06);
-  --app-bg-secondary-active: rgba(255, 255, 255, 0.12);
-  --component-bg-hover: rgba(255, 255, 255, 0.08);
-  --component-bg-highlight: rgba(255, 255, 255, 0.1);
-  --component-bg-active: rgba(255, 255, 255, 0.14);
+  --app-bg-primary-hover: #1e1e1e;
+  --app-bg-primary-active: #222222;
+  --app-bg-secondary-hover: #242424;
+  --app-bg-secondary-active: #2a2a2a;
+  --component-bg-hover: rgba(128, 128, 128, 0.5);
+  --component-bg-highlight: rgba(136, 136, 136, 0.5);
+  --component-bg-active: rgba(144, 144, 144, 0.5);
   --component-bg-accent-hover: var(--accent-color-dark);
   --component-bg-accent-active: var(--accent-color-dark);
 
@@ -122,6 +122,7 @@
   --shadow-elev-1: 0 4px 12px rgba(0, 0, 0, 0.3);
   --shadow-elev-2: 0 4px 12px rgba(0, 0, 0, 0.25);
   --shadow-elev-3: 0 10px 30px rgba(0, 0, 0, 0.5);
+  --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   --toc-divider-color: rgba(255, 255, 255, 0.02);
   --select-option-border-color: var(--border-color);
 
@@ -211,18 +212,18 @@ body[data-backend-theme="light"] {
   --component-bg: #ffffff;
   --component-bg-alt: #f7f7f7;
   --component-bg-blur: rgba(240, 240, 240, 0.8);
-  --component-bg-blur-alt: rgba(242, 242, 242, 0.5);
+  --component-bg-blur-alt: rgba(244, 244, 244, 0.3);
   --component-bg-accent: color-mix(in srgb, var(--accent-color) 30%, #fffb);
   --component-bg-accent-blur: color-mix(in srgb, var(--accent-color) 35%, #fffb);
   --component-bg-accent-ghost: color-mix(in srgb, var(--accent-color) 45%, #fff7);
 
-  --app-bg-primary-hover: rgba(0, 0, 0, 0.03);
-  --app-bg-primary-active: rgba(0, 0, 0, 0.06);
-  --app-bg-secondary-hover: rgba(0, 0, 0, 0.05);
-  --app-bg-secondary-active: rgba(0, 0, 0, 0.08);
-  --component-bg-hover: rgba(0, 0, 0, 0.06);
+  --app-bg-primary-hover: #eeeeee;
+  --app-bg-primary-active: #eaeaea;
+  --app-bg-secondary-hover: #e6e6e6;
+  --app-bg-secondary-active: #e0e0e0;
+  --component-bg-hover: rgba(224, 224, 224, 0.5);
   --component-bg-highlight: color-mix(in srgb, var(--accent-color) 30%, #fffb);
-  --component-bg-active: rgba(0, 0, 0, 0.08);
+  --component-bg-active: rgba(216, 216, 216, 0.5);
   --component-bg-accent-hover: var(--accent-color-dark);
   --component-bg-accent-active: var(--accent-color-dark);
 
@@ -260,6 +261,7 @@ body[data-backend-theme="light"] {
   --shadow-elev-1: 0 4px 12px rgba(0, 0, 0, 0.2);
   --shadow-elev-2: 0 4px 12px rgba(0, 0, 0, 0.16);
   --shadow-elev-3: 0 10px 30px rgba(0, 0, 0, 0.25);
+  --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   --toc-divider-color: rgba(28, 28, 28, 0.08);
 
   color: var(--app-text-primary);
@@ -286,13 +288,13 @@ body[data-backend-theme="dark"] {
   --component-bg-accent-blur: color-mix(in srgb, var(--accent-color) 25%, transparent);
   --component-bg-accent-ghost: color-mix(in srgb, var(--accent-color) 35%, #0008);
 
-  --app-bg-primary-hover: rgba(255, 255, 255, 0.04);
-  --app-bg-primary-active: rgba(255, 255, 255, 0.08);
-  --app-bg-secondary-hover: rgba(255, 255, 255, 0.06);
-  --app-bg-secondary-active: rgba(255, 255, 255, 0.12);
-  --component-bg-hover: rgba(255, 255, 255, 0.08);
-  --component-bg-highlight: rgba(255, 255, 255, 0.1);
-  --component-bg-active: rgba(255, 255, 255, 0.14);
+  --app-bg-primary-hover: #1e1e1e;
+  --app-bg-primary-active: #222222;
+  --app-bg-secondary-hover: #242424;
+  --app-bg-secondary-active: #2a2a2a;
+  --component-bg-hover: rgba(128, 128, 128, 0.5);
+  --component-bg-highlight: rgba(136, 136, 136, 0.5);
+  --component-bg-active: rgba(144, 144, 144, 0.5);
   --component-bg-accent-hover: var(--accent-color-dark);
   --component-bg-accent-active: var(--accent-color-dark);
 
@@ -323,6 +325,7 @@ body[data-backend-theme="dark"] {
   --shadow-elev-1: 0 4px 12px rgba(0, 0, 0, 0.3);
   --shadow-elev-2: 0 4px 12px rgba(0, 0, 0, 0.25);
   --shadow-elev-3: 0 10px 30px rgba(0, 0, 0, 0.5);
+  --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   --toc-divider-color: rgba(255, 255, 255, 0.02);
 
   /* Legacy aliases */
@@ -358,18 +361,18 @@ body[data-backend-theme="dark"] {
   --component-bg: #ffffff;
   --component-bg-alt: #f7f7f7;
   --component-bg-blur: rgba(240, 240, 240, 0.8);
-  --component-bg-blur-alt: rgba(242, 242, 242, 0.5);
+  --component-bg-blur-alt: rgba(244, 244, 244, 0.3);
   --component-bg-accent: color-mix(in srgb, var(--accent-color) 30%, #fffb);
   --component-bg-accent-blur: color-mix(in srgb, var(--accent-color) 35%, #fffb);
   --component-bg-accent-ghost: color-mix(in srgb, var(--accent-color) 45%, #fff7);
 
-  --app-bg-primary-hover: rgba(0, 0, 0, 0.03);
-  --app-bg-primary-active: rgba(0, 0, 0, 0.06);
-  --app-bg-secondary-hover: rgba(0, 0, 0, 0.05);
-  --app-bg-secondary-active: rgba(0, 0, 0, 0.08);
-  --component-bg-hover: rgba(0, 0, 0, 0.06);
+  --app-bg-primary-hover: #eeeeee;
+  --app-bg-primary-active: #eaeaea;
+  --app-bg-secondary-hover: #e6e6e6;
+  --app-bg-secondary-active: #e0e0e0;
+  --component-bg-hover: rgba(224, 224, 224, 0.5);
   --component-bg-highlight: color-mix(in srgb, var(--accent-color) 30%, #fffb);
-  --component-bg-active: rgba(0, 0, 0, 0.08);
+  --component-bg-active: rgba(216, 216, 216, 0.5);
   --component-bg-accent-hover: var(--accent-color-dark);
   --component-bg-accent-active: var(--accent-color-dark);
 
@@ -407,6 +410,7 @@ body[data-backend-theme="dark"] {
   --shadow-elev-1: 0 4px 12px rgba(0, 0, 0, 0.2);
   --shadow-elev-2: 0 4px 12px rgba(0, 0, 0, 0.16);
   --shadow-elev-3: 0 10px 30px rgba(0, 0, 0, 0.25);
+  --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   --toc-divider-color: rgba(28, 28, 28, 0.08);
 
   color: var(--app-text-primary);
@@ -430,18 +434,18 @@ body[data-backend-theme="dark"] {
     --component-bg: #ffffff;
     --component-bg-alt: #f7f7f7;
     --component-bg-blur: rgba(240, 240, 240, 0.8);
-    --component-bg-blur-alt: rgba(242, 242, 242, 0.5);
+    --component-bg-blur-alt: rgba(244, 244, 244, 0.3);
     --component-bg-accent: color-mix(in srgb, var(--accent-color) 30%, #fffb);
     --component-bg-accent-blur: color-mix(in srgb, var(--accent-color) 35%, #fffb);
     --component-bg-accent-ghost: color-mix(in srgb, var(--accent-color) 45%, #fff7);
 
-    --app-bg-primary-hover: rgba(0, 0, 0, 0.03);
-    --app-bg-primary-active: rgba(0, 0, 0, 0.06);
-    --app-bg-secondary-hover: rgba(0, 0, 0, 0.05);
-    --app-bg-secondary-active: rgba(0, 0, 0, 0.08);
-    --component-bg-hover: rgba(0, 0, 0, 0.06);
-    --component-bg-highlight: color-mix(in srgb, var(--accent-color) 30%, #fffb);
-    --component-bg-active: rgba(0, 0, 0, 0.08);
+  --app-bg-primary-hover: #eeeeee;
+  --app-bg-primary-active: #eaeaea;
+  --app-bg-secondary-hover: #e6e6e6;
+  --app-bg-secondary-active: #e0e0e0;
+  --component-bg-hover: rgba(224, 224, 224, 0.5);
+  --component-bg-highlight: color-mix(in srgb, var(--accent-color) 30%, #fffb);
+  --component-bg-active: rgba(216, 216, 216, 0.5);
     --component-bg-accent-hover: var(--accent-color-dark);
     --component-bg-accent-active: var(--accent-color-dark);
 

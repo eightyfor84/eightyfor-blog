@@ -1,4 +1,4 @@
-globalStyle: left-lg
+globalStyle: left-sm
 cards:
   - name: Astro
     avatar: https://astro.build/favicon.svg

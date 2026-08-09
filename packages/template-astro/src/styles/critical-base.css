@@ -76,5 +76,5 @@ a { color:var(--accent-color,#2ea35f); }
   .menu-toggle { display:flex; position:relative }
   .nav-link-collapsed { display:none; position:static }
   /* Mobile nav links are off-screen overlay until opened */
-  .nav-links { position:fixed; top:0; left:0; right:0; bottom:0; opacity:0; transform:translateY(-100%); pointer-events:none }
+  .nav-links:not(.mobile-open) { position:fixed; top:0; left:0; right:0; bottom:0; opacity:0; transform:translateY(-100%); pointer-events:none }
 }

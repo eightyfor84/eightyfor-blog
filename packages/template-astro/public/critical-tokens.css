@@ -43,16 +43,6 @@
   --border-color-blur: rgba(113, 113, 113, 0.2);
   --shadow-elev-1: 0 4px 12px rgba(0, 0, 0, 0.3);
 
-  /* Background image layer */
-  --frontend-bg-image: none;
-  --frontend-bg-pos: 50% 50%;
-  --frontend-bg-size: 100%;
-  --frontend-bg-blur: 0px;
-  --frontend-bg-opacity: 0;
-  --frontend-bg-overlay-light: transparent;
-  --frontend-bg-overlay-dark: transparent;
-  --frontend-bg-overlay: transparent;
-
   /* Legacy aliases */
   --text-primary: var(--app-text-primary);
   --text-secondary: var(--app-text-secondary);
@@ -78,7 +68,7 @@
   --component-bg: #ffffff;
   --component-bg-alt: #f7f7f7;
   --component-bg-blur: rgba(240, 240, 240, 0.8);
-  --component-bg-blur-alt: rgba(242, 242, 242, 0.5);
+  --component-bg-blur-alt: rgba(244, 244, 244, 0.3);
 
   --app-text-primary: #111;
   --app-text-secondary: #444;
@@ -103,7 +93,7 @@
     --component-bg: #ffffff;
     --component-bg-alt: #f7f7f7;
     --component-bg-blur: rgba(240, 240, 240, 0.8);
-    --component-bg-blur-alt: rgba(242, 242, 242, 0.5);
+    --component-bg-blur-alt: rgba(244, 244, 244, 0.3);
     --app-text-primary: #111;
     --app-text-secondary: #444;
     --component-text-primary: #222;

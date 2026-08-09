@@ -536,12 +536,12 @@ const isActive = (path: string) => {
   }
 
   .nav-link.router-link-active {
-    background: var(--component-bg-hover);
-    color: var(--component-text-primary-hover);
+    background: color-mix(in srgb, var(--component-bg-active) 50%, transparent);
+    color: var(--component-text-primary-active);
   }
 
   .nav-link:hover {
-    background: var(--component-bg-hover);
+    background: color-mix(in srgb, var(--component-bg-hover) 50%, transparent);
     color: var(--component-text-primary-hover);
   }
 

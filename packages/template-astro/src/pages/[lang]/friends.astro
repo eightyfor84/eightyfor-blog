@@ -64,10 +64,11 @@ const metaDescription = locale === 'zh-CN'
 ---
 
 <Layout title={t('friends.title')} settings={settings} meta={{ description: metaDescription }}>
-  <div class="page-container">
+  <div class="friends-container">
+    <main class="friends-main">
     {friendsEnabled ? (
       <>
-        <h1>{t('friends.title')}</h1>
+        <h1 class="section-title">{t('friends.title')}</h1>
         <div class:list={[
           'friends-list',
           `friends-list--${friendsGlobalStyle || 'left-lg'}`,
@@ -115,15 +116,17 @@ const metaDescription = locale === 'zh-CN'
         <p>{t('friends.disabled')}</p>
       </div>
     )}
+    </main>
   </div>
 </Layout>
 
 <style>
-.page-container {
-  max-width: 1080px;
+.friends-container {
+  max-width: 1000px;
   margin: 0 auto;
-  padding: 40px 20px 56px;
+  padding: 40px;
   color: var(--text-primary);
+  box-sizing: border-box;
 }
 
 .friends-list {
@@ -149,16 +152,25 @@ const metaDescription = locale === 'zh-CN'
   border-radius: 12px;
   border: 1px solid var(--border-color);
   background: var(--component-bg-blur-alt);
-  box-shadow: var(--shadow-elev-1);
+  box-shadow: var(--card-shadow);
   overflow: hidden;
   transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
   width: 240px;
   box-sizing: border-box;
 }
 
-.friend-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-elev-2);
+html:not(.is-mobile) .friend-card:hover {
+    transform: scale(1.02);
+    filter: brightness(1.3);
+    border-color: var(--component-text-secondary-highlight);
+    box-shadow: 0 0 12px var(--component-bg-highlight);
+}
+
+html.is-mobile .friend-card:active {
+    transform: scale(1.03);
+    filter: brightness(1.4);
+    border-color: var(--component-text-secondary-highlight);
+    box-shadow: 0 0 12px var(--component-bg-highlight);
 }
 
 .friend-card__media {
