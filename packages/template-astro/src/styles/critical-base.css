@@ -28,6 +28,9 @@ body { min-width:320px; min-height:100vh; }
   background:var(--component-bg-blur); backdrop-filter:blur(16px);
   border-bottom:1px solid var(--border-color-blur);
 }
+html.immersive .nav-header {
+  background:transparent; border-bottom:none; backdrop-filter:blur(1px);
+}
 .nav-content {
   display:flex; justify-content:space-between; align-items:center;
   padding:0 2rem; height:100%; max-width:1200px; margin:0 auto;

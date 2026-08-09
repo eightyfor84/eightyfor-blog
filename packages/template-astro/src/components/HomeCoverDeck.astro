@@ -19,11 +19,9 @@ const siteDesc = siteDescription || 'A personal blog';
 
 const FALLBACK_COVER_HTML = `<style>
   /* Shell — layout & positioning */
-  .home-cover-deck { position: relative; z-index: 3; }
-  .home-cover-deck--split { width: 100%; display: block; }
-  .hero { position: relative; z-index: 10; left: 15vw; transform: translateY(-20%); }
-  .hero--split { position: relative; margin: 0; transform-origin: left bottom; will-change: transform, opacity; }
-  @media (max-width:760px) { .hero { left: 60px; transform: translateY(-10%); } }
+  .home-cover-deck--split { transform-origin: left bottom; will-change: transform, opacity; }
+  .hero { position: relative; left: 15vw; }
+  @media (max-width:760px) { .hero { left: 60px; } }
 
   /* Cover content */
   .cover-title { font-size:3.5rem; font-weight:600; font-variation-settings:"wght" 600; color:var(--app-text-primary); margin:0 0 1rem 0; line-height:1.1; }
@@ -33,7 +31,7 @@ const FALLBACK_COVER_HTML = `<style>
   .cover-cta svg { width:20px; height:20px; }
   @media (max-width:760px) { .cover-title { font-size:2.2rem; } .cover-subtitle { font-size:1rem; margin-bottom:2rem; } }
 </style>
-<div class="hero-inner">
+<div class="hero">
   <h1 class="cover-title">${siteTitle}</h1>
   <p class="cover-subtitle">${siteDesc}</p>
   <a href="blogs/" class="cover-cta">
@@ -43,9 +41,7 @@ const FALLBACK_COVER_HTML = `<style>
 </div>`;
 ---
 
-<div class:list={['home-cover-deck', isSplit ? 'home-cover-deck--split' : '']} data-locale={locale}>
-  <div class:list={['hero', isSplit ? 'hero--split' : 'home-cover-hero']} id={isSplit ? 'split-hero' : undefined}>
+<div class:list={['home-cover-deck', isSplit ? 'home-cover-deck--split' : '']} id={isSplit ? 'split-hero' : undefined} data-locale={locale}>
     <Fragment set:html={coverHtml || FALLBACK_COVER_HTML} />
-  </div>
 </div>
 

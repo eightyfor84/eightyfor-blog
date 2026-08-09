@@ -29,8 +29,6 @@
 /* ── Hero deck ── */
 .home-cover-deck { position:relative; z-index:3; }
 .home-cover-deck--split { width:100%; display:block; }
-.hero { position:relative; z-index:10; left:15vw; transform:translateY(-20%); }
-.hero--split { position:relative; margin:0; }
 .cover-title { font-size:3.5rem; font-weight:600; font-variation-settings:"wght" 600; margin:0 0 1rem 0; line-height:1.1; }
 .cover-subtitle { font-size:1.15rem; margin:0 0 2.5rem 0; line-height:1.5; max-width:480px; }
 .cover-cta {
@@ -79,7 +77,6 @@
 /* ── Homepage mobile (≤768px) ── */
 @media (max-width:768px) {
   .home-container--cover { top:-50px; }
-  .hero { left:60px; transform:translateY(-10%); }
   .cover-title { font-size:2.2rem; }
   .cover-subtitle { font-size:1rem; margin-bottom:2rem; }
   .home-shell { padding:.9rem .85rem 2rem; }
