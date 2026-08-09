@@ -1,0 +1,36 @@
+---
+/**
+ * ChronicleImage — adaptive <img> / <picture> component.
+ *
+ * - External URLs (http/https)      → plain <img>
+ * - Internal raster (jpg|jpeg|png|gif) → <picture> with .avif + .webp sources
+ * - Internal SVG / other            → plain <img>
+ *
+ * Usage:
+ *   <ChronicleImage src="/data/avatar/avatar.jpg" alt="Me" class="avatar" width="64" height="64" />
+ *   <ChronicleImage src="https://example.com/photo.jpg" alt="External" />
+ */
+const { src, alt = '', class: cls = '' } = Astro.props;
+const IS_EXTERNAL = /^https?:\/\//i.test(String(src));
+const IS_RASTER = /\.(jpg|jpeg|png|gif)$/i.test(String(src));
+
+// Collect all remaining props to forward to <img>
+const imgProps: Record<string, unknown> = {};
+for (const [k, v] of Object.entries(Astro.props)) {
+  if (k !== 'src' && k !== 'alt' && k !== 'class') {
+    imgProps[k] = v;
+  }
+}
+---
+
+{
+  !IS_EXTERNAL && IS_RASTER ? (
+    <picture>
+      <source srcset={String(src).replace(/\.(jpg|jpeg|png|gif)$/i, '.avif')} type="image/avif" />
+      <source srcset={String(src).replace(/\.(jpg|jpeg|png|gif)$/i, '.webp')} type="image/webp" />
+      <img src={src} alt={alt} class={cls} {...imgProps} />
+    </picture>
+  ) : (
+    <img src={src} alt={alt} class={cls} {...imgProps} />
+  )
+}

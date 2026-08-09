@@ -10,6 +10,7 @@ import { getTranslation, getLocale } from '../../utils/i18n';
 import { resolveFeatureFlags } from '../../utils/featureFlags';
 import { buildLocalizedPath } from '../../utils/routeLocale';
 import { loadSiteSettings } from '../../utils/siteSettings';
+import ChronicleImage from '../../components/ChronicleImage.astro';
 
 // Get locale from Astro.locals (set by middleware)
 const locale = getLocale(Astro.locals);
@@ -81,12 +82,7 @@ const metaDescription = locale === 'zh-CN'
               >
                 <div class:list={['friend-card__media', { 'is-empty': !hasAvatar }]}>
                   {hasAvatar ? (
-                    <img
-                      src={card.avatar}
-                      alt={card.name}
-                      loading="lazy"
-                      onerror="this.classList.add('is-hidden'); this.parentElement && this.parentElement.classList.add('is-broken');"
-                    />
+                    <ChronicleImage src={card.avatar} alt={card.name} loading="lazy" onerror="this.classList.add('is-hidden'); this.parentElement && this.parentElement.classList.add('is-broken');" />
                   ) : null}
                   <div class="friend-card__media-placeholder" aria-hidden="true"></div>
                 </div>

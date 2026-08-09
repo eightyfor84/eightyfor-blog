@@ -5,6 +5,7 @@ import { loadSiteSettings } from '../utils/siteSettings';
 import { loadSiteProfile } from '../utils/siteProfile';
 import { getTranslation, getLocale } from '../utils/i18n';
 import SearchBox from './SearchBox.astro';
+import ChronicleImage from './ChronicleImage.astro';
 
 const { locale, featureFlags } = Astro.props || { locale: 'zh-CN', featureFlags: {} };
 const t = (key: string) => getTranslation(locale, key);
@@ -322,7 +323,7 @@ const yearLabel = new Date().getFullYear();
       <section class="panel-card content-panel">
         <div class="section-head">
           <div>
-            <div class="panel-kicker">{t('home.latestFeaturedArticles')}</div>
+            <h2 class="panel-kicker">{t('home.latestFeaturedArticles')}</h2>
             <h3>{t('home.mainContentStream')}</h3>
           </div>
           <a href={blogsPath}>{t('home.viewAll')}</a>
@@ -358,12 +359,12 @@ const yearLabel = new Date().getFullYear();
       <article class="author-card panel-card">
         <div class="author-card__top">
           {authorAvatar ? (
-            <img class="author-avatar" src={authorAvatar} alt={authorName} width="64" height="64" loading="eager" decoding="async" fetchpriority="auto" style="cursor:zoom-in" data-source={authorAvatarSource} onclick="window.__openFilePreview?.({ url: event.target.dataset.source || event.target.src, title: event.target.alt, type: 'image' })" />
+            <ChronicleImage src={authorAvatar} alt={authorName} class="author-avatar" width="64" height="64" loading="eager" decoding="async" fetchpriority="auto" style="cursor:zoom-in" data-source={authorAvatarSource} onclick="window.__openFilePreview?.({ url: event.target.dataset.source || event.target.src, title: event.target.alt, type: 'image' })" />
           ) : (
             <div class="author-avatar" aria-hidden="true">{authorInitials}</div>
           )}
           <div>
-            <div class="panel-kicker">{t('home.authorInfo')}</div>
+            <h2 class="panel-kicker">{t('home.authorInfo')}</h2>
             <h3>{authorName}</h3>
           </div>
         </div>
@@ -375,7 +376,7 @@ const yearLabel = new Date().getFullYear();
       <section class="panel-card taxonomy-card">
         <div class="section-head" style="margin-bottom: 0;">
           <div>
-            <div class="panel-kicker">{t('home.topicNavigation')}</div>
+            <h2 class="panel-kicker">{t('home.topicNavigation')}</h2>
           </div>
         </div>
 
@@ -433,7 +434,7 @@ const yearLabel = new Date().getFullYear();
       <section class="panel-card activity-card">
         <div class="section-head">
           <div>
-            <div class="panel-kicker">{t('home.recentActivityCard')}</div>
+            <h2 class="panel-kicker">{t('home.recentActivityCard')}</h2>
             <h3>{t('home.siteActivity')}</h3>
           </div>
         </div>
@@ -556,6 +557,8 @@ const yearLabel = new Date().getFullYear();
     text-transform: uppercase;
     letter-spacing: .18em;
     font-size: .78rem;
+    font-weight: 400;
+    font-variation-settings: 'wght' 400;
   }
 
   .flow-intro h1 {
@@ -1032,7 +1035,6 @@ const yearLabel = new Date().getFullYear();
 
   .recommend-item,
   .social-link,
-  .activity-item,
   .friend-link {
     border: 1px solid var(--border-color-blur);
     border-radius: 20px;
@@ -1040,6 +1042,16 @@ const yearLabel = new Date().getFullYear();
     padding: .95rem 1rem;
     display: grid;
     gap: .35rem;
+  }
+
+  .activity-item {
+    border: 1px solid var(--border-color-blur);
+    background: var(--component-bg-blur-alt);
+    padding: .95rem .75rem;
+    display: grid;
+    gap: .35rem;
+    border-radius: 12px;
+    border-left: 12px solid transparent;
   }
 
   .recommend-item strong,
@@ -1057,15 +1069,15 @@ const yearLabel = new Date().getFullYear();
   }
 
   .activity-item.post {
-    border-left: 3px solid color-mix(in srgb, var(--accent-color) 45%, var(--border-color-blur));
+    border-left-color: color-mix(in srgb, var(--accent-color) 45%, var(--border-color-blur));
   }
 
   .activity-item.collection {
-    border-left: 3px solid var(--featured);
+    border-left-color: var(--featured);
   }
 
   .activity-item.friend {
-    border-left: 3px solid color-mix(in srgb, var(--secondary-color) 60%, var(--border-color-blur));
+    border-left-color: color-mix(in srgb, var(--secondary-color) 60%, var(--border-color-blur));
   }
 
   .social-list {

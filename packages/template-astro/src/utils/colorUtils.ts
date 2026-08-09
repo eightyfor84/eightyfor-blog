@@ -31,10 +31,10 @@ export function hexToRgbString(hex: string): string {
 /**
  * 将十六进制颜色变暗
  * @param hex 十六进制颜色值
- * @param factor 变暗因子 (0-1)，默认 0.86
+ * @param factor 变暗因子 (0-1)，默认 0.80（等效 color-mix 20% #000）
  * @returns RGB 字符串
  */
-export function darkenHex(hex: string, factor: number = 0.86): string {
+export function darkenHex(hex: string, factor: number = 0.80): string {
   try {
     const rgb = hexToRgbString(hex);
     const [r, g, b] = rgb.split(',').map(v => parseInt(v.trim()));

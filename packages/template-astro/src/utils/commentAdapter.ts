@@ -567,13 +567,15 @@ function setupReplyButtons(container: HTMLElement): { setTriggerPreviewUpdate: (
   if (!form || !parentInput || !indicator || !replyToName || !cancelBtn) return;
 
   function scrollToForm() {
-    const HASH = '#__chronicle-comment';
-    // Remove then re-add hash to always trigger native scroll, even if already at anchor
-    if (window.location.hash === HASH) {
-      history.replaceState(null, '', window.location.pathname + window.location.search);
-      requestAnimationFrame(() => { window.location.hash = '__chronicle-comment'; });
-    } else {
-      window.location.hash = '__chronicle-comment';
+    const target = document.getElementById('__chronicle-comment') || document.getElementById('comments');
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const mc = document.querySelector('.main-content,main');
+      if (mc) {
+        const tr = target.getBoundingClientRect();
+        const mr = mc.getBoundingClientRect();
+        mc.scrollBy({ top: tr.top - mr.top, behavior: 'smooth' });
+      }
     }
   }
 

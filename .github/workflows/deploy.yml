@@ -38,13 +38,6 @@ jobs:
           path: packages/gen/node_modules
           key: gen-${{ runner.os }}-${{ hashFiles('packages/gen/package-lock.json') }}
 
-      - name: Cache gen-cache (compressed images)
-        uses: actions/cache@v4
-        with:
-          path: .chronicle/gen-cache
-          key: gencache-${{ runner.os }}-${{ github.sha }}
-          restore-keys: gencache-${{ runner.os }}-
-
       - name: Install template dependencies
         run: npm install
         working-directory: packages/template-astro

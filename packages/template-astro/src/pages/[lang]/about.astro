@@ -29,6 +29,7 @@ const showProfileCard = settings?.about?.showProfileCard !== false;
 
 // About markdown — same pipeline as post rendering
 import { setRenderPostId } from '../../utils/chronicleMarkdown';
+import ChronicleImage from '../../components/ChronicleImage.astro';
 const DATA_DIR = process.env.CHRONICLE_DATA_DIR
   ? path.resolve(process.env.CHRONICLE_DATA_DIR)
   : path.resolve(process.cwd(), '..', '..', 'data');
@@ -75,15 +76,7 @@ const metaDescription = profile?.bio
             showProfileCard && (profile?.name || profile?.avatar || profile?.bio) ? (
               <div class="about-profile-card">
                 {profile.avatar ? (
-                  profile.avatar.match(/\.(jpg|jpeg|png|gif)$/i) ? (
-                    <picture>
-                      <source srcset={profile.avatar.replace(/\.(jpg|jpeg|png|gif)$/i, '.avif')} type="image/avif" />
-                      <source srcset={profile.avatar.replace(/\.(jpg|jpeg|png|gif)$/i, '.webp')} type="image/webp" />
-                      <img class="about-avatar" src={profile.avatar} alt={profile.name || ''} loading="lazy" decoding="async" style="cursor:pointer" onclick="window.__openFilePreview?.({ url: event.target.src, title: event.target.alt, type: 'image' })" />
-                    </picture>
-                  ) : (
-                    <img class="about-avatar" src={profile.avatar} alt={profile.name || ''} loading="lazy" decoding="async" style="cursor:pointer" onclick="window.__openFilePreview?.({ url: event.target.src, title: event.target.alt, type: 'image' })" />
-                  )
+                  <ChronicleImage src={profile.avatar} alt={profile.name || ''} class="about-avatar" loading="lazy" decoding="async" style="cursor:pointer" onclick="window.__openFilePreview?.({ url: event.target.src, title: event.target.alt, type: 'image' })" />
                 ) : null}
                 <div class="about-profile-body">
                   {profile.name ? <h2 class="about-name">{profile.name}</h2> : null}

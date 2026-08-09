@@ -1,7 +1,8 @@
 import { defineConfig } from 'astro/config';
-import { readFileSync, existsSync, readdirSync, copyFileSync, mkdirSync, statSync } from 'fs';
+import { readFileSync, existsSync, readdirSync, copyFileSync, mkdirSync, statSync, writeFileSync } from 'fs';
+import { createHash } from 'crypto';
 import { fileURLToPath } from 'url';
-import { dirname, join, extname } from 'path';
+import { dirname, join, extname, parse } from 'path';
 
 import icon from 'astro-icon';
 
@@ -9,24 +10,27 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const pkg = JSON.parse(readFileSync(join(__dirname, 'package.json'), 'utf-8'));
 
+// ── Image formats to compress ─────────────────────────────
+const IMG_RE = /\.(jpg|jpeg|png|gif)$/i;
+let _sharpMod = null;
+async function loadSharp() {
+  if (!_sharpMod) {
+    try { _sharpMod = (await import('sharp')).default; }
+    catch { console.warn('[astro] sharp not available — skipping image compression'); }
+  }
+  return _sharpMod;
+}
+
+const DATA_DIR = process.env.CHRONICLE_DATA_DIR || join(__dirname, '..', '..', 'data');
+
 export default defineConfig({
   site: process.env.CHRONICLE_SITE_URL || 'http://localhost:4321',
   output: 'static',
-  // Astro 7 native prefetch on hover
   prefetch: { defaultStrategy: 'hover' },
   integrations: [
     icon(),
   ],
   server: { port: 4321 },
-  // 禁用Astro原生i18n配置，使用自定义i18n实现
-  // i18n: {
-  //   defaultLocale: 'zh-CN',
-  //   locales: ['en', 'zh-CN'],
-  //   routing: {
-  //     prefixDefaultLocale: false,
-  //     redirectToDefaultLocale: false
-  //   }
-  // },
   vite: {
     build: { cssMinify: 'esbuild' },
     resolve: {
@@ -46,48 +50,110 @@ export default defineConfig({
           target: 'http://127.0.0.1:3000',
           changeOrigin: true
         },
-        // branding/upload served as static files via public/server/data/
-        // (symlinked during build by chronicle-gen)
       }
     },
-    // Prevent "Outdated Optimize Dep" 504 errors by excluding
-    // large/volatile deps from Vite's pre-bundle optimization.
-    // NOTE: do NOT exclude 'vue' or '@astrojs/vue' — @astrojs/vue
-    // integration requires them to be pre-bundled.
     optimizeDeps: {
       exclude: ['astro-icon'],
     },
     plugins: [
-      // 在构建时排除 src/archive 目录下的所有模块
-      // Copy post assets to output (private images, files)
-      (function copyPostAssetsPlugin() {
-        const DATA_DIR = process.env.CHRONICLE_DATA_DIR || join(__dirname, '..', '..', 'data');
+      // ── Asset pipeline: copy originals + generate WebP/AVIF ──
+      // Caching: content-hash based — only recompress when source changes.
+      (function assetPipelinePlugin() {
+        let _cache = null;
+        const cacheFile = join(__dirname, 'node_modules', '.cache', 'chronicle-image-cache.json');
+
+        function loadCache() {
+          if (_cache) return _cache;
+          try { _cache = JSON.parse(readFileSync(cacheFile, 'utf-8')); }
+          catch { _cache = {}; }
+          return _cache;
+        }
+        function saveCache() {
+          if (!_cache) return;
+          try { mkdirSync(dirname(cacheFile), { recursive: true }); } catch {}
+          try { writeFileSync(cacheFile, JSON.stringify(_cache)); } catch {}
+        }
+
         return {
-          name: 'copy-post-assets',
+          name: 'chronicle-asset-pipeline',
           enforce: 'post',
-          closeBundle() {
-            const postsDir = join(DATA_DIR, 'posts');
-            const aboutDir = join(DATA_DIR, '__about__');
-            for (const srcDir of [postsDir, aboutDir]) {
-              if (!existsSync(srcDir)) continue;
-              for (const slug of readdirSync(srcDir)) {
-                const slugDir = join(srcDir, slug);
-                if (slug === 'index.json' || !existsSync(slugDir)) continue;
-                if (!statSync(slugDir).isDirectory()) continue;
-                for (const file of readdirSync(slugDir)) {
-                  if (extname(file) === '.md') continue;
-                  const src = join(slugDir, file);
-                  const destBase = slug === '__about__' ? join(__dirname, 'dist', 'about')
-                    : join(__dirname, 'dist', 'post', slug);
-                  if (!existsSync(destBase)) mkdirSync(destBase, { recursive: true });
-                  try { copyFileSync(src, join(destBase, file)) } catch (_) {}
+          async closeBundle() {
+            const sharp = await loadSharp();
+            const distDir = join(__dirname, 'dist');
+            const cache = loadCache();
+            let hits = 0, misses = 0;
+
+            /**
+             * Copy a directory tree to dist, skipping .md and hidden files.
+             * For images, also generate .webp + .avif in the same output dir.
+             * Uses content-hash cache to skip recompression of unchanged images.
+             */
+            async function syncDir(srcDir, destDir, opts = {}) {
+              const { webpQuality = 80, avifQuality = 55, aggressive = false } = opts;
+              if (!existsSync(srcDir)) return;
+              for (const entry of readdirSync(srcDir, { withFileTypes: true })) {
+                const name = entry.name;
+                if (name.startsWith('.') || name.endsWith('.md') || name === 'index.json') continue;
+                const src = join(srcDir, name);
+                if (entry.isDirectory()) {
+                  await syncDir(src, join(destDir, name), opts);
+                } else {
+                  mkdirSync(destDir, { recursive: true });
+                  try { copyFileSync(src, join(destDir, name)); } catch (_) {}
+
+                  if (!sharp || !IMG_RE.test(name)) continue;
+                  const base = parse(name).name;
+                  const destWebp = join(destDir, `${base}.webp`);
+                  const destAvif = join(destDir, `${base}.avif`);
+
+                  // Content-hash cache key
+                  const hash = createHash('sha256').update(readFileSync(src)).digest('hex');
+
+                  // Cache hit: variants already exist and source hasn't changed
+                  if (cache[src] === hash && existsSync(destWebp) && existsSync(destAvif)) {
+                    hits++;
+                    continue;
+                  }
+
+                  misses++;
+                  const effort = aggressive ? 6 : 4;
+                  try { await sharp(src).webp({ quality: webpQuality, effort }).toFile(destWebp); } catch (_) {}
+                  try { await sharp(src).avif({ quality: avifQuality, effort }).toFile(destAvif); } catch (_) {}
+                  cache[src] = hash;
                 }
               }
             }
+
+            // ── Public assets ────────────────────────────────
+            await syncDir(join(DATA_DIR, 'assets'), join(distDir, 'assets'));
+
+            // ── Post attachments ─────────────────────────────
+            const postsDir = join(DATA_DIR, 'posts');
+            if (existsSync(postsDir)) {
+              for (const slug of readdirSync(postsDir)) {
+                const d = join(postsDir, slug);
+                if (slug === 'index.json' || !existsSync(d) || !statSync(d).isDirectory()) continue;
+                await syncDir(d, join(distDir, 'post_attachment', slug));
+              }
+            }
+
+            // ── About attachments ────────────────────────────
+            await syncDir(join(DATA_DIR, '__about__'), join(distDir, 'about'), { aggressive: true, webpQuality: 65, avifQuality: 40 });
+
+            // ── Background + Avatar (aggressive, display-size aware) ──
+            await syncDir(join(DATA_DIR, 'background'), join(distDir, 'data', 'background'), { aggressive: true, webpQuality: 60, avifQuality: 35 });
+            await syncDir(join(DATA_DIR, 'avatar'), join(distDir, 'data', 'avatar'), { aggressive: true, webpQuality: 50, avifQuality: 30 });
+
+            // ── Branding ─────────────────────────────────────
+            await syncDir(join(DATA_DIR, 'branding'), join(distDir, 'branding'));
+
+            saveCache();
+            if (sharp) console.log(`[chronicle-asset-pipeline] ${hits} hits, ${misses} misses`);
           },
         };
       })(),
 
+      // ── Exclude archive from build ─────────────────────────
       (function excludeArchivePlugin() {
         const archiveMarker = '/src/archive/';
         return {
@@ -100,9 +166,7 @@ export default defineConfig({
               if (normalized.includes(archiveMarker) || normalized.endsWith('/src/archive')) {
                 return 'export default {}';
               }
-            } catch (e) {
-              return null;
-            }
+            } catch (e) { return null; }
             return null;
           }
         };

@@ -47,7 +47,7 @@ export async function triggerBuild(opts: BuildOptions): Promise<void> {
   if (!isElectron()) {
     // Browser mode: use vite dev server endpoint
     try {
-      const resp = await fetch('/api/build/preview', { method: 'POST' })
+      const resp = await fetch('/api/build', { method: 'POST' })
       const data = await resp.json()
       if (!resp.ok || !data.success) throw new Error(data.error || 'Build failed')
       nc.update(nid, { state: 'completed', level: 'success', title: t('settings.buildCompleted'), message: baseMsg })

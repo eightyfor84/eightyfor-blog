@@ -1,13 +1,13 @@
 // Minimal data layer middleware for Vite dev server.
 // Serves /data/ and /.chronicle/ static files + CRUD for /api/* routes.
-import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, unlinkSync, statSync, readdirSync, copyFileSync, renameSync, symlinkSync, cpSync, openSync, readSync, closeSync } from 'node:fs'
-import { execSync, spawn } from 'node:child_process'
-import { createHash } from 'node:crypto'
+import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, unlinkSync, statSync, readdirSync, copyFileSync, renameSync, symlinkSync, cpSync } from 'node:fs'
+import { execSync } from 'node:child_process'
 
 let previewServer = null
-import { join, extname, basename, dirname, resolve, parse } from 'node:path'
+import { join, extname, basename, dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import YAML from 'yaml'
+import { extractBodySummary } from '../shared/src/utils/summary.js'
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 const repoRoot = resolve(__dirname, '..', '..')
@@ -80,12 +80,13 @@ function buildPostIndexLocal(dataDir) {
     const raw = readFileSync(mdPath, 'utf-8')
     const fm = parseFrontmatter(raw)
     const ci = colIdx.get(slug)
+    const summary = fm.summary || extractBodySummary(raw)
     const out = {
       title: fm.title || slug,
       date: fm.date || new Date().toISOString(),
       tags: Array.isArray(fm.tags) ? fm.tags : [],
       status: fm.status || 'draft',
-      summary: fm.summary || '',
+      summary,
       font: fm.font,
       author: fm.author,
       aiGenerated: fm.aiGenerated,
@@ -124,6 +125,117 @@ try {
   console.log('[vite-data] Startup index built:', startupCount, 'posts')
 } catch (e) {
   console.warn('[vite-data] Startup index build failed:', e.message)
+}
+
+// ── Build & Preview helpers ───────────────────────────────────
+
+const codeDir = join(repoRoot, 'packages', 'template-astro')
+const distDir = join(codeDir, 'dist')
+
+// Ports never to force-kill — system services, databases, other dev tools.
+const PORT_BLACKLIST = new Set([22, 80, 443, 3000, 3306, 5173, 5432, 6379, 8080, 8443, 9090])
+
+/** Run `astro build` in template-astro. Throws on failure. */
+async function runAstroBuild() {
+  const { exec } = await import('node:child_process')
+  const dataSrc = join(repoRoot, 'data')
+  await new Promise((resolve, reject) => {
+    exec('npm run build', {
+      cwd: codeDir, timeout: 180000, encoding: 'utf-8',
+      env: { ...process.env, CHRONICLE_DATA_DIR: dataSrc, DATA_SOURCE: 'local' }
+    }, (error, stdout, stderr) => {
+      if (error) {
+        console.error('[vite-data] astro build stderr:', stderr)
+        reject(error)
+      } else {
+        if (stdout) console.log('[vite-data] astro build stdout:', stdout.slice(0, 500))
+        resolve()
+      }
+    })
+  })
+  console.log('[vite-data] astro build OK')
+}
+
+/** Stop the preview server, waiting for it to fully release the port. */
+async function stopPreviewServer() {
+  if (!previewServer) return
+  await new Promise((resolve) => {
+    previewServer.close(() => {
+      console.log('[vite-data] preview server closed')
+      resolve()
+    })
+    // Force-close idle keep-alive connections so .close() doesn't hang
+    previewServer.closeAllConnections?.()
+  })
+  previewServer = null
+}
+
+/**
+ * Start the preview server on the configured port.
+ * If the port is in use, forcefully free it and retry.
+ */
+async function startPreviewServer() {
+  // Wait for previous server to fully release the port
+  await stopPreviewServer()
+
+  let port = 4321
+  try {
+    const ws = JSON.parse(readFileSync(join(repoRoot, '.chronicle', 'workspace.json'), 'utf-8'))
+    if (ws.previewPort) port = ws.previewPort
+  } catch {}
+
+  const { createServer } = await import('node:http')
+  const mimes = {
+    '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript',
+    '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg',
+    '.svg': 'image/svg+xml', '.webp': 'image/webp', '.ico': 'image/x-icon',
+    '.woff2': 'font/woff2',
+  }
+
+  return new Promise((resolve, reject) => {
+    const server = createServer((req, res) => {
+      let url = decodeURIComponent((req.url || '').split('?')[0])
+      if (url === '/') url = '/index.html'
+      let fp = join(distDir, url)
+      if (existsSync(fp) && statSync(fp).isDirectory()) fp = join(fp, 'index.html')
+      if (!existsSync(fp) || !statSync(fp).isFile()) fp = join(distDir, 'index.html')
+      res.setHeader('Content-Type', mimes[extname(fp)] || 'application/octet-stream')
+      try { res.end(readFileSync(fp)) } catch { res.statusCode = 404; res.end('Not found') }
+    })
+
+    server.once('error', (e) => {
+      if (e.code === 'EADDRINUSE') {
+        if (PORT_BLACKLIST.has(port)) {
+          reject(new Error(`Port ${port} is in use by another program. Please choose a different port.`))
+          return
+        }
+        // Force-free the port by killing whatever is holding it
+        try {
+          execSync(`fuser -k ${port}/tcp 2>/dev/null || true`, { timeout: 3000 })
+          console.log('[vite-data] killed process holding port', port)
+        } catch { /* fuser may not be available */ }
+        // Retry after a short delay
+        setTimeout(() => {
+          server.once('error', (err) => reject(err))
+          server.listen(port, () => {
+            server.unref()
+            previewServer = server
+            console.log('[vite-data] preview server at', `http://localhost:${port}`)
+            resolve(`http://localhost:${port}`)
+          })
+        }, 300)
+      } else {
+        reject(e)
+      }
+    })
+
+    server.listen(port, () => {
+      server.unref()
+      previewServer = server
+      console.log('[vite-data] preview server at', `http://localhost:${port}`)
+      resolve(`http://localhost:${port}`)
+    })
+  })
 }
 
 function json(res, data, status = 200) { res.statusCode = status; res.setHeader('Content-Type','application/json'); res.end(JSON.stringify(data)) }
@@ -433,208 +545,59 @@ export default function chronicleData() {
             return ok(res, { success: true, url: `/${destRel}` })
           }
 
-          // ── POST /api/build/preview ────────────────────
-          if (method === 'POST' && urlPath === '/api/build/preview') {
+          // ── POST /api/build ────────────────────────────
+          // Run astro build only — no preview server.
+          // Called by publish/save triggers (useAstroBuild.ts).
+          if (method === 'POST' && urlPath === '/api/build') {
             try {
-              const codeDir = join(repoRoot, 'packages', 'template-astro')
-              // Stop existing preview
-              if (previewServer) { try { previewServer.close() } catch {}; previewServer = null }
               const dataSrc = join(repoRoot, 'data')
-
-              // Compress images into .chronicle/gen-cache/
-              console.log('[vite-data] loading sharp...')
-              const sharpMod = (await import('sharp')).default
-              console.log('[vite-data] sharp loaded:', !!sharpMod)
-              const genCache = join(repoRoot, '.chronicle', 'gen-cache')
-              // Load compression cache: { "relative/path": sourceMtimeMs }
-              const cacheFile = join(genCache, '.cache.json')
-              const cacheMap = existsSync(cacheFile) ? JSON.parse(readFileSync(cacheFile, 'utf-8')) : {}
-              const IMG_RE = /\.(jpg|jpeg|png|gif|svg)$/i
-              let totalCompressed = 0, totalSkipped = 0
-              const dataRoot = join(repoRoot, 'data')
-              const CONCURRENCY = 4
-
-              // Collect all image paths first, then compress in parallel
-              function collectImages(srcDir) {
-                const imgs = []
-                if (!existsSync(srcDir)) return imgs
-                for (const entry of readdirSync(srcDir, { withFileTypes: true })) {
-                  const n = entry.name
-                  if (n.startsWith('.') || n === 'index.md' || n === 'index.json') continue
-                  const src = join(srcDir, n)
-                  if (entry.isDirectory()) { imgs.push(...collectImages(src)) }
-                  else if (IMG_RE.test(n)) imgs.push(src)
-                }
-                return imgs
-              }
-
-              async function compressAll(srcDirs) {
-                const all = []
-                for (const { src, cache } of srcDirs) {
-                  for (const img of collectImages(src)) {
-                    all.push({ img, cacheDir: cache || join(genCache, dirname(img.replace(dataRoot + '/', ''))) })
-                  }
-                }
-                for (let i = 0; i < all.length; i += CONCURRENCY) {
-                  await Promise.all(all.slice(i, i + CONCURRENCY).map(async ({ img, cacheDir }) => {
-                    const base = parse(img).name
-                    const relKey = img.replace(dataRoot + '/', '')
-                    const st = statSync(img)
-                    const fd = openSync(img, 'r')
-                    const head = Buffer.alloc(512); readSync(fd, head, 0, 512, 0); closeSync(fd)
-                    const hash = createHash('sha1').update(head).digest('hex')
-                    const cacheSig = `${st.mtimeMs}:${st.size}:${hash}`
-                    const webpOut = join(cacheDir, `${base}.webp`)
-                    const avifOut = join(cacheDir, `${base}.avif`)
-                    if (cacheMap[relKey] === cacheSig && existsSync(webpOut) && existsSync(avifOut)) { totalSkipped++; return }
-                    mkdirSync(cacheDir, { recursive: true })
-                    try { await sharpMod(img).webp({ quality: 80, effort: 4 }).toFile(webpOut); totalCompressed++ } catch {}
-                    try { await sharpMod(img).avif({ quality: 55, effort: 4 }).toFile(avifOut) } catch {}
-                    cacheMap[relKey] = cacheSig
-                  }))
-                }
-              }
-
-              // Build source dir list
-              const srcDirs = [{ src: join(dataSrc, 'assets'), cache: join(genCache, 'assets') }]
-              const postsSrc = join(dataSrc, 'posts')
-              if (existsSync(postsSrc)) {
-                for (const slug of readdirSync(postsSrc)) {
-                  const d = join(postsSrc, slug)
-                  if (slug === 'index.json' || !existsSync(d) || !statSync(d).isDirectory()) continue
-                  srcDirs.push({ src: d, cache: join(genCache, 'post_attachment', slug) })
-                }
-              }
-              await compressAll(srcDirs)
-              // Compress background + avatar with aggressive settings (display-size-aware)
-              async function compressAggressive(srcDir, cacheDir, quality) {
-                if (!existsSync(srcDir)) return
-                for (const entry of readdirSync(srcDir, { withFileTypes: true })) {
-                  const n = entry.name
-                  if (n.startsWith('.') || n.endsWith('.yml')) continue
-                  const src = join(srcDir, n)
-                  if (entry.isFile() && IMG_RE.test(n)) {
-                    const base = parse(n).name
-                    mkdirSync(cacheDir, { recursive: true })
-                    try { await sharpMod(src).webp({ quality, effort: 6 }).toFile(join(cacheDir, `${base}.webp`)); totalCompressed++ } catch {}
-                    try { await sharpMod(src).avif({ quality: Math.max(20, quality - 25), effort: 6 }).toFile(join(cacheDir, `${base}.avif`)) } catch {}
-                  }
-                }
-              }
-              // Background: quality based on blur — more blur = more compression
-              const bgYml = join(dataSrc, 'background', 'background.yml')
-              let bgQuality = 60
-              try {
-                if (existsSync(bgYml)) {
-                  const bgText = readFileSync(bgYml, 'utf-8')
-                  const blurMatch = bgText.match(/^blur:\s*(\d+)/m)
-                  const blur = blurMatch ? Number(blurMatch[1]) : 0
-                  // Blur 0→70q, Blur 20→50q, Blur 50→35q
-                  bgQuality = Math.max(30, Math.min(75, 70 - blur * 0.8))
-                }
-              } catch {}
-              await compressAggressive(join(dataSrc, 'background'), join(genCache, 'data', 'background'), bgQuality)
-              // Avatar: small display size → aggressive compression
-              await compressAggressive(join(dataSrc, 'avatar'), join(genCache, 'data', 'avatar'), 50)
-
-              // Save cache
-              mkdirSync(genCache, { recursive: true })
-              writeFileSync(cacheFile, JSON.stringify(cacheMap), 'utf-8')
-              console.log('[vite-data] compression done:', totalCompressed, 'compressed,', totalSkipped, 'skipped')
-
-              // Rebuild index.json (articles + collection assignments) before Astro reads it
               const idxCount = rebuildPostIndex(dataSrc)
               console.log('[vite-data] Post index rebuilt:', idxCount, 'posts')
+              await runAstroBuild()
+              return ok(res, { success: true, indexed: idxCount })
+            } catch (e) {
+              console.error('[vite-data] build failed:', e.message)
+              return json(res, { success: false, error: e.message }, 500)
+            }
+          }
 
-              // Build (async — keeps event loop alive so Vite HMR stays connected)
-              const { exec } = await import('node:child_process')
-              await new Promise((resolve, reject) => {
-                exec('npm run build', {
-                  cwd: codeDir, timeout: 180000, encoding: 'utf-8',
-                  env: { ...process.env, CHRONICLE_DATA_DIR: dataSrc, DATA_SOURCE: 'local' }
-                }, (error, stdout, stderr) => {
-                  if (error) {
-                    console.error('[vite-data] astro build stderr:', stderr)
-                    reject(error)
-                  } else {
-                    if (stdout) console.log('[vite-data] astro build stdout:', stdout.slice(0, 500))
-                    resolve()
-                  }
-                })
-              })
-              console.log('[vite-data] astro build OK')
-
-              // Copy gen-cache (compressed) + originals to dist
-              const distDir = join(codeDir, 'dist')
-              if (existsSync(genCache)) {
-                cpSync(genCache, distDir, { recursive: true, force: true })
-                console.log('[vite-data] gen-cache synced to dist')
-              }
-              // Copy background + avatar to dist/data/
-              for (const sub of ['background', 'avatar']) {
-                const src = join(dataSrc, sub)
-                if (existsSync(src)) {
-                  cpSync(src, join(distDir, 'data', sub), { recursive: true, force: true })
-                  console.log('[vite-data]', sub, 'synced to dist')
-                }
-              }
-              // Copy original assets to dist/assets/ for /assets/photo.jpg requests
-              const srcAssets = join(dataSrc, 'assets')
-              if (existsSync(srcAssets)) {
-                cpSync(srcAssets, join(distDir, 'assets'), { recursive: true, force: true })
-                console.log('[vite-data] originals synced to dist/assets')
-              }
-              // Copy post images to dist/post/<slug>/
-              if (existsSync(postsSrc)) {
-                for (const slug of readdirSync(postsSrc)) {
-                  const pd = join(postsSrc, slug)
-                  if (slug === 'index.json' || !existsSync(pd) || !statSync(pd).isDirectory()) continue
-                  const dst = join(distDir, 'post_attachment', slug)
-                  mkdirSync(dst, { recursive: true })
-                  cpSync(pd, dst, { recursive: true, force: true,
-                    filter: src => !src.endsWith('.md') && !src.endsWith('index.json') && !src.includes('/.') })
-                }
-                console.log('[vite-data] post attachments synced to dist/post_attachment')
-              }
-              // Copy about attachments + compress them
-              const aboutSrc = join(dataSrc, '__about__')
-              if (existsSync(aboutSrc)) {
-                await compressAggressive(aboutSrc, join(genCache, 'about'), 65)
-                const dst = join(distDir, 'about')
-                mkdirSync(dst, { recursive: true })
-                cpSync(aboutSrc, dst, { recursive: true, force: true,
-                  filter: src => !src.endsWith('.md') && !src.includes('/.') })
-                console.log('[vite-data] about synced to dist/about')
-              }
-              // Read port
-              let port = 4321
-              try { const ws = JSON.parse(readFileSync(join(repoRoot, '.chronicle', 'workspace.json'), 'utf-8')); if (ws.previewPort) port = ws.previewPort } catch {}
-              // Serve dist/ via simple static server (no SSR, no middleware)
-              const { createServer: _cs } = await import('node:http')
-              const { extname: _en, join: _jn } = await import('node:path')
-              const mimes = { '.html':'text/html','.css':'text/css','.js':'application/javascript','.json':'application/json','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml','.webp':'image/webp','.ico':'image/x-icon','.woff2':'font/woff2' }
-              previewServer = _cs((req, res) => {
-                let url = decodeURIComponent(req.url.split('?')[0])
-                if (url === '/') url = '/index.html'
-                let fp = _jn(distDir, url)
-                if (existsSync(fp) && statSync(fp).isDirectory()) fp = _jn(fp, 'index.html')
-                if (!existsSync(fp) || !statSync(fp).isFile()) fp = _jn(distDir, 'index.html')
-                res.setHeader('Content-Type', mimes[_en(fp)] || 'application/octet-stream')
-                try { res.end(readFileSync(fp)) } catch { res.statusCode = 404; res.end('Not found') }
-              }).listen(port)
-              previewServer.unref()
-              const previewUrl = `http://localhost:${port}`
-              console.log('[vite-data] preview server at', previewUrl)
+          // ── POST /api/preview/start ────────────────────
+          // Start preview server (does NOT rebuild). Fails if port in use.
+          if (method === 'POST' && urlPath === '/api/preview/start') {
+            try {
+              const previewUrl = await startPreviewServer()
               return ok(res, { success: true, previewUrl })
+            } catch (e) {
+              console.error('[vite-data] preview start failed:', e.message)
+              return json(res, { success: false, error: e.message }, 500)
+            }
+          }
+
+          // ── POST /api/preview/stop ─────────────────────
+          if (method === 'POST' && urlPath === '/api/preview/stop') {
+            await stopPreviewServer()
+            return ok(res, { success: true })
+          }
+
+          // ── POST /api/build/preview (legacy) ────────────
+          // Build then start preview. Kept for backward compatibility.
+          if (method === 'POST' && urlPath === '/api/build/preview') {
+            try {
+              const dataSrc = join(repoRoot, 'data')
+              const idxCount = rebuildPostIndex(dataSrc)
+              console.log('[vite-data] Post index rebuilt:', idxCount, 'posts')
+              await runAstroBuild()
+              const previewUrl = await startPreviewServer()
+              return ok(res, { success: true, previewUrl, indexed: idxCount })
             } catch (e) {
               console.error('[vite-data] build preview failed:', e.message)
               return json(res, { success: false, error: e.message }, 500)
             }
           }
 
-          // ── POST /api/build/preview/stop ────────────────
+          // ── POST /api/build/preview/stop (legacy) ───────
           if (method === 'POST' && urlPath === '/api/build/preview/stop') {
-            if (previewServer) { try { previewServer.close() } catch {}; previewServer = null }
+            await stopPreviewServer()
             return ok(res, { success: true })
           }
 

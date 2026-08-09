@@ -39,10 +39,19 @@
           <input v-model.number="previewPort" type="number" class="modern-input" style="max-width:100px"
             min="1024" max="65535" />
         </div>
-        <div class="form-row">
-          <button class="primary" @click="previewNow" :disabled="previewBuilding">
-            {{ previewBuilding ? $t('settings.building') : $t('settings.previewNow') || 'Build & Preview' }}
+        <div class="form-row" style="flex-direction:row; gap:8px; align-items:center; flex-wrap:wrap">
+          <button class="primary" @click="buildNow" :disabled="previewBuilding">
+            {{ buildLabel }}
           </button>
+          <button @click="previewOnly" :disabled="previewBuilding">
+            {{ previewOnlyLabel }}
+          </button>
+          <button v-if="previewRunning" @click="stopPreview">
+            {{ $t('nav.stopPreview') || 'Stop Preview' }}
+          </button>
+        </div>
+        <div v-if="previewUrl" class="form-row">
+          <span class="desc">🔗 <a :href="previewUrl" target="_blank" rel="noopener">{{ previewUrl }}</a></span>
         </div>
       </div>
 
@@ -57,7 +66,7 @@
 
 <script setup lang="ts">
 import { readJson, writeJson } from '../../data/dataAccess'
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import useToast from '../../composables/useToast.ts'
 import { triggerBuild } from '../../composables/useAstroBuild'
@@ -73,6 +82,13 @@ const previewAutoOpen = ref(true)
 const previewPort = ref(4321)
 const lastSync = ref('')
 const previewBuilding = ref(false)
+const previewRunning = ref(false)
+const previewUrl = ref('')
+
+const buildLabel = computed(() =>
+  previewBuilding.value ? t('settings.building') : t('nav.buildNow') || 'Build')
+const previewOnlyLabel = computed(() =>
+   t('settings.preview') || 'Preview')
 
 async function load() {
   try {
@@ -122,7 +138,13 @@ async function syncNow() {
   }
 }
 
-async function previewNow() {
+function openPreview(url: string) {
+  previewUrl.value = url
+  previewRunning.value = true
+  window.open(url, '_blank', 'noopener')
+}
+
+async function buildNow() {
   previewBuilding.value = true
   try {
     await triggerBuild({
@@ -134,6 +156,24 @@ async function previewNow() {
     previewBuilding.value = false
   }
 }
+
+async function previewOnly() {
+  previewBuilding.value = true
+  try {
+    const resp = await fetch('/api/preview/start', { method: 'POST' })
+    const data = await resp.json()
+    if (data.success && data.previewUrl) openPreview(data.previewUrl)
+    else if (!data.success) show(data.error || t('settings.buildFailed') as string, { status: 'error' })
+  } catch {} finally {
+    previewBuilding.value = false
+  }
+}
+
+async function stopPreview() {
+  try { await fetch('/api/preview/stop', { method: 'POST' }) } catch {}
+  previewRunning.value = false
+  previewUrl.value = ''
+}
 </script>
 
 <style scoped>
@@ -143,4 +183,5 @@ async function previewNow() {
 .form-row:last-child { margin-bottom: 0; }
 .settings-card h3 { margin-top: 5px; }
 .desc { font-size: 0.82rem; color: var(--text-secondary); }
+button:disabled { opacity: 0.6; cursor: not-allowed; pointer-events: none; }
 </style>

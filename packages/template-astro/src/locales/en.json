@@ -12,7 +12,8 @@
     "files": "Files",
     "settings": "Settings",
     "newPost": "New Post",
-    "about": "About"
+    "about": "About",
+    "menu": "Menu"
   },
   "inblog": {
     "toc-title": "Table of Contents",

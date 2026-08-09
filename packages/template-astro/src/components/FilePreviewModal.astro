@@ -1,10 +1,11 @@
 ---
 // FilePreviewModal.astro — drops-in for the deleted FilePreviewModal.vue.
-// All preview styles come from chronicle-markdown.css (bundled once, shared).
-import '@chronicle/shared/src/styles/chronicle-markdown.css';
+// chronicle-markdown.css (43KB) loaded on-demand via ?url to avoid bloating
+// the critical CSS bundle — every page includes this component via Layout.astro.
+import chronicleMarkdownCssUrl from '@chronicle/shared/src/styles/chronicle-markdown.css?url';
 ---
 
-<div id="file-preview-root" data-state="idle" style="display:none" aria-hidden="true">
+<div id="file-preview-root" data-state="idle" style="display:none" aria-hidden="true" data-css-url={chronicleMarkdownCssUrl}>
   <!-- ═══ File / Audio / Video / Text / PDF mode ═══ -->
   <div class="file-preview-overlay">
     <div class="file-preview-container">
@@ -17,7 +18,7 @@ import '@chronicle/shared/src/styles/chronicle-markdown.css';
             <option value="iso-8859-1">ISO-8859-1</option>
             <option value="windows-1252">Windows-1252</option>
           </select>
-          <a class="preview-action-btn" download target="_blank" rel="noopener" title="Download">
+          <a class="preview-action-btn" role="button" download target="_blank" rel="noopener" title="Download">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           </a>
           <button class="preview-action-btn" title="Close">
@@ -32,7 +33,7 @@ import '@chronicle/shared/src/styles/chronicle-markdown.css';
   <!-- ═══ Image mode ═══ -->
   <div class="image-preview-overlay" style="display:none">
     <div class="preview-header-actions" style="position:fixed;top:30px;right:30px;z-index:20002">
-      <a class="preview-action-btn" download target="_blank" rel="noopener" title="Download">
+      <a class="preview-action-btn" role="button" download target="_blank" rel="noopener" title="Download">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       </a>
       <button class="preview-action-btn" title="Close">
@@ -49,11 +50,24 @@ import '@chronicle/shared/src/styles/chronicle-markdown.css';
   // ── Bootstrap: lazy-load rendering on first use ──────────
   let _fpOpen: Function | null = null;
   let _fpLoading = false;
+  let _cssLoaded = false;
 
   async function _fpEnsure() {
     if (_fpOpen) return;
     if (_fpLoading) return;
     _fpLoading = true;
+    // Inject chronicle-markdown.css on first use (43KB, non-blocking)
+    if (!_cssLoaded) {
+      _cssLoaded = true;
+      const root = document.getElementById('file-preview-root');
+      const cssUrl = root?.dataset.cssUrl;
+      if (cssUrl) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = cssUrl;
+        document.head.appendChild(link);
+      }
+    }
     const mod = await import('../utils/filePreviewCore');
     _fpOpen = mod.open;
     // expose globally for programmatic use

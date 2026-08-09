@@ -42,7 +42,7 @@
   /* Core brand */
   --accent-color-default: #2ea35f;
   --accent-color: var(--accent-color-default);
-  --accent-color-dark: #24804a;
+  --accent-color-dark: color-mix(in srgb, var(--accent-color) 80%, #000);
   --accent-color-bg: color-mix(in srgb, var(--accent-color) 15%, transparent);
   --accent-color-hover: color-mix(in srgb, var(--accent-color) 80%, transparent);
   --recommended-accent-text: #fff;
@@ -494,12 +494,12 @@ em {
 
 a {
   font-weight: 500;
-  color: var(--accent-color);
+  color: var(--accent-color-dark);
   text-decoration: inherit;
 }
 
 a:hover {
-  color: var(--accent-color-dark);
+  color: var(--accent-color);
 }
 
 strong, b{
