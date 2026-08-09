@@ -31,42 +31,6 @@ export default defineConfig({
   // for SPA navigation; page loads are simply not pre-warmed on hover/link visibility.
   integrations: [
     icon(),
-    // ── Defer Astro-bundled CSS to be non-render-blocking ──
-    // Post-build: scan all HTML files in dist/ and convert Astro CSS <link>
-    // tags to async loading via media="print" onload — same pattern as font CSS.
-    // The inline critical CSS in Layout.astro provides the skeleton for first paint.
-    {
-      name: 'chronicle-defer-astro-css',
-      hooks: {
-        'astro:build:done': async ({ dir }) => {
-          const { readFileSync, writeFileSync } = await import('node:fs');
-          const { join } = await import('node:path');
-          const distDir = fileURLToPath(dir);
-          if (!existsSync(distDir)) return;
-          let total = 0, pages = 0;
-          function walk(d) {
-            for (const entry of readdirSync(d, { withFileTypes: true })) {
-              const p = join(d, entry.name);
-              if (entry.isDirectory()) { walk(p); continue; }
-              if (!entry.name.endsWith('.html')) continue;
-              pages++;
-              let html = readFileSync(p, 'utf-8');
-              const next = html.replace(
-                /<link\s+rel="stylesheet"\s+href="(\/_astro\/[^"]+\.css)"\s*\/?>/g,
-                (match, href) => {
-                  if (match.includes('media=')) return match;
-                  total++;
-                  return `<link rel="stylesheet" href="${href}" media="print" onload="this.media='all'" />\n    <noscript><link rel="stylesheet" href="${href}" /></noscript>`;
-                }
-              );
-              if (next !== html) writeFileSync(p, next);
-            }
-          }
-          walk(distDir);
-          if (total > 0) console.log(`[chronicle-defer-css] Deferred ${total} CSS link(s) across ${pages} page(s)`);
-        }
-      }
-    }
   ],
   server: { port: 4321 },
   vite: {
