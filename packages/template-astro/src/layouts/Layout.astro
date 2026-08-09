@@ -322,11 +322,19 @@ try {
 
     <script>
       import { applyTheme, writeBackgroundMetaVars, updateResolvedOverlays, parseBackgroundMeta } from '../utils/themeUtils';
-      import { ensureBackgroundLayer, stageBackgroundLayer } from '../utils/backgroundLayer';
+      // backgroundLayer (ensureBackgroundLayer, stageBackgroundLayer) — dynamically
+      // imported on first use to keep the initial bundle smaller. The background
+      // is never part of the critical rendering path; it renders after LCP.
+      let _bgMod: typeof import('../utils/backgroundLayer') | null = null;
+      async function _loadBg() {
+        if (!_bgMod) _bgMod = await import('../utils/backgroundLayer');
+        return _bgMod;
+      }
       const backgroundMeta = parseBackgroundMeta((window as any).__CHRONICLE_SETTINGS__?.frontendBackgroundMeta);
       
       // 确保背景层在页面切换时不被重新创建
-      function ensureBackgroundLayerExists() {
+      async function ensureBackgroundLayerExists() {
+        const { ensureBackgroundLayer } = await _loadBg();
         if (!document.getElementById('chronicle-bg-layer')) {          ensureBackgroundLayer();
         } else {
           // 如果背景层已存在，确保它不会被View Transitions替换
@@ -338,41 +346,42 @@ try {
           }
         }
       }
-      
-      // 立即检查并创建背景层
+
+      // 立即检查并创建背景层 (fire-and-forget — best-effort early init)
       ensureBackgroundLayerExists();
 
       // 复用背景层渲染逻辑
-      function applyBackgroundLayer(forceReload = false) {
+      async function applyBackgroundLayer(forceReload = false) {
+        const { stageBackgroundLayer, ensureBackgroundLayer } = await _loadBg();
                 const settings = { ...(window as any).__CHRONICLE_SETTINGS__ };
-                
+
         if (settings.frontendBackground) {
                     const meta = backgroundMeta;
-                    
+
           writeBackgroundMetaVars('frontend', meta);
           updateResolvedOverlays();
-          
+
           const overlayVar = '--frontend-bg-overlay';
           const overlayValue = getComputedStyle(document.documentElement).getPropertyValue(overlayVar) || 'transparent';
-                    
+
           const layer = document.getElementById('chronicle-bg-layer');
-                    
+
           if (layer) {
             // 如果需要强制重载，设置标记
             if (forceReload) {
               layer.setAttribute('data-force-reload', 'true');
                           }
-            
+
             // 强制设置背景层样式
             layer.style.opacity = '1';
             layer.style.visibility = 'visible';
             layer.style.display = 'block';
-            
+
             const overlayEl = layer.querySelector('.bg-overlay') as HTMLElement | null;
             if (overlayEl) {
               overlayEl.style.background = overlayValue || 'transparent';
                           }
-            
+
             // 强制渲染背景图片
                         stageBackgroundLayer(settings.frontendBackground, meta, overlayValue);
                       } else {
@@ -461,7 +470,7 @@ try {
         }
       }
 
-      function applyBackgroundSettings() {
+      async function applyBackgroundSettings() {
         const settings = (window as any).__CHRONICLE_SETTINGS__;
         if (!settings) return;
 
@@ -479,6 +488,7 @@ try {
             const overlayVar = '--frontend-bg-overlay';
             const overlayValue = getComputedStyle(document.documentElement).getPropertyValue(overlayVar) || 'transparent';
 
+            const { stageBackgroundLayer } = await _loadBg();
                         stageBackgroundLayer(settings.frontendBackground, meta, overlayValue);
           }
         } catch (e) {
@@ -486,7 +496,7 @@ try {
         }
       }
 
-      function applySettings(forceBackgroundReload = false) {
+      async function applySettings(forceBackgroundReload = false) {
         const settings = { ...(window as any).__CHRONICLE_SETTINGS__ };
         if (!settings) return;
 
@@ -531,6 +541,7 @@ try {
 
             // 仅在首次加载或强制重载时重新渲染背景图片
             if (forceBackgroundReload || !isBackgroundReady) {
+              const { stageBackgroundLayer } = await _loadBg();
                             stageBackgroundLayer(settings.frontendBackground, meta, overlayValue);
             } else {
               // 页面导航时，只更新overlay而不重新加载背景图片
@@ -626,12 +637,13 @@ try {
         }
       });
 
-      document.addEventListener('astro:after-swap', (e) => {
+      document.addEventListener('astro:after-swap', async (e) => {
         // 页面切换后，立即重新应用背景层
-        setTimeout(() => {
+        setTimeout(async () => {
           // 强制重新创建背景层以确保正确渲染
+          const { ensureBackgroundLayer } = await _loadBg();
           ensureBackgroundLayer();
-          
+
           // 复用背景层渲染逻辑
           applyBackgroundLayer();
         }, 0);
