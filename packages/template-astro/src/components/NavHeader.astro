@@ -944,8 +944,6 @@ const isActive = (path: string) => {
       overlay.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
       menuToggle.classList.add('active');
-      navLinks.getBoundingClientRect();
-      overlay.getBoundingClientRect();
       requestAnimationFrame(() => {
         navLinks.classList.add("mobile-open");
         overlay.style.opacity = '';
