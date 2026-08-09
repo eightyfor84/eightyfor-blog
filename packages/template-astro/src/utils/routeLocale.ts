@@ -1,27 +1,48 @@
 import type { Locale } from './i18n';
 
-export type RouteLocale = 'en' | 'zh';
+/** All valid URL route locale prefixes. Add a new language here — the type derives from this. */
+const ROUTE_LOCALES = ['en', 'zh'] as const;
+export type RouteLocale = (typeof ROUTE_LOCALES)[number];
 
-export function toRouteLocale(locale: Locale | RouteLocale | undefined): RouteLocale {
-  return locale === 'en' ? 'en' : 'zh';
+/** Maps a route language code to its content locale. Add a mapping when adding a new language. */
+const ROUTE_TO_CONTENT: Record<string, Locale> = {
+  en: 'en',
+  zh: 'zh-CN',
+};
+
+function extractLang(locale: string | undefined): string {
+  if (!locale) return '';
+  return locale.split('-')[0].toLowerCase();
 }
 
-export function toContentLocale(routeLocale: RouteLocale | Locale | undefined): Locale {
-  return routeLocale === 'en' ? 'en' : 'zh-CN';
+function isRouteLocale(s: string): s is RouteLocale {
+  return (ROUTE_LOCALES as readonly string[]).includes(s);
+}
+
+export function toRouteLocale(locale: string | undefined): RouteLocale {
+  const lang = extractLang(locale);
+  if (isRouteLocale(lang)) return lang;
+  return 'en';
+}
+
+export function toContentLocale(routeLocale: string | undefined): Locale {
+  const lang = extractLang(routeLocale);
+  if (lang && ROUTE_TO_CONTENT[lang]) return ROUTE_TO_CONTENT[lang];
+  return 'en';
 }
 
 export function getRouteLocaleFromPath(pathname: string): RouteLocale | undefined {
   const normalized = pathname.startsWith('/') ? pathname : `/${pathname}`;
   const segments = normalized.split('/').filter(Boolean);
 
-  if (segments[0] === 'en' || segments[0] === 'zh') {
+  if (isRouteLocale(segments[0])) {
     return segments[0];
   }
 
   return undefined;
 }
 
-export function buildLocalizedPath(locale: Locale | RouteLocale | undefined, path: string): string {
+export function buildLocalizedPath(locale: string | undefined, path: string): string {
   const routeLocale = toRouteLocale(locale);
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
 
@@ -36,7 +57,7 @@ export function stripRouteLocale(pathname: string): string {
   const normalized = pathname.startsWith('/') ? pathname : `/${pathname}`;
   const segments = normalized.split('/').filter(Boolean);
 
-  if (segments[0] === 'en' || segments[0] === 'zh') {
+  if (isRouteLocale(segments[0])) {
     return `/${segments.slice(1).join('/')}` || '/';
   }
 

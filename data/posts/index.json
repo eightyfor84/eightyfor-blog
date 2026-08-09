@@ -7,7 +7,7 @@
       "guide"
     ],
     "status": "published",
-    "summary": "",
+    "summary": "data/collections.yml lets you group articles into named sequences with a dedicated navigation panel and overview page. It's the closest thing Chronicle has to…",
     "font": "sans",
     "author": "Eightyfor",
     "aiGenerated": true,
@@ -23,7 +23,7 @@
       "guide"
     ],
     "status": "published",
-    "summary": "",
+    "summary": "data/friends.yml builds the /friends page — a blogroll of external links to people, projects, or communities you want to share with your readers. It's a single…",
     "font": "sans",
     "author": "Eightyfor",
     "aiGenerated": true,
@@ -39,7 +39,7 @@
       "setup"
     ],
     "status": "published",
-    "summary": "",
+    "summary": "Node.js 22+ Git A GitHub account (for deployment)",
     "font": "sans",
     "author": null,
     "aiGenerated": false,
@@ -70,7 +70,7 @@
       "profile"
     ],
     "status": "published",
-    "summary": "",
+    "summary": "data/profile.yml defines who you are to your readers. It powers the author card on the homepage, the profile section of the About page, and the fallback author…",
     "font": "sans",
     "author": "Eightyfor",
     "aiGenerated": true,
@@ -86,7 +86,7 @@
       "site"
     ],
     "status": "published",
-    "summary": "",
+    "summary": "data/site.yml is the central control panel for your Chronicle site. Every global behavior — from the color of your links to which pages exist — is declared…",
     "font": "sans",
     "author": "Eightyfor",
     "aiGenerated": true,
@@ -103,7 +103,7 @@
       "featured"
     ],
     "status": "published",
-    "summary": "",
+    "summary": "Every blogging platform wants you to trust their server.",
     "author": null,
     "aiGenerated": false,
     "type": "slides",

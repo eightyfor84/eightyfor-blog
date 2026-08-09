@@ -13,6 +13,7 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import YAML from 'yaml'
+import { extractBodySummary } from '../../../shared/src/utils/summary.js'
 
 /**
  * @typedef {Object} IndexEntry
@@ -136,13 +137,14 @@ export function buildPostIndex(dataDir) {
     const fm = parseFrontmatter(raw)
 
     const collectionInfo = collectionIndex.get(slug)
+    const summary = fm.summary || extractBodySummary(raw)
     /** @type {IndexEntry} */
     const out = {
       title: fm.title || slug,
       date: fm.date || new Date().toISOString(),
       tags: Array.isArray(fm.tags) ? fm.tags : [],
       status: fm.status || 'draft',
-      summary: fm.summary || '',
+      summary,
       font: fm.font,
       author: fm.author,
       aiGenerated: fm.aiGenerated,

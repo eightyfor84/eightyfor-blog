@@ -23,6 +23,7 @@
     "markdown-it": "^14.1.1",
     "markdown-it-footnote": "^4.0.0",
     "mermaid": "^11.15.0",
+    "sharp": "^0.33.5",
     "vue": "^3.5.33",
     "yaml": "^2.9.0"
   },

@@ -319,8 +319,6 @@ try {
     <script>
       import { applyTheme, writeBackgroundMetaVars, updateResolvedOverlays, parseBackgroundMeta } from '../utils/themeUtils';
       import { ensureBackgroundLayer, stageBackgroundLayer } from '../utils/backgroundLayer';
-      import { darkenHex } from '../utils/colorUtils';
-
       const backgroundMeta = parseBackgroundMeta((window as any).__CHRONICLE_SETTINGS__?.frontendBackgroundMeta);
       
       // 确保背景层在页面切换时不被重新创建
@@ -504,10 +502,6 @@ try {
           if (settings.frontendAccent) {
             const accent = settings.frontendAccent;
             document.documentElement.style.setProperty('--accent-color', accent);
-
-            // 计算更深的颜色用于hover
-            const darkAccent = darkenHex(accent);
-            document.documentElement.style.setProperty('--accent-color-dark', darkAccent);
           }
 
           // 应用字体
@@ -672,13 +666,7 @@ try {
         'font-weight:bold', '', isLocalMode ? 'color:#2ea35f;font-weight:bold' : 'color:#e06c75;font-weight:bold', '');
     </script>
 
-    <!-- Global scroll controller: one passive listener for all scroll-dependent
-         features (BTT visibility, TOC active heading, hash navigation).
-         Static import so it loads synchronously — no hydration race.
-         Vite deduplicates this into the shared tocController chunk. -->
-    <script>
-      import { initController } from '../utils/tocController';
-      initController();
-    </script>
+    <!-- tocController is lazily loaded by FloatingToc.astro (article pages) and
+         cornerButtonCore.ts (TOC templates only). Homepage never loads it. -->
   </body>
 </html>

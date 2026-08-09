@@ -6,6 +6,14 @@ type E = { u: (() => void) | null; d(): void };
 const M = new Map<HTMLElement, E>();
 let _listenersBound = false;
 
+// Lazy-load tocController — only imported when a page has TOC elements.
+// BTT template uses a pure scroll listener (no tocController dependency).
+let _tc: any = null;
+function _ensureTc() {
+  if (_tc) return Promise.resolve(_tc);
+  return import('../utils/tocController').then(m => { _tc = m; return m; }).catch(() => null);
+}
+
 export function initCornerButton() {
   if (_listenersBound) return;
   _listenersBound = true;
@@ -14,7 +22,7 @@ export function initCornerButton() {
   document.addEventListener('astro:before-swap', () => {
     M.forEach(v => { if (v.u) v.u(); v.d(); });
     M.clear();
-    import('../utils/tocController').then(({ destroyController }) => destroyController());
+    if (_tc) _tc.destroyController();
   });
 }
 
@@ -40,7 +48,8 @@ function init() {
     let open = false, menu = '', st: number | null = null, animating = false;
     let fh: ((e: TransitionEvent) => void) | null = null;
     const ct = () => { if (st !== null) { clearTimeout(st); st = null; } };
-    const gst = () => 1000 * (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--transition-duration').trim()) || 1);
+    let _dur = -1;
+    const gst = () => { if (_dur < 0) _dur = 1000 * (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--transition-duration').trim()) || 1); return _dur; };
     const sw = (m: string) => {
       c.querySelectorAll(':scope > [data-menu]').forEach(el => {
         if ((el as HTMLElement).dataset.menu === m) el.removeAttribute('hidden');
@@ -53,10 +62,10 @@ function init() {
     };
     const ao = () => {
       animating = true; b.style.transition = ''; b.style.overflow = ''; open = true; b.classList.add('cb--open'); d.removeAttribute('hidden'); sw(menu);
+      requestAnimationFrame(() => ea());
       const F = () => {
         ct(); animating = false; fh = null; b.removeEventListener('transitionend', T);
-        import('../utils/tocController').then(({ default: tc }) => { tc.computeLiveActiveFromBaseline(); });
-        ea();
+        _ensureTc().then(m => m?.default.computeLiveActiveFromBaseline());
       };
       function T(e: TransitionEvent) { if (e.propertyName === 'max-height') F(); }
       fh = T; b.addEventListener('transitionend', T);
@@ -64,7 +73,7 @@ function init() {
     };
     const ac = () => {
       ct(); b.style.transition = ''; b.style.overflow = 'hidden'; animating = true; open = false; b.classList.remove('cb--open'); d.setAttribute('hidden', '');
-      const F = () => { ct(); animating = false; fh = null; menu = ''; b.style.overflow = ''; b.removeEventListener('transitionend', T); };
+      const F = () => { ct(); animating = false; fh = null; menu = ''; b.style.overflow = ''; c.scrollTop = 0; b.removeEventListener('transitionend', T); };
       function T(e: TransitionEvent) { if (e.propertyName === 'max-height') F(); }
       fh = T; b.addEventListener('transitionend', T);
       st = window.setTimeout(() => { st = null; F(); }, gst());
@@ -72,6 +81,7 @@ function init() {
     const ix = (next: string) => {
       if (fh) { b.removeEventListener('transitionend', fh); fh = null; b.style.transition = ''; b.style.overflow = ''; }
       ct(); animating = false; menu = next; open = true; b.classList.add('cb--open'); d.removeAttribute('hidden'); sw(next);
+      requestAnimationFrame(() => ea());
     };
     i.addEventListener('click', (e: Event) => {
       const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-menu],[data-action]');
@@ -85,6 +95,17 @@ function init() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
         const mc = document.querySelector('.main-content,main');
         if (mc) mc.scrollTo({ top: 0, behavior: 'smooth' });
+      } else if (btn.dataset.action === 'scrollToComment') {
+        const target = document.getElementById('__chronicle-comment') || document.getElementById('comments');
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          const mc = document.querySelector('.main-content,main');
+          if (mc) {
+            const tr = target.getBoundingClientRect();
+            const mr = mc.getBoundingClientRect();
+            mc.scrollBy({ top: tr.top - mr.top, behavior: 'smooth' });
+          }
+        }
       }
     });
     d.addEventListener('click', () => { if (open) ac(); });
@@ -94,27 +115,33 @@ function init() {
       e.preventDefault();
       const id = a.dataset.tocId!;
       ac();
-      import('../utils/tocController').then(({ default: tc }) => {
-        tc.lockActiveId(id); history.pushState(null, '', '#' + id); tc.scrollToHeading(id);
+      _ensureTc().then(m => { if (!m) return;
+        m.default.lockActiveId(id); history.pushState(null, '', '#' + id); m.default.scrollToHeading(id);
       });
     });
     if (tmpl === 'btt') {
-      import('../utils/tocController').then(({ default: tc, initController }) => {
-        initController();
-        const U = () => b.classList.toggle('cb--btt-visible', tc.state.showBackToTop);
-        const E = M.get(r); if (E) { if (E.u) E.u(); E.u = tc.subscribe(U); }
-        U();
-      }).catch(() => {});
+      const mc = document.querySelector('.main-content,main') as HTMLElement | null;
+      const U = () => {
+        const st = mc ? mc.scrollTop : (window.scrollY || document.documentElement.scrollTop || 0);
+        b.classList.toggle('cb--btt-visible', st > 300);
+      };
+      window.addEventListener('scroll', U, { passive: true });
+      if (mc) mc.addEventListener('scroll', U, { passive: true });
+      const E = M.get(r); if (E) {
+        if (E.u) E.u();
+        E.u = () => { window.removeEventListener('scroll', U); if (mc) mc.removeEventListener('scroll', U); };
+      }
+      U();
     }
     if (tmpl === 'toc-list' || (tmpl === 'menu' && c.querySelector('[data-toc-id]'))) {
-      import('../utils/tocController').then(({ default: tc }) => {
+      _ensureTc().then(m => { if (!m) return;
         const U = () => {
-          const aid = tc.state.liveActiveId;
+          const aid = m.default.state.liveActiveId;
           c.querySelectorAll('[data-toc-id]').forEach(li => li.classList.toggle('cb--active', (li as HTMLElement).dataset.tocId === aid));
         };
-        const E = M.get(r); if (E) { if (E.u) E.u(); E.u = tc.subscribe(U); }
+        const E = M.get(r); if (E) { if (E.u) E.u(); E.u = m.default.subscribe(U); }
         U();
-      }).catch(() => {});
+      });
     }
     M.set(r, { u: null, d() { ct(); if (r.parentElement) r.parentElement.removeChild(r); } });
   }

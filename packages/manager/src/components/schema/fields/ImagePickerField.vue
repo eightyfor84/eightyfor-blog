@@ -17,7 +17,7 @@
         v-if="modelValue"
         type="button"
         class="secondary"
-        @click="emit('update:modelValue', '')"
+        @click="handleClear"
       >
         {{ clearLabel || t('settings.clear') }}
       </button>
@@ -95,6 +95,24 @@ function onInput(e: Event) {
   emit('update:modelValue', (e.target as HTMLInputElement).value)
 }
 
+async function handleClear() {
+  // Delete the image file from disk if it's in a target directory
+  const dir = targetDir.value
+  const url = props.modelValue
+  if (dir && url) {
+    const filePath = url.startsWith('asset://') ? `data/assets/${url.slice(8)}` : url.replace(/^\//, '')
+    try {
+      const isElec = typeof window !== 'undefined' && !!(window as any).chronicleElectron?.isElectron
+      if (isElec) {
+        await (window as any).chronicleElectron.deleteFile(filePath)
+      } else {
+        await fetch(`/api/files?path=${encodeURIComponent(filePath)}`, { method: 'DELETE' })
+      }
+    } catch {}
+  }
+  emit('update:modelValue', '')
+}
+
 function openPicker() { isFilePickerOpen.value = true }
 
 async function handleFilePickerSelect(entry: any) {
@@ -108,7 +126,7 @@ async function handleFilePickerSelect(entry: any) {
 
   // Auto-copy to target directory if configured
   const dir = targetDir.value
-  if (dir && !url.startsWith(`/${dir}/`) && !url.startsWith('asset://')) {
+  if (dir && !url.startsWith(`/${dir}/`)) {
     const ext = (url.match(/\.\w+$/)?.[0]) || '.jpg'
     const dest = `${dir}/avatar${ext}`
     try {

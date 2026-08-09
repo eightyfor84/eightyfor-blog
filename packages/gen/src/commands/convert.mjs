@@ -1090,27 +1090,28 @@ async function processBrandingAsset(siteDir, name, target, dataDir, assetMap) {
       const destPath = join(uploadPicDir, sourceName);
       cpSync(fullPath, destPath, { force: true });
 
-      // Use compressImage from image.cjs — same hash seed as CMS: 'avatar:' + sourcePath
-      const { compressImage } = require('../../src/processor/image.cjs');
+      // Inline sharp compression (image processor was removed — this is legacy migration)
       const outputRel = `chr_avatar-${stem}-${createHash('sha1').update('avatar:' + sourcePath).digest('hex').slice(0, 10)}.webp`;
-
-      const result = await compressImage({
-        sourceRel: sourcePath,
-        uploadDir: join(dataDir, 'upload'),
-        outputDir: brandingDataDir,
-        outputRel,
-        quality: 80,
-        resizeWidth: 256,
-        resizeHeight: 256,
-        clearPrefix: 'chr_avatar',
-      });
-
-      if (!result.success) {
-        console.error(`[convert] Avatar compression failed: ${result.message}`);
+      const outputPath = join(brandingDataDir, outputRel);
+      let url = '';
+      try {
+        const sharpMod = (await import('sharp')).default || (await import('sharp'));
+        // Clear old avatar files with the same prefix
+        if (existsSync(brandingDataDir)) {
+          for (const f of readdirSync(brandingDataDir)) {
+            if (f.startsWith('chr_avatar') && f.endsWith('.webp')) unlinkSync(join(brandingDataDir, f));
+          }
+        }
+        await sharpMod(join(dataDir, 'upload', sourcePath), { failOnError: false })
+          .resize(256, 256, { fit: 'cover' })
+          .webp({ quality: 80, effort: 4 })
+          .toFile(outputPath);
+        url = `/server/data/branding/${outputRel}`;
+        console.log(`[convert] Avatar compressed: ${outputRel}`);
+      } catch (e) {
+        console.error(`[convert] Avatar compression failed: ${e.message}`);
         return;
       }
-
-      const url = result.url;
 
       // Write both compressed and source URLs to profile.json
       const profileFile = join(dataDir, 'profile.json');

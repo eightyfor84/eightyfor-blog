@@ -16,7 +16,7 @@
     "settings": "设置",
     "newPost": "写文章",
     "about": "关于",
-    "previewSite": "本地预览",
+    "previewSite": "构建并预览",
     "syncNow": "同步到远端",
     "synced": "同步成功",
     "syncFailed": "同步失败",
@@ -32,7 +32,8 @@
     "notifications": "通知中心",
     "welcome": "欢迎页",
     "editor": "编辑器",
-    "theme": "主题"
+    "theme": "主题",
+    "stopPreview": "停止预览"
   },
   "inblog": {
     "toc-title": "目录",
@@ -397,7 +398,8 @@
     "edit": "编辑",
     "add": "添加",
     "sansSerif": "无衬线体",
-    "serif": "衬线体"
+    "serif": "衬线体",
+    "preview": "预览"
   },
   "postPicker": {
     "inputPlaceholder": "搜索并选择已发布帖子",
@@ -889,7 +891,8 @@
       "sidebar": "侧边栏",
       "settings": "设置页",
       "publish": "发布文章",
-      "aboutPublish": "发布关于页"
+      "aboutPublish": "发布关于页",
+      "localPreview": "本地预览"
     },
     "sessionExpired": "登录凭据已过期",
     "sessionExpiredMsg": "请重新登录以继续操作",
