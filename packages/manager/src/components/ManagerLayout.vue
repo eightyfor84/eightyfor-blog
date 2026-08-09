@@ -1015,7 +1015,6 @@ async function stopPreview() {
 
 async function syncNow() {
   try {
-    const { showToast } = useToast()
     const isElec = typeof window !== 'undefined' && !!(window as any).chronicleElectron?.isElectron
     if (isElec) {
       await (window as any).chronicleElectron.invoke('git:sync')
@@ -1025,7 +1024,6 @@ async function syncNow() {
     }
     showToast(t('nav.synced'), { status: 'success' })
   } catch (e: any) {
-    const { showToast } = useToast()
     showToast(e?.message || t('nav.syncFailed'), { status: 'error' })
   }
 }
@@ -1149,7 +1147,7 @@ async function syncNow() {
                 {{isRebuilding ? t('settings.building') : t('nav.previewSite')}}
               </button>
               <button v-if="previewRunning" @click="quickOpen = false; stopPreview()">
-                <span class="icon-svg" v-html="ShellIcons.close"></span>
+                <span class="icon-svg" v-html="ShellIcons.cross"></span>
                 {{ t('nav.stopPreview') || 'Stop Preview' }}
               </button>
             </div>
