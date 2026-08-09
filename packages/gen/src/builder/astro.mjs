@@ -10,8 +10,8 @@
  */
 
 import { execSync } from 'node:child_process';
-import { cpSync, existsSync, lstatSync, mkdirSync, rmSync, chmodSync, renameSync } from 'node:fs';
-import { join, resolve, parse } from 'node:path';
+import { cpSync, existsSync, lstatSync, mkdirSync, rmSync, chmodSync, renameSync, readdirSync } from 'node:fs';
+import { join, resolve, parse, dirname } from 'node:path';
 import { rebuildPostIndex } from './indexer.mjs';
 
 // ── CLI argument parsing ──────────────────────────────────
