@@ -14,7 +14,7 @@
     "@marp-team/marp-core": "^4.3.0",
     "@types/highlight.js": "^9.12.4",
     "@types/markdown-it": "^14.1.2",
-    "astro": "^7.0.6",
+    "astro": "^7.2.0",
     "astro-icon": "^1.1.5",
     "dompurify": "^3.4.9",
     "highlight.js": "^11.11.1",

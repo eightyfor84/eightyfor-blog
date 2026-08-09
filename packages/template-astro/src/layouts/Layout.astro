@@ -1,4 +1,5 @@
 ---
+import { readFileSync } from 'node:fs';
 import { ClientRouter } from 'astro:transitions';
 import NavHeader from '../components/NavHeader.astro';
 import FilePreviewModal from '../components/FilePreviewModal.astro';
@@ -6,8 +7,29 @@ import { API_BASE_URL } from '../core/site';
 import { isLocalMode } from '../data/localDataSource';
 import { getLocale } from '../utils/i18n';
 import { resolveFeatureFlags } from '../utils/featureFlags';
+import criticalBase from '../styles/critical-base.css?raw';
+import criticalHome from '../styles/critical-home.css?raw';
+import criticalPost from '../styles/critical-post.css?raw';
+import criticalBlogs from '../styles/critical-blogs.css?raw';
 import '../styles/global.css';
 import '../styles/app.css';
+
+// Inline critical tokens to eliminate the network RTT for the blocking <link>.
+// Previously served as /critical-tokens.css — now baked into every page's <head>
+// so that var() references in the skeleton resolve on first paint without a fetch.
+const criticalTokensCSS = readFileSync('src/styles/critical-tokens.css', 'utf-8');
+
+// Assemble critical CSS based on page type — only inject what this page needs.
+const pathname = Astro.url.pathname;
+const isHome = /^\/(en|zh)\/?$/.test(pathname);
+const isPost = pathname.includes('/post/');
+const isBlogs = /\/(en|zh)\/blogs\/?$/.test(pathname);
+const criticalCSS = [
+  criticalBase,
+  isHome   ? criticalHome   : '',
+  isPost   ? criticalPost   : '',
+  isBlogs  ? criticalBlogs  : '',
+].join('');
 
 interface Props {
   title?: string;
@@ -177,24 +199,31 @@ try {
 
     <ClientRouter />
 
-    <!-- Critical CSS inline: skeleton + dark-theme fallbacks for instant first paint.
-         When the full CSS bundle loads (~84KB), it overrides these with proper variables
-         and theme support. Without this, the browser paints nothing until all CSS arrives.
-         Keep this block under ~2KB — update in sync with global.css dark :root tokens. -->
-    <style is:inline>
-      :root, html, body { margin:0; padding:0; background:#121212; color:#e0e0e0; font-family:-apple-system,BlinkMacSystemFont,'InterVariable','Inter','Segoe UI',sans-serif; text-rendering:optimizeLegibility; -webkit-font-smoothing:antialiased; color-scheme:dark; }
-      #app { display:flex; flex-direction:column; min-height:100vh; }
-      .nav-header { position:fixed; top:0; left:0; right:0; z-index:9999; height:70px; box-sizing:border-box; background:rgba(34,34,34,0.9); backdrop-filter:blur(16px); border-bottom:1px solid rgba(169,169,169,0.2); }
-      .nav-content { display:flex; justify-content:space-between; align-items:center; padding:0 2rem; height:100%; max-width:1200px; margin:0 auto; }
-      .main-content { flex:1; padding-top:70px; height:100vh; box-sizing:border-box; }
-      .app-title { font-size:1.5rem; font-weight:bold; color:#e0e0e0; margin:0; }
-      .nav-link { color:#a9a9a9; text-decoration:none; padding:0.5rem 1rem; border-radius:4px; }
-      .nav-links { display:flex; gap:2rem; }
-      .nav-actions { margin-left:auto; display:flex; align-items:center; gap:0.75rem; }
-      .nav-setting-btn { background:transparent; border:none; color:#a9a9a9; cursor:pointer; display:flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:6px; }
-      a { color:#2ea35f; }
-    </style>
+    <!-- Theme init MUST run before any CSS that depends on data-theme -->
+    <script is:inline>
+      (function() {
+        try {
+          const settings = JSON.parse(localStorage.getItem('chronicle.settings') || '{}');
+          const theme = settings.frontendTheme || 'follow';
+          if (theme === 'follow' || theme === 'system') {
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+          } else if (theme === 'light') {
+            document.documentElement.setAttribute('data-theme', 'light');
+          } else if (theme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+          }
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
 
+    <!-- Critical tokens: inlined to eliminate network RTT.
+         Tokens must resolve before the skeleton CSS below paints. -->
+    <style is:inline set:html={criticalTokensCSS}></style>
+
+    <!-- Custom properties from SSR (before skeleton so var() refs resolve first-paint) -->
     <style define:vars={{
       accentColor: frontendAccent,
       fontStack: frontendFont === 'serif' ? "'Noto Serif SC', serif" : "var(--app-font-stack-inter)"
@@ -230,6 +259,9 @@ try {
       }
     </style>
 
+    <!-- Critical CSS skeleton (geometry + colours — tokens are inline above) -->
+    <style is:inline set:html={criticalCSS}></style>
+
     <script define:vars={{ frontendTheme, frontendAccent, frontendBackground, frontendBackgroundMeta, frontendFont, featureFlags, GA_MEASUREMENT_ID }}>
       // 将settings传递给客户端
       window.__CHRONICLE_SETTINGS__ = {
@@ -246,34 +278,6 @@ try {
     <script define:vars={{ mediaBaseUrl: mediaDomain, backgroundBaseUrls }}>
       window.__CHRONICLE_MEDIA_BASE_URL__ = mediaBaseUrl;
       window.__CHRONICLE_BACKGROUND_BASE_URLS__ = backgroundBaseUrls;
-    </script>
-
-    <!-- Theme Initialization (runs before page render) -->
-    <script is:inline>
-      (function() {
-        // Apply theme immediately to prevent flash
-        try {
-          const settings = JSON.parse(localStorage.getItem('chronicle.settings') || '{}');
-          const theme = settings.frontendTheme || 'follow';
-
-          if (theme === 'follow' || theme === 'system') {
-            // Follow system preference
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            if (prefersDark) {
-              document.documentElement.setAttribute('data-theme', 'dark');
-            } else {
-              document.documentElement.setAttribute('data-theme', 'light');
-            }
-          } else if (theme === 'light') {
-            document.documentElement.setAttribute('data-theme', 'light');
-          } else if (theme === 'dark') {
-            document.documentElement.setAttribute('data-theme', 'dark');
-          }
-        } catch (e) {
-          // Default to dark if error
-          document.documentElement.setAttribute('data-theme', 'dark');
-        }
-      })();
     </script>
 
     <script>
@@ -318,11 +322,19 @@ try {
 
     <script>
       import { applyTheme, writeBackgroundMetaVars, updateResolvedOverlays, parseBackgroundMeta } from '../utils/themeUtils';
-      import { ensureBackgroundLayer, stageBackgroundLayer } from '../utils/backgroundLayer';
+      // backgroundLayer (ensureBackgroundLayer, stageBackgroundLayer) — dynamically
+      // imported on first use to keep the initial bundle smaller. The background
+      // is never part of the critical rendering path; it renders after LCP.
+      let _bgMod: typeof import('../utils/backgroundLayer') | null = null;
+      async function _loadBg() {
+        if (!_bgMod) _bgMod = await import('../utils/backgroundLayer');
+        return _bgMod;
+      }
       const backgroundMeta = parseBackgroundMeta((window as any).__CHRONICLE_SETTINGS__?.frontendBackgroundMeta);
       
       // 确保背景层在页面切换时不被重新创建
-      function ensureBackgroundLayerExists() {
+      async function ensureBackgroundLayerExists() {
+        const { ensureBackgroundLayer } = await _loadBg();
         if (!document.getElementById('chronicle-bg-layer')) {          ensureBackgroundLayer();
         } else {
           // 如果背景层已存在，确保它不会被View Transitions替换
@@ -334,41 +346,42 @@ try {
           }
         }
       }
-      
-      // 立即检查并创建背景层
+
+      // 立即检查并创建背景层 (fire-and-forget — best-effort early init)
       ensureBackgroundLayerExists();
 
       // 复用背景层渲染逻辑
-      function applyBackgroundLayer(forceReload = false) {
+      async function applyBackgroundLayer(forceReload = false) {
+        const { stageBackgroundLayer, ensureBackgroundLayer } = await _loadBg();
                 const settings = { ...(window as any).__CHRONICLE_SETTINGS__ };
-                
+
         if (settings.frontendBackground) {
                     const meta = backgroundMeta;
-                    
+
           writeBackgroundMetaVars('frontend', meta);
           updateResolvedOverlays();
-          
+
           const overlayVar = '--frontend-bg-overlay';
           const overlayValue = getComputedStyle(document.documentElement).getPropertyValue(overlayVar) || 'transparent';
-                    
+
           const layer = document.getElementById('chronicle-bg-layer');
-                    
+
           if (layer) {
             // 如果需要强制重载，设置标记
             if (forceReload) {
               layer.setAttribute('data-force-reload', 'true');
                           }
-            
+
             // 强制设置背景层样式
             layer.style.opacity = '1';
             layer.style.visibility = 'visible';
             layer.style.display = 'block';
-            
+
             const overlayEl = layer.querySelector('.bg-overlay') as HTMLElement | null;
             if (overlayEl) {
               overlayEl.style.background = overlayValue || 'transparent';
                           }
-            
+
             // 强制渲染背景图片
                         stageBackgroundLayer(settings.frontendBackground, meta, overlayValue);
                       } else {
@@ -457,7 +470,7 @@ try {
         }
       }
 
-      function applyBackgroundSettings() {
+      async function applyBackgroundSettings() {
         const settings = (window as any).__CHRONICLE_SETTINGS__;
         if (!settings) return;
 
@@ -475,6 +488,7 @@ try {
             const overlayVar = '--frontend-bg-overlay';
             const overlayValue = getComputedStyle(document.documentElement).getPropertyValue(overlayVar) || 'transparent';
 
+            const { stageBackgroundLayer } = await _loadBg();
                         stageBackgroundLayer(settings.frontendBackground, meta, overlayValue);
           }
         } catch (e) {
@@ -482,7 +496,7 @@ try {
         }
       }
 
-      function applySettings(forceBackgroundReload = false) {
+      async function applySettings(forceBackgroundReload = false) {
         const settings = { ...(window as any).__CHRONICLE_SETTINGS__ };
         if (!settings) return;
 
@@ -527,6 +541,7 @@ try {
 
             // 仅在首次加载或强制重载时重新渲染背景图片
             if (forceBackgroundReload || !isBackgroundReady) {
+              const { stageBackgroundLayer } = await _loadBg();
                             stageBackgroundLayer(settings.frontendBackground, meta, overlayValue);
             } else {
               // 页面导航时，只更新overlay而不重新加载背景图片
@@ -622,12 +637,13 @@ try {
         }
       });
 
-      document.addEventListener('astro:after-swap', (e) => {
+      document.addEventListener('astro:after-swap', async (e) => {
         // 页面切换后，立即重新应用背景层
-        setTimeout(() => {
+        setTimeout(async () => {
           // 强制重新创建背景层以确保正确渲染
+          const { ensureBackgroundLayer } = await _loadBg();
           ensureBackgroundLayer();
-          
+
           // 复用背景层渲染逻辑
           applyBackgroundLayer();
         }, 0);

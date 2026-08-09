@@ -1,0 +1,89 @@
+/* ── Critical CSS: Homepage (index only) ────────────────────────────
+   Injected alongside critical-base.css on homepage routes.
+   Covers: split/cover/cards geometry, hero deck, card grid shell.
+
+   Tokens are inlined before this block — no fallback needed.
+
+   Update in sync with: [lang]/index.astro, HomeCoverDeck.astro,
+   CardStyleHomeDeck.astro. */
+
+/* ── Homepage: split mode ── */
+.home-container {
+  margin:0; top:0; min-height:100vh; padding:0;
+  display:flex; flex-direction:column; position:relative; z-index:2; overflow:visible;
+}
+.home-container--split { align-items:stretch; justify-content:flex-start; overflow:visible; }
+.split-hero-stage {
+  position:sticky; top:0; z-index:10;
+  height:calc(90vh - 80px); min-height:clamp(118px,18vh,170px);
+  display:flex; align-items:center; padding:0 0 0.8rem; overflow:clip;
+}
+.split-cards-stage { position:relative; z-index:20; margin-top:-24px; }
+
+/* ── Homepage: cover mode ── */
+.home-container--cover { top:-70px; height:100vh; justify-content:center; overflow:hidden; }
+
+/* ── Homepage: cards mode ── */
+.home-container--cards { align-items:stretch; justify-content:flex-start; padding-top:clamp(2.5rem,10vh,6rem); }
+
+/* ── Hero deck ── */
+.home-cover-deck { position:relative; z-index:3; }
+.home-cover-deck--split { width:100%; display:block; }
+.hero { position:relative; z-index:10; left:15vw; transform:translateY(-20%); }
+.hero--split { position:relative; margin:0; }
+.cover-title { font-size:3.5rem; font-weight:600; font-variation-settings:"wght" 600; margin:0 0 1rem 0; line-height:1.1; }
+.cover-subtitle { font-size:1.15rem; margin:0 0 2.5rem 0; line-height:1.5; max-width:480px; }
+.cover-cta {
+  display:inline-flex; align-items:center; gap:8px;
+  padding:12px 28px; border:none; border-radius:8px;
+  font-size:1rem; font-weight:500; text-decoration:none;
+  background:var(--accent-color-dark); color:#fff;
+}
+
+/* ── Card grid shell (split + cards mode, above fold) ── */
+.home-shell {
+  --home-ui-scale:0.9; zoom:var(--home-ui-scale);
+  max-width:1200px; margin:0 auto; padding:1.25rem clamp(1rem,2vw,2rem) 3rem;
+}
+.card-flows { display:grid; grid-template-columns:minmax(0,1.45fr) minmax(320px,.85fr); gap:1rem; align-items:start; }
+.card-flows.single-col { grid-template-columns:1fr; }
+.flow-column { display:grid; gap:1rem; align-content:start; min-width:0; }
+.flow-column--right.column-empty { display:none; }
+.panel-card {
+  position:relative; border:1px solid var(--border-color-blur);
+  border-radius:18px; overflow:hidden; background:var(--component-bg-blur);
+}
+.flow-intro { padding:clamp(1.4rem,2.4vw,2.2rem); }
+.flow-intro h1 { margin:0; font-size:clamp(2.5rem,4vw,4rem); line-height:.92; }
+.hero-description { margin:1rem 0 0; max-width:42rem; font-size:1.04rem; line-height:1.75; }
+.hero-actions { display:flex; flex-wrap:wrap; gap:1rem; margin-top:1.25rem; }
+.float-btn {
+  display:inline-flex; align-items:center; padding:10px 24px;
+  border-radius:8px; font-size:1rem; font-weight:500; text-decoration:none;
+}
+.author-card__top { display:flex; gap:.9rem; align-items:center; margin-bottom:.8rem; }
+.author-avatar { width:60px; height:60px; border-radius:9999px; display:grid; place-items:center; }
+.section-head {
+  display:flex; align-items:flex-end; justify-content:space-between; gap:1rem; margin-bottom:1rem;
+}
+.recent-stream { display:grid; gap:.85rem; }
+.stream-card {
+  display:grid; grid-template-columns:110px minmax(0,1fr);
+  gap:.85rem; padding:1rem; border:1px solid var(--border-color-blur); border-radius:14px;
+  background:var(--component-bg-blur-alt);
+}
+.stream-card__body { display:grid; gap:.55rem; }
+.stream-card__top { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; }
+.stream-card h4 { margin:0; font-size:1.2rem; line-height:1.1; }
+
+/* ── Homepage mobile (≤768px) ── */
+@media (max-width:768px) {
+  .home-container--cover { top:-50px; }
+  .hero { left:60px; transform:translateY(-10%); }
+  .cover-title { font-size:2.2rem; }
+  .cover-subtitle { font-size:1rem; margin-bottom:2rem; }
+  .home-shell { padding:.9rem .85rem 2rem; }
+  .card-flows { grid-template-columns:1fr; }
+  .stream-card { grid-auto-flow:row; grid-template-columns:1fr; }
+  .section-head { align-items:flex-start; flex-direction:column; }
+}

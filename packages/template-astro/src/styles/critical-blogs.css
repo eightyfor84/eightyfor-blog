@@ -1,0 +1,43 @@
+/* ── Critical CSS: Blog listing page ───────────────────────────────
+   Injected alongside critical-base.css on /blogs routes.
+   Covers: blog container, featured grid, archive year/month layout.
+
+   Update in sync with: [lang]/blogs.astro. */
+
+/* ── Blog container ── */
+.blog-container { max-width:900px; margin:0 auto; padding:40px; }
+
+/* ── Section blocks ── */
+.section-block { margin-bottom:60px; }
+.section-header {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-bottom:24px; border-bottom:2px solid var(--border-color-blur); padding-bottom:10px;
+}
+.section-title { font-size:1.8em; margin:0 0 24px; padding-bottom: 10px;}
+
+/* ── Featured grid ── */
+.featured-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:16px; }
+
+/* ── Archive list ── */
+.archive-list { margin-top:20px; }
+.year-block { margin-bottom:40px; }
+.year-header { font-size:3em; font-weight:800; margin:0 0 20px 0; line-height:1; }
+.month-row { display:flex; margin-bottom:20px; }
+.month-label { width:60px; flex-shrink:0; text-align:right; padding-right:20px; padding-top:14px; }
+.month-posts { flex-grow:1; display:flex; flex-direction:column; gap:12px; }
+
+/* ── Post cards ── */
+.post-card { padding:16px; border-radius:8px; border:1px solid var(--border-color-blur); }
+.compact-card { padding:14px 16px; border-radius:8px; border:1px solid var(--border-color-blur); }
+.post-card-line { display:flex; justify-content:flex-start; align-items:center; gap:12px; min-width:0; }
+.post-card .post-title { font-size:1.1em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1 1 0; min-width:0; margin:0; }
+.post-card-time { flex-shrink:0; white-space:nowrap; }
+
+/* ── Mobile (≤768px) ── */
+@media (max-width:768px) {
+  .blog-container { padding:20px 16px; }
+  .featured-grid { grid-template-columns:1fr; gap:10px; }
+  .post-card { padding:12px 14px; border-radius:12px; }
+  .month-label { width:38px; padding-right:12px; padding-top:10px; }
+  .year-header { font-size:2.2em; }
+}

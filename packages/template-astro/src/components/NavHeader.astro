@@ -46,6 +46,22 @@ const isActive = (path: string) => {
 };
 ---
 
+<!-- Hidden SVG symbols — referenced by <use> throughout the nav -->
+<svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden;pointer-events:none;">
+  <symbol id="sym-check" viewBox="0 0 24 24" fill="none">
+    <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="sym-close" viewBox="0 0 24 24" fill="none">
+    <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="sym-menu" viewBox="0 0 24 24" fill="none">
+    <line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <line x1="3" y1="18" x2="21" y2="18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+</svg>
+
 <nav class:list={["nav-header", {"at-top": true, "swap-enabled": articleTitle && articleBackHref }]} id="main-nav">
   <div class="nav-content">
     <div class="header-swap">
@@ -78,14 +94,8 @@ const isActive = (path: string) => {
           height="24"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="currentColor"
-          stroke-width="1.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
         >
-          <line x1="3" y1="12" x2="21" y2="12"></line>
-          <line x1="3" y1="6" x2="21" y2="6"></line>
-          <line x1="3" y1="18" x2="21" y2="18"></line>
+          <use href="#sym-menu"/>
         </svg>
         <svg
           class="close-icon"
@@ -94,13 +104,8 @@ const isActive = (path: string) => {
           height="24"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="currentColor"
-          stroke-width="1.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
         >
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
+          <use href="#sym-close"/>
         </svg>
       </button>
 
@@ -113,13 +118,8 @@ const isActive = (path: string) => {
               height="24"
               viewBox="0 0 24 24"
               fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
             >
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
+              <use href="#sym-close"/>
             </svg>
           </span>
         </button>
@@ -236,12 +236,7 @@ const isActive = (path: string) => {
           >
           <span class="popup-check">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M20 6L9 17l-5-5"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"></path>
+              <use href="#sym-check"/>
             </svg>
           </span>
         </button>
@@ -251,12 +246,7 @@ const isActive = (path: string) => {
           >
           <span class="popup-check">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M20 6L9 17l-5-5"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"></path>
+              <use href="#sym-check"/>
             </svg>
           </span>
         </button>
@@ -265,12 +255,7 @@ const isActive = (path: string) => {
           >
           <span class="popup-check">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M20 6L9 17l-5-5"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"></path>
+              <use href="#sym-check"/>
             </svg>
           </span>
         </button>
@@ -298,12 +283,7 @@ const isActive = (path: string) => {
           <span class="popup-label">{t("settings.locale.follow")}</span>
           <span class="popup-check">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M20 6L9 17l-5-5"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"></path>
+              <use href="#sym-check"/>
             </svg>
           </span>
         </button>
@@ -311,12 +291,7 @@ const isActive = (path: string) => {
           <span class="popup-label">中文（简体）</span>
           <span class="popup-check">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M20 6L9 17l-5-5"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"></path>
+              <use href="#sym-check"/>
             </svg>
           </span>
         </button>
@@ -324,12 +299,7 @@ const isActive = (path: string) => {
           <span class="popup-label">English</span>
           <span class="popup-check">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M20 6L9 17l-5-5"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"></path>
+              <use href="#sym-check"/>
             </svg>
           </span>
         </button>
@@ -536,12 +506,12 @@ const isActive = (path: string) => {
   }
 
   .nav-link.router-link-active {
-    background: var(--component-bg-hover);
-    color: var(--component-text-primary-hover);
+    background: color-mix(in srgb, var(--component-bg-active) 50%, transparent);
+    color: var(--component-text-primary-active);
   }
 
   .nav-link:hover {
-    background: var(--component-bg-hover);
+    background: color-mix(in srgb, var(--component-bg-hover) 50%, transparent);
     color: var(--component-text-primary-hover);
   }
 
@@ -944,8 +914,6 @@ const isActive = (path: string) => {
       overlay.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
       menuToggle.classList.add('active');
-      navLinks.getBoundingClientRect();
-      overlay.getBoundingClientRect();
       requestAnimationFrame(() => {
         navLinks.classList.add("mobile-open");
         overlay.style.opacity = '';
