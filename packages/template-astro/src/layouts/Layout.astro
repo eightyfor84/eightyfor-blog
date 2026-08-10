@@ -99,6 +99,8 @@ const frontendTheme = settings?.frontendTheme || 'follow';
 const frontendAccent = settings?.frontendAccent || '#2ea35f';
 const frontendBackground = normalizeLayoutBackground(settings?.frontendBackground || '');
 const frontendBackgroundMeta = settings?.frontendBackgroundMeta || null;
+const frontendBackgroundColorLight = settings?.frontendBackgroundColorLight || '';
+const frontendBackgroundColorDark = settings?.frontendBackgroundColorDark || '';
 const frontendFont = settings?.frontendFont || 'sans';
 const defaultPerformanceMode = settings?.defaultPerformanceMode || 'auto';
 
@@ -257,13 +259,15 @@ try {
     <!-- Critical CSS skeleton (geometry + colours — tokens are inline above) -->
     <style is:inline set:html={criticalCSS}></style>
 
-    <script define:vars={{ frontendTheme, frontendAccent, frontendBackground, frontendBackgroundMeta, frontendFont, featureFlags, GA_MEASUREMENT_ID }}>
+    <script define:vars={{ frontendTheme, frontendAccent, frontendBackground, frontendBackgroundMeta, frontendBackgroundColorLight, frontendBackgroundColorDark, frontendFont, featureFlags, GA_MEASUREMENT_ID }}>
       // 将settings传递给客户端
       window.__CHRONICLE_SETTINGS__ = {
         frontendTheme,
         frontendAccent,
         frontendBackground,
         frontendBackgroundMeta,
+        frontendBackgroundColorLight,
+        frontendBackgroundColorDark,
         frontendFont,
         featureFlags,
         gaMeasurementId: GA_MEASUREMENT_ID
@@ -395,6 +399,31 @@ try {
       let isBackgroundReady = false;
       let bgLcpActivationScheduled = false;
 
+      // ── 背景底色解析（深/浅 → --bg-surface-color） ──
+      function resolveBackgroundColorVar() {
+        const dt = document.documentElement.getAttribute('data-theme');
+        let chosen = '';
+        if (dt === 'light') {
+          chosen = getComputedStyle(document.documentElement).getPropertyValue('--bg-surface-color-light') || '';
+        } else if (dt === 'dark') {
+          chosen = getComputedStyle(document.documentElement).getPropertyValue('--bg-surface-color-dark') || '';
+        } else {
+          try {
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            chosen = prefersDark
+              ? (getComputedStyle(document.documentElement).getPropertyValue('--bg-surface-color-dark') || '')
+              : (getComputedStyle(document.documentElement).getPropertyValue('--bg-surface-color-light') || '');
+          } catch (e) {
+            chosen = getComputedStyle(document.documentElement).getPropertyValue('--bg-surface-color-light') || '';
+          }
+        }
+        if (chosen && chosen.trim()) {
+          document.documentElement.style.setProperty('--bg-surface-color', chosen);
+        } else {
+          document.documentElement.style.removeProperty('--bg-surface-color');
+        }
+      }
+
       // System theme change listener
       function initThemeListener() {
         try {
@@ -470,15 +499,15 @@ try {
         if (!settings) return;
 
         try {
-          const meta = backgroundMeta;
-
-          // 先写入背景元数据变量
-          writeBackgroundMetaVars('frontend', meta);
-
-          // 更新resolved overlays以确保遮罩正确
-          updateResolvedOverlays();
-
           if (isBackgroundReady && settings.frontendBackground) {
+            const meta = backgroundMeta;
+
+            // 先写入背景元数据变量
+            writeBackgroundMetaVars('frontend', meta);
+
+            // 更新resolved overlays以确保遮罩正确
+            updateResolvedOverlays();
+
             // 获取计算后的overlay值
             const overlayVar = '--frontend-bg-overlay';
             const overlayValue = getComputedStyle(document.documentElement).getPropertyValue(overlayVar) || 'transparent';
@@ -518,6 +547,26 @@ try {
             document.documentElement.style.setProperty('--app-font-stack', "'Noto Serif SC', serif");
           } else {
             document.documentElement.style.setProperty('--app-font-stack', 'var(--app-font-stack-inter)');
+          }
+
+          // 应用背景底色（bg-surface，深/浅色各一套）
+          if (settings.frontendBackgroundColorLight || settings.frontendBackgroundColorDark) {
+            if (settings.frontendBackgroundColorLight) {
+              document.documentElement.style.setProperty('--bg-surface-color-light', settings.frontendBackgroundColorLight);
+            } else {
+              document.documentElement.style.removeProperty('--bg-surface-color-light');
+            }
+            if (settings.frontendBackgroundColorDark) {
+              document.documentElement.style.setProperty('--bg-surface-color-dark', settings.frontendBackgroundColorDark);
+            } else {
+              document.documentElement.style.removeProperty('--bg-surface-color-dark');
+            }
+            // 按当前主题解析到 --bg-surface-color
+            resolveBackgroundColorVar();
+          } else {
+            document.documentElement.style.removeProperty('--bg-surface-color-light');
+            document.documentElement.style.removeProperty('--bg-surface-color-dark');
+            document.documentElement.style.removeProperty('--bg-surface-color');
           }
 
           // 应用背景和overlay
@@ -563,6 +612,7 @@ try {
           // 观察data-theme属性变化
           const observer = new MutationObserver(() => {
             updateResolvedOverlays();
+            resolveBackgroundColorVar();
           });
           observer.observe(document.documentElement, {
             attributes: true,
@@ -572,7 +622,10 @@ try {
           // 监听系统主题变化
           if (window.matchMedia) {
             const mql = window.matchMedia('(prefers-color-scheme: dark)');
-            const handler = () => updateResolvedOverlays();
+            const handler = () => {
+              updateResolvedOverlays();
+              resolveBackgroundColorVar();
+            };
             if (typeof mql.addEventListener === 'function') {
               mql.addEventListener('change', handler);
             } else if (typeof mql.addListener === 'function') {

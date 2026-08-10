@@ -1,18 +1,19 @@
 ---
 title: Markdown Showcase
 date: 2026-08-03
+updatedAt: 2026-08-10T19:52:44.599Z
 tags: markdown, demo, featured
+author: 
+aiGenerated: false
 status: published
-summary: A tour of all the Markdown formatting Chronicle supports — headings, code blocks, tables, math, diagrams, and more.
 font: sans
-type: article
 ---
 
 Chronicle renders Markdown with **markdown-it** plus a curated set of plugins. This post demonstrates everything you can do.
 
 ## Text Formatting
 
-**Bold**, *italic*, ~~strikethrough~~, `inline code`, [links](https://chronicle.blog), and <u>underline</u>.
+**Bold**, *italic*, ~~strikethrough~~, `inline code`, [links](https://chr.eightyfor.top), and <u>underline</u>.
 
 > Blockquotes are great for callouts. Use them to highlight key points or quote sources.
 >

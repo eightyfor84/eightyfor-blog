@@ -18,3 +18,5 @@ traffic: true
 rss: true
 sitemap: true
 gaMeasurementId: ""
+frontendBackgroundColorLight: ""
+frontendBackgroundColorDark: ""

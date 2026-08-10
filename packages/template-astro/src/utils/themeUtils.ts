@@ -172,12 +172,14 @@ export function updateResolvedOverlays() {
       document.documentElement.style.removeProperty('--frontend-body-bg-color');
     }
 
-    // 同时更新背景层的overlay元素
-    const layer = document.getElementById('chronicle-bg-layer');
-    if (layer) {
-      const overlayEl = layer.querySelector('.bg-overlay') as HTMLElement | null;
-      if (overlayEl) {
-        overlayEl.style.background = (chosen && chosen.trim()) ? chosen : 'transparent';
+    // 仅当有背景图片时才更新 overlay 元素，避免无背景时写入遮罩
+    if (hasFrontendBackground) {
+      const layer = document.getElementById('chronicle-bg-layer');
+      if (layer) {
+        const overlayEl = layer.querySelector('.bg-overlay') as HTMLElement | null;
+        if (overlayEl) {
+          overlayEl.style.background = (chosen && chosen.trim()) ? chosen : 'transparent';
+        }
       }
     }
   } catch (e) {

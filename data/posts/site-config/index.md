@@ -86,6 +86,8 @@ Controls which sidebar cards appear. The available keys are `author` (the profil
 | `frontendAccent` | Accent color in hex. Used for links, buttons, selection highlights, and the homepage gradient. | string (valid #Hex code for RGB) | `#36a32e` |
 | `frontendFont` | Body typeface family. Affects all text (except post content) across the site. | `"sans"` \| `"serif"` \| `"mono"` | `sans` |
 | `frontendLocale` | Default UI language for navigation, buttons, dates, and search. Does not translate post content. | `"follow"` \| `"en"` \| `"zh"` | `follow` |
+| `frontendBackgroundColorLight` | Override the base background color in light mode. Leave empty to use the theme default (`--app-bg-pri`). | string (valid #Hex code for RGB) | `"#f5f0eb"` |
+| `frontendBackgroundColorDark` | Override the base background color in dark mode. Leave empty to use the theme default (`--app-bg-pri`). | string (valid #Hex code for RGB) | `"#1a1a2e"` |
 
 #### `frontendTheme`
 
@@ -108,6 +110,24 @@ You can configure the font for a single article in the CMS editor or its frontma
 #### `frontendLocale`
 
 Controls the default UI language for navigation labels, button text, date formatting, and the search interface. `"follow"` detects from the browser's `Accept-Language` header — the best choice for a multilingual audience. This does NOT translate post content; each post's language is fixed.
+
+#### `frontendBackgroundColorLight` / `frontendBackgroundColorDark`
+
+Overrides the base background color behind all page content, replacing the theme-derived `--app-bg-pri` token. Each theme gets its own color:
+
+- **Light mode** (`frontendBackgroundColorLight`): applied when the visitor is in light mode.
+- **Dark mode** (`frontendBackgroundColorDark`): applied when the visitor is in dark mode.
+
+You can set only one, both, or neither. When a color is left empty, the system falls back to the theme default — dark backgrounds in dark mode, light backgrounds in light mode.
+
+This is not the same as a background *image*. The color sits on the `bg-surface` layer, underneath any background image and overlay. If you've set a background image, the color shows through when the image has transparent areas or hasn't loaded yet. If you haven't set an image, the color IS the page background.
+
+Use cases:
+- Warm paper tint for a reading-oriented blog: `frontendBackgroundColorLight: "#f5f0eb"`
+- Deep navy for a dark-mode developer site: `frontendBackgroundColorDark: "#0d1117"`
+- Match your brand palette without touching the CSS.
+
+The Manager CMS exposes both as color pickers under **Appearance → Background**. Click the × button to clear a color and revert to the theme default.
 
 
 

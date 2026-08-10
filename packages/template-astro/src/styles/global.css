@@ -718,9 +718,9 @@ body.backend::after {
 #chronicle-bg-layer .bg-surface {
   position: absolute;
   inset: 0;
-  background: var(--app-bg-pri);
+  background: var(--bg-surface-color, var(--app-bg-pri));
   z-index: 1;
-  /* 最底层：纯色背景 */
+  /* 最底层：纯色背景，可通过 site.yml → frontendBackgroundColor 覆盖 */
 }
 
 #chronicle-bg-layer .bg-image {

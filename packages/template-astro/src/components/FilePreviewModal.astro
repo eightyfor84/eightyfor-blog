@@ -75,9 +75,23 @@ import chronicleMarkdownCssUrl from '@chronicle/shared/src/styles/chronicle-mark
     (window as any).__closeFilePreview = mod.close;
   }
 
-  // Reset event bindings after soft navigation (only if already loaded)
+  // ├─ Soft navigation: reset bindings + re-inject preview CSS ─────
+  // │  View Transition swaps <head> so the on-demand <link> is lost;
+  // │  _cssLoaded stays true so _fpEnsure skips injection. Check DOM
+  // │  after swap and re-inject if the <link> is missing.
   document.addEventListener('astro:before-swap', () => {
     if (_fpOpen) import('../utils/filePreviewCore').then(m => m.resetBindings()).catch(() => {});
+  });
+  document.addEventListener('astro:after-swap', () => {
+    if (!_cssLoaded) return;
+    const root = document.getElementById('file-preview-root');
+    const cssUrl = root?.dataset.cssUrl;
+    if (cssUrl && !document.head.querySelector(`link[href="${cssUrl}"]`)) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = cssUrl;
+      document.head.appendChild(link);
+    }
   });
 
   // Pre-warm on first user interaction

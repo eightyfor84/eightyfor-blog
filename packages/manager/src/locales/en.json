@@ -177,6 +177,7 @@
     "collectionCover": "Collection Cover",
     "collectionCoverPlaceholder": "Cover image URL",
     "clear": "Clear",
+    "unset": "unset",
     "collectionCardListTitle": "Collection List",
     "collectionCardListHint": "Drag to reorder collections, and use edit to inspect and manage the tree structure.",
     "collectionCardEmpty": "No collections yet. Add one first.",

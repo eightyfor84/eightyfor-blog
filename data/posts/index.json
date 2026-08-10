@@ -56,8 +56,10 @@
       "featured"
     ],
     "status": "published",
-    "summary": "A tour of all the Markdown formatting Chronicle supports — headings, code blocks, tables, math, diagrams, and more.",
+    "summary": "Chronicle renders Markdown with markdown-it plus a curated set of plugins. This post demonstrates everything you can do.",
     "font": "sans",
+    "author": null,
+    "aiGenerated": false,
     "type": "article",
     "collection": "Chronicle Guide",
     "collectionPath": "Chronicle Guide"
