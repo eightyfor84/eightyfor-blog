@@ -40,6 +40,7 @@ export const ALLOWED_ATTR: string[] = [
   // SVG attributes
   'viewBox', 'fill', 'stroke', 'stroke-width', 'stroke-linecap',
   'stroke-linejoin', 'd', 'cx', 'cy', 'r', 'x', 'y', 'rx', 'ry',
+  'preserveAspectRatio',            // KaTeX stretchy symbols (√, ∫, ∑, etc.)
   'x1', 'y1', 'x2', 'y2',
   'points', 'xmlns', 'aria-hidden', 'role', 'transform',
   'type', 'start', 'reversed',

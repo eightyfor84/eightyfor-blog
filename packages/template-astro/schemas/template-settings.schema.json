@@ -601,6 +601,42 @@
         "en": "Background Meta",
         "zh-CN": "背景元数据"
       }
+    },
+    "frontendBackgroundColorLight": {
+      "type": "string",
+      "default": "",
+      "pattern": "^(|#[0-9a-fA-F]{6})$",
+      "x-widget": "color",
+      "x-allow-empty": true,
+      "x-tab": "template-appearance",
+      "x-group": "background",
+      "x-order": 3,
+      "title": {
+        "en": "Background Color (Light)",
+        "zh-CN": "背景底色（浅色）"
+      },
+      "description": {
+        "en": "Override the base background color in light mode. Leave blank to use the theme default.",
+        "zh-CN": "浅色模式下的基础背景色，留空则使用主题默认色。"
+      }
+    },
+    "frontendBackgroundColorDark": {
+      "type": "string",
+      "default": "",
+      "pattern": "^(|#[0-9a-fA-F]{6})$",
+      "x-widget": "color",
+      "x-allow-empty": true,
+      "x-tab": "template-appearance",
+      "x-group": "background",
+      "x-order": 4,
+      "title": {
+        "en": "Background Color (Dark)",
+        "zh-CN": "背景底色（深色）"
+      },
+      "description": {
+        "en": "Override the base background color in dark mode. Leave blank to use the theme default.",
+        "zh-CN": "深色模式下的基础背景色，留空则使用主题默认色。"
+      }
     }
   },
   "required": [

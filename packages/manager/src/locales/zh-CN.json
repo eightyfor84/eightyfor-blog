@@ -183,6 +183,7 @@
     "collectionCover": "合集封面",
     "collectionCoverPlaceholder": "封面图片 URL",
     "clear": "清除",
+    "unset": "未设置",
     "collectionCardListTitle": "合集列表",
     "collectionCardListHint": "拖动调整合集顺序，点击编辑查看并管理树结构。",
     "collectionCardEmpty": "暂无合集，先新增一个。",

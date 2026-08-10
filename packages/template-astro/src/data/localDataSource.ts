@@ -244,6 +244,8 @@ export interface LocalSettings {
     frontendAccent?: string;
     frontendBackground?: unknown;
     frontendBackgroundMeta?: string;
+    frontendBackgroundColorLight?: string;
+    frontendBackgroundColorDark?: string;
     frontendFont?: string;
     frontendLocale?: string;
     featureFlags?: Record<string, boolean>;
@@ -256,6 +258,15 @@ export interface LocalSettings {
     icpNumber?: string;
     defaultPerformanceMode?: string;
     comment?: CommentConfig;
+    // Feature toggles
+    collectionPage?: boolean;
+    aboutPage?: boolean;
+    friendsPage?: boolean;
+    rss?: boolean;
+    sitemap?: boolean;
+    searchSuggestions?: boolean;
+    relatedPosts?: boolean;
+    traffic?: boolean;
 }
 
 // ── Post Access ──────────────────────────────────────────
@@ -483,6 +494,8 @@ export function getPublicSettings(): LocalSettings {
         frontendAccent: raw.frontendAccent,
         frontendBackground: readBackgroundUrl(),
         frontendBackgroundMeta: readBackgroundMeta(),
+        frontendBackgroundColorLight: raw.frontendBackgroundColorLight || '',
+        frontendBackgroundColorDark: raw.frontendBackgroundColorDark || '',
         frontendFont: raw.frontendFont,
         frontendLocale: raw.frontendLocale,
         collectionPage: raw.collectionPage ?? raw.featureFlags?.collectionPage ?? true,
