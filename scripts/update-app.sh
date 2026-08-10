@@ -147,6 +147,38 @@ for d in "${PROTECTED_DIRS[@]}"; do
   fi
 done
 
+# Guard: verify backup integrity before proceeding
+for d in "${PROTECTED_DIRS[@]}"; do
+  if [ -d "$d" ] && [ ! -d "$BACKUP_DIR/$d" ]; then
+    err "Backup verification failed: $d/ was not copied to $BACKUP_DIR/$d"
+    exit 1
+  fi
+done
+
+# ── Remove protected dirs BEFORE merge ───────────────────────
+# We're restoring from backup anyway, so protected dirs don't need
+# to participate in the merge. Removing them upfront avoids ALL
+# modify/delete conflicts (which -X theirs cannot resolve — it only
+# handles content conflicts where both sides modified the same file).
+
+say ""
+say "🗑  Temporarily removing protected dirs before merge…"
+
+for d in "${PROTECTED_DIRS[@]}"; do
+  if [ -d "$d" ]; then
+    git rm -rf --quiet "$d"/ 2>/dev/null || true
+    success "Removed $d/ for merge"
+  fi
+done
+
+# Stage any pending deletions so merge doesn't touch these paths
+# (use individual paths to avoid staging unrelated changes)
+for d in "${PROTECTED_DIRS[@]}"; do
+  if [ -d "$BACKUP_DIR/$d" ]; then
+    git add "$d"/ 2>/dev/null || true
+  fi
+done
+
 # ── Merge ────────────────────────────────────────────────────
 
 say ""
@@ -169,7 +201,7 @@ say ""
 say "🛡  Restoring from backup…"
 
 for d in "${PROTECTED_DIRS[@]}"; do
-  # Remove whatever the merge put there
+  # Remove whatever the merge put there (should be nothing, but belt-and-suspenders)
   git rm -rf --cached --quiet "$d"/ 2>/dev/null || true
   rm -rf "$d"/
 
