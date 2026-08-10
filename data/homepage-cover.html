@@ -22,7 +22,7 @@
         font-size: min(70vh, 40vw);
         font-weight: 800;
         font-variation-settings: "wght" 800;
-        color: var(--app-text-primary);
+        color: var(--app-text-pri);
         opacity: .2;
         margin: 0 0 1rem 0;
         line-height: .9;
@@ -43,7 +43,7 @@
 
     .cover-subtitle {
         font-size: 1.15rem;
-        color: var(--app-text-secondary);
+        color: var(--app-text-sec);
         margin: 0 0 1rem 0;
         line-height: 1.6;
     }
@@ -60,8 +60,8 @@
         align-items: center;
         gap: 8px;
         padding: 12px 28px;
-        background: var(--component-bg-blur);
-        color: var(--app-text-primary);
+        background: var(--comp-bg-blur);
+        color: var(--app-text-pri);
         border: none;
         border-radius: 8px;
         font-size: 1rem;
@@ -72,6 +72,7 @@
     }
 
     .cover-cta:hover {
+        background: var(--comp-bg-blur-hvr);
         filter: brightness(1.6);
         transform: scale(1.05);
         color: #000;
@@ -88,8 +89,8 @@
         gap: 6px;
         padding: 11px 24px;
         background: transparent;
-        color: var(--app-text-secondary);
-        border: 1px solid var(--app-border-color, rgba(128, 128, 128, .25));
+        color: var(--app-text-sec);
+        border: 1px solid var(--border-color, rgba(128, 128, 128, .25));
         border-radius: 8px;
         font-size: 0.95rem;
         font-weight: 500;
@@ -99,8 +100,8 @@
     }
 
     .cover-ghost:hover {
-        color: var(--app-text-primary);
-        border-color: var(--app-text-secondary);
+        color: var(--app-text-pri);
+        border-color: var(--app-text-sec);
     }
 </style>
 <div class="hero-inner">
