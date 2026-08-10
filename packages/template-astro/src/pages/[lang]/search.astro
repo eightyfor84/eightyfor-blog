@@ -163,7 +163,7 @@ const metaDescription = locale === "zh-CN"
     max-height: calc(100vh - 70px);
     margin: 0 auto;
     padding: 15vh 20px 0;
-    color: var(--text-primary);
+    color: var(--text-pri);
     height: 100vh;
     display: flex;
     flex-direction: column;
@@ -204,11 +204,11 @@ const metaDescription = locale === "zh-CN"
     color: var(--recommended-accent-text);
 }
 .selected.featured .tag-count {
-    color: var(--app-bg-primary);
+    color: var(--app-bg-pri);
 }
 
 .tag-trigger.selected .tag-count {
-    background: var(--accent-color);
+    background: var(--accent);
 }
 .tag-trigger.selected.featured .tag-count {
     background: var(--featured);
@@ -219,7 +219,7 @@ const metaDescription = locale === "zh-CN"
     border: none;
     cursor: pointer;
     padding: 8px 12px;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     display: flex;
     align-items: center;
     transition:
@@ -235,7 +235,7 @@ const metaDescription = locale === "zh-CN"
     cursor: default;
   }
   .search-btn.active {
-    background-color: var(--accent-color);
+    background-color: var(--accent);
     color: var(--recommended-accent-text);
   }
 
@@ -253,7 +253,7 @@ const metaDescription = locale === "zh-CN"
     flex: 1;
     background: transparent;
     border: none;
-    color: var(--text-primary);
+    color: var(--text-pri);
     font-size: 1rem;
     padding: 6px 0;
     outline: none;
@@ -264,7 +264,7 @@ const metaDescription = locale === "zh-CN"
     border: none;
     cursor: pointer;
     padding: 8px 12px;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     display: flex;
     align-items: center;
     transition: all 0.3s ease;
@@ -274,7 +274,7 @@ const metaDescription = locale === "zh-CN"
   }
 
   .clear-btn:hover {
-    color: var(--component-text-primary-hover);
+    color: var(--comp-text-pri-hvr);
     opacity: 1;
   }
 
@@ -347,8 +347,8 @@ const metaDescription = locale === "zh-CN"
     flex: 1;
   }
   .tag-cloud-item {
-    background: var(--component-bg-blur);
-    color: var(--component-text-secondary);
+    background: var(--comp-bg-blur);
+    color: var(--comp-text-sec);
     border: 1px solid var(--border-color);
     padding: 6px 14px;
     border-radius: 20px;
@@ -359,13 +359,13 @@ const metaDescription = locale === "zh-CN"
     gap: 6px;
   }
   .tag-cloud-item:hover {
-    background: var(--component-bg-hover);
-    color: var(--component-text-primary-hover);
+    background: var(--comp-bg-blur-hvr);
+    color: var(--comp-text-pri-hvr);
   }
   .tag-cloud-item.selected {
-    background: var(--accent-color);
+    background: var(--accent);
     color: var(--recommended-accent-text);
-    border-color: var(--component-bg-accent);
+    border-color: var(--comp-bg-accent);
   }
   .tag-cloud-item.featured {
     color: var(--featured);
@@ -382,7 +382,7 @@ const metaDescription = locale === "zh-CN"
   .tag-cloud-item.featured.selected {
     background: var(--featured);
     border-color: var(--featured);
-    color: var(--app-bg-primary);
+    color: var(--app-bg-pri);
   }
 
   .tag-count {
@@ -402,7 +402,7 @@ const metaDescription = locale === "zh-CN"
     padding-bottom: 1rem;
   }
   .close-cloud-btn {
-    background: var(--accent-color);
+    background: var(--accent);
     color: var(--recommended-accent-text);
     border: none;
     padding: 8px 24px;
@@ -412,7 +412,7 @@ const metaDescription = locale === "zh-CN"
     transition: background 0.2s ease;
   }
   .close-cloud-btn:hover {
-    background: var(--component-bg-accent-hover);
+    background: var(--comp-bg-accent-hvr);
   }
 
   /* Results */
@@ -423,7 +423,7 @@ const metaDescription = locale === "zh-CN"
     padding-bottom: 30px;
   }
   .result-card {
-    background: var(--component-bg-blur-alt);
+    background: var(--comp-bg-glass);
     border: 1px solid var(--border-color);
     padding: 16px;
     border-radius: 8px;
@@ -431,8 +431,8 @@ const metaDescription = locale === "zh-CN"
     transition: background 0.2s ease;
   }
   .result-card:hover {
-    background: var(--component-bg-hover);
-    border-color: var(--component-text-primary-hover);
+    background: var(--comp-bg-glass-hvr);
+    border-color: var(--comp-text-pri-hvr);
   }
   .s__post-header {
     display: flex;
@@ -443,17 +443,17 @@ const metaDescription = locale === "zh-CN"
   .post-title {
     margin: 0;
     font-size: 1.2rem;
-    color: var(--text-primary);
+    color: var(--text-pri);
   }
   .post-date {
     font-size: 0.9rem;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
   }
   .post-tags {
     margin-bottom: 8px;
   }
   .tag-display {
-    color: var(--accent-color);
+    color: var(--accent);
     font-size: 0.85rem;
     margin-right: 10px;
   }
@@ -461,7 +461,7 @@ const metaDescription = locale === "zh-CN"
     color: var(--featured);
   }
   .post-summary {
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     font-size: 0.95rem;
     line-height: 1.5;
     display: -webkit-box;
@@ -516,7 +516,7 @@ const metaDescription = locale === "zh-CN"
   .selected-tags-header h3 {
     margin: 0;
     font-size: 1.05rem;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     font-weight: 500;
     font-variation-settings: 'wght' 500;
   }
@@ -529,8 +529,8 @@ const metaDescription = locale === "zh-CN"
   .selected-tag-chip {
     display: inline-flex;
     align-items: center;
-    background: var(--component-bg-accent-blur);
-    color: var(--accent-color);
+    background: var(--comp-bg-accent-blur);
+    color: var(--accent);
     padding: 2px 8px;
     border-radius: 4px;
     font-size: 0.9rem;
@@ -545,7 +545,7 @@ const metaDescription = locale === "zh-CN"
   .chip-remove {
     background: transparent;
     border: none;
-    color: var(--component-text-primary-hover);
+    color: var(--comp-text-pri-hvr);
     cursor: pointer;
     padding: 0;
     margin-left: 6px;
@@ -563,14 +563,14 @@ const metaDescription = locale === "zh-CN"
   .results-header h3 {
     margin: 0;
     font-size: 1.1rem;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     font-weight: 500;
     font-variation-settings: 'wght' 500;
   }
 
   .results-count {
     font-size: 1rem;
-    color: var(--component-text-primary);
+    color: var(--comp-text-pri);
     background: transparent;
     padding: 2px 6px;
     border-radius: 8px;
@@ -580,7 +580,7 @@ const metaDescription = locale === "zh-CN"
   .empty,
   .loading {
     text-align: center;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     padding: 2rem;
   }
 

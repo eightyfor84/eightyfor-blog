@@ -45,7 +45,7 @@ function onInput(e: Event) {
   background: transparent;
 }
 .color-text {
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
   font-size: 0.9rem;
 }
 </style>

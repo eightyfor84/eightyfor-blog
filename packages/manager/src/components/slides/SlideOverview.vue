@@ -54,7 +54,7 @@ defineEmits<{
   width: 90vw;
   max-width: 1100px;
   max-height: 85vh;
-  background: var(--bg-primary);
+  background: var(--bg-pri);
   border: 1px solid var(--border-color);
   border-radius: 8px;
   display: flex;
@@ -81,11 +81,11 @@ defineEmits<{
   border: none;
   cursor: pointer;
   font-size: 16px;
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
   padding: 4px 8px;
   border-radius: 4px;
 }
-.overview-close:hover { background: var(--component-bg-hover); }
+.overview-close:hover { background: var(--hover); }
 
 .overview-grid {
   flex: 1;
@@ -103,11 +103,11 @@ defineEmits<{
   cursor: pointer;
   overflow: hidden;
   aspect-ratio: 16 / 9;
-  background: var(--bg-primary);
+  background: var(--bg-pri);
   transition: border-color 0.15s;
 }
-.overview-card:hover { border-color: var(--component-bg-accent); }
-.overview-card.active { border-color: var(--component-bg-accent); box-shadow: 0 0 0 2px var(--component-bg-accent); }
+.overview-card:hover { border-color: var(--comp-bg-accent); }
+.overview-card.active { border-color: var(--comp-bg-accent); box-shadow: 0 0 0 2px var(--comp-bg-accent); }
 
 .overview-card-num {
   position: absolute;
@@ -116,8 +116,8 @@ defineEmits<{
   z-index: 2;
   font-size: 10px;
   font-weight: 700;
-  background: var(--bg-secondary);
-  color: var(--component-text-secondary);
+  background: var(--bg-sec);
+  color: var(--comp-text-sec);
   padding: 1px 5px;
   border-radius: 3px;
 }
@@ -148,12 +148,12 @@ defineEmits<{
   padding: 8px 16px;
   border-top: 1px solid var(--border-color);
   font-size: 11px;
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
   text-align: center;
 }
 .overview-footer kbd {
   font-family: inherit;
-  background: var(--component-bg-hover);
+  background: var(--hover);
   padding: 1px 5px;
   border-radius: 3px;
   border: 1px solid var(--border-color);

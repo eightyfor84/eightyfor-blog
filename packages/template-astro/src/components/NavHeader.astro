@@ -261,7 +261,7 @@ const isActive = (path: string) => {
         </button>
 
         <hr
-          style="margin:6px 4px; border:none; border-top:1px solid var(--component-text-secondary); opacity: 0.4;"
+          style="margin:6px 4px; border:none; border-top:1px solid var(--comp-text-sec); opacity: 0.4;"
         />
 
         <!-- Performance toggle -->
@@ -275,7 +275,7 @@ const isActive = (path: string) => {
         </button>
 
         <hr
-          style="margin:6px 4px; border:none; border-top:1px solid var(--component-text-secondary); opacity: 0.4;"
+          style="margin:6px 4px; border:none; border-top:1px solid var(--comp-text-sec); opacity: 0.4;"
         />
 
         <!-- Language controls (below) -->
@@ -305,7 +305,7 @@ const isActive = (path: string) => {
         </button>
 
         <hr
-          style="margin:6px 4px; border:none; border-top:1px solid var(--component-text-secondary); opacity: 0.4;"
+          style="margin:6px 4px; border:none; border-top:1px solid var(--comp-text-sec); opacity: 0.4;"
         />
 
         <!-- About -->
@@ -316,7 +316,7 @@ const isActive = (path: string) => {
         )}
 
         <div
-          style="font-size: 0.8em; padding: 2px 10px 0 10px; color: var(--component-text-secondary);"
+          style="font-size: 0.8em; padding: 2px 10px 0 10px; color: var(--comp-text-sec);"
         >
           Chronicle Aurora {__VERSION__}<br />
           &copy; {__YEAR__} Eightyfor All Rights Reserved.
@@ -328,7 +328,7 @@ const isActive = (path: string) => {
 
 <style>
   .nav-header {
-    background: var(--component-bg-blur);
+    background: var(--comp-bg-blur);
     backdrop-filter: blur(16px);
     border-bottom: 1px solid var(--border-color-blur);
     position: fixed;
@@ -506,13 +506,13 @@ const isActive = (path: string) => {
   }
 
   .nav-link.router-link-active {
-    background: color-mix(in srgb, var(--component-bg-active) 50%, transparent);
-    color: var(--component-text-primary-active);
+    background: var(--active);
+    color: var(--comp-text-pri-active);
   }
 
   .nav-link:hover {
-    background: color-mix(in srgb, var(--component-bg-hover) 50%, transparent);
-    color: var(--component-text-primary-hover);
+    background: var(--hover);
+    color: var(--comp-text-pri-hvr);
   }
 
   .nav-link-full {
@@ -597,8 +597,8 @@ const isActive = (path: string) => {
 
   .nav-action-link:hover,
   .nav-action-link.router-link-active {
-    background: var(--component-bg-hover);
-    color: var(--component-text-primary-hover);
+    background: var(--hover);
+    color: var(--comp-text-pri-hvr);
   }
 
   .nav-search-btn {
@@ -618,14 +618,14 @@ const isActive = (path: string) => {
   }
 
   .nav-setting-btn:hover {
-    color: var(--text-primary);
+    color: var(--text-pri);
   }
 
   /* Settings Menu */
   .nav-settings-menu {
-    background: var(--component-bg);
+    background: var(--comp-bg);
     position: fixed;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     border: 1px solid var(--border-color);
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
     border-radius: 8px;
@@ -655,7 +655,7 @@ const isActive = (path: string) => {
     padding: 8px 12px;
     background: transparent;
     border: none;
-    color: var(--text-primary);
+    color: var(--text-pri);
     cursor: pointer;
     border-radius: 6px;
     width: 100%;
@@ -663,8 +663,8 @@ const isActive = (path: string) => {
   }
 
   .popup-item:hover {
-    background: var(--component-bg-hover);
-    color: var(--component-text-primary-hover);
+    background: var(--hover);
+    color: var(--comp-text-pri-hvr);
   }
 
   .popup-item-link {
@@ -678,7 +678,7 @@ const isActive = (path: string) => {
   }
 
   .popup-check {
-    color: var(--accent-color);
+    color: var(--accent);
     display: none;
     align-items: center;
   }
@@ -708,7 +708,7 @@ const isActive = (path: string) => {
     transition: transform .2s;
   }
   [data-perf="full"] .popup-switch {
-    background: var(--accent-color);
+    background: var(--accent);
   }
   [data-perf="full"] .popup-switch-knob {
     transform: translateX(16px);
@@ -732,7 +732,7 @@ const isActive = (path: string) => {
     display: none;
     background: transparent;
     border: none;
-    color: var(--text-primary);
+    color: var(--text-pri);
     cursor: pointer;
     align-items: center;
     justify-content: center;
@@ -776,7 +776,7 @@ const isActive = (path: string) => {
     right: 12px;
     background: transparent;
     border: none;
-    color: var(--text-primary);
+    color: var(--text-pri);
     width: 44px;
     height: 44px;
     align-items: center;
@@ -862,7 +862,7 @@ const isActive = (path: string) => {
     position: fixed;
     inset: 0;
     z-index: 10000;
-    background: color-mix(in srgb, var(--app-bg-primary) 85%, transparent);
+    background: color-mix(in srgb, var(--app-bg-pri) 85%, transparent);
     backdrop-filter: blur(6px);
     opacity: 1;
     transition: opacity 0.3s ease;

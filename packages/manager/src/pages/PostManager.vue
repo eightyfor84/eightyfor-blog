@@ -464,7 +464,7 @@ onUnmounted(() => {
   display: flex;
   height: 100%;
   background: transparent;
-  color: var(--text-primary);
+  color: var(--text-pri);
 }
 
 /* ── Container ─────────────────────────────────────────────────────── */
@@ -504,7 +504,7 @@ onUnmounted(() => {
   padding: 0 2rem 0 0;
   font-size: 1.3rem;
   font-weight: 600;
-  color: var(--component-text-primary);
+  color: var(--comp-text-pri);
   background: transparent;
   border: none;
   border-radius: 0;
@@ -534,7 +534,7 @@ onUnmounted(() => {
   left: 10px;
   width: 16px;
   height: 16px;
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
   pointer-events: none;
 }
 
@@ -542,7 +542,7 @@ onUnmounted(() => {
   height: 36px;
   padding: 0 12px 0 32px;
   font-size: 0.9rem;
-  color: var(--component-text-primary);
+  color: var(--comp-text-pri);
   background: transparent;
   border: 1px solid var(--border-color);
   border-radius: 10px;
@@ -552,24 +552,24 @@ onUnmounted(() => {
 }
 
 .search-input:focus {
-  border-color: var(--accent-color);
+  border-color: var(--accent);
   width: 220px;
 }
 
 .search-input::placeholder {
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
 }
 
 /* ── New post button ───────────────────────────────────────────────── */
 
 .new-post-btn {
-  background: var(--accent-color) !important;
+  background: var(--accent) !important;
   color: var(--text-on-accent) !important;
   border-radius: 10px !important;
 }
 
 .new-post-btn:hover {
-  background: var(--accent-color-hover) !important;
+  background: var(--accent-hvr) !important;
   color: var(--text-on-accent) !important;
 }
 
@@ -603,7 +603,7 @@ onUnmounted(() => {
   padding: 0.6rem 1rem;
   margin-bottom: 0.75rem;
   border-radius: 10px;
-  background: var(--component-bg-blur-alt);
+  background: var(--comp-bg-glass);
   border: 1px solid var(--border-color-blur);
   flex-wrap: wrap;
 }
@@ -611,7 +611,7 @@ onUnmounted(() => {
 .batch-count {
   font-weight: 600;
   font-size: 0.9rem;
-  color: var(--component-text-primary);
+  color: var(--comp-text-pri);
 }
 
 .batch-check-all {
@@ -619,14 +619,14 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.3rem;
   font-size: 0.85rem;
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
   cursor: pointer;
 }
 
 .batch-check-all input {
   width: 14px;
   height: 14px;
-  accent-color: var(--accent-color);
+  accent-color: var(--accent);
 }
 
 .batch-actions {
@@ -652,7 +652,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
   flex-shrink: 0;
 }
 .batch-clear-btn svg {
@@ -683,7 +683,7 @@ onUnmounted(() => {
 .post-row .row-checkbox{
   width: 16px;
   height: 16px;
-  accent-color: var(--accent-color);
+  accent-color: var(--accent);
   cursor: pointer;
   flex-shrink: 0;
   opacity: 0;
@@ -700,18 +700,18 @@ onUnmounted(() => {
 
 .post-row:hover {
   border-color: var(--border-color-blur);
-  background: var(--component-bg-blur-alt);
+  background: var(--comp-bg-glass);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .post-row--selected {
-  border-color: var(--accent-color);
-  background: color-mix(in srgb, var(--accent-color) 8%, transparent);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
 }
 
 .post-row--selected:hover {
-  border-color: var(--accent-color);
-  background: color-mix(in srgb, color-mix(in srgb, var(--accent-color) 70%, var(--component-text-primary)) 10%, transparent);
+  border-color: var(--accent);
+  background: color-mix(in srgb, color-mix(in srgb, var(--accent) 70%, var(--comp-text-pri)) 10%, transparent);
 }
 
 
@@ -727,7 +727,7 @@ onUnmounted(() => {
   font-size: 1.05rem;
   font-weight: 500;
   font-variation-settings: 'wght' 500;
-  color: var(--component-text-primary);
+  color: var(--comp-text-pri);
   white-space: nowrap;
   overflow: hidden;
   margin:0;
@@ -742,15 +742,15 @@ onUnmounted(() => {
 
 .tag-badge {
   font-size: 0.75rem;
-  background: var(--component-bg-hover);
+  background: var(--hover);
   padding: 2px 7px;
   border-radius: 4px;
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
 }
 
 .post-date {
   font-size: 0.85rem;
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -768,8 +768,8 @@ onUnmounted(() => {
 }
 
 .status-badge.draft {
-  color: var(--component-text-secondary);
-  background: var(--component-bg-hover);
+  color: var(--comp-text-sec);
+  background: var(--hover);
 }
 
 .status-badge.published {
@@ -816,9 +816,9 @@ onUnmounted(() => {
 .rename-input {
   width: 100%;
   box-sizing: border-box;
-  background: var(--bg-primary);
-  border: 1px solid var(--accent-color);
-  color: var(--text-primary);
+  background: var(--bg-pri);
+  border: 1px solid var(--accent);
+  color: var(--text-pri);
   padding: 4px 10px;
   border-radius: 8px;
   font-size: 1.05rem;

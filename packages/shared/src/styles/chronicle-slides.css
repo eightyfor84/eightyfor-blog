@@ -6,9 +6,9 @@
 
 .chronicle-slideshow {
   --slide-ratio: 1.777; /* 16:9 default */
-  --slide-bg: var(--bg-primary, #fff);
-  --slide-fg: var(--text-primary, #111);
-  --slide-accent: var(--accent-color, #2563eb);
+  --slide-bg: var(--bg-pri, #fff);
+  --slide-fg: var(--text-pri, #111);
+  --slide-accent: var(--accent, #2563eb);
 }
 
 /* ── Container ─────────────────────────────────── */

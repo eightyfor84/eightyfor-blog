@@ -24,11 +24,11 @@
   --transition-duration: 1;
 
   /* Core brand */
-  --accent-color-default: #2ea35f;
-  --accent-color: var(--accent-color-default);
-  --accent-color-dark: color-mix(in srgb, var(--accent-color) 80%, #000);
-  --accent-color-bg: color-mix(in srgb, var(--accent-color) 15%, transparent);
-  --accent-color-hover: color-mix(in srgb, var(--accent-color) 80%, transparent);
+  --accent-default: #2ea35f;
+  --accent: var(--accentColor, var(--accent-default));
+  --accent-dark: color-mix(in srgb, var(--accent) 80%, #000);
+  --accent-bg: color-mix(in srgb, var(--accent) 15%, transparent);
+  --accent-hvr: color-mix(in srgb, var(--accent) 80%, transparent);
   --recommended-accent-text: #fff;
   --featured: #ffd700;
   --featured-bg: color-mix(in srgb, var(--featured) 15%, transparent);
@@ -47,63 +47,97 @@
   --status-progress: #06b6d4;
   --status-progress-bg: color-mix(in srgb, var(--status-progress) 15%, transparent);
 
-  /* Background hierarchy */
-  --app-bg-primary: #121212;
-  --app-bg-secondary: #1e1e1e;
-  --component-bg: #222222;
-  --component-bg-alt: #2a2a2a;
-  --component-bg-blur: rgba(34, 34, 34, 0.9);
-  --component-bg-blur-alt: rgba(72, 72, 72, 0.5);
-  --component-bg-accent: color-mix(in srgb, var(--accent-color) 40%, transparent);
-  --component-bg-accent-blur: color-mix(in srgb, var(--accent-color) 25%, transparent);
-  --component-bg-accent-ghost: color-mix(in srgb, var(--accent-color) 35%, #0008);
+  /* ═══ Grayscale foundation (dark) ═══ */
+  --bg-base: #121212;
+  --bg-offset: #909090;
+  --fg-base: #f5f5f5;
+  --hl-offset: var(--bg-offset);
 
-  /* Background highlight states */
-  --app-bg-primary-hover: #1e1e1e;
-  --app-bg-primary-active: #222222;
-  --app-bg-secondary-hover: #242424;
-  --app-bg-secondary-active: #2a2a2a;
-  --component-bg-hover: rgba(128, 128, 128, 0.5);
-  --component-bg-highlight: rgba(136, 136, 136, 0.5);
-  --component-bg-active: rgba(144, 144, 144, 0.5);
-  --component-bg-accent-hover: var(--component-bg-accent-blur);
-  --component-bg-accent-active: var(--component-bg-accent-blur);
+  /* Background hierarchy — color-mix(in srgb, var(--bg-offset) P%, var(--bg-base)) */
+  --app-bg-pri: var(--bg-base);
+  --app-bg-pri-active: color-mix(in srgb, var(--bg-offset) 5%, var(--bg-base));
+  --app-bg-pri-hvr: color-mix(in srgb, var(--bg-offset) 8%, var(--bg-base));
+  --app-bg-sec: color-mix(in srgb, var(--bg-offset) 11%, var(--bg-base));
+  --app-bg-sec-active: color-mix(in srgb, var(--bg-offset) 14%, var(--bg-base));
+  --app-bg-sec-hvr: color-mix(in srgb, var(--bg-offset) 17%, var(--bg-base));
+  --comp-bg: color-mix(in srgb, var(--bg-offset) 12%, var(--bg-base));
+  --comp-bg-active: color-mix(in srgb, var(--bg-offset) 16%, var(--bg-base));
+  --comp-bg-alt: color-mix(in srgb, var(--bg-offset) 20%, var(--bg-base));
+  --comp-bg-hvr: color-mix(in srgb, var(--bg-offset) 24%, var(--bg-base));
+  --comp-bg-hl: color-mix(in srgb, var(--hl-offset) 24%, var(--bg-base));
 
-  /* Foreground hierarchy */
-  --app-text-primary: #e0e0e0;
-  --app-text-secondary: #a9a9a9;
-  --component-text-primary: #d4d4d4;
-  --component-text-secondary: #a5a5a5;
-  --component-text-primary-disabled: rgba(212, 212, 212, 0.45);
-  --component-text-secondary-disabled: rgba(165, 165, 165, 0.45);
+  /* Transparency compensation — per-theme alpha knobs */
+  --blur-alpha: 90%;
+  --glass-alpha: 50%;
 
-  /* Foreground highlight states */
-  --component-text-primary-hover: var(--app-text-primary);
-  --component-text-secondary-hover: var(--app-text-secondary);
-  --component-text-primary-active: var(--component-text-primary-hover);
-  --component-text-secondary-active: var(--component-text-secondary-hover);
-  --component-text-primary-highlight: var(--app-text-primary);
-  --component-text-secondary-highlight: var(--app-text-secondary);
-  --component-text-accent-hover: #ffffff;
-  --component-text-accent-active: #ffffff;
-  --component-text-accent-ghost: color-mix(in srgb, var(--component-text-primary) 60%, var(--accent-color));
+  /* Glass opaque tier — lighter than comp-bg-hl, same inter-tier spacing */
+  --glass-opaque: color-mix(in srgb, var(--bg-offset) 47%, var(--bg-base));
+  --glass-opaque-active: color-mix(in srgb, var(--bg-offset) 50%, var(--bg-base));
+  --glass-opaque-hvr: color-mix(in srgb, var(--bg-offset) 60%, var(--bg-base));
+  --glass-opaque-hl: color-mix(in srgb, var(--hl-offset) 60%, var(--bg-base));
 
-  --border-color: color-mix(in srgb, var(--app-text-secondary) 20%, transparent);
-  --border-color-blur: rgba(113, 113, 113, 0.2);
+  /* Semi-transparent backgrounds — all derived from opaque tiers + alpha */
+  --comp-bg-blur: color-mix(in srgb, var(--comp-bg) var(--blur-alpha), transparent);
+  --comp-bg-blur-hvr: color-mix(in srgb, var(--comp-bg-hvr) var(--blur-alpha), transparent);
+  --comp-bg-blur-active: color-mix(in srgb, var(--comp-bg-active) var(--blur-alpha), transparent);
+  --comp-bg-blur-hl: color-mix(in srgb, var(--comp-bg-hl) var(--blur-alpha), transparent);
+
+  --comp-bg-glass: color-mix(in srgb, var(--glass-opaque) var(--glass-alpha), transparent);
+  --comp-bg-glass-hvr: color-mix(in srgb, var(--glass-opaque-hvr) var(--glass-alpha), transparent);
+  --comp-bg-glass-active: color-mix(in srgb, var(--glass-opaque-active) var(--glass-alpha), transparent);
+  --comp-bg-glass-hl: color-mix(in srgb, var(--glass-opaque-hl) var(--glass-alpha), transparent);
+
+  /* Accent-derived backgrounds (independent axis) */
+  --comp-bg-accent: color-mix(in srgb, var(--accent) 40%, transparent);
+  --comp-bg-accent-blur: color-mix(in srgb, var(--accent) 25%, transparent);
+  --comp-bg-accent-ghost: color-mix(in srgb, var(--accent) 35%, #0008);
+  --comp-bg-accent-hvr: color-mix(in srgb, var(--bg-offset) 30%, var(--accent-dark));
+  --comp-bg-accent-active: color-mix(in srgb, var(--bg-offset) 25%, var(--accent-dark));
+
+  /* Transparent-background interaction overlays (kept as aliases for compat) */
+  --hover: color-mix(in srgb, var(--bg-offset) 20%, transparent);
+  --active: color-mix(in srgb, var(--bg-offset) 24%, transparent);
+  --highlight: color-mix(in srgb, var(--hl-offset) 20%, transparent);
+
+  /* Foreground hierarchy — color-mix(in srgb, var(--bg-base) P%, var(--fg-base)) */
+  --app-text-pri: color-mix(in srgb, var(--bg-base) 9.3%, var(--fg-base));
+  --comp-text-pri: color-mix(in srgb, var(--bg-base) 14.5%, var(--fg-base));
+  --app-text-sec: color-mix(in srgb, var(--bg-base) 33.5%, var(--fg-base));
+  --comp-text-sec: color-mix(in srgb, var(--bg-base) 35.2%, var(--fg-base));
+
+  /* Foreground state aliases — track base tokens automatically */
+  --comp-text-pri-hvr: var(--app-text-pri);
+  --comp-text-sec-hvr: var(--app-text-sec);
+  --comp-text-pri-active: var(--comp-text-pri-hvr);
+  --comp-text-sec-active: var(--comp-text-sec-hvr);
+  --comp-text-pri-hl: var(--app-text-pri);
+  --comp-text-sec-hl: var(--app-text-sec);
+  --comp-text-accent-hvr: #ffffff;
+  --comp-text-accent-active: #ffffff;
+  --comp-text-accent-ghost: color-mix(in srgb, var(--comp-text-pri) 60%, var(--accent));
+
+  /* Disabled states — opacity over opaque foreground */
+  --comp-text-pri-disabled: color-mix(in srgb, var(--comp-text-pri) 45%, transparent);
+  --comp-text-sec-disabled: color-mix(in srgb, var(--comp-text-sec) 45%, transparent);
+
+  /* Borders — derived from foreground / offset */
+  --border-color: color-mix(in srgb, var(--app-text-sec) 20%, transparent);
+  --border-color-blur: color-mix(in srgb, var(--bg-offset) 20%, transparent);
   --glow-light: rgba(0, 0, 0, 0.678);
   --glow-dark: rgba(255, 255, 255, 0.644);
   --select-arrow-color: #bbbbbb;
 
   /* Legacy aliases for existing components */
-  --app-bg: var(--app-bg-primary);
-  --bg-primary: var(--app-bg-primary);
-  --bg-secondary: var(--app-bg-secondary);
-  --app-text-light: #222;
-  --app-text-dark: var(--app-text-primary);
-  --text-primary: var(--app-text-primary);
-  --text-secondary: var(--app-text-secondary);
-  --text-inactive: var(--app-text-secondary);
-  --accent: var(--accent-color);
+  --app-bg: var(--app-bg-pri);
+  --bg-pri: var(--app-bg-pri);
+  --bg-sec: var(--app-bg-sec);
+  --comp-bg-pri: var(--comp-bg);
+  --comp-text: var(--comp-text-pri);
+  --app-text-light: var(--comp-bg);
+  --app-text-dark: var(--app-text-pri);
+  --text-pri: var(--app-text-pri);
+  --text-sec: var(--app-text-sec);
+  --text-inactive: var(--app-text-sec);
   --text-on-accent: #fff;
   --shadow-elev-1: 0 4px 12px rgba(0, 0, 0, 0.3);
   --shadow-elev-2: 0 4px 12px rgba(0, 0, 0, 0.25);
@@ -112,7 +146,7 @@
   --toc-divider-color: rgba(255, 255, 255, 0.02);
   --select-option-border-color: var(--border-color);
 
-  color: var(--app-text-primary);
+  color: var(--app-text-pri);
   background-color: transparent;
 
   /* 背景图片和遮罩相关的CSS变量 */
@@ -181,61 +215,39 @@
 
   --recommended-accent-text: #fff;
 
-  --app-bg-primary: #f9f9f9;
+  /* ═══ Grayscale foundation (light) ═══ */
+  --bg-base: #f9f9f9;
+  --bg-offset: #aaa;
+  --fg-base: #111111;
+  --hl-offset: var(--accent);
+
   /* Light-mode background overlay should use the light variant when provided */
   --frontend-bg-overlay: var(--frontend-bg-overlay-light);
-  --app-bg-secondary: #f0f0f0;
-  --component-bg: #ffffff;
-  --component-bg-alt: #f7f7f7;
-  --component-bg-blur: rgba(240, 240, 240, 0.8);
-  --component-bg-blur-alt: rgba(244, 244, 244, 0.3);
-  --component-bg-accent: color-mix(in srgb, var(--accent-color) 30%, #fffb);
-  --component-bg-accent-blur: color-mix(in srgb, var(--accent-color) 35%, #fffb);
-  --component-bg-accent-ghost: color-mix(in srgb, var(--accent-color) 45%, #fff7);
 
-  --app-bg-primary-hover: #eeeeee;
-  --app-bg-primary-active: #eaeaea;
-  --app-bg-secondary-hover: #e6e6e6;
-  --app-bg-secondary-active: #e0e0e0;
-  --component-bg-hover: rgba(224, 224, 224, 0.5);
-  --component-bg-highlight: color-mix(in srgb, var(--accent-color) 30%, #fffb);
-  --component-bg-active: rgba(216, 216, 216, 0.5);
-  --component-bg-accent-hover: var(--component-bg-accent-blur);
-  --component-bg-accent-active: var(--component-bg-accent-blur);
+  /* Design-different overrides */
+  --blur-alpha: 80%;
+  --glass-alpha: 30%;
+  --glass-opaque: color-mix(in srgb, var(--bg-offset) 10%, var(--bg-base));
+  --glass-opaque-active: color-mix(in srgb, var(--bg-offset) 12%, var(--bg-base));
+  --glass-opaque-hvr: color-mix(in srgb, var(--bg-offset) 21%, var(--bg-base));
+  --glass-opaque-hl: color-mix(in srgb, var(--hl-offset) 36%, var(--bg-base));
 
-  --app-text-primary: #111;
-  --app-text-secondary: #444;
-  --component-text-primary: #222;
-  --component-text-secondary: #555;
-  --component-text-primary-disabled: rgba(61, 61, 61, 0.42);
-  --component-text-secondary-disabled: rgba(129, 129, 129, 0.42);
+  --comp-bg-accent: color-mix(in srgb, var(--accent) 30%, #fffb);
+  --comp-bg-accent-blur: color-mix(in srgb, var(--accent) 35%, #fffb);
+  --comp-bg-accent-ghost: color-mix(in srgb, var(--accent) 45%, #fff7);
 
-  --component-text-primary-hover: var(--app-text-primary);
-  --component-text-secondary-hover: var(--app-text-secondary);
-  --component-text-primary-active: var(--component-text-primary-hover);
-  --component-text-secondary-active: var(--component-text-secondary-hover);
-  --component-text-primary-highlight: var(--accent-color);
-  --component-text-secondary-highlight: color-mix(in srgb, var(--accent-color) 75%, #555);
-  --component-text-accent-hover: #ffffff;
-  --component-text-accent-active: #ffffff;
-  --component-text-accent-ghost: color-mix(in srgb, var(--component-text-primary) 75%, var(--accent-color));
+  --comp-text-pri-hl: var(--accent);
+  --comp-text-sec-hl: color-mix(in srgb, var(--accent) 75%, var(--comp-text-sec));
+  --comp-text-accent-ghost: color-mix(in srgb, var(--comp-text-pri) 75%, var(--accent));
+
+  --border-color-blur: color-mix(in srgb, var(--fg-base) 12%, transparent);
+  --select-arrow-color: #999;
 
   --featured: #c58f00;
   --featured-bg: rgba(242, 234, 212, 0.9);
   --warning: #ff1c20;
   --warning-bg: rgba(255, 28, 32, 0.15);
-  --border-color: color-mix(in srgb, var(--app-text-secondary) 20%, transparent);
-  --border-color-blur: rgba(28, 28, 28, 0.12);
-  --select-arrow-color: #999;
 
-  /* Legacy aliases */
-  --app-bg: var(--app-bg-primary);
-  --bg-primary: var(--app-bg-primary);
-  --bg-secondary: var(--app-bg-secondary);
-  --app-text-dark: var(--app-text-primary);
-  --text-primary: var(--app-text-primary);
-  --text-secondary: var(--app-text-secondary);
-  --text-inactive: var(--app-text-secondary);
   --shadow-elev-1: 0 4px 12px rgba(0, 0, 0, 0.2);
   --shadow-elev-2: 0 4px 12px rgba(0, 0, 0, 0.16);
   --shadow-elev-3: 0 10px 30px rgba(0, 0, 0, 0.25);
@@ -275,54 +287,56 @@
   :root:not([data-theme="dark"]):not(.focus) {
     color-scheme: light;
     --app-text-wght: 430;
+
     --code-bg: rgba(255, 0, 0, 0.12);
     --code-text: #c7254e;
-    --app-bg-primary: #f9f9f9;
-    --app-bg-secondary: #f0f0f0;
-    --component-bg: #ffffff;
-    --component-bg-alt: #f7f7f7;
-    --component-bg-blur: rgba(240, 240, 240, 0.8);
-    --component-bg-blur-alt: rgba(244, 244, 244, 0.3);
-    --component-bg-accent: color-mix(in srgb, var(--accent-color) 30%, #fffb);
-    --component-bg-accent-blur: color-mix(in srgb, var(--accent-color) 35%, #fffb);
-    --component-bg-accent-ghost: color-mix(in srgb, var(--accent-color) 45%, #fff7);
-  --app-bg-primary-hover: #eeeeee;
-  --app-bg-primary-active: #eaeaea;
-  --app-bg-secondary-hover: #e6e6e6;
-  --app-bg-secondary-active: #e0e0e0;
-  --component-bg-hover: rgba(224, 224, 224, 0.5);
-  --component-bg-highlight: color-mix(in srgb, var(--accent-color) 30%, #fffb);
-  --component-bg-active: rgba(216, 216, 216, 0.5);
-    --app-text-primary: #1f2a36;
-    --app-text-secondary: #5f6b78;
-    --component-text-primary-hover: var(--app-text-primary);
-    --component-text-secondary-hover: var(--app-text-secondary);
-    --component-text-primary-active: var(--component-text-primary-hover);
-    --component-text-secondary-active: var(--component-text-secondary-hover);
-    --component-text-primary-highlight: var(--accent-color);
-    --component-text-secondary-highlight: color-mix(in srgb, var(--accent-color) 75%, #555);
+
+    --recommended-accent-text: #fff;
+
+    /* ═══ Grayscale foundation (light) ═══ */
+    --bg-base: #f9f9f9;
+    --bg-offset: #aaa;
+    --fg-base: #111111;
+    --hl-offset: var(--accent);
+
+    /* Ensure follow-system light maps overlay to light variant */
+    --frontend-bg-overlay: var(--frontend-bg-overlay-light);
+    --backend-bg-overlay: var(--backend-bg-overlay-light);
+
+    /* Design-different overrides */
+    --blur-alpha: 80%;
+    --glass-alpha: 30%;
+    --glass-opaque: color-mix(in srgb, var(--bg-offset) 10%, var(--bg-base));
+    --glass-opaque-active: color-mix(in srgb, var(--bg-offset) 12%, var(--bg-base));
+    --glass-opaque-hvr: color-mix(in srgb, var(--bg-offset) 21%, var(--bg-base));
+    --glass-opaque-hl: color-mix(in srgb, var(--hl-offset) 36%, var(--bg-base));
+
+    --comp-bg-accent: color-mix(in srgb, var(--accent) 30%, #fffb);
+    --comp-bg-accent-blur: color-mix(in srgb, var(--accent) 35%, #fffb);
+    --comp-bg-accent-ghost: color-mix(in srgb, var(--accent) 45%, #fff7);
+
+    --comp-text-pri-hl: var(--accent);
+    --comp-text-sec-hl: color-mix(in srgb, var(--accent) 75%, var(--comp-text-sec));
+    --comp-text-accent-ghost: color-mix(in srgb, var(--comp-text-pri) 75%, var(--accent));
+
+    --border-color-blur: color-mix(in srgb, var(--fg-base) 12%, transparent);
+    --select-arrow-color: #999;
+
     --featured: #c58f00;
     --featured-bg: rgba(242, 234, 212, 0.9);
     --warning: #ff4d50;
     --warning-bg: rgba(255, 77, 80, 0.15);
-  --border-color: color-mix(in srgb, var(--app-text-secondary) 20%, transparent);
-    --border-color-blur: rgba(28, 28, 28, 0.12);
-    --select-arrow-color: #999;
-    --app-bg: var(--app-bg-primary);
-    --bg-primary: var(--app-bg-primary);
-    --bg-secondary: var(--app-bg-secondary);
-    /* Ensure follow-system light maps overlay to light variant */
-    --frontend-bg-overlay: var(--frontend-bg-overlay-light);
-    --backend-bg-overlay: var(--backend-bg-overlay-light);
-    --text-primary: var(--app-text-primary);
-    --text-secondary: var(--app-text-secondary);
-    --text-inactive: var(--app-text-secondary);
+
     --shadow-elev-1: 0 4px 12px rgba(0, 0, 0, 0.2);
     --shadow-elev-2: 0 4px 12px rgba(0, 0, 0, 0.16);
     --shadow-elev-3: 0 10px 30px rgba(0, 0, 0, 0.25);
+    --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     --toc-divider-color: rgba(28, 28, 28, 0.08);
+
+    color: var(--app-text-pri);
   }
 }
+
 
 
 
@@ -334,21 +348,20 @@ em {
 a {
   font-weight: 500;
   font-variation-settings: 'wght' 500;
-  color: var(--accent-color-dark);
+  color: var(--accent-dark);
   text-decoration: inherit;
 }
 
 a:hover {
-  color: var(--accent-color);
+  color: var(--accent);
 }
 
 body {
   margin: 0;
-  min-width: 320px;
   min-height: 100vh;
   background: transparent;
   /* moved solid background into bg-surface lowest layer */
-  color: var(--app-text-primary);
+  color: var(--app-text-pri);
   font-weight: var(--app-text-wght, 400);
   /* For variable fonts (e.g. InterVariable), keep正文在可配置字重 */
   font-variation-settings: 'wght' var(--app-text-wght, 400);
@@ -418,19 +431,19 @@ button {
   font-weight: 500;
   font-variation-settings: 'wght' 500;
   font-family: inherit;
-  background-color: var(--component-bg-alt);
-  color: var(--component-text-primary);
+  background-color: var(--comp-bg-alt);
+  color: var(--comp-text-pri);
   cursor: pointer;
   transition: border-color 0.25s;
   touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
+  -webkit-tap-hl-color: transparent;
 }
 
 .float-btn {
-  background: var(--component-bg-blur-alt);
+  background: var(--comp-bg-glass);
   border: 1px solid var(--border-color-blur);
   border-radius: 8px;
-  color: var(--component-text-primary);
+  color: var(--comp-text-pri);
   cursor: pointer;
   font-size: 1em;
   font-family: inherit;
@@ -441,20 +454,20 @@ button {
 }
 
 .float-btn.primary {
-  background: var(--accent-color-dark);
+  background: var(--accent-dark);
   color: #fff;
   border: background;
 }
 
 .float-btn.primary:hover {
-  background: color-mix(in srgb, var(--accent-color-dark) 60%, #fff);
+  background: color-mix(in srgb, var(--accent-dark) 60%, #fff);
   color: #111;
 }
 
 .float-btn:hover {
   filter: brightness(1.2);
   transform: scale(1.05);
-  color: var(--component-text-primary);
+  color: var(--comp-text-pri);
 }
 
 ::-webkit-scrollbar {
@@ -467,12 +480,12 @@ button {
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: color-mix(in srgb, var(--component-text-secondary) 50%, transparent);
+  background-color: color-mix(in srgb, var(--comp-text-sec) 50%, transparent);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: color-mix(in srgb, var(--component-text-primary) 50%, transparent);
+  background-color: color-mix(in srgb, var(--comp-text-pri) 50%, transparent);
 }
 
 ::-webkit-scrollbar-track {
@@ -480,7 +493,7 @@ button {
 }
 
 
-    .section-title { font-size: 1.8em; margin: 0 0 24px; color: var(--text-primary); border-bottom: 2px solid transparent; padding-bottom: 10px; }
+.section-title { font-size: 1.8em; margin: 0 0 24px; color: var(--text-pri); border-bottom: 2px solid transparent; padding-bottom: 10px; }
 
 /* Base form elements */
 input,
@@ -491,7 +504,7 @@ textarea {
 }
 
 html:not(.is-mobile) button:hover {
-  border-color: var(--accent-color);
+  border-color: var(--accent);
 }
 
 button:focus,
@@ -500,19 +513,19 @@ button:focus-visible {
 }
 
 button.primary {
-  background: var(--accent-color-dark);
+  background: var(--accent-dark);
   color: var(--text-on-accent);
   transition: all 0.3s ease;
 }
 
 html:not(.is-mobile) button.primary:hover {
-  background: var(--accent-color);
+  background: var(--accent);
 }
 
 button.secondary {
   background: transparent;
-  border-color: var(--accent-color) !important;
-  color: var(--accent-color);
+  border-color: var(--accent) !important;
+  color: var(--accent);
 }
 
 
@@ -531,7 +544,7 @@ button.secondary {
 
 .card {
   padding: 2em;
-  background: var(--component-bg-blur);
+  background: var(--comp-bg-blur);
 }
 
 .inline-select {
@@ -542,10 +555,10 @@ button.secondary {
   border-radius: 8px;
   border: 1px solid var(--border-color);
   background: transparent;
-  color: var(--text-primary);
+  color: var(--text-pri);
   font-size: 0.95rem;
   transition: all 0.2s ease;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='var(--text-primary) text' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='var(--text-pri) text' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>");
   background-repeat: no-repeat;
   background-position: right 12px center;
   background-size: 20px;
@@ -555,14 +568,14 @@ button.secondary {
 
 .inline-select:hover {
   border-color: var(--border-color-blur);
-  background: var(--component-bg-hover);
+  background: var(--hover);
 }
 
 .inline-select:focus {
   outline: none;
-  background-color: var(--component-bg-active);
+  background-color: var(--active);
   box-shadow: var(--shadow-elev-2);
-  border-color: var(--accent-color);
+  border-color: var(--accent);
 }
 /* Hide native IE arrow */
 .inline-select::-ms-expand {
@@ -574,13 +587,11 @@ button.secondary {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-
-
   border: 2px solid var(--select-option-border-color);
   border-radius: 8px;
   padding: 8px 12px;
-  background: var(--component-bg);
-  color: var(--text-primary);
+  background: var(--comp-bg);
+  color: var(--text-pri);
 }
 
 /* Compact variant */
@@ -605,7 +616,7 @@ button.secondary {
 .inline-select[disabled] {
   background-image: none;
   border-color: var(--border-color-blur);
-  color: var(--component-text-secondary-disabled);
+  color: var(--comp-text-sec-disabled);
 }
 
 /* Wrapper for select so we can draw arrow via pseudo-element (select doesn't support ::after) */
@@ -698,17 +709,16 @@ body.backend::after {
 #chronicle-bg-layer {
   position: fixed;
   inset: 0;
-  z-index: -9999;
+  z-index: 0;
   pointer-events: none;
   display: block;
-  /* 确保背景层在所有内容下方 */
 }
 
 /* Order inside layer (从低到高): surface -> image -> overlay */
 #chronicle-bg-layer .bg-surface {
   position: absolute;
   inset: 0;
-  background: var(--app-bg-primary);
+  background: var(--app-bg-pri);
   z-index: 1;
   /* 最底层：纯色背景 */
 }
@@ -774,8 +784,8 @@ html {
 
 /* Global select option styling */
 select option {
-  background: var(--component-bg-primary);
-  color: var(--component-text-primary);
+  background: var(--comp-bg-pri);
+  color: var(--comp-text-pri);
 }
 
 @media (max-width: 768px) {

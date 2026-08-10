@@ -106,19 +106,19 @@ onBeforeUnmount(() => { document.removeEventListener('click', onClickOutside) })
   align-items: center;
   gap: .4rem;
   padding: .4rem .7rem;
-  background: var(--component-bg);
+  background: var(--comp-bg);
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  color: var(--text-secondary);
+  color: var(--text-sec);
   font-size: .85rem;
   cursor: pointer;
   transition: border-color .12s, color .12s;
 }
 .fd-trigger:hover,
-.fd-trigger.active { border-color: var(--accent-color); color: var(--text-primary); }
+.fd-trigger.active { border-color: var(--accent); color: var(--text-pri); }
 .fd-label { font-weight: 500; }
 .fd-badge {
-  background: var(--accent-color);
+  background: var(--accent);
   color: #fff;
   font-size: .65rem;
   font-weight: 700;
@@ -137,7 +137,7 @@ onBeforeUnmount(() => { document.removeEventListener('click', onClickOutside) })
 
 .fd-popover {
   z-index: 1000;
-  background: var(--component-bg-blur);
+  background: var(--comp-bg-blur);
   backdrop-filter: blur(12px);
   border: 1px solid var(--border-color);
   border-radius: 10px;
@@ -154,7 +154,7 @@ onBeforeUnmount(() => { document.removeEventListener('click', onClickOutside) })
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: .4px;
-  color: var(--text-secondary);
+  color: var(--text-sec);
   padding: .3rem .5rem .15rem;
 }
 
@@ -166,11 +166,11 @@ onBeforeUnmount(() => { document.removeEventListener('click', onClickOutside) })
   border-radius: 6px;
   cursor: pointer;
   font-size: .85rem;
-  color: var(--text-primary);
+  color: var(--text-pri);
   transition: background .1s;
 }
-.fd-option:hover { background: var(--component-bg-hover); }
-.fd-option.active { color: var(--accent-color); }
-.fd-option input[type="checkbox"] { accent-color: var(--accent-color); }
+.fd-option:hover { background: var(--hover); }
+.fd-option.active { color: var(--accent); }
+.fd-option input[type="checkbox"] { accent-color: var(--accent); }
 .fd-option-label { flex: 1; }
 </style>

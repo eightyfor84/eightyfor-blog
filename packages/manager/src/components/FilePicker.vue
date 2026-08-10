@@ -183,7 +183,7 @@
                         <button class="chip-remove" @click.stop="removeSelected(idx)" :title="t('filePicker.deselect') || '取消选择'"><span class="icon-svg" v-html="Icons.close"></span></button>
                     </span>
                 </div>
-                <div v-else class="empty" style="text-align: center; color: var(--component-text-secondary)">{{
+                <div v-else class="empty" style="text-align: center; color: var(--comp-text-sec)">{{
                     t('filePicker.selectedNone') || '暂无选择' }}</div>
             </div>
         </div>
@@ -931,7 +931,7 @@ watch(() => props.selectionMode, () => {
 }
 
 .type-tab.active {
-    background: var(--component-bg);
+    background: var(--comp-bg);
     font-weight: 600
 }
 
@@ -957,15 +957,15 @@ watch(() => props.selectionMode, () => {
     justify-content: center;
     gap: 0.5rem;
     font-size: 0.85rem;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     border: none;
     background: transparent;
     transition: background 0.2s ease, color 0.2s ease;
 }
 
 .file-op-btn:hover:not(:disabled) {
-    background: color-mix(var(--component-text-primary-hover) 20%, transparent);
-    color: var(--component-text-primary-hover);
+    background: color-mix(var(--comp-text-pri-hvr) 20%, transparent);
+    color: var(--comp-text-pri-hvr);
 }
 
 .file-op-btn :deep(svg),
@@ -1022,7 +1022,7 @@ watch(() => props.selectionMode, () => {
     height: 32px;
     background: transparent;
     font-size: 0.9rem;
-    color: var(--component-text-primary);
+    color: var(--comp-text-pri);
     transition: background 0.2s ease, color 0.2s ease;
 }
 
@@ -1035,18 +1035,18 @@ watch(() => props.selectionMode, () => {
     border: 2px solid var(--select-option-border-color);
     border-radius: 8px;
     padding: 8px 12px;
-    background: var(--component-bg);
-    color: var(--text-primary);
+    background: var(--comp-bg);
+    color: var(--text-pri);
 }
 
 .sort-by-select:focus {
     outline: none;
     box-shadow: none;
-    background: color-mix(var(--component-text-primary-hover) 20%, transparent);
+    background: color-mix(var(--comp-text-pri-hvr) 20%, transparent);
 }
 
 .sort-by-select:hover {
-    background: color-mix(var(--component-text-primary-hover) 20%, transparent);
+    background: color-mix(var(--comp-text-pri-hvr) 20%, transparent);
 }
 
 .grid {
@@ -1060,15 +1060,15 @@ watch(() => props.selectionMode, () => {
     align-items: center;
     gap: 4px;
     font-size: 0.75rem;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     border: none;
-    background: color-mix(var(--component-text-primary-hover) 10%, transparent);
+    background: color-mix(var(--comp-text-pri-hvr) 10%, transparent);
     transition: background 0.2s ease, color 0.2s ease;
 }
 
 .file-picker-preview-btn:hover {
-    background: color-mix(var(--component-text-primary-hover) 20%, transparent);
-    color: var(--component-text-primary-hover);
+    background: color-mix(var(--comp-text-pri-hvr) 20%, transparent);
+    color: var(--comp-text-pri-hvr);
 }
 
 .cloud-list {
@@ -1096,7 +1096,7 @@ watch(() => props.selectionMode, () => {
 }
 
 .card.selected {
-    border-color: var(--accent-color);
+    border-color: var(--accent);
     background: rgba(59, 130, 246, 0.04)
 }
 
@@ -1133,7 +1133,7 @@ watch(() => props.selectionMode, () => {
 .list thead {
     position: sticky;
     top: 0;
-    background: var(--component-bg-secondary);
+    background: var(--comp-bg-sec);
     z-index: 1
 }
 
@@ -1142,13 +1142,13 @@ watch(() => props.selectionMode, () => {
     cursor: pointer;
     padding: 0.4rem 0.5rem;
     font-weight: 500;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     border-bottom: 1px solid var(--border-color);
     transition: color 0.2s
 }
 
 .list th:hover {
-    color: var(--component-text-primary)
+    color: var(--comp-text-pri)
 }
 
 .list tbody tr {
@@ -1157,7 +1157,7 @@ watch(() => props.selectionMode, () => {
 }
 
 .list tbody tr:hover {
-    background: var(--component-bg-hover)
+    background: var(--hover)
 }
 
 .list tbody tr.selected {
@@ -1169,7 +1169,7 @@ watch(() => props.selectionMode, () => {
 }
 
 .list th {
-    background: var(--component-bg);
+    background: var(--comp-bg);
 }
 
 .list td,
@@ -1180,7 +1180,7 @@ watch(() => props.selectionMode, () => {
 }
 
 .list td {
-    color: var(--component-text-primary)
+    color: var(--comp-text-pri)
 }
 
 .list .select-col {
@@ -1194,12 +1194,12 @@ watch(() => props.selectionMode, () => {
 }
 
 .list .type-col {
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     font-size: 0.8rem
 }
 
 .list .created-col {
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     font-size: 0.8rem;
     white-space: nowrap
 }
@@ -1217,8 +1217,8 @@ watch(() => props.selectionMode, () => {
 }
 
 .checkbox-indicator.checked {
-    background: var(--accent-color);
-    border-color: var(--accent-color)
+    background: var(--accent);
+    border-color: var(--accent)
 }
 
 .checkbox-indicator.checked svg {
@@ -1274,7 +1274,7 @@ watch(() => props.selectionMode, () => {
     align-items: center;
     gap: .3rem;
     padding: .2rem .5rem;
-    background: var(--component-bg-blur);
+    background: var(--comp-bg-blur);
     border: 1px solid var(--border-color);
     border-radius: 6px;
     font-size: .85rem;
@@ -1283,8 +1283,8 @@ watch(() => props.selectionMode, () => {
 }
 
 .selected-chip:hover{
-    background: var(--component-bg-hover);
-    border-color: var(--component-text-primary);
+    background: var(--comp-bg-blur-hvr);
+    border-color: var(--comp-text-pri);
 }
 
 .chip-name {
@@ -1301,7 +1301,7 @@ watch(() => props.selectionMode, () => {
     padding: 0;
     border: none;
     background: transparent;
-    color: var(--text-secondary);
+    color: var(--text-sec);
     font-size: 14px;
     line-height: 1;
     cursor: pointer;
@@ -1315,7 +1315,7 @@ watch(() => props.selectionMode, () => {
 }
 
 .chip-remove:hover {
-    color: var(--text-primary);
+    color: var(--text-pri);
 }
 
 .picker-actions {
@@ -1327,7 +1327,7 @@ watch(() => props.selectionMode, () => {
 
 .cloud-empty {
     text-align: center;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     padding: 2rem;
     font-size: 0.9rem;
 }

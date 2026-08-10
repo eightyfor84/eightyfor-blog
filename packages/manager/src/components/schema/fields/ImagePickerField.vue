@@ -151,9 +151,9 @@ function handleFilePickerCancel() { isFilePickerOpen.value = false }
 .form-row { display: flex; flex-direction: column; gap: .5rem; }
 .modern-input { width: 100%; }
 .modal-overlay { position: fixed; inset: 0; z-index: 10060; display: grid; place-items: center; background: rgba(0,0,0,.45); padding: 1rem; }
-.file-picker-modal { width: min(800px, 90vw); display: grid; grid-template-rows: auto 1fr; gap: 1rem; padding-top: 1rem; border-radius: 18px; background: var(--component-bg); border: 1px solid var(--border-color); box-shadow: var(--shadow-elev-2); overflow: hidden; }
+.file-picker-modal { width: min(800px, 90vw); display: grid; grid-template-rows: auto 1fr; gap: 1rem; padding-top: 1rem; border-radius: 18px; background: var(--comp-bg); border: 1px solid var(--border-color); box-shadow: var(--shadow-elev-2); overflow: hidden; }
 .file-picker-modal__header { padding: 0 1rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .file-picker-modal__header h3 { margin: 0; font-size: 1.25rem; }
-.close-btn { background: none; border: none; color: var(--component-text-secondary); cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; border-radius: 4px; }
+.close-btn { background: none; border: none; color: var(--comp-text-sec); cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; border-radius: 4px; }
 .close-btn :deep(svg) { width: 24px; height: 24px; }
 </style>

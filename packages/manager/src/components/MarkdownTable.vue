@@ -503,7 +503,7 @@ function autoResize(e: Event) {
   min-width: 2em;
   max-width: 100%;
   background: none;
-  color: var(--text-primary);
+  color: var(--text-pri);
   border: none;
   outline: none;
   font: inherit;

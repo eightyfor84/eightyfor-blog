@@ -581,7 +581,7 @@ export function useEditorFile(options: EditorFileOptions) {
     const overlay = document.createElement('div')
     overlay.id = 'chronicle-print-overlay'
     overlay.style.cssText = 'position:fixed;inset:0;z-index:99998;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;font-family:var(--app-font-stack)'
-    overlay.innerHTML = '<div style="background:#1e1e1e;color:#e5e7eb;padding:24px 40px;border-radius:12px;font-size:16px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.3)"><div style="width:32px;height:32px;border:3px solid var(--border-color,#444);border-top-color:var(--accent-color,#3b82f6);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px"></div><span>' + (t('editor.printLoading') || 'Preparing print…') + '</span></div>'
+    overlay.innerHTML = '<div style="background:#1e1e1e;color:#e5e7eb;padding:24px 40px;border-radius:12px;font-size:16px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.3)"><div style="width:32px;height:32px;border:3px solid var(--border-color,#444);border-top-color:var(--accent,#3b82f6);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px"></div><span>' + (t('editor.printLoading') || 'Preparing print…') + '</span></div>'
     document.body.appendChild(overlay)
     // 注入 spinner 动画
     if (!document.getElementById('chronicle-spin-keyframes')) {

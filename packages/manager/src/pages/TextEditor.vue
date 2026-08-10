@@ -35,7 +35,7 @@ const skeletonShowDirectEntry = inject<Ref<boolean>>('skeletonShowDirectEntry', 
   position: fixed;
   inset: 0;
   z-index: 500;
-  background: var(--app-bg-primary);
+  background: var(--app-bg-pri);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -54,7 +54,7 @@ const skeletonShowDirectEntry = inject<Ref<boolean>>('skeletonShowDirectEntry', 
 }
 
 .skeleton-status {
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
   font-size: 1.25rem;
   margin: 0;
 }

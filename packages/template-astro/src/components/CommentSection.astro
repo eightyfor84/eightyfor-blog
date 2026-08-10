@@ -354,14 +354,14 @@ const isEmpty = commentTree.length === 0;
     font-size: 1.35rem;
     font-weight: 600;
     font-variation-settings: "wght" 600;
-    color: var(--app-text-primary);
+    color: var(--app-text-pri);
     margin: 0;
   }
 
   .cs-count {
     font-size: 0.85rem;
-    color: var(--app-text-secondary);
-    background: var(--component-bg);
+    color: var(--app-text-sec);
+    background: var(--comp-bg);
     padding: 0.15em 0.6em;
     border-radius: 1em;
   }
@@ -369,7 +369,7 @@ const isEmpty = commentTree.length === 0;
   .cs-empty {
     text-align: center;
     padding: 3rem 1rem;
-    color: var(--app-text-secondary);
+    color: var(--app-text-sec);
   }
 
   .cs-empty-icon {
@@ -398,17 +398,17 @@ const isEmpty = commentTree.length === 0;
   }
 
   .cs-comment--preview {
-    background: var(--component-bg);
+    background: var(--comp-bg);
     border: 1px dashed var(--border-color);
     border-radius: 10px;
   }
 
   .cs-comment:hover {
-    background: var(--component-bg-hover);
+    background: var(--hover);
   }
 
   .cs-comment--preview:hover {
-    background: var(--component-bg);
+    background: var(--comp-bg);
   }
 
   .cs-comment--reply {
@@ -428,7 +428,7 @@ const isEmpty = commentTree.length === 0;
     height: 40px;
     border-radius: 50%;
     object-fit: cover;
-    background: var(--component-bg-alt);
+    background: var(--comp-bg-alt);
   }
 
   .cs-avatar-img--sm {
@@ -443,8 +443,8 @@ const isEmpty = commentTree.length === 0;
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: var(--accent-color-bg);
-    color: var(--accent-color);
+    background: var(--accent-bg);
+    color: var(--accent);
     font-size: 1.1rem;
     font-weight: 600;
   }
@@ -472,11 +472,11 @@ const isEmpty = commentTree.length === 0;
     font-size: 0.9rem;
     font-weight: 600;
     font-variation-settings: "wght" 600;
-    color: var(--app-text-secondary);
+    color: var(--app-text-sec);
   }
 
   .cs-author a {
-    color: var(--accent-color);
+    color: var(--accent);
     font-weight: 600;
     font-variation-settings: "wght" 600;
     text-decoration: none;
@@ -488,7 +488,7 @@ const isEmpty = commentTree.length === 0;
 
   .cs-date {
     font-size: 0.78rem;
-    color: var(--app-text-secondary);
+    color: var(--app-text-sec);
     white-space: nowrap;
     opacity: 0.5;
   }
@@ -496,7 +496,7 @@ const isEmpty = commentTree.length === 0;
   .cs-content {
     font-size: 0.93rem;
     line-height: 1.6;
-    color: var(--app-text-primary);
+    color: var(--app-text-pri);
     word-break: break-word;
   }
 
@@ -530,14 +530,14 @@ const isEmpty = commentTree.length === 0;
     text-align: center;
     padding: 2rem 1rem;
     margin-bottom: 2rem;
-    color: var(--app-text-secondary);
+    color: var(--app-text-sec);
     font-size: 0.9rem;
   }
 
   .cs-form-title {
     font-size: 1.1rem;
     font-weight: 600;
-    color: var(--app-text-primary);
+    color: var(--app-text-pri);
     margin: 0 0 1rem;
   }
 
@@ -566,7 +566,7 @@ const isEmpty = commentTree.length === 0;
   .cs-field-label {
     font-size: 0.82rem;
     font-weight: 500;
-    color: var(--app-text-secondary);
+    color: var(--app-text-sec);
   }
 
   .cs-required {
@@ -584,10 +584,10 @@ const isEmpty = commentTree.length === 0;
     font-family: var(--app-font-stack);
     font-size: 0.9rem;
     padding: 0.6rem 0.8rem;
-    background: var(--app-bg-secondary);
+    background: var(--app-bg-sec);
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    color: var(--app-text-primary);
+    color: var(--app-text-pri);
     transition: border-color 0.15s, box-shadow 0.15s;
     outline: none;
     box-sizing: border-box;
@@ -595,13 +595,13 @@ const isEmpty = commentTree.length === 0;
 
   .cs-input:focus,
   .cs-textarea:focus {
-    border-color: var(--accent-color);
-    box-shadow: 0 0 0 3px var(--accent-color-bg);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-bg);
   }
 
   .cs-input::placeholder,
   .cs-textarea::placeholder {
-    color: var(--app-text-secondary);
+    color: var(--app-text-sec);
     opacity: 0.55;
   }
 
@@ -622,7 +622,7 @@ const isEmpty = commentTree.length === 0;
     align-items: center;
     gap: 0.45rem;
     padding: 0.6rem 1.4rem;
-    background: var(--accent-color);
+    background: var(--accent);
     color: #fff;
     border: none;
     border-radius: 8px;
@@ -650,7 +650,7 @@ const isEmpty = commentTree.length === 0;
 
   .cs-form-note {
     font-size: 0.8rem;
-    color: var(--app-text-secondary);
+    color: var(--app-text-sec);
     opacity: 0.7;
   }
 
@@ -668,12 +668,12 @@ const isEmpty = commentTree.length === 0;
     padding: 0.3rem 0.4rem 0.3rem 0.75rem;
     margin-bottom: 0.75rem;
     font-size: 0.82rem;
-    color: var(--app-text-primary);
-    background: var(--accent-color-bg);
-    border: 1px solid var(--accent-color);
+    color: var(--app-text-pri);
+    background: var(--accent-bg);
+    border: 1px solid var(--accent);
     border-radius: 8px;
   }
-  .cs-reply-indicator strong { color: var(--accent-color); font-weight: 600; }
+  .cs-reply-indicator strong { color: var(--accent); font-weight: 600; }
   .cs-cancel-reply.inline-clear-btn {
     margin-left: auto;
     flex-shrink: 0;
@@ -683,7 +683,7 @@ const isEmpty = commentTree.length === 0;
     border: none;
     border-radius: 4px;
     background: transparent;
-    color: var(--app-text-secondary);
+    color: var(--app-text-sec);
     cursor: pointer;
     display: inline-flex;
     align-items: center;
@@ -699,16 +699,16 @@ const isEmpty = commentTree.length === 0;
     padding: 0.55rem 1.2rem;
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    background: var(--component-bg);
-    color: var(--app-text-secondary);
+    background: var(--comp-bg-blur);
+    color: var(--app-text-sec);
     font-size: 0.92rem;
     font-family: var(--app-font-stack);
     font-weight: 500;
     cursor: pointer;
     transition: background 0.12s, color 0.12s;
   }
-  .cs-preview-btn:hover { background: var(--component-bg-hover); color: var(--app-text-primary); }
-  .cs-preview-btn.active { background: var(--accent-color-bg); color: var(--accent-color); border-color: var(--accent-color); }
+  .cs-preview-btn:hover { background: var(--comp-bg-blur-hvr); color: var(--app-text-pri); }
+  .cs-preview-btn.active { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
 
   .cs-preview {
     margin-top: 1rem;
@@ -721,7 +721,7 @@ const isEmpty = commentTree.length === 0;
   .cs-preview-label {
     font-size: 0.8rem;
     font-weight: 500;
-    color: var(--app-text-secondary);
+    color: var(--app-text-sec);
     text-transform: uppercase;
     letter-spacing: 0.4px;
   }
@@ -735,7 +735,7 @@ const isEmpty = commentTree.length === 0;
     gap: 0.25rem;
     background: none;
     border: none;
-    color: var(--app-text-secondary);
+    color: var(--app-text-sec);
     font-size: 0.78rem;
     cursor: pointer;
     padding: 0.2rem 0.5rem;
@@ -750,7 +750,7 @@ const isEmpty = commentTree.length === 0;
   .cs-reply-btn svg { flex-shrink: 0; }
   .cs-comment:hover .cs-reply-btn,
   .cs-comment:focus-within .cs-reply-btn { opacity: 1; visibility: visible; }
-  .cs-reply-btn:hover { color: var(--accent-color); background: var(--accent-color-bg); }
+  .cs-reply-btn:hover { color: var(--accent); background: var(--accent-bg); }
 
   @media (max-width: 500px) {
     .cs-form-row {

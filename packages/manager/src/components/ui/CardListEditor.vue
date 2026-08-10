@@ -304,7 +304,7 @@ onBeforeUnmount(() => {
   gap: 1rem;
   padding: 1rem 1.25rem;
   border-radius: 12px;
-  background: var(--component-bg-blur);
+  background: var(--comp-bg-blur);
   border: 1px solid var(--border-color);
 }
 
@@ -322,7 +322,7 @@ onBeforeUnmount(() => {
 
 .card-list-editor__text p {
   margin: 0;
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
   font-size: .9rem;
 }
 
@@ -330,7 +330,7 @@ onBeforeUnmount(() => {
   padding: 1rem;
   border-radius: 12px;
   border: 1px dashed var(--border-color);
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
   text-align: center;
 }
 
@@ -375,7 +375,7 @@ onBeforeUnmount(() => {
 }
 
 .card-list__item.dragging {
-  background: var(--component-bg-hover);
+  background: var(--comp-bg-blur-hvr);
   transform: scale(1.02);
   box-shadow: var(--shadow-elev-1);
   opacity: .72;
@@ -389,7 +389,7 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
   cursor: grab;
   align-self: stretch;
   /* let the handle fill the row height */
@@ -428,7 +428,7 @@ onBeforeUnmount(() => {
 .card-list__media {
   overflow: hidden;
   border-radius: 14px;
-  background: var(--component-bg-blur-alt);
+  background: var(--comp-bg-glass);
   border: 1px solid var(--border-color);
 }
 
@@ -463,8 +463,8 @@ onBeforeUnmount(() => {
   height: 100%;
   display: grid;
   place-items: center;
-  color: var(--component-text-secondary);
-  background: linear-gradient(135deg, color-mix(in srgb, var(--accent-color) 16%, transparent), transparent);
+  color: var(--comp-text-sec);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 16%, transparent), transparent);
   font-size: .82rem;
 }
 
@@ -492,14 +492,14 @@ onBeforeUnmount(() => {
   padding: .18rem .55rem;
   border-radius: 999px;
   font-size: .76rem;
-  color: var(--component-text-secondary);
-  background: var(--component-bg-blur-alt);
+  color: var(--comp-text-sec);
+  background: var(--comp-bg-glass);
   border: 1px solid var(--border-color);
 }
 
 .card-list__intro {
   margin: 0;
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
   line-height: 1.65;
 }
 
@@ -513,12 +513,12 @@ onBeforeUnmount(() => {
 
 .card-list__home,
 .card-list__story {
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
   font-size: .84rem;
 }
 
 .card-list__story {
-  color: var(--accent-color);
+  color: var(--accent);
 }
 
 .card-list__actions {
@@ -558,7 +558,7 @@ onBeforeUnmount(() => {
 }
 
 .icon-btn:hover {
-  background: var(--component-bg-hover);
+  background: var(--hover);
 }
 
 .delete-btn {
@@ -566,11 +566,11 @@ onBeforeUnmount(() => {
 }
 
 .delete-btn:hover {
-  background: var(--component-bg-hover);
+  background: var(--hover);
 }
 
 .edit-btn {
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
 }
 
 .field-required {

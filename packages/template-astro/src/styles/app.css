@@ -6,13 +6,13 @@
 }
 
 pre{
-  background: var(--component-bg);
-  color: var(--text-primary)
+  background: var(--comp-bg);
+  color: var(--text-pri)
 
 }
 
 .nav-header {
-  background: var(--component-bg-blur);
+  background: var(--comp-bg-blur);
   backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-color-blur);
   position: fixed;
@@ -54,7 +54,7 @@ pre{
 .mobile-title-back {
   background: transparent;
   border: none;
-  color: var(--text-primary);
+  color: var(--text-pri);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -65,7 +65,7 @@ pre{
 }
 
 .mobile-title-back:hover {
-  color: var(--text-primary);
+  color: var(--text-pri);
 }
 
 .mobile-title-back span {
@@ -77,13 +77,13 @@ pre{
 
 
 .app-title {
-  color: var(--text-primary);
+  color: var(--text-pri);
   margin: 0;
   font-size: 1.5rem;
 }
 
 .reading-title {
-  color: var(--text-primary);
+  color: var(--text-pri);
   font-size: 1rem;
   font-weight: 600;
   font-variation-settings: 'wght' 600;
@@ -158,7 +158,7 @@ pre{
   /* hide on desktop, show on small screens via media query */
   background: transparent;
   border: none;
-  color: var(--text-primary);
+  color: var(--text-pri);
   cursor: pointer;
   align-items: center;
   justify-content: center;
@@ -199,24 +199,24 @@ pre{
 }
 
 .nav-link.router-link-active {
-  background: var(--component-bg-hover);
-  color: var(--component-text-primary-hover);
+  background: var(--active);
+  color: var(--comp-text-pri-hvr);
 }
 
 .new-post-btn {
-  background: var(--accent-color);
+  background: var(--accent);
   color: white !important;
   font-weight: 600;
   font-variation-settings: 'wght' 500;
 }
 
 .new-post-btn:hover {
-  background: var(--accent-color-hover) !important;
+  background: var(--accent-hvr) !important;
 }
 
 .nav-link:hover {
-  background: var(--component-bg-hover);
-  color: var(--component-text-primary-hover);
+  background: var(--hover);
+  color: var(--comp-text-pri-hvr);
 }
 
 
@@ -300,16 +300,16 @@ html.immersive:not(.focus) .main-content {
   /* hover background should not change */
   border: none;
   /* remove border on hover */
-  color: var(--text-primary);
+  color: var(--text-pri);
 }
 
 .nav-settings-menu {
   /* reduce opacity to make blur more visible */
-  background: var(--component-bg);
+  background: var(--comp-bg);
   backdrop-filter: blur(16px);
   /* Use fixed so the menu overlays page content — allows backdrop-filter to blur underlying page */
   position: fixed;
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
   top: 70px;
   /* immediately under the header */
   right: 24px;
@@ -348,14 +348,14 @@ html.immersive:not(.focus) .main-content {
   padding: 6px 10px;
   background: transparent;
   border: none;
-  color: var(--text-primary);
+  color: var(--text-pri);
   cursor: pointer;
   border-radius: 6px
 }
 
 .popup-item:hover {
-  background: var(--component-bg-hover);
-  color: var(--component-text-primary-hover);
+  background: var(--hover);
+  color: var(--comp-text-pri-hvr);
 }
 
 .popup-label {
@@ -409,7 +409,7 @@ html.immersive:not(.focus) .main-content {
     right: 0;
     bottom: 0;
     height: 100dvh;
-    background: var(--app-bg-secondary);
+    background: var(--app-bg-sec);
     flex-direction: column;
     justify-content: center;
     align-items: center;
@@ -425,7 +425,7 @@ html.immersive:not(.focus) .main-content {
     right: 20px;
     background: transparent;
     border: none;
-    color: var(--text-primary);
+    color: var(--text-pri);
     width: 44px;
     height: 44px;
     display: flex;

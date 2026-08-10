@@ -110,7 +110,7 @@
     background: transparent;
     transition: background 0.2s ease, color 0.2s ease;
     font-size: 0.85rem;
-    color: var(--component-text-primary);
+    color: var(--comp-text-pri);
     cursor: pointer;
     outline: none;
     box-shadow: none;
@@ -120,13 +120,13 @@
 }
 
 .chronicle-fb-sort-select option {
-    background: var(--component-bg);
-    color: var(--text-primary);
+    background: var(--comp-bg);
+    color: var(--text-pri);
 }
 
 .chronicle-fb-sort-select:hover,
 .chronicle-fb-sort-select:focus {
-    background: color-mix(in srgb, var(--component-text-primary-hover) 20%, transparent);
+    background: color-mix(in srgb, var(--comp-text-pri-hvr) 20%, transparent);
 }
 
 .chronicle-fb-sort-toggle {
@@ -140,7 +140,7 @@
     min-width: 28px;
     background: transparent;
     transition: background 0.2s ease, color 0.2s ease;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     cursor: pointer;
     outline: none;
     box-shadow: none;
@@ -149,8 +149,8 @@
 }
 
 .chronicle-fb-sort-toggle:hover {
-    background: color-mix(in srgb, var(--component-text-primary-hover) 20%, transparent);
-    color: var(--component-text-primary-hover);
+    background: color-mix(in srgb, var(--comp-text-pri-hvr) 20%, transparent);
+    color: var(--comp-text-pri-hvr);
 }
 
 .chronicle-fb-sort-toggle svg {
@@ -175,7 +175,7 @@
     justify-content: center;
     gap: 0.5rem;
     font-size: 0.85rem;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     border: none;
     background: transparent;
     transition: background 0.2s ease, color 0.2s ease;
@@ -185,8 +185,8 @@
 }
 
 .chronicle-fb-btn:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--component-text-primary-hover) 20%, transparent);
-    color: var(--component-text-primary-hover);
+    background: color-mix(in srgb, var(--comp-text-pri-hvr) 20%, transparent);
+    color: var(--comp-text-pri-hvr);
 }
 
 .chronicle-fb-btn svg {
@@ -232,12 +232,12 @@
 }
 
 .chronicle-fb-card:hover {
-    border-color: var(--component-text-secondary);
+    border-color: var(--comp-text-sec);
 }
 
 .chronicle-fb-card.selected {
-    border-color: var(--accent-color);
-    background: color-mix(in srgb, var(--accent-color) 8%, transparent);
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
 }
 
 .chronicle-fb-thumb {
@@ -267,7 +267,7 @@
 
 .chronicle-fb-name {
     font-size: 0.8rem;
-    color: var(--component-text-primary);
+    color: var(--comp-text-pri);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -280,9 +280,9 @@
     align-items: center;
     gap: 4px;
     font-size: 0.75rem;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     border: none;
-    background: color-mix(in srgb, var(--component-text-primary-hover) 10%, transparent);
+    background: color-mix(in srgb, var(--comp-text-pri-hvr) 10%, transparent);
     transition: background 0.2s ease, color 0.2s ease;
     cursor: pointer;
     border-radius: 6px;
@@ -291,8 +291,8 @@
 }
 
 .chronicle-fb-preview-btn:hover {
-    background: color-mix(in srgb, var(--component-text-primary-hover) 20%, transparent);
-    color: var(--component-text-primary-hover);
+    background: color-mix(in srgb, var(--comp-text-pri-hvr) 20%, transparent);
+    color: var(--comp-text-pri-hvr);
 }
 
 .chronicle-fb-preview-btn svg {
@@ -316,7 +316,7 @@
     position: sticky;
     top: 0;
     z-index: 1;
-    border-left: 1px solid var(--component-bg-blur-alt);
+    border-left: 1px solid var(--comp-bg-glass);
 }
 
 .chronicle-fb-table th {
@@ -324,21 +324,21 @@
     cursor: pointer;
     padding: 0.4rem 0.5rem;
     font-weight: 500;
-    color: var(--component-text-secondary);
-    background: var(--component-bg-blur-alt);
+    color: var(--comp-text-sec);
+    background: var(--comp-bg-glass);
     transition: color 0.2s;
     white-space: nowrap;
 }
 
 .chronicle-fb-table th:hover {
-    color: var(--component-text-primary);
+    color: var(--comp-text-pri);
 }
 
 .chronicle-fb-table td {
     padding: 0.35rem 0.5rem;
     border-bottom: 1px solid var(--border-color);
     vertical-align: middle;
-    color: var(--component-text-primary);
+    color: var(--comp-text-pri);
 }
 
 .chronicle-fb-table tbody tr {
@@ -348,15 +348,15 @@
 }
 
 .chronicle-fb-table tbody tr:hover {
-    background: var(--component-bg-hover);
+    background: var(--hover);
 }
 
 .chronicle-fb-table tbody tr.selected {
-    background: color-mix(in srgb, var(--accent-color) 10%, transparent);
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
 }
 
 .chronicle-fb-table tbody tr.selected:hover {
-    background: color-mix(in srgb, var(--accent-color) 14%, transparent);
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
 }
 
 .chronicle-fb-name-col {
@@ -364,12 +364,12 @@
 }
 
 .chronicle-fb-type-col {
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     font-size: 0.8rem;
 }
 
 .chronicle-fb-created-col {
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     font-size: 0.8rem;
     white-space: nowrap;
 }
@@ -403,7 +403,7 @@
 .chronicle-fb-empty {
     grid-column: 1 / -1;
     text-align: center;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     padding: 40px;
     font-size: 0.9rem;
 }
@@ -412,7 +412,7 @@
 .chronicle-fb-table-wrap .chronicle-fb-empty {
     display: block;
     text-align: center;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     padding: 40px;
     font-size: 0.9rem;
 }
@@ -422,7 +422,7 @@
 .chronicle-fb-icon {
     width: 36px;
     height: 36px;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -447,7 +447,7 @@
     gap: 1rem;
     padding: 0.6rem 1rem;
     border-radius: 10px;
-    background: var(--component-bg-blur-alt);
+    background: var(--comp-bg-glass);
     border: 1px solid var(--border-color-blur);
     backdrop-filter: blur(6px);
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.25);
@@ -457,7 +457,7 @@
 .batch-count {
     font-weight: 600;
     font-size: 0.9rem;
-    color: var(--component-text-primary);
+    color: var(--comp-text-pri);
 }
 
 .batch-check-all {
@@ -465,14 +465,14 @@
     align-items: center;
     gap: 0.3rem;
     font-size: 0.85rem;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     cursor: pointer;
 }
 
 .batch-check-all input {
     width: 14px;
     height: 14px;
-    accent-color: var(--accent-color);
+    accent-color: var(--accent);
 }
 
 .batch-actions {
@@ -498,7 +498,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     flex-shrink: 0;
 }
 

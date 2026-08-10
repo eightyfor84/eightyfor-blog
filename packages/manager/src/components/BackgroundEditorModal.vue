@@ -298,7 +298,7 @@ const canEditSize = computed(() => meta.mode === 'custom' || meta.mode === 'tile
   width: 92%;
   max-width: 900px;
   max-height: 80vh;
-  background: var(--component-bg);
+  background: var(--comp-bg);
   border: 1px solid var(--border-color);
   border-radius: 10px;
   overflow: hidden;
@@ -368,14 +368,14 @@ const canEditSize = computed(() => meta.mode === 'custom' || meta.mode === 'tile
 .preview-theme-toggle button {
   background: rgba(0, 0, 0, 0.12);
   border: none;
-  color: var(--text-primary);
+  color: var(--text-pri);
   padding: 6px 8px;
   border-radius: 6px;
   cursor: pointer
 }
 
 .preview-theme-toggle button.active {
-  background: var(--accent-color);
+  background: var(--accent);
   color: var(--text-on-accent)
 }
 
@@ -408,7 +408,7 @@ const canEditSize = computed(() => meta.mode === 'custom' || meta.mode === 'tile
   height: 40px;
   border-radius: 8px;
   cursor: pointer;
-  color: var(--text-primary);
+  color: var(--text-pri);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -486,11 +486,11 @@ const canEditSize = computed(() => meta.mode === 'custom' || meta.mode === 'tile
   padding: 0 2px;
 
   cursor: pointer;
-  color: var(--text-primary)
+  color: var(--text-pri)
 }
 
 .clone-button:hover {
-  color: var(--accent-color);
+  color: var(--accent);
 }
 
 .bg-editor-actions {
@@ -503,7 +503,7 @@ const canEditSize = computed(() => meta.mode === 'custom' || meta.mode === 'tile
 }
 
 .primary {
-  background: var(--accent-color);
+  background: var(--accent);
   color: var(--text-on-accent);
   padding: 8px 12px;
   border-radius: 6px;
@@ -520,7 +520,7 @@ const canEditSize = computed(() => meta.mode === 'custom' || meta.mode === 'tile
 .close-btn {
   background: none;
   border: none;
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
   cursor: pointer;
   padding: 4px;
   display: flex;
@@ -551,7 +551,7 @@ label.small {
   gap: 1rem;
   padding-top: 1rem;
   border-radius: 18px;
-  background: var(--component-bg);
+  background: var(--comp-bg);
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-elev-2);
   overflow: hidden;
@@ -578,7 +578,7 @@ label.small {
 
 h5 {
   margin: 0;
-  color: var(--text-primary);
+  color: var(--text-pri);
 }
 
 @media (max-width: 768px) {

@@ -80,7 +80,7 @@ function ensureRoot() {
           <button type="button" class="math-tooltip-action math-tooltip-copy" aria-label="Copy TeX"> <svg class="copy-icon" width="18" height="18" viewBox="0 0 20 20" fill="none"><rect x="7" y="7" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.5"></rect><rect x="4" y="4" width="9" height="9" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"></rect></svg> </button>
         </div>
       </div>
-      <pre class="syntax-highlight math-tooltip-source"><code></code></pre>
+      <pre class="syntax-hl math-tooltip-source"><code></code></pre>
     </div>
   `
   document.body.appendChild(root)

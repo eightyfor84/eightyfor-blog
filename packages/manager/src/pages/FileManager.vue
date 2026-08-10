@@ -596,7 +596,7 @@ onUnmounted(() => {
     display: flex;
     height: 100%;
     background: transparent;
-    color: var(--text-primary);
+    color: var(--text-pri);
     gap: 0;
 }
 
@@ -627,7 +627,7 @@ onUnmounted(() => {
     padding: 12px 14px 8px;
     font-size: 12px;
     text-transform: uppercase;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     font-weight: 600;
     letter-spacing: 0.6px;
 }
@@ -676,12 +676,12 @@ onUnmounted(() => {
     margin: 0;
     font-size: 1.3rem;
     font-weight: 600;
-    color: var(--component-text-primary);
+    color: var(--comp-text-pri);
 }
 
 /* View toggle */
 :deep(.chronicle-fb-view-toggle) {
-    background: color-mix(var(--component-bg-blur-alt) 40%, transparent);
+    background: color-mix(var(--comp-bg-glass) 40%, transparent);
     height: 28px;
     border-radius: 10px;
     margin-right: 10px;
@@ -736,7 +736,7 @@ onUnmounted(() => {
     left: 6px;
     width: 16px;
     height: 16px;
-    accent-color: var(--accent-color);
+    accent-color: var(--accent);
     cursor: pointer;
     z-index: 2;
     opacity: 0;
@@ -751,7 +751,7 @@ onUnmounted(() => {
 .row-checkbox {
     width: 16px;
     height: 16px;
-    accent-color: var(--accent-color);
+    accent-color: var(--accent);
     cursor: pointer;
 }
 
@@ -765,21 +765,21 @@ onUnmounted(() => {
     width: 14px;
     height: 14px;
     vertical-align: middle;
-    accent-color: var(--accent-color);
+    accent-color: var(--accent);
     cursor: pointer;
 }
 
 .chronicle-fb-card--selected {
-    outline: 2px solid var(--accent-color);
+    outline: 2px solid var(--accent);
     outline-offset: -2px;
 }
 
 .chronicle-fb-row--selected {
-    background: color-mix(in srgb, var(--accent-color) 6%, transparent) !important;
+    background: color-mix(in srgb, var(--accent) 6%, transparent) !important;
 }
 
 .chronicle-fb-row--selected td:first-child {
-    border-left: 3px solid var(--accent-color);
+    border-left: 3px solid var(--accent);
 }
 
 /* ── Grid / card view ──────────────────────────────────────────────── */
@@ -1029,7 +1029,7 @@ onUnmounted(() => {
         font-size: 1.3rem;
         font-weight: 600;
         font-variation-settings: 'wght' 600;
-        color: var(--component-text-primary);
+        color: var(--comp-text-pri);
         background: transparent;
         border: none;
         border-radius: 0;

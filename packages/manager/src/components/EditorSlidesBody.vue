@@ -134,7 +134,7 @@ function applyAccentTheme(md: string) {
   if (raw === lastAccent && tintedBg === lastTintedBg) return
   lastAccent = raw; lastTintedBg = tintedBg
   const accent = raw === 'follow'
-    ? getComputedStyle(document.body).getPropertyValue('--accent-color').trim() || '#2563eb'
+    ? getComputedStyle(document.body).getPropertyValue('--accent').trim() || '#2563eb'
     : raw === 'default' ? '#2563eb'
     : (raw.startsWith('#') ? raw : `#${raw}`)
   try {
@@ -656,7 +656,7 @@ defineExpose({
 <style>
 /* flash highlight for directive focus — 瞬间亮，背景渐隐 */
 .chronicle-flash-line {
-  background: var(--accent-color)!important;
+  background: var(--accent)!important;
   border-radius: 4px;
 }
 .chronicle-flash-line.remove {
@@ -706,7 +706,7 @@ defineExpose({
   justify-content: space-between;
   padding: 6px 10px;
   font-size: .75rem;
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
 }
 
 .thumbnail-count {
@@ -719,7 +719,7 @@ defineExpose({
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
   padding: 2px;
   width: 22px;
   height: 22px;
@@ -727,8 +727,8 @@ defineExpose({
 }
 
 .thumbnail-toggle:hover {
-  background: var(--component-bg-hover);
-  color: var(--component-text-primary);
+  background: var(--hover);
+  color: var(--comp-text-pri);
 }
 
 .thumbnail-toggle .icon-svg :deep(svg) {
@@ -745,7 +745,7 @@ defineExpose({
   flex-direction: column;
   gap: 3px;
 
-  background: var(--component-bg-blur);
+  background: var(--comp-bg-blur);
   border-radius: 12px;
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-elev-1);
@@ -763,19 +763,19 @@ defineExpose({
   border-radius: 6px;
   cursor: pointer;
   font-size: .75rem;
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
   border: 1px solid transparent;
   transition: background 0.2s, border-color 0.2s, color 0.2s;
 }
 
 .thumbnail-item.active {
-  background: var(--component-bg-accent);
-  border-color: var(--accent-color);
-  color: var(--text-primary);
+  background: var(--comp-bg-accent);
+  border-color: var(--accent);
+  color: var(--text-pri);
 }
 
 .thumbnail-item:hover:not(.active) {
-  background: var(--component-bg-hover);
+  background: var(--comp-bg-accent-hvr);
 }
 
 .thumbnail-num {
@@ -783,11 +783,11 @@ defineExpose({
   font-size: 11px;
   min-width: 18px;
   text-align: center;
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
 }
 
 .thumbnail-item.active .thumbnail-num,.thumbnail-item.active .thumbnail-label {
-  color: var(--component-text-primary-highlight);
+  color: var(--comp-text-pri-hl);
 }
 
 .thumbnail-label {
@@ -819,18 +819,18 @@ defineExpose({
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: var(--bg-primary);
+  background: var(--bg-pri);
 }
 
 .empty-preview {
   text-align: center;
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
   padding: 2rem;
   line-height: 1.8;
 }
 
 .empty-preview code {
-  background: var(--component-bg-hover);
+  background: var(--hover);
   padding: 2px 6px;
   border-radius: 3px;
   font-size: 0.9em;
@@ -852,17 +852,17 @@ defineExpose({
   border: none;
   cursor: pointer;
   font-size: 11px;
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
 }
 
 .notes-toggle:hover {
-  background: var(--component-bg-hover);
+  background: var(--hover);
 }
 
 .notes-content {
   padding: 8px 12px;
   font-size: 12px;
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
   white-space: pre-wrap;
   max-height: 120px;
   overflow-y: auto;
@@ -878,12 +878,12 @@ defineExpose({
   bottom: 24px;
   gap: 8px;
   padding: 4px 12px;
-  background: var(--component-bg-blur);
+  background: var(--comp-bg-blur);
   backdrop-filter: blur(6px);
   border-radius: 99999px;
   box-shadow: var(--shadow-elev-2);
   font-size: .8rem;
-  color: var(--component-text-primary);
+  color: var(--comp-text-pri);
 }
 
 .slide-controls-bar button {
@@ -891,7 +891,7 @@ defineExpose({
   padding: 6px 8px;
   border-radius: 8px;
   background: transparent;
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
   cursor: pointer;
   font-size: 12px;
   transition: background 0.2s, color 0.2s;
@@ -908,8 +908,8 @@ defineExpose({
 
 
 .slide-controls-bar button:hover {
-  background: var(--component-bg-hover);
-  color: var(--component-text-primary);
+  background: var(--hover);
+  color: var(--comp-text-pri);
   cursor: pointer;
   font-size: 12px;
 }
@@ -946,8 +946,8 @@ defineExpose({
 
 .pane-divider:hover .divider-line {
   width: 2px;
-  background: color-mix(in srgb, var(--component-text-primary-highlight) 85%, transparent);
-  box-shadow: 0 0 4px 0 var(--component-text-primary-highlight);
+  background: color-mix(in srgb, var(--comp-text-pri-hl) 85%, transparent);
+  box-shadow: 0 0 4px 0 var(--comp-text-pri-hl);
 }
 
 .pane-divider .divider-line {

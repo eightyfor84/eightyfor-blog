@@ -28,7 +28,7 @@ export async function renderSlidesToHTML(md: string): Promise<{ html: string; cs
       if (tb) tintedBg = tb[1] === 'true'
     }
     const accent = (fmAccent === 'follow')
-      ? (getComputedStyle(document.documentElement).getPropertyValue('--accent-color').trim() || '#2563eb')
+      ? (getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#2563eb')
       : (fmAccent && fmAccent !== 'default' ? fmAccent : '#2563eb')
     try { marp.themeSet.add(chronicleLightTheme(accent, tintedBg)) } catch (e) { console.warn('[useMarpEngine] Failed to register Chronicle theme', e) }
     try { marp.themeSet.add(chronicleDarkTheme(accent, tintedBg)) } catch (e) { console.warn('[useMarpEngine] Failed to register Chronicle Dark theme', e) }

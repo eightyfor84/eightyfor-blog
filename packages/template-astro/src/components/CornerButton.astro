@@ -34,7 +34,7 @@ const isMenu = template === 'menu';
 
 <div data-cb-root={id} class={`cb ${sideClass}`} data-cb-template={template} data-cb-close={String(closeOnBackdrop)}>
   <div class="cb__backdrop" hidden></div>
-  <div class:list={['cb__btn', { 'cb--primary': isPrimary }, { 'cb--btt': isBtt }, { 'is-capsule': capsule }]} style={capsule ? `width:${capsuleWidth}px` : ''}>
+  <div class:list={['cb__btn', { 'cb--pri': isPrimary }, { 'cb--btt': isBtt }, { 'is-capsule': capsule }]} style={capsule ? `width:${capsuleWidth}px` : ''}>
     <div class="cb__icons">
       {isBtt && (
         <button class="cb__slot" data-action="scrollToTop" title={t('misc.backToTop')} aria-label={t('misc.backToTop')}>
@@ -108,8 +108,8 @@ const isMenu = template === 'menu';
   /* === Shell (collapsed) === */
   .cb__btn {
     position:fixed;bottom:30px;width:50px;min-height:50px;border-radius:50px;
-    background:var(--component-bg-blur-alt);border:1px solid var(--border-color-blur);
-    color:var(--component-text-primary);box-shadow:var(--shadow-elev-2);
+    background:var(--comp-bg-glass);border:1px solid var(--border-color-blur);
+    color:var(--comp-text-pri);box-shadow:var(--shadow-elev-2);
     backdrop-filter:blur(5px);
     z-index:300;cursor:pointer;overflow:hidden;display:block;max-height:50px;
     will-change:transform;contain:layout style;
@@ -126,18 +126,18 @@ const isMenu = template === 'menu';
   .cb--left .cb__btn  { left:30px;right:auto }
   .cb--right .cb__btn { right:30px;left:auto }
 
-  .cb__btn.cb--primary { background:var(--component-bg-accent-ghost);border-color:var(--component-bg-accent-ghost);color:var(--component-text-accent-ghost) }
+  .cb__btn.cb--pri { background:var(--comp-bg-accent-ghost);border-color:var(--comp-bg-accent-ghost);color:var(--comp-text-accent-ghost) }
 
   /* Hover — desktop */
   html:not(.is-mobile) .cb__btn:not(.cb--open):hover { transform:scale(1.1) }
-  html:not(.is-mobile) .cb__btn.cb--primary:not(.cb--open):hover { background:var(--component-bg-accent-hover);border-color:var(--component-bg-accent-hover);color:var(--component-text-accent-hover) }
+  html:not(.is-mobile) .cb__btn.cb--pri:not(.cb--open):hover { background:var(--comp-bg-accent-hvr);border-color:var(--comp-bg-accent-hvr);color:var(--comp-text-accent-hvr) }
   
   html:not(.is-mobile) .cb__btn.cb__btn.is-capsule:not(.cb--open):hover { transform:scale(1.1) }
 
   
   /* Active — mobile */
   html.is-mobile .cb__btn:not(.cb--open):active { transform:scale(1.3);filter:brightness(1.5) }
-  html.is-mobile .cb__btn.cb--primary:not(.cb--open):active { border-color:color-mix(in srgb,var(--component-bg-accent-ghost) 80%,#fff6);background:color-mix(in srgb,var(--component-bg-accent-ghost) 80%,#fff6) }
+  html.is-mobile .cb__btn.cb--pri:not(.cb--open):active { border-color:color-mix(in srgb,var(--comp-bg-accent-ghost) 80%,#fff6);background:color-mix(in srgb,var(--comp-bg-accent-ghost) 80%,#fff6) }
 
   html.is-mobile .cb__btn.is-capsule:not(.cb--open):active { transform:scale(1.15);filter:brightness(1.2) }
   
@@ -145,8 +145,8 @@ const isMenu = template === 'menu';
   .cb__btn.cb--open {
     left:30px!important;right:30px!important;bottom:90px;
     width:calc(100vw - 60px)!important;max-height:60vh;border-radius:12px;
-    background:var(--component-bg-blur);border-color:var(--border-color);
-    color:var(--component-text-primary);box-shadow:var(--shadow-elev-3);
+    background:var(--comp-bg-blur);border-color:var(--border-color);
+    color:var(--comp-text-pri);box-shadow:var(--shadow-elev-3);
     z-index:1400!important;cursor:default;overflow:hidden;
     transition:left calc(700ms * var(--transition-duration)) cubic-bezier(0.22,0.9,0.36,1),
                bottom calc(600ms * var(--transition-duration)) cubic-bezier(0.22,0.9,0.36,1),
@@ -158,7 +158,7 @@ const isMenu = template === 'menu';
                border-color calc(700ms * var(--transition-duration)) cubic-bezier(0.22,0.9,0.36,1),
                transform 0.15s ease-out;
   }
-  .cb__btn.cb--open:hover,.cb__btn.cb--open:active { transform:none!important;filter:none!important;background:var(--component-bg-blur);border-color:var(--border-color);color:var(--component-text-primary) }
+  .cb__btn.cb--open:hover,.cb__btn.cb--open:active { transform:none!important;filter:none!important;background:var(--comp-bg-blur);border-color:var(--border-color);color:var(--comp-text-pri) }
 
   /* === BTT visibility === */
   .cb__btn.cb--btt { opacity:0;pointer-events:none;transform:translateY(20px);transition:opacity .15s ease-out,transform .15s ease-out }
@@ -188,12 +188,12 @@ const isMenu = template === 'menu';
   .cb__list { list-style:none;margin:0;padding:0; overflow-x:hidden; gap: 4px; display:flex;flex-direction:column;overflow-y:auto }
   .cb__list-item { padding:6px 4px;border-radius:6px; transition:background 0.15s,color 0.15s;cursor:pointer;display:flex;align-items:center }
   .cb__list-item a { width:100%;display:block }
-  .cb__list-item.cb--active { background:var(--component-bg-hover) }
-  .cb__list-item.cb--active .cb__list-text { color:var(--component-text-primary);font-weight:500 }
+  .cb__list-item.cb--active { background:var(--active) }
+  .cb__list-item.cb--active .cb__list-text { color:var(--comp-text-pri);font-weight:500 }
   .cb__list-link { color:inherit;text-decoration:none;display:block;padding:6px 4px;margin:-6px -4px }
-  .cb__list-text { text-align:left;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--component-text-primary);padding:0 .5rem }
-  .cb__list-item:hover { background:var(--component-bg-hover);color:var(--component-text-primary-hover) }
-  .cb__list-item:hover .cb__list-text{ color:var(--component-text-primary-hover) }
+  .cb__list-text { text-align:left;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--comp-text-pri);padding:0 .5rem }
+  .cb__list-item:hover { background:var(--hover);color:var(--comp-text-pri-hvr) }
+  .cb__list-item:hover .cb__list-text{ color:var(--comp-text-pri-hvr) }
   .cb__list-item--l1 a{padding-left:1px}.cb__list-item--l2 a{padding-left:16px}.cb__list-item--l3 a{padding-left:30px}.cb__list-item--l4 a{padding-left:44px}.cb__list-item--l5 a{padding-left:58px}.cb__list-item--l6 a{padding-left:72px}
 
   /* Scrollbar */
@@ -203,6 +203,6 @@ const isMenu = template === 'menu';
   /* === Menu helpers === */
   .cb__divider { width:1px;height:24px;background:transparent;align-self:center;flex-shrink:0 }
   .cb__menu-group { margin-bottom:12px }
-  .cb__menu-title { font-weight:600;font-size:.85em;color:var(--component-text-secondary);padding:4px 8px }
+  .cb__menu-title { font-weight:600;font-size:.85em;color:var(--comp-text-sec);padding:4px 8px }
 
 </style>

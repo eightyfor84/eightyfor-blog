@@ -270,7 +270,7 @@ function applyBackgroundToDom() {
       overlayEl.style.background = activeOverlay
     }
     if (surfaceEl) {
-      /* try { surfaceEl.style.background = getComputedStyle(document.documentElement).getPropertyValue('--app-bg-primary') || 'transparent' } catch (e) { }*/
+      /* try { surfaceEl.style.background = getComputedStyle(document.documentElement).getPropertyValue('--app-bg-pri') || 'transparent' } catch (e) { }*/
     }
   } catch (e) { }
 }
@@ -340,8 +340,8 @@ async function save() {
     // Apply accent color immediately
     try {
       const accent = uiAccentColor.value || '#2ea35f'
-      document.documentElement.style.setProperty('--accent-color', accent)
-      document.documentElement.style.setProperty('--accent-color-dark', buildDarkerColor(accent))
+      document.documentElement.style.setProperty('--accent', accent)
+      document.documentElement.style.setProperty('--accent-dark', buildDarkerColor(accent))
     } catch (e) { }
   } catch (e) { }
 
@@ -378,7 +378,7 @@ function reset() {
 }
 
 .hint {
-  color: var(--text-secondary);
+  color: var(--text-sec);
   margin-top: -4px;
   margin-bottom: 12px;
 }
@@ -405,9 +405,9 @@ function reset() {
 }
 
 .appearance-preview {
-  --preview-accent: var(--accent-color);
-  --preview-accent-dark: var(--accent-color-dark);
-  background: var(--component-bg);
+  --preview-accent: var(--accent);
+  --preview-accent-dark: var(--accent-dark);
+  background: var(--comp-bg);
   border: 1px solid var(--border-color);
   border-radius: 10px;
   padding: 16px;
@@ -421,7 +421,7 @@ function reset() {
 }
 
 .preview-panel {
-  background: var(--bg-primary);
+  background: var(--bg-pri);
   border: 1px solid var(--border-color);
   border-radius: 10px;
   padding: 12px;
@@ -436,7 +436,7 @@ function reset() {
 
 .preview-title {
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-pri);
 }
 
 .preview-chip {
@@ -455,9 +455,9 @@ function reset() {
 }
 
 .preview-tag {
-  background: var(--component-bg-alt);
+  background: var(--comp-bg-alt);
   border: 1px solid var(--border-color);
-  color: var(--text-secondary);
+  color: var(--text-sec);
   padding: 3px 8px;
   border-radius: 999px;
   font-size: 0.82rem;
@@ -470,7 +470,7 @@ function reset() {
 }
 
 .preview-card {
-  background: var(--component-bg);
+  background: var(--comp-bg);
   border: 1px solid var(--border-color);
   border-radius: 10px;
   padding: 12px;
@@ -483,7 +483,7 @@ function reset() {
 
 .preview-card p {
   margin: 0;
-  color: var(--text-secondary);
+  color: var(--text-sec);
   line-height: 1.55;
 }
 
@@ -523,7 +523,7 @@ function reset() {
 }
 
 .color-text {
-  color: var(--text-secondary);
+  color: var(--text-sec);
   font-size: 0.9rem;
 }
 

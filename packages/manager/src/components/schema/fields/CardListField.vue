@@ -214,18 +214,18 @@ function moveCard(from: number, to: number) {
 
 <style scoped>
 .modal-overlay { z-index: 10040; position: fixed; inset: 0; background: rgba(0,0,0,.45); display: grid; place-items: center; padding: 1rem; }
-.card-modal { width: min(720px, 100%); max-height: min(88vh, 900px); display: grid; grid-template-rows: auto 1fr auto; gap: 1rem; padding: 1rem; border-radius: 18px; background: var(--component-bg); border: 1px solid var(--border-color); box-shadow: var(--shadow-elev-2); overflow: hidden; }
+.card-modal { width: min(720px, 100%); max-height: min(88vh, 900px); display: grid; grid-template-rows: auto 1fr auto; gap: 1rem; padding: 1rem; border-radius: 18px; background: var(--comp-bg); border: 1px solid var(--border-color); box-shadow: var(--shadow-elev-2); overflow: hidden; }
 .card-modal__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
 .card-modal__header h3 { margin: 0; font-size: 1.25rem; }
 .card-modal__body { min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 1rem; }
-.card-modal__preview { display: flex; gap: 1rem; align-items: center; padding: .75rem; border-radius: 12px; background: var(--component-bg-blur); border: 1px solid var(--border-color); }
+.card-modal__preview { display: flex; gap: 1rem; align-items: center; padding: .75rem; border-radius: 12px; background: var(--comp-bg-blur); border: 1px solid var(--border-color); }
 .card-modal__preview-media { width: 64px; height: 64px; border-radius: 10px; overflow: hidden; flex-shrink: 0; }
 .card-modal__preview-media img { width: 100%; height: 100%; object-fit: cover; }
 .card-modal__preview-text { min-width: 0; }
 .card-modal__preview-text strong { display: block; }
-.card-modal__preview-text p { margin: .25rem 0 0; color: var(--component-text-secondary); font-size: .9rem; }
+.card-modal__preview-text p { margin: .25rem 0 0; color: var(--comp-text-sec); font-size: .9rem; }
 .card-modal__fields { display: flex; flex-direction: column; gap: .75rem; }
 .card-modal__actions { display: flex; justify-content: flex-end; gap: .5rem; }
-.close-btn { background: none; border: none; color: var(--component-text-secondary); cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; border-radius: 4px; }
+.close-btn { background: none; border: none; color: var(--comp-text-sec); cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; border-radius: 4px; }
 .close-btn :deep(svg) { width: 24px; height: 24px; }
 </style>

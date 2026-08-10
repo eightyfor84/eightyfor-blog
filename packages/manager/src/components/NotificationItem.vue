@@ -64,7 +64,7 @@
       <button
         v-for="action in notification.actions"
         :key="action.handler"
-        :class="['nc-action-btn', action.kind === 'primary' ? 'nc-action-primary' : 'nc-action-ghost']"
+        :class="['nc-action-btn', action.kind === 'primary' ? 'nc-action-pri' : 'nc-action-ghost']"
         @click="$emit('action', notification.id, action.handler)"
       >
         {{ action.label }}
@@ -233,7 +233,7 @@ const timeLabel = computed(() => {
 <style scoped>
 .nc-item {
   position: relative;
-  background: color-mix(in srgb, var(--component-bg-blur-alt) 70%, #fff5);
+  background: color-mix(in srgb, var(--comp-bg-glass) 70%, #fff5);
   border-radius: 12px;
   padding: 0 0 6px 0;
   transition: transform 0.25s ease, opacity 0.25s ease;
@@ -264,15 +264,15 @@ const timeLabel = computed(() => {
   border: none;
   border-radius: 50%;
   background: transparent;
-  color: var(--text-secondary);
+  color: var(--text-sec);
   cursor: pointer;
   opacity: 0;
   transition: opacity 0.15s;
 }
 .nc-dismiss-btn.show { opacity: 1; }
 .nc-dismiss-btn:hover {
-  background: color-mix(in srgb, var(--text-secondary) 25%, transparent);
-  color: var(--text-primary);
+  background: color-mix(in srgb, var(--text-sec) 25%, transparent);
+  color: var(--text-pri);
 }
 
 .nc-item-header {
@@ -283,13 +283,13 @@ const timeLabel = computed(() => {
   padding: 12px 20px 6px 20px;
   border: none;
   background: transparent;
-  color: var(--text-primary, #e0e0e0);
+  color: var(--text-pri, #e0e0e0);
   cursor: pointer;
   text-align: left;
   font: inherit;
 }
 .nc-item:hover {
-  background: color-mix(in srgb, var(--component-bg-hover) 70%, #fff5);
+  background: var(--hover);
 }
 
 /* ── 状态圆点 ── */
@@ -298,11 +298,11 @@ const timeLabel = computed(() => {
   border-radius: 50%;
   flex-shrink: 0;
 }
-.nc-state-active   { background: var(--accent-color, #2ea35f); }
+.nc-state-active   { background: var(--accent, #2ea35f); }
 .nc-state-failed   { background: var(--status-error, #d9534f); }
 .nc-state-completed{ background: var(--status-success, #5cb85c); }
-.nc-state-resolved { background: var(--text-secondary, #a9a9a9); }
-.nc-state-dismissed{ background: var(--text-secondary, #a9a9a9); }
+.nc-state-resolved { background: var(--text-sec, #a9a9a9); }
+.nc-state-dismissed{ background: var(--text-sec, #a9a9a9); }
 .nc-state-suspended{ background: var(--status-warning, #ffc107); }
 
 /* ── 标题 ── */
@@ -317,7 +317,7 @@ const timeLabel = computed(() => {
 /* ── 时间 ── */
 .nc-time {
   font-size: 0.75rem;
-  color: var(--text-secondary, #a9a9a9);
+  color: var(--text-sec, #a9a9a9);
   white-space: nowrap;
   opacity: 1;
   transition: opacity 0.15s;
@@ -330,7 +330,7 @@ const timeLabel = computed(() => {
   align-items: center;
   flex-shrink: 0;
   transition: transform 0.18s;
-  color: var(--text-secondary, #a9a9a9);
+  color: var(--text-sec, #a9a9a9);
 }
 .nc-chevron.open { transform: rotate(180deg); }
 
@@ -344,7 +344,7 @@ const timeLabel = computed(() => {
   display: block;
   margin-top: 4px;
   font-size: 0.72rem;
-  color: var(--text-secondary);
+  color: var(--text-sec);
 }
 .progress-track {
   margin-bottom: 10px;
@@ -372,7 +372,7 @@ const timeLabel = computed(() => {
 .nc-message {
   margin: 0;
   font-size: 0.8rem;
-  color: var(--text-secondary);
+  color: var(--text-sec);
   line-height: 1.5;
   padding-bottom: 6px;
 }
@@ -387,21 +387,21 @@ const timeLabel = computed(() => {
 .nc-action-btn {
   padding: 5px 8px;
   border-radius: var(--radius-sm, 6px);
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
   font-size: 0.82rem;
   cursor: pointer;
   transition: all 0.2s;
   border: none;
 }
-.nc-action-primary {
-  background: var(--accent-color, #2ea35f);
+.nc-action-pri {
+  background: var(--accent, #2ea35f);
   color: #fff;
 }
-.nc-action-primary:hover { opacity: 0.85; }
+.nc-action-pri:hover { opacity: 0.85; }
 .nc-action-ghost {
   background: transparent;
 }
 .nc-action-ghost:hover {
-  background: var(--surface-hover, rgba(255,255,255,0.05));
+  background: var(--surface-hvr, rgba(255,255,255,0.05));
 }
 </style>

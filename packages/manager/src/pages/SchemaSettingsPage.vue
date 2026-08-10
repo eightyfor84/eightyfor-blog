@@ -107,7 +107,7 @@ onMounted(() => { load() })
 
 .hint {
   margin: -.35rem 0 0;
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
 }
 
 .loading-state {

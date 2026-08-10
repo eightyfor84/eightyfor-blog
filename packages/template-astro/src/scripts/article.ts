@@ -237,16 +237,16 @@ function initMermaidCodeBlocks() {
         try {
           const cs = getComputedStyle(document.documentElement);
           const vars: Record<string, string> = {
-            '--component-bg-blur-alt': cs.getPropertyValue('--component-bg-blur-alt') || '#ffffff',
+            '--comp-bg-glass': cs.getPropertyValue('--comp-bg-glass') || '#ffffff',
             '--border-color': cs.getPropertyValue('--border-color') || '#e6e6e6',
-            '--text-primary': cs.getPropertyValue('--text-primary') || '#111111',
-            '--component-text-primary': cs.getPropertyValue('--component-text-primary') || '#111111',
+            '--text-pri': cs.getPropertyValue('--text-pri') || '#111111',
+            '--comp-text-pri': cs.getPropertyValue('--comp-text-pri') || '#111111',
           };
           const styleContent = [
-            `svg { background: ${vars['--component-bg-blur-alt']}; }`,
-            `rect { fill: ${vars['--component-bg-blur-alt']}; stroke: ${vars['--text-primary']}; }`,
-            `path { stroke: ${vars['--component-text-primary']}; fill: none; }`,
-            `text { fill: ${vars['--component-text-primary']}; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif; }`,
+            `svg { background: ${vars['--comp-bg-glass']}; }`,
+            `rect { fill: ${vars['--comp-bg-glass']}; stroke: ${vars['--text-pri']}; }`,
+            `path { stroke: ${vars['--comp-text-pri']}; fill: none; }`,
+            `text { fill: ${vars['--comp-text-pri']}; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif; }`,
           ].join('\n');
           const prevStyle = svgEl.querySelector('style[data-chronicle-inline]');
           if (prevStyle) prevStyle.remove();
@@ -286,7 +286,7 @@ function initMermaidCodeBlocks() {
     // replaces this placeholder later (IntersectionObserver callback is async,
     // so the initial paint would see an empty 0-height container without this).
     if (container && !lastRenderedSvg) {
-      container.innerHTML = '<div class="mermaid-placeholder" aria-label="Mermaid diagram placeholder" style="min-height:120px;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);font-size:0.85rem;opacity:0.5;">Diagram</div>';
+      container.innerHTML = '<div class="mermaid-placeholder" aria-label="Mermaid diagram placeholder" style="min-height:120px;display:flex;align-items:center;justify-content:center;color:var(--text-sec);font-size:0.85rem;opacity:0.5;">Diagram</div>';
     }
 
     // Lazy-render mermaid only when the block nears the viewport.

@@ -476,7 +476,7 @@ defineExpose({
 }
 
 .preview-pane {
-  background: var(--bg-primary);
+  background: var(--bg-pri);
   padding: 16px 16px 50vh 16px;
   box-sizing: border-box;
 }
@@ -506,8 +506,8 @@ defineExpose({
 }
 .pane-divider:hover .divider-line {
   width: 2px;
-  background: color-mix(in srgb, var(--component-text-primary-highlight) 85%, transparent);
-  box-shadow: 0 0 4px 0 var(--component-text-primary-highlight);
+  background: color-mix(in srgb, var(--comp-text-pri-hl) 85%, transparent);
+  box-shadow: 0 0 4px 0 var(--comp-text-pri-hl);
 }
 .pane-divider .divider-line {
   display: block;
@@ -540,7 +540,7 @@ defineExpose({
   padding: 12px;
   border-radius: 12px;
   border: 1px solid var(--border-color);
-  background: var(--component-bg-secondary);
+  background: var(--comp-bg-sec);
   box-shadow: var(--shadow-elev-2);
   display: flex;
   flex-direction: column;
@@ -565,7 +565,7 @@ defineExpose({
 .search-float-title {
   font-size: 12px;
   font-weight: 600;
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
 }
 
 .search-close-btn {
@@ -573,7 +573,7 @@ defineExpose({
   border: none;
   cursor: pointer;
   padding: 2px;
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
 }
 
 .search-float-body {
@@ -587,8 +587,8 @@ defineExpose({
   padding: 6px 10px;
   border: 1px solid var(--border-color);
   border-radius: 4px;
-  background: var(--bg-primary);
-  color: var(--text-primary);
+  background: var(--bg-pri);
+  color: var(--text-pri);
   font-size: 13px;
   box-sizing: border-box;
 }
@@ -601,7 +601,7 @@ defineExpose({
 
 .search-counter {
   font-size: 11px;
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
 }
 
 .search-nav-buttons {
@@ -613,8 +613,8 @@ defineExpose({
   padding: 2px 8px;
   border: 1px solid var(--border-color);
   border-radius: 3px;
-  background: var(--bg-secondary);
-  color: var(--text-primary);
+  background: var(--bg-sec);
+  color: var(--text-pri);
   cursor: pointer;
   font-size: 11px;
 }
@@ -637,7 +637,7 @@ defineExpose({
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
   text-align: center;
   padding: 2rem;
   line-height: 1.8;
