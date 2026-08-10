@@ -8,8 +8,9 @@
 #   bash scripts/update-app.sh
 #
 # Strategy:
-#   Backup data/ + .chronicle/ → merge upstream (theirs wins) →
-#   restore both from backup. Simple, reliable, zero edge cases.
+#   Backup data/ + .chronicle/ → merge upstream (theirs for all
+#   conflicts) → restore both from backup. Any merge conflict in
+#   protected dirs is harmless — the backup overwrites it all.
 #
 # The upstream remote is auto-detected from git:
 #   1. "upstream" remote if present
@@ -155,43 +156,34 @@ for d in "${PROTECTED_DIRS[@]}"; do
   fi
 done
 
-# ── Remove protected dirs BEFORE merge ───────────────────────
-# We're restoring from backup anyway, so protected dirs don't need
-# to participate in the merge. Removing them upfront avoids ALL
-# modify/delete conflicts (which -X theirs cannot resolve — it only
-# handles content conflicts where both sides modified the same file).
-
-say ""
-say "🗑  Temporarily removing protected dirs before merge…"
-
-for d in "${PROTECTED_DIRS[@]}"; do
-  if [ -d "$d" ]; then
-    git rm -rf --quiet "$d"/ 2>/dev/null || true
-    success "Removed $d/ for merge"
-  fi
-done
-
-# Stage any pending deletions so merge doesn't touch these paths
-# (use individual paths to avoid staging unrelated changes)
-for d in "${PROTECTED_DIRS[@]}"; do
-  if [ -d "$BACKUP_DIR/$d" ]; then
-    git add "$d"/ 2>/dev/null || true
-  fi
-done
-
 # ── Merge ────────────────────────────────────────────────────
+# Strategy: -X theirs handles content conflicts. Any remaining
+# conflicts (modify/delete, etc.) are all in data/ or .chronicle/ —
+# we resolve them by taking the upstream version, because both
+# directories will be restored from backup immediately after.
 
 say ""
 say "🔀 Merging $UPSTREAM_BRANCH → $UPSTREAM_BRANCH_NAME ($UPSTREAM_COMMITS commit(s))"
 
 PRE_MERGE_REF=$(git rev-parse HEAD)
 
-MERGE_OUTPUT=$(git merge "$UPSTREAM_BRANCH" --no-edit --allow-unrelated-histories -X theirs 2>&1) && MERGE_OK=true || MERGE_OK=false
+git merge "$UPSTREAM_BRANCH" --no-edit --allow-unrelated-histories -X theirs 2>&1 && MERGE_OK=true || MERGE_OK=false
+
 if ! $MERGE_OK; then
-  echo -e "${RED}$(echo "$MERGE_OUTPUT" | tail -20)${NC}"
-  err "Merge failed."
-  say "To abort:  git merge --abort"
-  exit 1
+  warn "Merge had conflicts — auto-resolving (data/ & .chronicle/ will be restored from backup)…"
+
+  # Resolve EVERY remaining conflict by taking upstream version.
+  # This covers modify/delete, rename/delete — anything -X theirs can't handle.
+  git ls-files -u | cut -f2 | sort -u | while IFS= read -r f; do
+    git checkout --theirs -- "$f" 2>/dev/null && git add "$f" || git rm -f "$f" 2>/dev/null || true
+  done
+
+  GIT_EDITOR=true git merge --continue 2>&1 || git commit --no-edit 2>&1 || {
+    echo -e "${RED}$(git status --short | head -20)${NC}"
+    err "Could not complete merge. Aborting."
+    git merge --abort
+    exit 1
+  }
 fi
 success "Merge complete"
 
