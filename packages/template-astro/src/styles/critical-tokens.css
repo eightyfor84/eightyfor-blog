@@ -1,14 +1,15 @@
 /* ── Critical tokens: dark + light theme fundamentals ────────────
-   Inlined in <head> via Layout.astro's criticalTokensCSS variable.
-   Only first-paint-visible tokens. No hover/active/highlight/disabled
-   states, no syntax highlighting, no scrollbar/form styles.
+   Inlined in <head> via Layout.astro. Only first-paint-visible tokens.
+   No interaction states, no syntax highlighting, no scrollbar/form styles.
 
-   Full token set (including interaction states) lives in global.css,
-   loaded asynchronously. Update both files together. */
+   Full token set lives in global.css, loaded asynchronously.
+   Keep formulas IDENTICAL between this file and global.css —
+   otherwise the async load causes a visible color flash. */
 
 /* ═══ Dark theme (default) ═══ */
 :root {
   /* Font */
+  --app-font-stack-system: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   --app-font-stack-inter: -apple-system, BlinkMacSystemFont, 'InterVariable', 'Inter', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   --app-font-stack: var(--app-font-stack-inter);
   --app-text-wght: 400;
@@ -16,41 +17,72 @@
   color-scheme: dark;
 
   /* Brand */
-  --accent-color-default: #2ea35f;
-  --accent-color: var(--accentColor, var(--accent-color-default));
-  --accent-color-dark: color-mix(in srgb, var(--accent-color) 80%, #000);
-  --accent-color-bg: color-mix(in srgb, var(--accent-color) 15%, transparent);
+  --accent-default: #2ea35f;
+  --accent: var(--accentColor, var(--accent-default));
+  --accent-dark: color-mix(in srgb, var(--accent) 80%, #000);
+  --accent-bg: color-mix(in srgb, var(--accent) 15%, transparent);
   --recommended-accent-text: #fff;
   --featured: #ffd700;
   --featured-bg: color-mix(in srgb, var(--featured) 15%, transparent);
 
-  /* Backgrounds */
-  --app-bg-primary: #121212;
-  --app-bg-secondary: #1e1e1e;
-  --component-bg: #222222;
-  --component-bg-alt: #2a2a2a;
-  --component-bg-blur: rgba(34, 34, 34, 0.9);
-  --component-bg-blur-alt: rgba(72, 72, 72, 0.5);
+  /* ═══ Grayscale foundation (dark) ═══ */
+  --bg-base: #121212;
+  --bg-offset: #909090;
+  --fg-base: #f5f5f5;
+  --hl-offset: var(--bg-offset);
 
-  /* Text */
-  --app-text-primary: #e0e0e0;
-  --app-text-secondary: #a9a9a9;
-  --component-text-primary: #d4d4d4;
-  --component-text-secondary: #a5a5a5;
+  /* Background hierarchy — color-mix(in srgb, var(--bg-offset) P%, var(--bg-base)) */
+  --app-bg-pri: var(--bg-base);
+  --app-bg-sec: color-mix(in srgb, var(--bg-offset) 11%, var(--bg-base));
+  --comp-bg: color-mix(in srgb, var(--bg-offset) 12%, var(--bg-base));
+  --comp-bg-alt: color-mix(in srgb, var(--bg-offset) 20%, var(--bg-base));
 
-  /* Borders & shadows */
-  --border-color: color-mix(in srgb, var(--app-text-secondary) 20%, transparent);
-  --border-color-blur: rgba(113, 113, 113, 0.2);
+  /* Transparency compensation — per-theme alpha knobs */
+  --blur-alpha: 90%;
+  --glass-alpha: 50%;
+
+  /* Glass opaque tier — lighter than comp-bg-hl, same inter-tier spacing */
+  --glass-opaque: color-mix(in srgb, var(--bg-offset) 47%, var(--bg-base));
+
+  /* Semi-transparent backgrounds */
+  --comp-bg-blur: color-mix(in srgb, var(--comp-bg) var(--blur-alpha), transparent);
+  --comp-bg-glass: color-mix(in srgb, var(--glass-opaque) var(--glass-alpha), transparent);
+
+  /* Transparent-background interaction overlays */
+  --hover: color-mix(in srgb, var(--bg-offset) 20%, transparent);
+  --active: color-mix(in srgb, var(--bg-offset) 24%, transparent);
+  --highlight: color-mix(in srgb, var(--hl-offset) 20%, transparent);
+
+  /* Foreground hierarchy — color-mix(in srgb, var(--bg-base) P%, var(--fg-base)) */
+  --app-text-pri: color-mix(in srgb, var(--bg-base) 9.3%, var(--fg-base));
+  --comp-text-pri: color-mix(in srgb, var(--bg-base) 14.5%, var(--fg-base));
+  --app-text-sec: color-mix(in srgb, var(--bg-base) 33.5%, var(--fg-base));
+  --comp-text-sec: color-mix(in srgb, var(--bg-base) 35.2%, var(--fg-base));
+
+  /* Borders */
+  --border-color: color-mix(in srgb, var(--app-text-sec) 20%, transparent);
+  --border-color-blur: color-mix(in srgb, var(--bg-offset) 20%, transparent);
+
+  /* Shadows */
   --shadow-elev-1: 0 4px 12px rgba(0, 0, 0, 0.3);
 
+  /* Overlays */
+  --frontend-bg-overlay: transparent;
+  --backend-bg-overlay: transparent;
+
   /* Legacy aliases */
-  --text-primary: var(--app-text-primary);
-  --text-secondary: var(--app-text-secondary);
-  --text-inactive: var(--app-text-secondary);
+  --app-bg: var(--app-bg-pri);
+  --bg-pri: var(--app-bg-pri);
+  --bg-sec: var(--app-bg-sec);
+  --comp-bg-pri: var(--comp-bg);
+  --comp-text: var(--comp-text-pri);
+  --app-text-dark: var(--app-text-pri);
+  --text-pri: var(--app-text-pri);
+  --text-sec: var(--app-text-sec);
+  --text-inactive: var(--app-text-sec);
   --text-on-accent: #fff;
 
-  /* Base */
-  color: var(--app-text-primary);
+  color: var(--app-text-pri);
   background-color: transparent;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -58,54 +90,66 @@
 }
 
 /* ═══ Light theme ═══ */
-:root[data-theme="light"] {
+:root[data-theme="light"]:not(.focus) {
   color-scheme: light;
   --app-text-wght: 430;
   --recommended-accent-text: #fff;
 
-  --app-bg-primary: #f9f9f9;
-  --app-bg-secondary: #f0f0f0;
-  --component-bg: #ffffff;
-  --component-bg-alt: #f7f7f7;
-  --component-bg-blur: rgba(240, 240, 240, 0.8);
-  --component-bg-blur-alt: rgba(244, 244, 244, 0.3);
+  /* ═══ Grayscale foundation (light) ═══ */
+  --bg-base: #f9f9f9;
+  --bg-offset: #aaa;
+  --fg-base: #111111;
+  --hl-offset: var(--accent);
 
-  --app-text-primary: #111;
-  --app-text-secondary: #444;
-  --component-text-primary: #222;
-  --component-text-secondary: #555;
+  /* Design-different overrides */
+  --blur-alpha: 80%;
+  --glass-alpha: 30%;
+  --glass-opaque: color-mix(in srgb, var(--bg-offset) 10%, var(--bg-base));
+
+  --border-color-blur: color-mix(in srgb, var(--fg-base) 12%, transparent);
 
   --featured: #c58f00;
   --featured-bg: rgba(242, 234, 212, 0.9);
-  --border-color: color-mix(in srgb, var(--app-text-secondary) 20%, transparent);
-  --border-color-blur: rgba(28, 28, 28, 0.12);
+
   --shadow-elev-1: 0 4px 12px rgba(0, 0, 0, 0.2);
+
   --frontend-bg-overlay: var(--frontend-bg-overlay-light);
+
+  color: var(--app-text-pri);
 }
 
 /* ═══ System light (no explicit theme set) ═══ */
 @media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) {
+  :root:not([data-theme="dark"]):not(.focus) {
     color-scheme: light;
     --app-text-wght: 430;
-    --app-bg-primary: #f9f9f9;
-    --app-bg-secondary: #f0f0f0;
-    --component-bg: #ffffff;
-    --component-bg-alt: #f7f7f7;
-    --component-bg-blur: rgba(240, 240, 240, 0.8);
-    --component-bg-blur-alt: rgba(244, 244, 244, 0.3);
-    --app-text-primary: #111;
-    --app-text-secondary: #444;
-    --component-text-primary: #222;
-    --component-text-secondary: #555;
+    --recommended-accent-text: #fff;
+
+    /* ═══ Grayscale foundation (light) ═══ */
+    --bg-base: #f9f9f9;
+    --bg-offset: #aaa;
+    --fg-base: #111111;
+    --hl-offset: var(--accent);
+
+    /* Design-different overrides */
+    --blur-alpha: 80%;
+    --glass-alpha: 30%;
+    --glass-opaque: color-mix(in srgb, var(--bg-offset) 10%, var(--bg-base));
+
+    --border-color-blur: color-mix(in srgb, var(--fg-base) 12%, transparent);
+
     --featured: #c58f00;
     --featured-bg: rgba(242, 234, 212, 0.9);
-    --border-color: color-mix(in srgb, var(--app-text-secondary) 20%, transparent);
-    --border-color-blur: rgba(28, 28, 28, 0.12);
+
     --shadow-elev-1: 0 4px 12px rgba(0, 0, 0, 0.2);
+
     --frontend-bg-overlay: var(--frontend-bg-overlay-light);
-    --text-primary: var(--app-text-primary);
-    --text-secondary: var(--app-text-secondary);
-    --text-inactive: var(--app-text-secondary);
+    --backend-bg-overlay: var(--backend-bg-overlay-light);
+
+    --text-pri: var(--app-text-pri);
+    --text-sec: var(--app-text-sec);
+    --text-inactive: var(--app-text-sec);
+
+    color: var(--app-text-pri);
   }
 }

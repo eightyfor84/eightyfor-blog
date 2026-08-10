@@ -554,14 +554,14 @@ defineExpose({
 .math-tooltip {
   position: fixed;
   z-index: 9999;
-  background-color: var(--bg-primary);
+  background-color: var(--bg-pri);
   border: 1px solid var(--border-color);
   border-radius: 8px;
   box-shadow: var(--shadow-elev-2);
   padding: 8px;
   min-width: 200px;
   max-width: 400px;
-  color: var(--component-text-primary);
+  color: var(--comp-text-pri);
   font-size: 14px;
   /* v-if handles visibility now, so we start visible */
   opacity: 1;
@@ -582,9 +582,9 @@ defineExpose({
 .math-tooltip-content { display: none; } 
 
 .math-tooltip-actions .icon-btn {
-  background: var(--component-bg-hover);
+  background: var(--hover);
   border: 1px solid var(--border-color);
-  color: var(--component-text-primary);
+  color: var(--comp-text-pri);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -598,8 +598,8 @@ defineExpose({
   border-radius: 4px; /* Square with slight radius */
 }
 .math-tooltip-actions .save-btn:hover {
-  color: var(--accent-color);
-  border-color: var(--accent-color);
+  color: var(--accent);
+  border-color: var(--accent);
 }
 
 .validation-error {
@@ -608,7 +608,7 @@ defineExpose({
     gap: 6px;
     font-size: 12px;
     color: var(--status-error);
-    background: var(--component-bg-hover);
+    background: var(--status-error-bg);
     border: 1px solid var(--status-error);
     border-radius: 4px;
     padding: 6px 8px;
@@ -625,9 +625,9 @@ hr {
 }
 
 .math-tooltip-actions .icon-btn:hover {
-  background-color: var(--component-bg-active);
-  border-color: var(--accent-color);
-  color: var(--text-primary);
+  background-color: var(--active);
+  border-color: var(--accent);
+  color: var(--text-pri);
 }
 
 /* Edit Mode Styles */
@@ -647,7 +647,7 @@ hr {
   position: relative;
   min-height: 48px;
   max-height: 200px; /* Limit max height */
-  background: var(--component-bg-primary);
+  background: var(--comp-bg-pri);
   border: 1px solid var(--border-color);
   border-radius: 4px;
   overflow-y: auto;
@@ -659,7 +659,7 @@ hr {
   width: 100%;
 }
 
-.math-tooltip-editor .syntax-highlight {
+.math-tooltip-editor .syntax-hl {
   position: relative;
   width: 100%;
   margin: 0;
@@ -673,7 +673,7 @@ hr {
   word-wrap: break-word;
   overflow-wrap: break-word; /* Ensure wrapping so it dictates height */
   box-sizing: border-box;
-  color: var(--component-text-primary);
+  color: var(--comp-text-pri);
   pointer-events: none;
 }
 
@@ -695,7 +695,7 @@ hr {
   overflow-wrap: break-word;
   background: transparent;
   color: transparent;
-  caret-color: var(--text-primary);
+  caret-color: var(--text-pri);
   resize: none;
   border: none;
   outline: none;
@@ -708,7 +708,7 @@ hr {
 .math-tooltip-editor .editor-wrapper {
    min-height: 42px;
 }
-.math-tooltip-editor .syntax-highlight {
+.math-tooltip-editor .syntax-hl {
    padding-bottom: 20px;
    min-height: 42px;
 }
@@ -722,7 +722,7 @@ hr {
   overflow-wrap: break-word;
   background: transparent;
   color: transparent;
-  caret-color: var(--text-primary);
+  caret-color: var(--text-pri);
   resize: none;
   border: none;
   outline: none;
@@ -738,7 +738,7 @@ hr {
   pointer-events: auto; /* Allow input */
 }
 
-.math-tooltip-editor .syntax-highlight {
+.math-tooltip-editor .syntax-hl {
   position: relative;
   margin: 0;
   padding: 8px;
@@ -759,10 +759,10 @@ hr {
   overflow-y: auto; /* Allow scrolling on wrapper */
 }
 
-.math-tooltip-editor .syntax-highlight {
+.math-tooltip-editor .syntax-hl {
   pointer-events: none;
   background: transparent;
-  color: var(--component-text-primary);
+  color: var(--comp-text-pri);
   z-index: 0;
   /* Override padding-bottom for the highlighter so it aligns with textarea but doesn't trap scroll */
   /* Actually they must match exactly for alignment */
@@ -771,14 +771,14 @@ hr {
 .math-tooltip-editor .code-textarea {
   background: transparent;
   color: transparent;
-  caret-color: var(--text-primary);
+  caret-color: var(--text-pri);
   resize: none;
   outline: none;
   z-index: 1;
 }
 
 /* Ensure read-only highlight has proper scrolling if content is long */
-.syntax-highlight-readonly {
+.syntax-hl-readonly {
   width: 100%;
   box-sizing: border-box;
 }
@@ -795,17 +795,17 @@ hr {
   padding: 4px 12px;
   font-size: 12px;
   border: 1px solid var(--border-color);
-  background: var(--component-bg-hover);
-  color: var(--component-text-primary);
+  background: var(--comp-bg-glass-hvr);
+  color: var(--comp-text-pri);
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .math-tooltip-actions .text-btn:hover {
-  background-color: var(--component-bg-active);
-  border-color: var(--accent-color);
-  color: var(--text-primary);
+  background-color: var(--comp-bg-glass-active);
+  border-color: var(--accent);
+  color: var(--text-pri);
 }
 
 
@@ -819,8 +819,8 @@ hr {
   margin: 1em 0;
 }
 .md-quote-block {
-  background: var(--component-bg-hover);
-  border-left: 4px solid var(--accent-color);
+  background: var(--comp-bg-glass-hvr);
+  border-left: 4px solid var(--accent);
   padding: 0.5em 1em;
   margin: 0.5em 0;
   border-radius: 4px;
@@ -838,7 +838,7 @@ hr {
 }
 .md-quote-block .backslash {
   font-family: var(--app-font-stack-mono);
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
   padding: 0 0.1em;
 }
 
@@ -888,7 +888,7 @@ strong, b {
   min-height: 120px;
   padding: 0 16px;
   box-sizing: border-box;
-  background-color: var(--component-bg-primary);
+  background-color: var(--comp-bg-pri);
 }
 
 .md-image-wrapper::before {
@@ -901,7 +901,7 @@ strong, b {
   z-index: 0;
   font-family: var(--app-font-stack);
   font-size: 14px;
-  color: var(--component-text-primary);
+  color: var(--comp-text-pri);
   pointer-events: none;
   text-align: center;
   white-space: nowrap;
@@ -920,7 +920,7 @@ strong, b {
   display: block;
   margin-top: 8px;
   font-size: 0.9em;
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
   text-align: center;
   font-family: var(--app-font-stack);
   width: 100%; /* Ensure it spans the container's width */
@@ -937,14 +937,14 @@ strong, b {
 }
 
 .md-link {
-  color: var(--accent-color);
+  color: var(--accent);
   text-decoration: underline;
   text-underline-offset: 4px;
   transition: color 0.2s;
 }
 
 .md-link:hover {
-  color: var(--accent-color-hover);
+  color: var(--accent-hvr);
 }
 
 /* Image Preview Modal */
@@ -954,7 +954,7 @@ strong, b {
   left: 0;
   width: 100vw;
   height: var(--app-height);
-  background: var(--component-bg-blur);
+  background: var(--comp-bg-blur);
   z-index: 10000;
   display: flex;
   justify-content: center;
@@ -967,9 +967,9 @@ strong, b {
   position: absolute;
   top: 30px;
   right: 30px;
-  background: var(--component-bg-blur-alt);
+  background: var(--comp-bg-glass);
   border: none;
-  color: var(--text-primary);
+  color: var(--text-pri);
   width: 48px;
   height: 48px;
   min-width: 48px;
@@ -985,7 +985,7 @@ strong, b {
   box-shadow: var(--shadow-elev-1);
 }
 .preview-close-btn:hover {
-  background: var(--component-bg-blur);
+  background: var(--comp-bg-blur);
   transform: scale(1.05);
 }
 .preview-close-btn svg {
@@ -993,7 +993,7 @@ strong, b {
   height: 24px;
 }
 .preview-close-btn:hover {
-  background: var(--component-bg-hover);
+  background: var(--comp-bg-glass-hvr);
 }
 
 .image-preview-container {
@@ -1029,7 +1029,7 @@ strong, b {
 .file-card {
   display: inline-flex;
   align-items: center;
-  background-color: var(--component-bg-primary);
+  background-color: var(--comp-bg-pri);
   border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 8px 12px;
@@ -1041,8 +1041,8 @@ strong, b {
 }
 
 .file-card:hover {
-  background-color: var(--component-bg-highlight);
-  border-color: var(--accent-color);
+  background-color: var(--comp-bg-glass-hl);
+  border-color: var(--accent);
   transform: translateY(-1px);
   box-shadow: var(--shadow-elev-1);
 }
@@ -1054,10 +1054,10 @@ strong, b {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--component-text-primary);
+  color: var(--comp-text-pri);
 }
 .file-card:hover .file-card-icon {
-    color: var(--accent-color);
+    color: var(--accent);
 }
 
 .file-card-info {
@@ -1069,7 +1069,7 @@ strong, b {
 
 .file-card-title {
   font-size: 14px;
-  color: var(--component-text-primary);
+  color: var(--comp-text-pri);
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
@@ -1078,7 +1078,7 @@ strong, b {
 
 .file-card-subtitle {
   font-size: 11px;
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
   margin-top: 2px;
   /* Truncate long subtitles with ellipsis */
   max-width: 240px;

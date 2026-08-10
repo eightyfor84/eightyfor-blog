@@ -139,11 +139,11 @@ const {
   .toc-float { font-size:0.8em; backdrop-filter: blur(10px); background-clip: padding-box; margin-right: 10px; }
   .toc-float { right: calc(10px + 2vw); position: fixed; top: calc(30px + 10vh); z-index: 1199; overflow-x: hidden; transition: transform 0.25s ease, width 0.25s ease, max-height 0.25s ease, background-color 0.25s ease, opacity 0.25s ease; box-sizing: border-box; border-radius: 8px; max-height: calc(70vh - 80px); height: auto; will-change: width; contain: layout style; }
   .toc-float-item { margin-left: 10px; }
-  .toc-float-item:hover { color: var(--text-primary) !important; }
+  .toc-float-item:hover { color: var(--text-pri) !important; }
   .toc-float ul { list-style: none; margin: 0; padding: 4px }
   .toc-float li { margin: 1px 0; }
   .toc-float a { text-decoration: none; display: block; box-sizing: border-box; }
-  .toc-float .toc-text { --padding-h-base: 6px; display: block; width: 100%; padding: 3px var(--padding-h-base) 3px 6px; padding-right: 10px; box-sizing: border-box; border-radius: 6px; transition: background 0.12s, color 0.12s; color: var(--component-text-secondary-disabled); }
+  .toc-float .toc-text { --padding-h-base: 6px; display: block; width: 100%; padding: 3px var(--padding-h-base) 3px 6px; padding-right: 10px; box-sizing: border-box; border-radius: 6px; transition: background 0.12s, color 0.12s; color: var(--comp-text-sec-disabled); }
   .toc-float:not(.collapsed) .toc-level-1 span { padding-left: calc(1px + var(--padding-h-base)) !important; }
   .toc-float:not(.collapsed) .toc-level-2 span { padding-left: calc(6px + var(--padding-h-base)) !important; }
   .toc-float:not(.collapsed) .toc-level-3 span { padding-left: calc(12px + var(--padding-h-base)) !important; }
@@ -156,11 +156,11 @@ const {
   .toc-float.collapsed .toc-level-4 { padding-left: 10px !important; }
   .toc-float.collapsed .toc-level-5 { padding-left: 11px !important; }
   .toc-float.collapsed .toc-level-6 { padding-left: 12px !important; }
-  .toc-float li:hover .toc-text { background: var(--component-bg-hover); color: var(--component-text-primary-hover) }
-  .toc-float li:active .toc-text, .toc-float li:focus .toc-text { background: var(--component-bg-highlight); color: var(--component-text-primary-highlight); }
+  .toc-float li:hover .toc-text { background: var(--hover); color: var(--comp-text-pri-hvr) }
+  .toc-float li:active .toc-text, .toc-float li:focus .toc-text { background: var(--highlight); color: var(--comp-text-pri-hl); }
   .toc-float.collapsed { overflow-y: auto; width: 38px; padding: 4px 8px; border:none; background-color: transparent; border-radius: 10px; scrollbar-width: none; }
   .toc-float.collapsed::-webkit-scrollbar { width: 0; height: 0; }
-  .toc-float:not(.collapsed) { overflow-y: auto; width: 220px; background-color: var(--component-bg-blur); backdrop-filter: blur(10px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); border: 1px solid var(--border-color); }
+  .toc-float:not(.collapsed) { overflow-y: auto; width: 220px; background-color: var(--comp-bg-blur); backdrop-filter: blur(10px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); border: 1px solid var(--border-color); }
   .toc-float ul { padding: 4px; list-style: none; margin: 0; transition: padding 0.3s ease; }
   .toc-float.collapsed ul { padding: 0; }
   .toc-float li { display: flex; align-items: center; transition: justify-content 0.3s ease; min-height: 20px; position: relative; }
@@ -171,16 +171,16 @@ const {
   .toc-float .toc-line { display:block; height:3px; background: var(--border-color-blur); border-radius:1.5px; transition: opacity 0.2s ease, transform 0.3s ease, background-color 0.3s ease; position: absolute; right: 0; width: 100% !important; }
   .toc-float:not(.collapsed) .toc-line { opacity: 0; transform: translateX(10px); pointer-events: none; }
   .toc-float.collapsed .toc-line { opacity: 1; transform: translateX(0); position: relative; margin: 0; }
-  .toc-float li.active .toc-line { background: var(--component-text-primary-highlight); box-shadow: 0 0 4px color-mix(in srgb, var(--component-text-primary-highlight) 70%, transparent), 0 0 8px color-mix(in srgb, var(--component-text-primary) 20%, transparent); filter: drop-shadow(0 0 3px color-mix(in srgb, var(--component-text-primary-highlight) 45%, transparent)); transition: box-shadow 0.18s ease, background 0.18s ease, filter 0.18s ease; }
-  .toc-float li:hover .toc-line { background: var(--component-text-primary-hover); }
-  .toc-float .toc-text { display: block; width: 100%; padding: 3px 6px; padding-right: 10px; box-sizing: border-box; border-radius: 6px; color: var(--component-text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: opacity 0.2s ease, transform 0.3s ease, background-color 0.2s, color 0.2s; }
+  .toc-float li.active .toc-line { background: var(--comp-text-pri-hl); box-shadow: 0 0 4px color-mix(in srgb, var(--comp-text-pri-hl) 70%, transparent), 0 0 8px color-mix(in srgb, var(--comp-text-pri) 20%, transparent); filter: drop-shadow(0 0 3px color-mix(in srgb, var(--comp-text-pri-hl) 45%, transparent)); transition: box-shadow 0.18s ease, background 0.18s ease, filter 0.18s ease; }
+  .toc-float li:hover .toc-line { background: var(--comp-text-pri-hvr); }
+  .toc-float .toc-text { display: block; width: 100%; padding: 3px 6px; padding-right: 10px; box-sizing: border-box; border-radius: 6px; color: var(--comp-text-sec); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: opacity 0.2s ease, transform 0.3s ease, background-color 0.2s, color 0.2s; }
   .toc-float.collapsed .toc-text { opacity: 0; transform: translateX(10px); position: absolute; pointer-events: none; }
   .toc-float:not(.collapsed)::-webkit-scrollbar { width: 6px; }
-  .toc-float:not(.collapsed)::-webkit-scrollbar-thumb { background: var(--component-bg-hover); border-radius: 3px; }
+  .toc-float:not(.collapsed)::-webkit-scrollbar-thumb { background: var(--comp-bg-glass-hvr); border-radius: 3px; }
   .toc-float:not(.collapsed)::-webkit-scrollbar-track { background: inherit; border-radius: 3px; }
   .toc-float:not(.collapsed) .toc-text { opacity: 1; transform: translateX(0); }
-  .toc-float:not(.collapsed) li:hover .toc-text { background: var(--component-bg-hover); color: var(--component-text-primary-hover) }
-  .toc-float:not(.collapsed) li.active .toc-text { background: var(--component-bg-highlight); color: var(--component-text-primary-highlight); font-weight: 500; font-variation-settings: 'wght' 500; }
+  .toc-float:not(.collapsed) li:hover .toc-text { background: var(--hover); color: var(--comp-text-pri-hvr) }
+  .toc-float:not(.collapsed) li.active .toc-text { background: var(--highlight); color: var(--comp-text-pri-hl); font-weight: 500; font-variation-settings: 'wght' 500; }
   .toc-float.visible {  opacity: 1; pointer-events: auto; }
   .toc-float:not(.visible) { transform: translateX(20px); opacity: 0; pointer-events: none; }
 </style>

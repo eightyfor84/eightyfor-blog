@@ -56,7 +56,7 @@ function handleClick(event: MouseEvent) {
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   box-shadow: 0 8px 20px rgba(11,22,40,0.12);
-  color: var(--text-primary, #fff);
+  color: var(--text-pri, #fff);
   /* transform controlled by CSS vars so horizontal centering stays while vertical animates */
   --tx: 0;
   --ty: 0;
@@ -77,11 +77,11 @@ function handleClick(event: MouseEvent) {
 .shape-rounded { border-radius: 10px; }
 
 /* Status colors (background + border) */
-.status-default { background: var(--component-bg-blur); border: 1px solid rgba(0,0,0,0.08); }
-.status-success { background: color-mix(in srgb, rgba(46,163,95,0.3) 50%,var(--component-bg-blur) 50%); border: 1px solid rgba(46,163,95,0.22); }
-.status-error { background: color-mix(in srgb, rgba(220,53,69,0.27) 50%,var(--component-bg-blur) 50%); border: 1px solid rgba(220,53,69,0.22); }
-.status-info { background: color-mix(in srgb, rgba(38,143,255,0.2) 50%,var(--component-bg-blur) 50%); border: 1px solid rgba(38,143,255,0.16); }
-.status-warning { background: color-mix(in srgb, rgba(255,193,7,0.2) 50%,var(--component-bg-blur) 50%); border: 1px solid rgba(255,193,7,0.16); }
+.status-default { background: var(--comp-bg-blur); border: 1px solid rgba(0,0,0,0.08); }
+.status-success { background: color-mix(in srgb, rgba(46,163,95,0.3) 50%,var(--comp-bg-blur) 50%); border: 1px solid rgba(46,163,95,0.22); }
+.status-error { background: color-mix(in srgb, rgba(220,53,69,0.27) 50%,var(--comp-bg-blur) 50%); border: 1px solid rgba(220,53,69,0.22); }
+.status-info { background: color-mix(in srgb, rgba(38,143,255,0.2) 50%,var(--comp-bg-blur) 50%); border: 1px solid rgba(38,143,255,0.16); }
+.status-warning { background: color-mix(in srgb, rgba(255,193,7,0.2) 50%,var(--comp-bg-blur) 50%); border: 1px solid rgba(255,193,7,0.16); }
 
 .global-toast :deep(.toast-link),
 .global-toast .toast-link {

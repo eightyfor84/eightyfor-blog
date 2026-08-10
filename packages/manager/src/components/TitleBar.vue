@@ -141,7 +141,7 @@ body:not(.is-electron) .title-bar {
   height: 40px;
   border: none;
   background: transparent;
-  color: var(--text-secondary);
+  color: var(--text-sec);
   cursor: default;
   border-radius: 0;
   padding: 0;
@@ -156,8 +156,8 @@ body:not(.is-electron) .title-bar {
 }
 
 .titlebar-btn:hover {
-  background: color-mix(in srgb, var(--text-primary) 20%, transparent);
-  color: var(--text-primary);
+  background: color-mix(in srgb, var(--text-pri) 20%, transparent);
+  color: var(--text-pri);
 }
 
 .win-btn-close:hover {
@@ -166,7 +166,7 @@ body:not(.is-electron) .title-bar {
 }
 
 .win-btn:active {
-  background: color-mix(in srgb, var(--text-primary) 30%, transparent);
+  background: color-mix(in srgb, var(--text-pri) 30%, transparent);
 }
 
 .win-btn-close:active {

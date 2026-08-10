@@ -3,7 +3,7 @@
     max-width: 900px;
     margin: 0 auto;
     padding: 100px 20px;
-    color: var(--text-primary);
+    color: var(--text-pri);
     text-align: center;
 }
 .hero h1 {
@@ -21,7 +21,7 @@
 }
 .cta-btn {
     display: inline-block;
-    background: var(--accent-color-dark);
+    background: var(--accent-dark);
     color: white;
     padding: 12px 24px;
     border-radius: 6px;

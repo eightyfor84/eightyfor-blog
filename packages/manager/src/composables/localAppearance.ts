@@ -39,6 +39,6 @@ export function applyLocalAppearance() {
     localFont.get() === 'serif' ? "var(--app-font-stack-serif)"
     : 'var(--app-font-stack-inter)'
   )
-  root.style.setProperty('--accent-color', localAccent.get())
+  root.style.setProperty('--accent', localAccent.get())
   // Theme + locale are handled by usePreferences → body[data-backend-theme], html[lang]
 }

@@ -59,7 +59,7 @@ function onChange(event: Event) {
 	gap: 1rem;
 	padding: 0.9rem 1rem;
 	border-radius: 10px;
-	background: var(--component-bg-blur);
+	background: var(--comp-bg-blur);
 	border: 1px solid var(--border-color-blur);
 }
 
@@ -81,7 +81,7 @@ function onChange(event: Event) {
 }
 
 .check-row__copy small {
-	color: var(--component-text-secondary);
+	color: var(--comp-text-sec);
 	line-height: 1.4;
 }
 
@@ -91,14 +91,14 @@ function onChange(event: Event) {
 }
 
 .check-row__disabled-note {
-	color: var(--component-text-secondary);
+	color: var(--comp-text-sec);
 	font-size: 0.9rem;
 }
 
 .check-row__details {
 	margin-top: 0.5rem;
 	padding: 0 0.5rem 0.5rem 0.5rem;
-	color: var(--component-text-primary);
+	color: var(--comp-text-pri);
 }
 
 .check-row--disabled .check-row__details {

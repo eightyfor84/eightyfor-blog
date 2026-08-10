@@ -63,7 +63,7 @@
             <object :data="state.file?.path" type="application/pdf" width="100%" height="100%">
               <div class="fp-file" style="flex-direction:column">
                 <p>PDF preview not supported in this browser.</p>
-                <p><a :href="state.file?.path" target="_blank" rel="noopener" style="color:var(--accent-color)">Download PDF</a></p>
+                <p><a :href="state.file?.path" target="_blank" rel="noopener" style="color:var(--accent)">Download PDF</a></p>
               </div>
             </object>
           </div>
@@ -82,7 +82,7 @@
 
           <!-- Unsupported -->
           <div v-else class="fp-file" style="flex-direction:column">
-            <p style="font-size:1.2rem;color:var(--text-primary)">{{ state.file?.name }}</p>
+            <p style="font-size:1.2rem;color:var(--text-pri)">{{ state.file?.name }}</p>
             <p class="fp-unsupported">Preview not available for this file type.</p>
           </div>
         </main>

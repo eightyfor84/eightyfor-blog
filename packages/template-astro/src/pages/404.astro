@@ -59,7 +59,7 @@ const settings = await loadSiteSettings();
       place-items: center;
       padding: clamp(1.5rem, 4vw, 4rem);
       box-sizing: border-box;
-      color: var(--app-text-primary);
+      color: var(--app-text-pri);
     }
 
     .error-copy {
@@ -71,7 +71,7 @@ const settings = await loadSiteSettings();
       margin: 0;
       text-transform: uppercase;
       letter-spacing: .22em;
-      color: var(--component-text-secondary);
+      color: var(--comp-text-sec);
       font-size: .8rem;
     }
 
@@ -85,7 +85,7 @@ const settings = await loadSiteSettings();
     .error-lead {
       margin: 0;
       max-width: 42rem;
-      color: var(--component-text-secondary);
+      color: var(--comp-text-sec);
       font-size: 1rem;
       line-height: 1.8;
     }
@@ -105,21 +105,21 @@ const settings = await loadSiteSettings();
       padding: .5rem 1rem;
       border-radius: 12px;
       border: 1px solid var(--border-color-blur);
-      background: var(--component-bg-blur-alt);
-      color: var(--app-text-primary);
+      background: var(--comp-bg-glass);
+      color: var(--app-text-pri);
       text-decoration: none;
       font-weight: 600;
       transition: background .18s ease, border-color .18s ease;
     }
 
     .error-action:hover {
-      background: var(--component-bg-hover);
-      border-color: color-mix(in srgb, var(--accent-color) 42%, var(--border-color-blur));
+      background: var(--hover);
+      border-color: color-mix(in srgb, var(--accent) 42%, var(--border-color-blur));
     }
 
     .error-footnote {
       margin: 1rem 0 0;
-      color: var(--component-text-secondary);
+      color: var(--comp-text-sec);
       font-size: .92rem;
       line-height: 1.55;
     }

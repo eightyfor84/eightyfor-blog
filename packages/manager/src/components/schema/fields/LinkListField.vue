@@ -78,5 +78,5 @@ function emitUpdate() {
 .link-row .modern-input { flex: 1; min-width: 0; }
 .icon-btn { padding: .4rem; font-size: 1rem; background: transparent; cursor: pointer; border-radius: 4px; border: none; display: flex; align-items: center; justify-content: center; color: var(--status-error); }
 .icon-btn :deep(svg) { width: 1.2rem; height: 1.2rem; }
-.icon-btn:hover { background: var(--component-bg-hover); }
+.icon-btn:hover { background: var(--hover); }
 </style>

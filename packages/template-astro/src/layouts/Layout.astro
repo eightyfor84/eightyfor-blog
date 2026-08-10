@@ -1,9 +1,7 @@
 ---
-import { readFileSync } from 'node:fs';
 import { ClientRouter } from 'astro:transitions';
 import NavHeader from '../components/NavHeader.astro';
 import FilePreviewModal from '../components/FilePreviewModal.astro';
-import { API_BASE_URL } from '../core/site';
 import { isLocalMode } from '../data/localDataSource';
 import { getLocale } from '../utils/i18n';
 import { resolveFeatureFlags } from '../utils/featureFlags';
@@ -14,10 +12,7 @@ import criticalBlogs from '../styles/critical-blogs.css?raw';
 import '../styles/global.css';
 import '../styles/app.css';
 
-// Inline critical tokens to eliminate the network RTT for the blocking <link>.
-// Previously served as /critical-tokens.css — now baked into every page's <head>
-// so that var() references in the skeleton resolve on first paint without a fetch.
-const criticalTokensCSS = readFileSync('src/styles/critical-tokens.css', 'utf-8');
+import criticalTokens from '../styles/critical-tokens.css?raw';
 
 // Assemble critical CSS based on page type — only inject what this page needs.
 const pathname = Astro.url.pathname;
@@ -31,7 +26,7 @@ const criticalCSS = [
   isBlogs  ? criticalBlogs  : '',
 ].join('');
 
-interface Props {
+export interface Props {
   title?: string;
   settings?: any;
   locale?: 'en' | 'zh-CN';
@@ -221,7 +216,7 @@ try {
 
     <!-- Critical tokens: inlined to eliminate network RTT.
          Tokens must resolve before the skeleton CSS below paints. -->
-    <style is:inline set:html={criticalTokensCSS}></style>
+    <style is:inline set:html={criticalTokens}></style>
 
     <!-- Custom properties from SSR (before skeleton so var() refs resolve first-paint) -->
     <style define:vars={{
@@ -231,8 +226,8 @@ try {
       .frontend-body {
         margin: 0;
         padding: 0;
-        background-color: var(--frontend-body-bg-color, var(--app-bg-primary));
-        color: var(--text-primary);
+        background-color: var(--frontend-body-bg-color, var(--app-bg-pri));
+        color: var(--text-pri);
         font-family: var(--fontStack);
       }
       #app { display: flex; flex-direction: column; min-height: 100vh; }
@@ -240,7 +235,7 @@ try {
 
       /* 应用accent颜色 */
       :root {
-        --accent-color: var(--accentColor);
+        --accent: var(--accentColor);
       }
 
       html.home-transition-disabled::view-transition-group(root),
@@ -515,7 +510,7 @@ try {
           // 应用accent颜色
           if (settings.frontendAccent) {
             const accent = settings.frontendAccent;
-            document.documentElement.style.setProperty('--accent-color', accent);
+            document.documentElement.style.setProperty('--accent', accent);
           }
 
           // 应用字体
@@ -593,61 +588,29 @@ try {
 
       function init() {
         // NavHeader handles its own initialization
-        
-        // 主题观察器和背景渲染只在首次初始化
+
         if (!initialized) {
-          // 首次加载时应用所有设置，包括背景
+          // 首次硬加载：完整初始化（主题、背景、监听器）
           applySettings(true);
           initThemeListener();
           initThemeObserver();
-          // 延迟启用背景渲染
           scheduleCustomBackgroundAfterLcp();
           initialized = true;
         } else {
-          // 路由切换时，只应用主题和样式，不重新渲染背景层
+          // 软路由：transition:persist 完整保留背景层
+          // （DOM、inline style、is-ready、background-image 全部原样继承）。
+          // 只需重新应用主题/accent/字体/overlay 到新的 <html>。
           applySettings(false);
-          // 路由切换时，如果背景已经准备好，重新应用overlays
-          if (isBackgroundReady) {
-            updateResolvedOverlays();
-          }
+          updateResolvedOverlays();
         }
       }
 
       // Astro 每次路由切换完毕会抛出 page-load 事件 (包含首次加载)
       document.addEventListener('astro:page-load', init);
-      
-      // 监听DOM完全加载，确保背景层在首次加载时正确渲染
-       document.addEventListener('DOMContentLoaded', () => {
-         setTimeout(() => {
-           applyBackgroundLayer();
-         }, 200);
-       });
 
-      // 监听View Transitions，确保背景层在动画期间保持可见
-      document.addEventListener('astro:before-swap', (e) => {
-        const layer = document.getElementById('chronicle-bg-layer');
-                if (layer) {
-          // 在页面切换前，确保背景层不会被移除
-          layer.setAttribute('data-persist', 'true');
-          
-          // 强制设置背景层为可见状态，防止View Transitions隐藏
-          layer.style.opacity = '1';
-          layer.style.visibility = 'visible';
-          layer.style.display = 'block';
-        }
-      });
-
-      document.addEventListener('astro:after-swap', async (e) => {
-        // 页面切换后，立即重新应用背景层
-        setTimeout(async () => {
-          // 强制重新创建背景层以确保正确渲染
-          const { ensureBackgroundLayer } = await _loadBg();
-          ensureBackgroundLayer();
-
-          // 复用背景层渲染逻辑
-          applyBackgroundLayer();
-        }, 0);
-      });
+      // transition:persist 会完整保留 #chronicle-bg-layer 元素
+      // 及其所有 inline style、class、子元素——无需 JS 干预。
+      // 直接 URL (非 blob) 的 background-image 跨 View Transition 天然有效。
 
       document.addEventListener('astro:after-swap', () => {
         document.documentElement.classList.remove('home-transition-disabled');
@@ -675,6 +638,64 @@ try {
           document.documentElement.setAttribute('data-theme', 'dark');
         }
       });
+    </script>
+
+    <!-- Deferred link prefetch: activates only after the page is idle.
+         Kept out of the initial bundle to preserve FCP — Astro's built-in
+         `prefetch` config injects ~4 KiB of prefetch.js into the critical
+         JS chain; this tiny (~600 B) replacement uses event delegation and
+         native fetch(), waking up only after requestIdleCallback / 2 s fallback.
+         Subsequent SPA navigations benefit from pre-warmed pages. -->
+    <script>
+      (function () {
+        const PREFETCHED = new Set();
+        let _active = false;
+
+        function resolveUrl(href: string) {
+          try {
+            const u = new URL(href, location.origin);
+            if (u.origin !== location.origin) return '';
+            if (u.hash && u.pathname + u.search === location.pathname + location.search) return '';
+            return u.pathname + u.search;
+          } catch { return ''; }
+        }
+
+        function prefetch(url: string) {
+          if (PREFETCHED.has(url)) return;
+          PREFETCHED.add(url);
+          // priority: 'low' tells the browser this fetch must not compete with
+          // critical resources on the current page — no timer needed.
+          const controller = new AbortController();
+          setTimeout(() => controller.abort(), 10000);
+          fetch(url, { priority: 'low', signal: controller.signal, headers: { 'X-Prefetch': '1' } }).catch(() => {});
+        }
+
+        function onHover(e: Event) {
+          const a = (e.target as Element).closest('a[href]') as HTMLAnchorElement | null;
+          if (!a) return;
+          const url = resolveUrl(a.href);
+          if (url) prefetch(url);
+        }
+
+        function activate() {
+          if (_active) return;
+          _active = true;
+          // mouseover + touchstart, no timer — priority: 'low' ensures this
+          // never contends with current-page rendering
+          document.addEventListener('mouseover', onHover, { passive: true });
+          document.addEventListener('touchstart', onHover, { passive: true });
+        }
+
+        // Defer activation until the page is fully settled.
+        document.addEventListener('astro:page-load', () => {
+          if (_active) return;
+          if (typeof requestIdleCallback !== 'undefined') {
+            requestIdleCallback(() => activate(), { timeout: 2000 });
+          } else {
+            setTimeout(activate, 2000);
+          }
+        });
+      })();
     </script>
     <!-- Data source debug info -->
     <script define:vars={{ isLocalMode }}>

@@ -218,7 +218,7 @@ const searchBtnAsButton = props.searchBtnAsButton ?? true;
   .search-box {
     display: flex;
     align-items: center;
-    background: var(--component-bg-blur-alt);
+    background: var(--comp-bg-glass);
     border: 1px solid var(--border-color-blur);
     border-radius: 12px;
     padding: 4px;
@@ -226,8 +226,8 @@ const searchBtnAsButton = props.searchBtnAsButton ?? true;
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.05);
   }
   .search-box:focus-within {
-    border-color: var(--accent-color);
-    box-shadow: 0 0 0 2px var(--component-bg-accent-blur);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--comp-bg-accent-blur);
   }
 
   .divider {
@@ -242,7 +242,7 @@ const searchBtnAsButton = props.searchBtnAsButton ?? true;
     border: none;
     cursor: pointer;
     padding: 8px 12px;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     display: flex;
     align-items: center;
     gap: 6px;
@@ -252,12 +252,12 @@ const searchBtnAsButton = props.searchBtnAsButton ?? true;
     position: relative;
   }
   .tag-trigger.active:not(.featured) {
-    color: var(--accent-color);
+    color: var(--accent);
   }
 
   .tag-trigger.selected {
-    background: var(--component-bg-accent-blur);
-    color: var(--accent-color);
+    background: var(--comp-bg-accent-blur);
+    color: var(--accent);
   }
 
   .tag-trigger.selected.featured {
@@ -273,12 +273,12 @@ const searchBtnAsButton = props.searchBtnAsButton ?? true;
   }
 
   .tag-trigger:not(.featured):hover {
-    color: var(--accent-color);
+    color: var(--accent);
   }
 
   .tag-count {
-    background: var(--app-bg-primary);
-    color: var(--component-text-secondary);
+    background: var(--app-bg-pri);
+    color: var(--comp-text-sec);
     font-size: 0.75rem;
     font-weight: 500;
     font-variation-settings: 'wght' 500;
@@ -300,7 +300,7 @@ const searchBtnAsButton = props.searchBtnAsButton ?? true;
     border: none;
     cursor: pointer;
     padding: 8px 12px;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     display: flex;
     align-items: center;
     transition:
@@ -322,7 +322,7 @@ const searchBtnAsButton = props.searchBtnAsButton ?? true;
     cursor: default;
   }
   .search-btn.active {
-    background-color: var(--accent-color);
+    background-color: var(--accent);
     color: var(--recommended-accent-text);
   }
 
@@ -340,7 +340,7 @@ const searchBtnAsButton = props.searchBtnAsButton ?? true;
     flex: 1;
     background: transparent;
     border: none;
-    color: var(--text-primary);
+    color: var(--text-pri);
     font-size: 1rem;
     padding: 6px 0;
     outline: none;
@@ -351,7 +351,7 @@ const searchBtnAsButton = props.searchBtnAsButton ?? true;
     border: none;
     cursor: pointer;
     padding: 8px 12px;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     display: flex;
     align-items: center;
     transition: all 0.3s ease;
@@ -361,7 +361,7 @@ const searchBtnAsButton = props.searchBtnAsButton ?? true;
   }
 
   .clear-btn:hover {
-    color: var(--component-text-primary-hover);
+    color: var(--comp-text-pri-hvr);
     opacity: 1;
   }
 </style>

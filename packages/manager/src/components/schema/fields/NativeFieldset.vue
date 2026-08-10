@@ -104,7 +104,7 @@ function isChildDisabled(key: string): boolean {
   gap: 0.75rem;
   padding: 1rem 1.25rem;
   border-radius: 8px;
-  background: var(--component-bg-secondary, rgba(128, 128, 128, 0.04));
+  background: var(--comp-bg-sec, rgba(128, 128, 128, 0.04));
   border: 1px solid var(--border-color, rgba(128, 128, 128, 0.15));
 }
 
@@ -113,7 +113,7 @@ function isChildDisabled(key: string): boolean {
   margin: 0 0 0.25rem;
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
   text-transform: uppercase;
   letter-spacing: 0.4px;
 }

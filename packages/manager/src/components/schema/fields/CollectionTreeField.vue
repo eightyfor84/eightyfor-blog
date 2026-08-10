@@ -223,25 +223,25 @@ function handlePostPicked(targetNode: any, pickedId: string) {
 
 <style scoped>
 .collection-modal-overlay { inset: 0; z-index: 10040; display: grid; place-items: center; position: fixed; background: rgba(0,0,0,.45); padding: 1rem; }
-.collection-modal { width: min(980px, 100%); max-height: min(88vh, 900px); display: grid; grid-template-rows: auto 1fr; gap: 1rem; padding: 1rem; border-radius: 18px; background: var(--component-bg); border: 1px solid var(--border-color); box-shadow: var(--shadow-elev-2); overflow: hidden; }
+.collection-modal { width: min(980px, 100%); max-height: min(88vh, 900px); display: grid; grid-template-rows: auto 1fr; gap: 1rem; padding: 1rem; border-radius: 18px; background: var(--comp-bg); border: 1px solid var(--border-color); box-shadow: var(--shadow-elev-2); overflow: hidden; }
 .collection-modal__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
 .collection-modal__header h3 { margin: 0; font-size: 1.25rem; }
 .collection-modal__body { min-height: 0; overflow: auto; padding-right: .25rem; }
 .collection-modal__fields { display: grid; gap: .9rem; margin-bottom: 1rem; }
 .collection-modal__fields-layout { display: grid; grid-template-columns: 200px 1fr; gap: 1.5rem; align-items: start; }
 .collection-modal__preview { display: flex; flex-direction: column; gap: .5rem; min-width: 200px; }
-.cover-preview { width: 200px; height: 200px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); background: var(--component-bg); }
+.cover-preview { width: 200px; height: 200px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); background: var(--comp-bg); }
 .cover-preview img { width: 100%; height: 100%; object-fit: cover; }
-.cover-placeholder { width: 200px; height: 200px; border-radius: 12px; border: 1px dashed var(--border-color); background: var(--component-bg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .5rem; color: var(--component-text-secondary); }
+.cover-placeholder { width: 200px; height: 200px; border-radius: 12px; border: 1px dashed var(--border-color); background: var(--comp-bg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .5rem; color: var(--comp-text-sec); }
 .cover-placeholder .icon-svg { width: 48px; height: 48px; opacity: 0.5; }
 .collection-modal__inputs { display: grid; gap: .9rem; min-width: 0; }
 .collection-modal__toolbar { display: flex; justify-content: flex-end; margin-bottom: .75rem; }
 .field { display: grid; gap: .45rem; }
-.field input, .field textarea { width: 100%; border: 1px solid var(--border-color); border-radius: 12px; background: var(--component-bg); color: var(--component-text-primary); padding: .75rem .85rem; box-sizing: border-box; }
-.close-btn { background: none; border: none; color: var(--component-text-secondary); cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; border-radius: 4px; }
+.field input, .field textarea { width: 100%; border: 1px solid var(--border-color); border-radius: 12px; background: var(--comp-bg); color: var(--comp-text-pri); padding: .75rem .85rem; box-sizing: border-box; }
+.close-btn { background: none; border: none; color: var(--comp-text-sec); cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; border-radius: 4px; }
 .close-btn :deep(svg) { width: 24px; height: 24px; }
 .file-picker-overlay { position: fixed; inset: 0; z-index: 10050; display: grid; place-items: center; background: rgba(0,0,0,.45); padding: 1rem; }
-.file-picker-modal { width: min(800px, 90vw); display: grid; grid-template-rows: auto 1fr; gap: 1rem; padding-top: 1rem; border-radius: 18px; background: var(--component-bg); border: 1px solid var(--border-color); box-shadow: var(--shadow-elev-2); overflow: hidden; }
+.file-picker-modal { width: min(800px, 90vw); display: grid; grid-template-rows: auto 1fr; gap: 1rem; padding-top: 1rem; border-radius: 18px; background: var(--comp-bg); border: 1px solid var(--border-color); box-shadow: var(--shadow-elev-2); overflow: hidden; }
 .file-picker-modal__header { padding: 0 1rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .file-picker-modal__header h3 { margin: 0; font-size: 1.25rem; }
 </style>

@@ -211,13 +211,13 @@ function onDismiss(nid: string) {
   margin: 0 auto;
   max-width: 1000px;
   padding: 32px 24px;
-  color: var(--text-primary);
+  color: var(--text-pri);
   overflow-y: auto;
 }
 
 h1 { font-size: 1.5rem; margin-bottom: 24px; }
-h2 { font-size: 1.15rem; color: var(--text-secondary); margin: 32px 0 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; }
-h3 { font-size: 0.9rem; color: var(--text-secondary); margin: 16px 0 8px; }
+h2 { font-size: 1.15rem; color: var(--text-sec); margin: 32px 0 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; }
+h3 { font-size: 0.9rem; color: var(--text-sec); margin: 16px 0 8px; }
 
 .group { margin-bottom: 16px; }
 
@@ -242,7 +242,7 @@ h3 { font-size: 0.9rem; color: var(--text-secondary); margin: 16px 0 8px; }
   background: var(--surface-alt, #2a2a2a);
   padding: 1px 6px;
   border-radius: 3px;
-  color: var(--text-primary);
+  color: var(--text-pri);
 }
 
 .nc-list {
@@ -251,5 +251,5 @@ h3 { font-size: 0.9rem; color: var(--text-secondary); margin: 16px 0 8px; }
   gap: 8px;
 }
 
-.muted { color: var(--text-secondary); font-size: 0.85rem; }
+.muted { color: var(--text-sec); font-size: 0.85rem; }
 </style>

@@ -265,7 +265,7 @@ h1.print-title {
   display: none;
 }
 
-.print-body :deep(.code-chunk-container .editor-wrapper,.code-textarea,.syntax-highlight){
+.print-body :deep(.code-chunk-container .editor-wrapper,.code-textarea,.syntax-hl){
   max-height: none !important;
 }
 
@@ -278,7 +278,7 @@ h1.print-title {
   overflow: hidden !important;
 }
 
-.print-body :deep(.syntax-highlight){
+.print-body :deep(.syntax-hl){
   max-height: none !important;
   overflow: hidden !important;
 }

@@ -166,10 +166,10 @@ async function ensureMermaidLoaded() {
           nodeBkg: 'transparent',
           clusterBkg: 'transparent',
           primaryColor: 'transparent',
-          primaryTextColor: 'var(--component-text-primary)',
-          textColor: 'var(--component-text-primary)',
-          nodeBorder: 'var(--text-primary)',
-          clusterBorder: 'var(--text-primary)',
+          primaryTextColor: 'var(--comp-text-pri)',
+          textColor: 'var(--comp-text-pri)',
+          nodeBorder: 'var(--text-pri)',
+          clusterBorder: 'var(--text-pri)',
           lineColor: '#ececec',
           secondaryColor: '#0b7285',
           fontFamily: 'var(--app-font-stack)'
@@ -702,16 +702,16 @@ function downloadMermaid() {
     try {
       const cs = getComputedStyle(document.documentElement)
       const vars = {
-        '--component-bg-blur-alt': cs.getPropertyValue('--component-bg-blur-alt') || '#ffffff',
+        '--comp-bg-glass': cs.getPropertyValue('--comp-bg-glass') || '#ffffff',
         '--border-color': cs.getPropertyValue('--border-color') || '#e6e6e6',
-        '--text-primary': cs.getPropertyValue('--text-primary') || '#111111',
-        '--component-text-primary': cs.getPropertyValue('--component-text-primary') || '#111111'
+        '--text-pri': cs.getPropertyValue('--text-pri') || '#111111',
+        '--comp-text-pri': cs.getPropertyValue('--comp-text-pri') || '#111111'
       }
       const styleContent = `
-        svg { background: ${vars['--component-bg-blur-alt']}; }
-        rect { fill: ${vars['--component-bg-blur-alt']}; stroke: ${vars['--text-primary']}; }
-        path { stroke: ${vars['--component-text-primary']}; fill: none; }
-        text { fill: ${vars['--component-text-primary']}; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif; }
+        svg { background: ${vars['--comp-bg-glass']}; }
+        rect { fill: ${vars['--comp-bg-glass']}; stroke: ${vars['--text-pri']}; }
+        path { stroke: ${vars['--comp-text-pri']}; fill: none; }
+        text { fill: ${vars['--comp-text-pri']}; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif; }
       `
       // remove previous style if any
       const prevStyle = svgEl.querySelector('style[data-chronicle-inline]')
@@ -783,7 +783,7 @@ watch(() => props.language, (n) => {
 <style>
 .icon-btn {
   background: transparent;
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
   border: none;
   padding: 0.1rem 0.3rem;
   border-radius: 4px;
@@ -796,7 +796,7 @@ watch(() => props.language, (n) => {
 .transparent-select {
   background: transparent !important;
   border: none;
-  color: var(--component-text-primary);
+  color: var(--comp-text-pri);
   font-size: 0.95em;
   font-family: var(--app-font-stack);
   outline: none;
@@ -813,8 +813,8 @@ watch(() => props.language, (n) => {
   box-shadow: none;
 }
 .transparent-select option {
-  background: var(--component-bg-primary);
-  color: var(--component-text-primary);
+  background: var(--comp-bg-pri);
+  color: var(--comp-text-pri);
 }
 .toolbar {
   align-items: center;
@@ -823,7 +823,7 @@ watch(() => props.language, (n) => {
   font-family: var(--app-font-stack);
   font-size: 0.8rem;
   font-weight: 500;
-  color: var(--component-text-primary);
+  color: var(--comp-text-pri);
   letter-spacing: 0.01em;
 }
 .editor-header, .editor-footer {
@@ -833,9 +833,9 @@ watch(() => props.language, (n) => {
 .code-chunk-container {
   display: flex;
   flex-direction: column;
-  background: var(--component-bg-blur-alt);
+  background: var(--comp-bg-glass);
   border: 1px solid var(--border-color);
-  color: var(--app-text-primary);
+  color: var(--app-text-pri);
   font-family: var(--app-font-stack-mono);
   border-radius: 8px;
   overflow: hidden;
@@ -867,7 +867,7 @@ watch(() => props.language, (n) => {
   left: 0;
   width: 100%;
   background: transparent;
-  caret-color: var(--text-primary);
+  caret-color: var(--text-pri);
   border: none;
   outline: none;
   resize: none;
@@ -889,14 +889,14 @@ watch(() => props.language, (n) => {
   transition: background 0.2s, color 0.2s;
 }
 .icon-btn:hover {
-  color: var(--text-primary);
+  color: var(--text-pri);
 }
 .icon-btn.active {
-  background: var(--component-bg-active);
-  color: var(--text-primary);
+  background: var(--active);
+  color: var(--text-pri);
 }
 .mermaid-preview {
-  background: var(--component-bg-blur-alt);
+  background: var(--comp-bg-glass);
   border-top: 1px solid var(--border-color);
   max-height: 420px;
   overflow: auto;
@@ -910,14 +910,14 @@ watch(() => props.language, (n) => {
   font-family: inherit !important;
 }
 .mermaid-preview svg rect {
-  fill: var(--component-bg-blur-alt) !important;
-  stroke: var(--text-primary) !important;
+  fill: var(--comp-bg-glass) !important;
+  stroke: var(--text-pri) !important;
 }
 .mermaid-preview svg path {
-  stroke: var(--component-text-primary) !important;
+  stroke: var(--comp-text-pri) !important;
 }
 .mermaid-preview svg text {
-  fill: var(--component-text-primary) !important;
+  fill: var(--comp-text-pri) !important;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif !important;
 }
 .mermaid-preview svg .node rect,
@@ -930,22 +930,22 @@ watch(() => props.language, (n) => {
 .mermaid-preview svg .task,
 .mermaid-preview svg .section,
 .mermaid-preview svg .legend rect {
-  fill: var(--component-bg-blur-alt) !important;
-  stroke: var(--component-text-secondary) !important;
+  fill: var(--comp-bg-glass) !important;
+  stroke: var(--comp-text-sec) !important;
 }
 .mermaid-preview svg .edgePath path,
 .mermaid-preview svg .flowchart-link,
 .mermaid-preview svg .relation,
 .mermaid-preview svg .marker path {
   fill: none !important;
-  stroke: var(--component-text-primary) !important;
+  stroke: var(--comp-text-pri) !important;
 }
 .mermaid-preview svg .nodeLabel,
 .mermaid-preview svg .label,
 .mermaid-preview svg .messageText,
 .mermaid-preview svg .legend text {
-  fill: var(--component-text-primary) !important;
-  color: var(--component-text-primary) !important;
+  fill: var(--comp-text-pri) !important;
+  color: var(--comp-text-pri) !important;
 }
 
 .toolbar-divider {
@@ -974,11 +974,11 @@ watch(() => props.language, (n) => {
 .line-number {
   height: 1.2em;
   line-height: 1.2em;
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
   font-size: 0.9rem;
 }
 .line-number.active {
-  color: var(--component-text-primary);
+  color: var(--comp-text-pri);
   font-weight: bold;
 }
 .editor-content {
@@ -986,7 +986,7 @@ watch(() => props.language, (n) => {
   position: relative;
   overflow: hidden;
 }
-.syntax-highlight {
+.syntax-hl {
   position: absolute;
   top: 0;
   left: 0;
@@ -996,7 +996,7 @@ watch(() => props.language, (n) => {
   margin: 0;
   padding: 1rem 1rem 1rem 0.5rem;
   background: transparent;
-  color: var(--component-text-primary);
+  color: var(--comp-text-pri);
   font-family: inherit;
   font-size: 13.5px;
   line-height: 1.3em;
@@ -1017,7 +1017,7 @@ watch(() => props.language, (n) => {
   padding: 1rem 1rem 1rem 0.5rem;
   background: transparent;
   color: transparent;
-  caret-color: var(--text-primary);
+  caret-color: var(--text-pri);
   border: none;
   outline: none;
   resize: none;
@@ -1034,7 +1034,7 @@ watch(() => props.language, (n) => {
   display:  none;
 }
 .editor-footer {
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
   padding: 0.1rem 1rem 0.2rem 1rem;
   font-size: 0.8rem;
   display: flex;
@@ -1042,7 +1042,7 @@ watch(() => props.language, (n) => {
   flex-shrink: 0;
 }
 /* 滚动条样式 */
-.syntax-highlight::-webkit-scrollbar,
+.syntax-hl::-webkit-scrollbar,
 .code-textarea::-webkit-scrollbar {
   cursor: default;
   width: 8px;

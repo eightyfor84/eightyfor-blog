@@ -433,7 +433,7 @@ function renderCodeChunkHtml(code: string, lang: string): string {
   </div>
   <div class="editor-wrapper" style="height: ${height}px;">
     <div class="editor-content">
-      <pre class="syntax-highlight" style="padding: 0.7rem 1.5rem 1.2rem 1.5rem; font-size: 13.5px; line-height: 1.3em; font-family: inherit; box-sizing: border-box;"><code>${safeCode}</code></pre>
+      <pre class="syntax-hl" style="padding: 0.7rem 1.5rem 1.2rem 1.5rem; font-size: 13.5px; line-height: 1.3em; font-family: inherit; box-sizing: border-box;"><code>${safeCode}</code></pre>
       <textarea class="code-textarea" spellcheck="false" placeholder="" readonly>${safeCode}</textarea>
     </div>
   </div>

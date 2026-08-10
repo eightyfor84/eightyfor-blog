@@ -8,6 +8,21 @@ const backgroundObjectUrls = new Set<string>();
 let currentBackgroundUrl = '';
 let currentTheme = '';
 
+/**
+ * 软路由切换前清理所有缓存。
+ * Blob URL 绑定到文档的 blob registry，View Transition swap 后即失效——
+ * 必须强制下一帧重新 fetch → blob → objectURL。
+ */
+export function invalidateBackgroundCache() {
+  backgroundPreparedCache.clear();
+  backgroundObjectUrls.forEach((u) => {
+    try { URL.revokeObjectURL(u); } catch (e) { /* ignore */ }
+  });
+  backgroundObjectUrls.clear();
+  currentBackgroundUrl = '';
+  bgRenderVersion++;
+}
+
 function resolveBackgroundUrl(value: any) {
   if (!value) return '';
   if (typeof value === 'string') return String(value || '').trim();
@@ -192,7 +207,7 @@ export async function stageBackgroundLayer(
     const shouldForceReload = layer.getAttribute('data-force-reload') === 'true';
     if (normalizedUrl === currentBackgroundUrl && layer.classList.contains('is-ready') && !shouldForceReload) {
       if (surfaceEl) {
-        /* const root = getComputedStyle(document.documentElement).getPropertyValue('--app-bg-primary') || '';
+        /* const root = getComputedStyle(document.documentElement).getPropertyValue('--app-bg-pri') || '';
         surfaceEl.style.background = root || 'transparent'; */
       }
       if (overlayEl) {
@@ -248,6 +263,14 @@ export async function stageBackgroundLayer(
     // 清除强制重载标记
     layer.removeAttribute('data-force-reload');
 
+    // 清除该 URL 的准备缓存，以便重新获取新的 blob URL。
+    // Blob URL 绑定到文档的 blob 注册表，并在 View Transition
+    // 交换后失效——即使是 transition:persist。强制重载必须
+    // 获取一个新的 blob。
+    if (shouldForceReload) {
+      backgroundPreparedCache.delete(normalizedUrl);
+    }
+
     const renderId = ++bgRenderVersion;
 
     // 清除ready状态
@@ -268,7 +291,7 @@ export async function stageBackgroundLayer(
 
     // 第二步：设置surface
     if (surfaceEl) {
-      /* const root = getComputedStyle(document.documentElement).getPropertyValue('--app-bg-primary') || '';
+      /* const root = getComputedStyle(document.documentElement).getPropertyValue('--app-bg-pri') || '';
       surfaceEl.style.background = root || 'transparent'; */
     }
 
@@ -319,7 +342,7 @@ export async function stageBackgroundLayer(
           if (renderId !== bgRenderVersion) return;
 
           if (prepared.ok && prepared.preparedUrl) {
-                        if (imgEl) imgEl.style.backgroundImage = `url(${prepared.preparedUrl})`;
+            if (imgEl) imgEl.style.backgroundImage = `url(${prepared.preparedUrl})`;
             currentBackgroundUrl = normalizedUrl;
           } else {
             if (imgEl) imgEl.style.backgroundImage = 'none';

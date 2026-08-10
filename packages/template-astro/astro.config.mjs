@@ -26,9 +26,11 @@ const DATA_DIR = process.env.CHRONICLE_DATA_DIR || join(__dirname, '..', '..', '
 export default defineConfig({
   site: process.env.CHRONICLE_SITE_URL || 'http://localhost:4321',
   output: 'static',
-  // Prefetch disabled — removes prefetch.js + preload-helper.js from initial bundle (~4 KiB),
-  // shortening the critical JS dependency chain. View transitions (ClientRouter) still work
-  // for SPA navigation; page loads are simply not pre-warmed on hover/link visibility.
+  // Deferred prefetch — Astro's built-in `prefetch` config injects prefetch.js +
+  // preload-helper.js (~4 KiB) into the initial bundle, hurting FCP. Instead, we
+  // defer: a tiny custom prefetcher in Layout.astro activates after the page is
+  // idle (requestIdleCallback / 2s fallback), so the first paint is unaffected and
+  // subsequent navigations still benefit from pre-warmed pages.
   integrations: [
     icon(),
 

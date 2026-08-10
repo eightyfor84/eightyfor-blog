@@ -1,6 +1,6 @@
 <!--
   Chronicle Manager — CodeMirror 6 Editor
-  Replaces raw <textarea> with syntax-highlighted markdown editing.
+  Replaces raw <textarea> with syntax-hled markdown editing.
 -->
 <template>
   <div ref="editorHost" class="cm-editor-host"></div>
@@ -325,7 +325,7 @@ const hljsHighlight = HighlightStyle.define([
   //  Category 2: Code tokens → hljs-*
   //  Fenced blocks only.  Color source:
   //    chronicle-markdown.css — shared between SSG + editor
-  //    .syntax-highlight .hljs-*  ← published pages
+  //    .syntax-hl .hljs-*  ← published pages
   //    .cm-editor-host  .hljs-*  ← CMS editor
   //  Both contexts use the same --code-* CSS variables.
   // ═══════════════════════════════════════════════════════
@@ -538,8 +538,8 @@ defineExpose({
 }
 
 .cm-editor-host .cm-editor {
-  background: var(--component-bg-primary);
-  color: var(--app-text-primary);
+  background: var(--app-bg-pri);
+  color: var(--app-text-pri);
   font-size: .9rem;
   height: 100%;
   font-family: var(--app-font-stack-mono);
@@ -590,9 +590,9 @@ defineExpose({
 .cm-editor-host .cm-md-quote.cm-md-meta { color: #98c379; }
 .cm-editor-host .cm-md-comment       { color: var(--code-comment); font-style: italic; }
 .cm-editor-host .cm-md-hr            { color: var(--code-comment); }
-.cm-editor-host .cm-md-strong.cm-md-meta { color: var(--app-text-primary); }
-.cm-editor-host .cm-md-emphasis.cm-md-meta { color: var(--app-text-primary); }
-.cm-editor-host .cm-md-strikethrough.cm-md-meta { color: var(--app-text-primary); }
+.cm-editor-host .cm-md-strong.cm-md-meta { color: var(--app-text-pri); }
+.cm-editor-host .cm-md-emphasis.cm-md-meta { color: var(--app-text-pri); }
+.cm-editor-host .cm-md-strikethrough.cm-md-meta { color: var(--app-text-pri); }
 
 /* ── Light theme ─────────────────────────────────── */
 [data-backend-theme="light"] .cm-editor-host .cm-md-heading { color: #a626a4; font-weight: bold; }
@@ -615,7 +615,7 @@ defineExpose({
   font-weight: bold;
 }
 .cm-editor-host .cm-task-marker.cm-task-checked {
-  color: var(--accent-color);
+  color: var(--accent);
   font-weight: bold;
 }
 
@@ -623,7 +623,7 @@ defineExpose({
  * ── Category 2: Code tokens (hljs-*) ─────────────────────
  * Fenced-block-only.  Rules live in chronicle-markdown.css:
  *
- *   .syntax-highlight .hljs-*  ← SSG output + CMS preview
+ *   .syntax-hl .hljs-*  ← SSG output + CMS preview
  *   .cm-editor-host  .hljs-*  ← CMS editor (CodeMirror)
  *
  * Both contexts share the same --code-* CSS variables,
@@ -631,11 +631,11 @@ defineExpose({
  * Adding a new code token class?  Edit chronicle-markdown.css.
  */
 /* Cursor & selection */
-.cm-editor-host .cm-editor .cm-content  { caret-color: var(--app-text-primary); }
-.cm-editor-host .cm-editor .cm-cursor   { border-left: 2px solid var(--app-text-primary); }
-.cm-editor-host .cm-editor .cm-selectionBackground { background: var(--component-bg-active); }
-.cm-editor-host .cm-editor .cm-activeLine          { background: var(--component-bg-hover); }
-.cm-editor-host .cm-editor .cm-matchingBracket     { background: var(--component-bg-active); outline: 1px solid #2ea35f; }
+.cm-editor-host .cm-editor .cm-content  { caret-color: var(--app-text-pri); }
+.cm-editor-host .cm-editor .cm-cursor   { border-left: 2px solid var(--app-text-pri); }
+.cm-editor-host .cm-editor .cm-selectionBackground { background: var(--comp-bg-glass-active); }
+.cm-editor-host .cm-editor .cm-activeLine          { background: var(--comp-bg-glass-hvr); }
+.cm-editor-host .cm-editor .cm-matchingBracket     { background: var(--comp-bg-glass-active); outline: 1px solid #2ea35f; }
 
 /* ── Search / Replace Panel ────────────────────── */
 
@@ -661,8 +661,8 @@ defineExpose({
 }
 
 .cm-panel {
-  background: var(--component-bg-blur) !important;
-  color: var(--component-text-primary) !important;
+  background: var(--comp-bg-blur) !important;
+  color: var(--comp-text-pri) !important;
   border: 1px solid var(--border-color) !important;
   padding: 8px 12px !important;
   margin: 16px !important;
@@ -685,8 +685,8 @@ defineExpose({
 }
 
 .cm-panel .cm-textfield {
-  background: var(--app-bg-primary) !important;
-  color: var(--component-text-primary) !important;
+  background: var(--app-bg-pri) !important;
+  color: var(--comp-text-pri) !important;
   border: 1px solid var(--border-color) !important;
   border-radius: 6px !important;
   padding: 5px 10px !important;
@@ -697,14 +697,14 @@ defineExpose({
   min-width: 180px;
 }
 .cm-panel .cm-textfield:focus {
-  border-color: var(--accent-color) !important;
-  box-shadow: 0 0 0 2px var(--accent-color-bg);
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px var(--accent-bg);
 }
 
 .cm-panel .cm-button {
   background-image: none !important;
-  background: var(--component-bg) !important;
-  color: var(--component-text-primary) !important;
+  background: var(--comp-bg) !important;
+  color: var(--comp-text-pri) !important;
   border: 1px solid var(--border-color) !important;
   border-radius: 6px !important;
   font-size: 0.8rem !important;
@@ -717,17 +717,17 @@ defineExpose({
   text-transform: capitalize;
 }
 .cm-panel .cm-button:hover {
-  background: var(--component-bg-hover) !important;
-  border-color: var(--accent-color) !important;
+  background: var(--comp-bg-hvr) !important;
+  border-color: var(--accent) !important;
 }
 .cm-panel .cm-button:active {
-  background: var(--component-bg-active) !important;
+  background: var(--comp-bg-active) !important;
 }
 
 .cm-panel label {
   font-family: var(--app-font-stack) !important;
   font-size: 0.8rem !important;
-  color: var(--component-text-secondary) !important;
+  color: var(--comp-text-sec) !important;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -737,7 +737,7 @@ defineExpose({
   user-select: none;
 }
 .cm-panel input[type="checkbox"] {
-  accent-color: var(--accent-color);
+  accent-color: var(--accent);
   width: 16px;
   height: 16px;
   cursor: pointer;
@@ -746,12 +746,12 @@ defineExpose({
 
 /* ── Search Match Highlighting ────────────────── */
 .cm-searchMatch {
-  background: color-mix(in srgb, var(--accent-color) 28%, transparent) !important;
-  outline: 1px solid color-mix(in srgb, var(--accent-color) 48%, transparent) !important;
+  background: color-mix(in srgb, var(--accent) 28%, transparent) !important;
+  outline: 1px solid color-mix(in srgb, var(--accent) 48%, transparent) !important;
 }
 .cm-searchMatch.cm-searchMatch-selected {
-  background: color-mix(in srgb, var(--accent-color) 50%, transparent) !important;
-  outline: 2px solid var(--accent-color) !important;
+  background: color-mix(in srgb, var(--accent) 50%, transparent) !important;
+  outline: 2px solid var(--accent) !important;
 }
 
 </style>

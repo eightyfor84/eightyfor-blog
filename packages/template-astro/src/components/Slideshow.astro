@@ -883,7 +883,7 @@ if (md.trim()) {
       opacity 0.2s,
       background 0.2s;
     background: transparent;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     font-size: 14px;
   }
 
@@ -894,13 +894,13 @@ if (md.trim()) {
   html:not(.focus) .slides-controls {
     border-top: 1px solid var(--border-color-blur);
     opacity: 1;
-    background: var(--component-bg-blur);
+    background: var(--comp-bg-blur);
     backdrop-filter: blur(4px);
   }
 
   .slides-controls:hover {
     opacity: 1;
-    background: var(--component-bg-blur);
+    background: var(--comp-bg-blur);
     backdrop-filter: blur(4px);
   }
 
@@ -914,7 +914,7 @@ if (md.trim()) {
     gap: 6px;
     background: transparent;
     border: none;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     cursor: pointer;
     padding: 6px 14px;
     border-radius: 4px;
@@ -931,8 +931,8 @@ if (md.trim()) {
   .slides-controls a:hover,
   .slide-popup button:hover,
   .slide-popup a:hover {
-    background: var(--component-bg-hover);
-    color: var(--component-text-primary);
+    background: var(--hover);
+    color: var(--comp-text-pri);
   }
   .slides-controls button:disabled,
   .slides-controls a:disabled,
@@ -943,14 +943,14 @@ if (md.trim()) {
   }
   .slides-controls button.active,
   .slides-controls a.active,
-  .slide-popup button.active, 
+  .slide-popup button.active,
   .slide-popup a.active {
-    background: var(--component-bg-active);
-    color: var(--component-text-primary);
+    background: var(--active);
+    color: var(--comp-text-pri);
   }
 
   .slide-back-link {
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     text-decoration: none;
     display: inline-flex;
     align-items: center;
@@ -962,8 +962,8 @@ if (md.trim()) {
     transition: background 0.15s;
   }
   .slide-back-link:hover {
-    background: var(--component-bg-hover);
-    color: var(--component-text-primary);
+    background: var(--hover);
+    color: var(--comp-text-pri);
   }
 
   .slide-counter {
@@ -974,7 +974,7 @@ if (md.trim()) {
     user-select: none;
   }
   .slide-counter:hover {
-    color: var(--component-text-primary);
+    color: var(--comp-text-pri);
   }
 
   /* ── Zoom controls ───────────────────────────── */
@@ -1005,7 +1005,7 @@ if (md.trim()) {
     display: none;
     align-items: center;
     gap: 2px;
-    background: var(--component-bg-blur);
+    background: var(--comp-bg-blur);
     backdrop-filter: blur(12px);
     border: 1px solid var(--border-color-blur);
     border-radius: 8px;
@@ -1024,7 +1024,7 @@ if (md.trim()) {
     transform: translateX(-50%);
     display: flex;
     gap: 4px;
-    background: var(--component-bg-blur, rgba(255, 255, 255, 0.9));
+    background: var(--comp-bg-blur, rgba(255, 255, 255, 0.9));
     border: 1px solid var(--border-color, #ddd);
     border-radius: 8px;
     padding: 4px;
@@ -1039,17 +1039,17 @@ if (md.trim()) {
     border-radius: 6px;
     cursor: pointer;
     font-size: 13px;
-    color: var(--text-primary, #111);
+    color: var(--text-pri, #111);
   }
   .slides-view-bar button svg {
     vertical-align: middle;
     margin-right: 5px;
   }
   .slides-view-bar button:hover {
-    background: var(--component-bg-hover, #f0f0f0);
+    background: var(--hover);
   }
   .slides-view-bar button.active {
-    background: var(--component-bg-accent-blur, #e0e7ff);
+    background: var(--comp-bg-accent-blur, #e0e7ff);
     font-weight: 600;
   }
 
@@ -1090,7 +1090,7 @@ if (md.trim()) {
     position: absolute;
     bottom:  8px;
     left: 6px;
-    background: var(--component-bg-blur);
+    background: var(--comp-bg-blur);
     backdrop-filter: blur(12px);
     border: 1px solid var(--border-color-blur);
     border-radius: 10px;
@@ -1111,19 +1111,19 @@ if (md.trim()) {
     border-radius: 6px;
     cursor: pointer;
     font-size: 0.85rem;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     white-space: nowrap;
     transition:
       background 0.15s,
       color 0.15s;
   }
   .slide-toc-item:hover {
-    background: var(--component-bg-hover);
-    color: var(--component-text-primary);
+    background: var(--hover);
+    color: var(--comp-text-pri);
   }
   .slide-toc-item.active {
-    background: var(--component-bg-accent, #e0e7ff);
-    color: var(--component-text-primary-highlight);
+    background: var(--comp-bg-accent, #e0e7ff);
+    color: var(--comp-text-pri-hl);
     font-weight: 600;
   }
   .slide-toc-num {
@@ -1164,11 +1164,11 @@ if (md.trim()) {
       padding: 4px 10px;
       font-size: 13px;
       min-width: 42px;
-      color: var(--component-text-secondary);
+      color: var(--comp-text-sec);
     }
     .slide-zoom-label:hover {
-      background: var(--component-bg-hover);
-      color: var(--component-text-primary);
+      background: var(--hover);
+      color: var(--comp-text-pri);
     }
 
     .slide-zoom-popup {
@@ -1179,7 +1179,7 @@ if (md.trim()) {
       display: none;
       align-items: center;
       gap: 2px;
-      background: var(--component-bg-blur);
+      background: var(--comp-bg-blur);
       backdrop-filter: blur(12px);
       border: 1px solid var(--border-color-blur);
       border-radius: 8px;
@@ -1209,7 +1209,7 @@ if (md.trim()) {
     position: absolute;
     bottom: calc(100% + 8px);
     left: 8px;
-    background: var(--component-bg-blur);
+    background: var(--comp-bg-blur);
     backdrop-filter: blur(12px);
     border: 1px solid var(--border-color-blur);
     border-radius: 10px;
@@ -1225,7 +1225,7 @@ if (md.trim()) {
     font-size: 1.2rem;
     font-weight: 600;
     margin: 0 0 10px 0;
-    color: var(--text-primary);
+    color: var(--text-pri);
     line-height: 1.3;
   }
   .slide-info-row {
@@ -1233,7 +1233,7 @@ if (md.trim()) {
     gap: 8px;
     padding: 4px 0;
     font-size: 13px;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     align-items: baseline;
     justify-content: flex-start;
   }
@@ -1243,7 +1243,7 @@ if (md.trim()) {
     min-width: 120px;
     max-width: 50vw;
     flex-shrink: 0;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     opacity: 0.7;
     font-size: 0.85rem;
   }
@@ -1259,10 +1259,10 @@ if (md.trim()) {
     transition: background 0.15s;
   }
   a.slide-info-row:hover {
-    background: var(--component-bg-hover);
+    background: var(--hover);
   }
   .slide-info-link {
-    color: var(--accent-color, #2563eb);
+    color: var(--accent, #2563eb);
     text-decoration: none;
   }
   .slide-info-tags {
@@ -1275,15 +1275,15 @@ if (md.trim()) {
     padding: 2px 8px;
     border-radius: 999px;
     font-size: 11px;
-    background: var(--component-bg-hover, #f0f0f0);
-    color: var(--component-text-secondary);
+    background: var(--comp-bg-hvr, #f0f0f0);
+    color: var(--comp-text-sec);
     text-decoration: none;
     transition:
       background 0.15s,
       color 0.15s;
   }
   .slide-tag-chip:hover {
-    background: var(--accent-color, #2563eb);
+    background: var(--accent, #2563eb);
     color: #fff;
   }
 </style>

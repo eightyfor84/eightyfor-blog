@@ -49,7 +49,7 @@ function onInput(e: Event) {
 .range-value {
   min-width: 48px;
   text-align: right;
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
   font-size: 0.9rem;
 }
 </style>

@@ -274,7 +274,7 @@ const rootId = isSidebar ? "collection-nav-root" : "collection-nav-inline";
     align-items: center;
     gap: 8px;
     font-weight: 700;
-    color: var(--component-text-primary);
+    color: var(--comp-text-pri);
   }
   .cn-header-icon {
     width: 18px;
@@ -282,7 +282,7 @@ const rootId = isSidebar ? "collection-nav-root" : "collection-nav-inline";
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     flex-shrink: 0;
   }
   .cn-header-icon svg {
@@ -333,7 +333,7 @@ const rootId = isSidebar ? "collection-nav-root" : "collection-nav-inline";
   }
   .cn-empty {
     padding: 0.5rem 0.35rem;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     font-size: 0.92rem;
   }
 
@@ -355,7 +355,7 @@ const rootId = isSidebar ? "collection-nav-root" : "collection-nav-inline";
   }
   .ct-card.group {
     font-weight: 700;
-    color: var(--component-text-primary);
+    color: var(--comp-text-pri);
   }
   .ct-title {
     white-space: nowrap;
@@ -370,7 +370,7 @@ const rootId = isSidebar ? "collection-nav-root" : "collection-nav-inline";
     align-items: center;
     justify-content: center;
     margin-right: 8px;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     flex-shrink: 0;
   }
   .ct-icon svg {
@@ -387,7 +387,7 @@ const rootId = isSidebar ? "collection-nav-root" : "collection-nav-inline";
     border-radius: 4px;
     background: transparent;
     border: 0;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     margin-left: auto;
     padding: 0;
   }
@@ -408,15 +408,15 @@ const rootId = isSidebar ? "collection-nav-root" : "collection-nav-inline";
     display: none;
   }
   .ct-card:hover {
-    background: var(--component-bg-hover);
+    background: var(--hover);
   }
   .ct-card.group.active {
-    background: var(--component-bg-active);
+    background: var(--active);
   }
   .ct-card.post.active {
-    background: var(--component-bg-active);
-    color: var(--component-text-primary-hover);
-    border-color: var(--component-text-primary-hover);
+    background: var(--active);
+    color: var(--comp-text-pri-hvr);
+    border-color: var(--comp-text-pri-hvr);
   }
 
   /* Desktop sidebar */
@@ -446,7 +446,7 @@ const rootId = isSidebar ? "collection-nav-root" : "collection-nav-inline";
       position: fixed;
       top: 90px;
       left: 20px;
-      background: var(--component-bg-blur);
+      background: var(--comp-bg-blur);
       border: 1px solid var(--border-color-blur);
       backdrop-filter: blur(12px);
       box-shadow: var(--shadow-elev-3);

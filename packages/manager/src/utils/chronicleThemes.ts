@@ -1,5 +1,5 @@
 // Chronicle Marp theme CSS generators (light + dark)
-// Default: hardcoded blue. `accent: "follow"` → uses var(--accent-color).
+// Default: hardcoded blue. `accent: "follow"` → uses var(--accent).
 // `accent: "#e74c3c"` → custom hex.
 // `tinted-bg: true` → background = color-mix(accent, default-bg)
 

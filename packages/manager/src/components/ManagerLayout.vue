@@ -249,7 +249,7 @@ async function stageBackgroundLayer(
 
     try {
       if (surfaceEl) {
-        /* const root = getComputedStyle(document.documentElement).getPropertyValue('--app-bg-primary') || ''
+        /* const root = getComputedStyle(document.documentElement).getPropertyValue('--app-bg-pri') || ''
         surfaceEl.style.background = root || 'transparent' */
       }
       if (overlayEl) overlayEl.style.background = overlayValue || 'transparent'
@@ -608,7 +608,7 @@ function applySettingsFromStore(s: Record<string, any>) {
 
       if (s.backendAccent || s.frontendAccent) {
         const accent = String(s.backendAccent || s.frontendAccent)
-        document.documentElement.style.setProperty('--accent-color', accent)
+        document.documentElement.style.setProperty('--accent', accent)
         // compute a darker variant for hover/active states
         try {
           const dark = (h => {
@@ -626,7 +626,7 @@ function applySettingsFromStore(s: Record<string, any>) {
               return `rgb(${rr}, ${gg}, ${bb})`
             } catch (e) { return accent }
           })(accent)
-          document.documentElement.style.setProperty('--accent-color-dark', dark)
+          document.documentElement.style.setProperty('--accent-dark', dark)
         } catch (e) { }
       }
 
@@ -1187,7 +1187,7 @@ body.is-electron .backend-menu-toggle {
   /* hide on desktop, show on small screens via media query */
   background: transparent;
   border: none;
-  color: var(--text-primary);
+  color: var(--text-pri);
   cursor: pointer;
   align-items: center;
   justify-content: center;
@@ -1263,10 +1263,6 @@ body.is-electron .backend-menu-toggle {
   padding: 0.5rem 1rem;
 }
 
-.backend-nav-link.router-link-active {
-  background: var(--component-bg-hover);
-  color: var(--component-text-primary-hover);
-}
 
 .main-content {
   flex: 1;
@@ -1348,7 +1344,7 @@ body.is-electron .main-content.print-preview {
 .backend-close {
   background: transparent;
   border: none;
-  color: var(--text-primary);
+  color: var(--text-pri);
   width: 44px;
   height: 44px;
   display: flex;
@@ -1388,7 +1384,7 @@ body.is-electron .main-content.print-preview {
 
 .backend-brand-subtitle {
   font-size: 0.82rem;
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
 }
 
 
@@ -1407,13 +1403,13 @@ body.is-electron .main-content.print-preview {
 
 .backend-tree-group.active,
 .backend-tree-group.expanded {
-  background: color-mix(in srgb, var(--app-text-primary) 9%, transparent);
-  color: var(--component-text-primary-hover);
+  background: color-mix(in srgb, var(--app-text-pri) 6%, transparent);
+  color: var(--comp-text-pri-hvr);
 }
 
 .backend-tree-group.active:not(.expanded) .backend-tree-toggle {
-  background: var(--component-bg-hover);
-  color: var(--component-text-primary-hover);
+  background: var(--hover);
+  color: var(--comp-text-pri-hvr);
 }
 
 .backend-tree-toggle {
@@ -1472,10 +1468,6 @@ body.is-electron .main-content.print-preview {
   opacity: 0.96;
 }
 
-.backend-tree-child.router-link-active {
-  background: var(--component-bg-hover);
-  color: var(--component-text-primary-hover);
-}
 
 .backend-nav-link,
 .sidebar-footer-link {
@@ -1543,8 +1535,8 @@ body.is-electron .main-content.print-preview {
 }
 
 .sidebar-footer-item:hover {
-  background: var(--component-bg-hover);
-  color: var(--component-text-primary-hover);
+  background: var(--hover);
+  color: var(--comp-text-pri-hvr);
 }
 
 
@@ -1572,16 +1564,16 @@ body.is-electron .main-content.print-preview {
 .quick-btn {
   display: flex; align-items: center; gap: 10px;
   width: 100%; padding: 0 14px; height: 36px;
-  border: none; background: none; color: var(--text-secondary); cursor: pointer;
+  border: none; background: none; color: var(--text-sec); cursor: pointer;
   border-radius: 9999px; font-size: .85rem;
   transition: background .15s;
 }
-.quick-btn:hover { background: color-mix(in srgb, var(--text-secondary) 18%, transparent); }
+.quick-btn:hover { background: color-mix(in srgb, var(--text-sec) 18%, transparent); }
 .quick-chevron { margin-left: auto; width: 16px; height: 16px; display: flex; align-items: center; }
 .quick-chevron.open { transform: rotate(90deg); }
 .quick-popover {
   position: absolute; left: calc(100% + 4px); bottom: 0;
-  background: var(--component-bg); border: 1px solid var(--border-color);
+  background: var(--comp-bg); border: 1px solid var(--border-color);
   border-radius: 12px; padding: 6px;
   box-shadow: 0 8px 24px rgba(0,0,0,.3);
   display: flex; flex-direction: column; gap: 2px;
@@ -1590,11 +1582,11 @@ body.is-electron .main-content.print-preview {
 .quick-popover button {
   display: flex; align-items: center; gap: 10px;
   width: 100%; padding: 8px 12px; border: none; background: none;
-  color: var(--text-primary); cursor: pointer; border-radius: 8px;
+  color: var(--text-pri); cursor: pointer; border-radius: 8px;
   font-size: .85rem; text-align: left;
   transition: all .15s;
 }
-.quick-popover button:hover { background: var(--component-bg-hover); }
+.quick-popover button:hover { background: var(--hover); }
 .quick-popover button:disabled { opacity: .4; cursor: not-allowed; }
 .quick-popover .icon-svg { width: 16px; height: 16px; display: flex; align-items: center; }
 .quick-sep { height: 1px; background: var(--border-color); margin: 4px 0; }

@@ -33,18 +33,18 @@ function openEditor() {
   padding: 10px 18px;
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  background: var(--app-bg-primary);
-  color: var(--component-text);
+  background: var(--app-bg-pri);
+  color: var(--comp-text);
   font-size: 14px;
   cursor: pointer;
   transition: border-color 0.15s;
 }
 .about-edit-btn:hover {
-  border-color: var(--component-text-secondary);
+  border-color: var(--comp-text-sec);
 }
 .form-hint {
   margin-top: 4px;
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
   font-size: 12px;
 }
 </style>

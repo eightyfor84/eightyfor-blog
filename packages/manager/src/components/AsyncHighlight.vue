@@ -1,5 +1,5 @@
 <template>
-  <pre class="syntax-highlight" :style="styleObject" ref="innerHighlightLayer"><span v-for="(part, idx) in highlightedParts" :key="idx" v-html="part"></span></pre>
+  <pre class="syntax-hl" :style="styleObject" ref="innerHighlightLayer"><span v-for="(part, idx) in highlightedParts" :key="idx" v-html="part"></span></pre>
 </template>
 
 <script setup lang="ts">
@@ -60,7 +60,7 @@ watch(() => [props.code, props.language], () => {
 </script>
 
 <style scoped>
-.syntax-highlight {
+.syntax-hl {
   /* 继承原样式 */
   position: absolute;
   top: 0;
@@ -69,7 +69,7 @@ watch(() => [props.code, props.language], () => {
   height: 100%;
   margin: 0;
   background: transparent;
-  color: var(--component-text-primary);
+  color: var(--comp-text-pri);
   font-family: inherit;
   font-size: 13.5px;
   line-height: 1.3em;

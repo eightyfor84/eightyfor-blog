@@ -496,13 +496,13 @@ const yearLabel = new Date().getFullYear();
     zoom: var(--home-ui-scale);
     margin: 0 auto;
     padding: 1.25rem clamp(1rem, 2vw, 2rem) 3rem;
-    color: var(--app-text-primary);
+    color: var(--app-text-pri);
   }
 
   .home-shell a,
   .home-shell button {
     touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
+    -webkit-tap-hl-color: transparent;
   }
 
   .card-flows {
@@ -533,7 +533,7 @@ const yearLabel = new Date().getFullYear();
     position: relative;
     border: 1px solid var(--border-color-blur);
     border-radius: 18px;
-    background: linear-gradient(180deg,  var(--component-bg-blur), color-mix(in srgb, var(--component-bg-blur) 80%, transparent));
+    background: linear-gradient(180deg,  var(--comp-bg-blur), color-mix(in srgb, var(--comp-bg-blur) 80%, transparent));
     box-shadow: var(--shadow-elev-1);
     backdrop-filter: blur(12px);
     overflow: hidden;
@@ -553,7 +553,7 @@ const yearLabel = new Date().getFullYear();
   .story-card__eyebrow,
   .taxonomy-subhead {
     margin: 0 0 .55rem;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     text-transform: uppercase;
     letter-spacing: .18em;
     font-size: .78rem;
@@ -573,12 +573,12 @@ const yearLabel = new Date().getFullYear();
     max-width: 42rem;
     font-size: 1.04rem;
     line-height: 1.75;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
   }
 
   .hero-note {
     margin: .85rem 0 0;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
   }
 
   .hero-actions {
@@ -610,7 +610,7 @@ const yearLabel = new Date().getFullYear();
   .friend-link:hover,
   .footer-links a:hover {
     transform: scale(1.02);
-    border-color: color-mix(in srgb, var(--accent-color) 44%, var(--border-color-blur));
+    border-color: color-mix(in srgb, var(--accent) 44%, var(--border-color-blur));
   }
 
   .story-card__footer a,
@@ -645,9 +645,9 @@ const yearLabel = new Date().getFullYear();
   .footer-meta span {
     border-radius: 999px;
     border: 1px solid var(--border-color-blur);
-    background: var(--component-bg-blur-alt);
+    background: var(--comp-bg-glass);
     padding: .45rem .75rem;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     font-size: .86rem;
   }
 
@@ -661,7 +661,7 @@ const yearLabel = new Date().getFullYear();
     padding: 1.15rem 1.2rem;
     border-radius: 18px;
     border: 1px solid var(--border-color-blur);
-    background: var(--component-bg-blur-alt);
+    background: var(--comp-bg-glass);
   }
 
   .story-card--lead {
@@ -691,8 +691,8 @@ const yearLabel = new Date().getFullYear();
   }
 
   .stream-card:hover {
-    background: var(--component-bg-highlight);
-    border-color: var(--component-text-primary-highlight);
+    background: var(--comp-bg-glass-hl);
+    border-color: var(--comp-text-pri-hl);
   }
 
   .story-card p,
@@ -701,7 +701,7 @@ const yearLabel = new Date().getFullYear();
   .social-link span,
   .friend-link span {
     margin: 0;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     line-height: 1.6;
     word-break: break-word;
   }
@@ -711,7 +711,7 @@ const yearLabel = new Date().getFullYear();
     justify-content: space-between;
     gap: 1rem;
     align-items: center;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     font-size: .92rem;
   }
 
@@ -752,8 +752,8 @@ const yearLabel = new Date().getFullYear();
     border-radius: 9999px;
     display: grid;
     place-items: center;
-    background: color-mix(in srgb, var(--accent-color) 18%, var(--component-bg-blur-alt));
-    color: var(--app-text-primary);
+    background: color-mix(in srgb, var(--accent) 18%, var(--comp-bg-glass));
+    color: var(--app-text-pri);
     font-weight: 700;
     letter-spacing: -.04em;
     font-size: 1.2rem;
@@ -763,7 +763,7 @@ const yearLabel = new Date().getFullYear();
   }
   .author-bio {
     margin: 0.5rem 0 0;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     font-size: 0.92rem;
     line-height: 1.55;
   }
@@ -778,7 +778,7 @@ const yearLabel = new Date().getFullYear();
 
   .home-footer p {
     margin: .45rem 0 0;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     line-height: 1.7;
   }
 
@@ -791,7 +791,7 @@ const yearLabel = new Date().getFullYear();
   .subscribe-links a,
   .story-card--lead a,
   .story-card--compact a {
-    color: var(--app-text-primary);
+    color: var(--app-text-pri);
     text-decoration: none;
   }
 
@@ -804,7 +804,7 @@ const yearLabel = new Date().getFullYear();
   }
 
   .section-head a {
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
   }
 
   .featured-grid {
@@ -830,12 +830,12 @@ const yearLabel = new Date().getFullYear();
     padding: 1rem;
     border: 1px solid var(--border-color-blur);
     border-radius: 14px;
-    background: var(--component-bg-blur-alt);
+    background: var(--comp-bg-glass);
     transition: background .18s ease, border-color .18s ease;
   }
 
   .stream-card__date {
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     font-size: .9rem;
   }
 
@@ -864,9 +864,9 @@ const yearLabel = new Date().getFullYear();
   .stream-card__flag {
     border-radius: 999px;
     padding: .35rem .6rem;
-    background: color-mix(in srgb, var(--accent-color) 16%, var(--component-bg-blur-alt));
+    background: color-mix(in srgb, var(--accent) 16%, var(--comp-bg-glass));
     color: var(--recommended-accent-text);
-    border: 1px solid color-mix(in srgb, var(--accent-color) 34%, var(--border-color-blur));
+    border: 1px solid color-mix(in srgb, var(--accent) 34%, var(--border-color-blur));
     font-size: .78rem;
     line-height: 1;
     white-space: nowrap;
@@ -889,18 +889,18 @@ const yearLabel = new Date().getFullYear();
   .archive-row {
     padding: .95rem 1rem;
     border-radius: 22px;
-    background: var(--component-bg-blur-alt);
+    background: var(--comp-bg-glass);
     border: 1px solid var(--border-color-blur);
     display: grid;
     gap: .7rem;
   }
 
   .tag {
-    background: var(--accent-color-bg);
+    background: var(--accent-bg);
     padding: 3px 6px;
     border-radius: 4px;
     font-size: 0.8em;
-    color: var(--accent-color);
+    color: var(--accent);
     display: inline-block;
     line-height: 1;
     overflow-wrap: break-word;
@@ -942,18 +942,18 @@ const yearLabel = new Date().getFullYear();
     padding: .85rem .95rem;
     border-radius: 18px;
     border: 1px solid var(--border-color-blur);
-    background: var(--component-bg-blur-alt);
+    background: var(--comp-bg-glass);
   }
 
   .taxonomy-list a span {
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
   }
 
   .taxonomy-list a strong {
     border-radius: 999px;
     padding: .3rem .55rem;
-    background: var(--component-bg-blur-alt);
-    color: var(--component-text-secondary);
+    background: var(--comp-bg-glass);
+    color: var(--comp-text-sec);
     border: 1px solid var(--border-color-blur);
     font-size: .78rem;
     line-height: 1;
@@ -967,8 +967,8 @@ const yearLabel = new Date().getFullYear();
     align-content: flex-start;
   }
   .tag-cloud-item {
-    background: var(--component-bg-blur);
-    color: var(--component-text-secondary);
+    background: var(--comp-bg-blur);
+    color: var(--comp-text-sec);
     border: 1px solid var(--border-color);
     padding: 6px 14px;
     border-radius: 20px;
@@ -979,13 +979,13 @@ const yearLabel = new Date().getFullYear();
     gap: 6px;
   }
   .tag-cloud-item:hover {
-    background: var(--component-bg-hover);
-    color: var(--component-text-primary-hover);
+    background: var(--comp-bg-blur-hvr);
+    color: var(--comp-text-pri-hvr);
   }
   .tag-cloud-item.selected {
-    background: var(--accent-color);
+    background: var(--accent);
     color: var(--recommended-accent-text);
-    border-color: var(--component-bg-accent);
+    border-color: var(--comp-bg-accent);
   }
   .tag-cloud-item.featured {
     color: var(--featured);
@@ -1002,7 +1002,7 @@ const yearLabel = new Date().getFullYear();
   .tag-cloud-item.featured.selected {
     background: var(--featured);
     border-color: var(--featured);
-    color: var(--app-bg-primary);
+    color: var(--app-bg-pri);
   }
 
   .tag-count {
@@ -1023,13 +1023,13 @@ const yearLabel = new Date().getFullYear();
     display: inline-block;
     margin-top: 12px;
     font-size: 1rem;
-    color: var(--accent-color);
+    color: var(--accent);
     text-decoration: none;
     transition: color 0.15s;
   }
 
   .view-more-link:hover {
-    color: var(--accent-color-dark);
+    color: var(--accent-dark);
     text-decoration: underline;
   }
 
@@ -1038,7 +1038,7 @@ const yearLabel = new Date().getFullYear();
   .friend-link {
     border: 1px solid var(--border-color-blur);
     border-radius: 20px;
-    background: var(--component-bg-blur-alt);
+    background: var(--comp-bg-glass);
     padding: .95rem 1rem;
     display: grid;
     gap: .35rem;
@@ -1046,7 +1046,7 @@ const yearLabel = new Date().getFullYear();
 
   .activity-item {
     border: 1px solid var(--border-color-blur);
-    background: var(--component-bg-blur-alt);
+    background: var(--comp-bg-glass);
     padding: .95rem .75rem;
     display: grid;
     gap: .35rem;
@@ -1058,18 +1058,18 @@ const yearLabel = new Date().getFullYear();
   .social-link strong,
   .activity-item strong,
   .friend-link strong {
-    color: var(--app-text-primary);
+    color: var(--app-text-pri);
     font-size: 1rem;
   }
 
   .recommend-item__meta,
   .activity-item span {
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     font-size: .82rem;
   }
 
   .activity-item.post {
-    border-left-color: color-mix(in srgb, var(--accent-color) 45%, var(--border-color-blur));
+    border-left-color: color-mix(in srgb, var(--accent) 45%, var(--border-color-blur));
   }
 
   .activity-item.collection {
@@ -1077,7 +1077,7 @@ const yearLabel = new Date().getFullYear();
   }
 
   .activity-item.friend {
-    border-left-color: color-mix(in srgb, var(--secondary-color) 60%, var(--border-color-blur));
+    border-left-color: color-mix(in srgb, var(--sec-color) 60%, var(--border-color-blur));
   }
 
   .social-list {
@@ -1096,7 +1096,7 @@ const yearLabel = new Date().getFullYear();
     height: 44px;
     border-radius: 14px;
     overflow: hidden;
-    background: var(--component-bg);
+    background: var(--comp-bg);
     border: 1px solid var(--border-color-blur);
   }
 
@@ -1129,12 +1129,12 @@ const yearLabel = new Date().getFullYear();
 
   .home-footer__sep {
     margin: 0 .35rem;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
   }
 
   .home-footer__meta {
     text-align: center;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     font-size: .95rem;
     padding: .25rem 0 .55rem;
   }
@@ -1160,11 +1160,11 @@ const yearLabel = new Date().getFullYear();
     padding: .55rem .85rem;
     border-radius: 999px;
     border: 1px solid var(--border-color-blur);
-    background: var(--component-bg-blur-alt);
+    background: var(--comp-bg-glass);
   }
 
   .footer-meta {
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     align-items: center;
   }
 
@@ -1172,8 +1172,8 @@ const yearLabel = new Date().getFullYear();
     padding: 1rem;
     border-radius: 18px;
     border: 1px dashed var(--border-color-blur);
-    color: var(--component-text-secondary);
-    background: color-mix(in srgb, var(--component-bg) 78%, transparent);
+    color: var(--comp-text-sec);
+    background: color-mix(in srgb, var(--comp-bg) 78%, transparent);
   }
 
   @media (max-width: 900px) {

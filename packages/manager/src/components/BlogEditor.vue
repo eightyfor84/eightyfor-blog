@@ -124,12 +124,12 @@
 
                 <!-- Split save button: left=Save, right=dropdown -->
                 <div class="ribbon-split-btn">
-                    <button class="ribbon-btn ribbon-btn-primary icon-label-btn"
+                    <button class="ribbon-btn ribbon-btn-pri icon-label-btn"
                         @click="handleSplitSave" :disabled="isSaving" :title="isCloudEditing ? t('editor.save') : t('editor.file.savedToFile')">
                         <span class="icon-svg" v-html="Icons.save"></span>
                         <span class="btn-label label">{{ isSaving ? t('editor.saving') : t('editor.save') }}</span>
                     </button>
-                    <button class="ribbon-btn ribbon-btn-primary split-chevron"
+                    <button class="ribbon-btn ribbon-btn-pri split-chevron"
                         @click="showSaveMenu = !showSaveMenu" :disabled="isSaving" title="More options">
                         <span class="icon-svg" v-html="Icons.chevron"></span>
                     </button>
@@ -1329,7 +1329,7 @@ onUnmounted(() => {
     height: var(--app-height);
     /* ensure editor fills viewport so internal panes scroll, not the page */
     border: none;
-    background: var(--bg-primary);
+    background: var(--bg-pri);
 }
 
 /* ═══ Ribbon Toolbar ═══ */
@@ -1383,7 +1383,7 @@ onUnmounted(() => {
     background: transparent;
     border: none;
     border-bottom: 2px solid transparent;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     cursor: pointer;
     font-size: 13px;
     font-weight: 500;
@@ -1391,18 +1391,18 @@ onUnmounted(() => {
 }
 
 .ribbon-tab:hover {
-    border-bottom-color: var(--component-text-secondary);
-    color: var(--text-primary);
+    border-bottom-color: var(--comp-text-sec);
+    color: var(--text-pri);
 }
 
 .ribbon-tab.active {
-    color: var(--text-primary);
-    border-bottom-color: var(--accent-color);
+    color: var(--text-pri);
+    border-bottom-color: var(--accent);
     font-weight: 600;
 }
 
 .icon-svg.ribbon-tab-chevron {
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     flex-shrink: 0;
 }
 
@@ -1433,7 +1433,7 @@ onUnmounted(() => {
 .ribbon-title-input {
     background: transparent;
     border: 1px solid transparent;
-    color: var(--text-primary);
+    color: var(--text-pri);
     font-size: 13px;
     font-weight: 600;
     padding: 2px 6px;
@@ -1448,8 +1448,8 @@ onUnmounted(() => {
 }
 
 .ribbon-title-input:focus {
-    border-color: var(--component-bg-accent);
-    background: var(--bg-primary);
+    border-color: var(--comp-bg-accent);
+    background: var(--bg-pri);
 }
 
 .ribbon-title-input[readonly] {
@@ -1478,15 +1478,15 @@ onUnmounted(() => {
 }
 
 .ribbon-status.local {
-    color: var(--text-primary);
+    color: var(--text-pri);
     background: transparent;
-    border: 1px solid var(--text-primary);
+    border: 1px solid var(--text-pri);
 }
 
 .ribbon-status.draft {
-    color: var(--component-text-secondary);
-    background: var(--component-bg-hover);
-    border: 1px solid var(--component-bg-hover);
+    color: var(--comp-text-sec);
+    background: var(--comp-bg-hvr);
+    border: 1px solid var(--comp-bg-hvr);
 }
 
 .ribbon-status.published {
@@ -1522,11 +1522,11 @@ onUnmounted(() => {
 }
 
 .ribbon-save-status.dirty {
-    color: var(--text-primary);
+    color: var(--text-pri);
 }
 
 .ribbon-save-status.new {
-    color: color-mix(in srgb, var(--text-primary) 40%, transparent);
+    color: color-mix(in srgb, var(--text-pri) 40%, transparent);
 }
 
 .ribbon-save-status {
@@ -1539,7 +1539,7 @@ onUnmounted(() => {
     right: 160px;
     margin-top: 6px;
     min-width: 220px;
-    background: var(--component-bg-blur);
+    background: var(--comp-bg-blur);
     border: 1px solid var(--border-color);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -1561,7 +1561,7 @@ onUnmounted(() => {
 }
 
 .status-popover-label {
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     flex-shrink: 0;
 }
 
@@ -1576,7 +1576,7 @@ onUnmounted(() => {
     }
     .tool-dropdown-stat :deep(.stat-num) {
     font-variant-numeric: tabular-nums;
-    color: var(--accent-color);
+    color: var(--accent);
     font-weight: 500;
     }
 
@@ -1622,7 +1622,7 @@ onUnmounted(() => {
     gap: 6px;
     background: transparent;
     border: 1px solid transparent;
-    color: var(--component-text-primary);
+    color: var(--comp-text-pri);
     cursor: pointer;
     padding: 0 8px;
     border-radius: 4px;
@@ -1635,14 +1635,14 @@ onUnmounted(() => {
 }
 
 .ribbon-btn:hover:not(:disabled):not(.active) {
-    background: var(--component-bg-hover);
+    background: var(--hover);
     border-color: transparent;
 }
 
 .ribbon-btn.active {
-    background: var(--component-bg-accent-blur);
-    color: var(--component-text-primary-highlight);
-    border: 1px solid var(--component-bg-accent);
+    background: var(--comp-bg-accent-blur);
+    color: var(--comp-text-pri-hl);
+    border: 1px solid var(--comp-bg-accent);
 }
 
 .ribbon-btn:disabled {
@@ -1662,25 +1662,25 @@ onUnmounted(() => {
     align-items: center;
     gap: 4px;
     font-size: 11px;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
 }
 
-.ribbon-btn-primary {
-    background: var(--accent-color);
-    border-color: var(--accent-color);
+.ribbon-btn-pri {
+    background: var(--accent);
+    border-color: var(--accent);
     color: #fff;
     font-weight: 600;
 }
 
-.ribbon-btn-primary:disabled {
+.ribbon-btn-pri:disabled {
     opacity: 0.5;
     cursor: not-allowed;
-    border-color: var(--accent-color);
+    border-color: var(--accent);
     pointer-events: none;
 }
 
-.ribbon-btn.ribbon-btn-primary:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--accent-color) 80%, var(--component-text-primary));
+.ribbon-btn.ribbon-btn-pri:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent) 80%, var(--comp-text-pri));
 }
 
 /* ── Split save button ── */
@@ -1689,7 +1689,7 @@ onUnmounted(() => {
     align-items: center;
     position: relative;
 }
-.ribbon-split-btn > .ribbon-btn-primary:first-child {
+.ribbon-split-btn > .ribbon-btn-pri:first-child {
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
     border-right: 1px solid rgba(255,255,255,0.25);
@@ -1736,7 +1736,7 @@ onUnmounted(() => {
 
 .ribbon-btn-wordcount {
     font-size: 11px;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     padding: 3px 10px;
 }
 
@@ -1761,7 +1761,7 @@ onUnmounted(() => {
     top: 100%;
     margin-top: 4px;
     min-width: 185px;
-    background: var(--component-bg-blur);
+    background: var(--comp-bg-blur);
     border: 1px solid var(--border-color);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -1784,7 +1784,7 @@ onUnmounted(() => {
     border: none;
     border-radius: 6px;
     background: transparent;
-    color: var(--text-primary);
+    color: var(--text-pri);
     cursor: pointer;
     font-size: 0.8rem;
 }
@@ -1796,13 +1796,13 @@ onUnmounted(() => {
 }
 
 .more-dropdown button:hover {
-    background: var(--component-bg-hover);
+    background: var(--hover);
 }
 
 .more-dropdown button.active {
-    background: var(--component-bg-accent-blur);
-    color: var(--component-text-primary-highlight);
-    border: 1px solid var(--component-bg-accent);
+    background: var(--comp-bg-accent-blur);
+    color: var(--comp-text-pri-hl);
+    border: 1px solid var(--comp-bg-accent);
 }
 
 .more-dropdown hr {
@@ -1849,8 +1849,8 @@ onUnmounted(() => {
     padding: 4px 8px;
     border: 1px solid var(--border-color);
     border-radius: 6px;
-    background: var(--bg-primary);
-    color: var(--text-primary);
+    background: var(--bg-pri);
+    color: var(--text-pri);
     font-size: 0.8rem;
     outline: none;
     cursor: pointer;
@@ -1858,7 +1858,7 @@ onUnmounted(() => {
 
 /* ═══ Ribbon Content (tab area) ═══ */
 .ribbon-content {
-    background: var(--component-bg-blur);
+    background: var(--comp-bg-blur);
     backdrop-filter: blur(6px);
     border: 1px solid var(--border-color);
     box-shadow: var(--shadow-elev-2);
@@ -1893,7 +1893,7 @@ onUnmounted(() => {
     gap: 6px;
     background: transparent;
     border: 1px solid transparent;
-    color: var(--component-text-primary);
+    color: var(--comp-text-pri);
     cursor: pointer;
     padding: 4px 8px;
     border-radius: 4px;
@@ -1902,12 +1902,12 @@ onUnmounted(() => {
 }
 
 .toolbar-btn:hover:not(:disabled) {
-    background: var(--component-bg-hover);
+    background: var(--hover);
 }
 
 .toolbar-btn.active {
-    background: var(--component-bg-accent-blur);
-    border-color: var(--component-bg-accent);
+    background: var(--comp-bg-accent-blur);
+    border-color: var(--comp-bg-accent);
 }
 
 .toolbar-btn:disabled {
@@ -1919,7 +1919,7 @@ onUnmounted(() => {
 /* editor workspace + pane + search-float styles moved to EditorArticleBody.vue */
 
 .modal-content {
-    background: var(--component-bg-secondary);
+    background: var(--comp-bg-sec);
     border: 1px solid var(--border-color);
     border-radius: 6px;
 
@@ -1967,7 +1967,7 @@ onUnmounted(() => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: var(--component-bg-primary);
+    background: var(--comp-bg-pri);
     flex-shrink: 0;
     height: 48px;
 }
@@ -1975,13 +1975,13 @@ onUnmounted(() => {
 .modal-header h3 {
     margin: 0;
     font-size: 16px;
-    color: var(--component-text-primary);
+    color: var(--comp-text-pri);
 }
 
 .close-btn {
     background: none;
     border: none;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     cursor: pointer;
     padding: 4px;
     display: flex;
@@ -1992,7 +1992,7 @@ onUnmounted(() => {
 
 .close-btn:hover {
     background: transparent;
-    color: var(--text-primary);
+    color: var(--text-pri);
 }
 
 .close-btn :deep(svg) {
@@ -2016,7 +2016,7 @@ onUnmounted(() => {
 /* Sidebar */
 .modal-sidebar {
     width: 200px;
-    background: var(--component-bg-secondary);
+    background: var(--comp-bg-sec);
     border-right: 1px solid var(--border-color);
     padding: 10px;
     overflow-y: auto;
@@ -2030,30 +2030,30 @@ onUnmounted(() => {
     margin-bottom: 2px;
     display: flex;
     align-items: center;
-    color: var(--component-text-primary);
+    color: var(--comp-text-pri);
     font-size: 14px;
 }
 
 .modal-sidebar-item:hover {
-    background: var(--component-bg-hover);
+    background: var(--hover);
 }
 
 .modal-sidebar-item.active {
-    background: var(--component-bg-accent-blur);
-    border: 1px solid var(--component-bg-accent);
+    background: var(--comp-bg-accent-blur);
+    border: 1px solid var(--comp-bg-accent);
 }
 
 .modal-sidebar-item.active:hover {
-    background: var(--component-bg-accent);
+    background: var(--comp-bg-accent);
 }
 
 .toolbar-btn.primary-action {
-    background: var(--accent-color);
+    background: var(--accent);
     color: var(--text-on-accent);
 }
 
 .toolbar-btn.primary-action:hover {
-    background: var(--accent-color-hover);
+    background: var(--accent-hvr);
 }
 
 .media-cat-icon {
@@ -2076,7 +2076,7 @@ onUnmounted(() => {
     display: flex;
     flex-direction: column;
     padding: 20px;
-    background: var(--bg-primary);
+    background: var(--bg-pri);
     overflow: hidden;
 }
 
@@ -2086,31 +2086,9 @@ onUnmounted(() => {
     justify-content: flex-start;
 }
 
-.library-section {
-    flex: 1;
-    overflow-y: auto;
-}
-
-.library-section h4 {
-    margin-top: 0;
-    margin-bottom: 12px;
-    color: var(--component-text-primary);
-}
-
-.upload-section {
-    display: none;
-    /* Removed old section style */
-}
-
-.image-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    gap: 12px;
-    padding-bottom: 20px;
-}
 
 .primary-btn {
-    background: var(--accent-color);
+    background: var(--accent);
     color: var(--text-on-accent);
     border: none;
     padding: 8px 16px;
@@ -2118,65 +2096,18 @@ onUnmounted(() => {
 }
 
 .primary-btn:hover {
-    background: var(--accent-color-hover);
+    background: var(--accent-hvr);
 }
 
 .hidden-input {
     display: none;
 }
 
-.library-item {
-    cursor: pointer;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    overflow: hidden;
-    transition: border-color 0.2s;
-    background: var(--bg-secondary);
-    aspect-ratio: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-.library-item:hover {
-    border-color: var(--accent-color);
-    background: var(--component-bg-hover);
-}
-
-.img-thumb {
-    flex: 1;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    width: 100%;
-    position: relative;
-}
-
-.img-name {
-    display: block;
-    padding: 6px;
-    font-size: 11px;
-    color: var(--component-text-primary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-align: center;
-    background: var(--bg-secondary);
-    border-top: 1px solid var(--border-color);
-}
 
 .empty-library {
     text-align: center;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     padding: 20px;
-}
-
-.img-thumb.icon-thumb {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    background: var(--component-bg-hover);
-    color: var(--component-text-secondary);
 }
 
 .scalable-icon {
@@ -2189,10 +2120,6 @@ onUnmounted(() => {
     width: 100%;
     height: 100%;
     stroke-width: 1;
-}
-
-.dataset-control button:hover {
-    background: var(--component-bg-hover);
 }
 
 .icon-svg {
@@ -2226,14 +2153,14 @@ onUnmounted(() => {
 }
 
 .status-chip.local {
-    color: var(--text-primary);
+    color: var(--text-pri);
     background: transparent;
-    border: 1px solid var(--text-primary);
+    border: 1px solid var(--text-pri);
 }
 
 .status-chip.draft {
-    color: var(--component-text-secondary);
-    background: var(--component-bg-hover);
+    color: var(--comp-text-sec);
+    background: var(--comp-bg-hvr);
 }
 
 .status-chip.published {
@@ -2247,7 +2174,7 @@ onUnmounted(() => {
 }
 
 .toolbar-btn.danger-btn:hover:not(:disabled) {
-    background: var(--component-bg-hover);
+    background: var(--status-error-bg);
     color: var(--status-error);
 }
 
@@ -2257,7 +2184,7 @@ onUnmounted(() => {
 }
 
 .modal-content {
-    background: var(--bg-secondary);
+    background: var(--bg-sec);
     border: 1px solid var(--border-color);
     border-radius: 6px;
     box-shadow: var(--shadow-elev-2);
@@ -2276,7 +2203,7 @@ onUnmounted(() => {
     display: block;
     margin-bottom: 8px;
     font-size: 14px;
-    color: var(--component-text-primary);
+    color: var(--comp-text-pri);
 }
 
 .modal-input {
@@ -2285,21 +2212,21 @@ onUnmounted(() => {
     box-sizing: border-box;
     padding: 8px 12px;
     font-size: .95rem;
-    background: var(--bg-secondary);
+    background: var(--bg-sec);
     border: 1px solid var(--border-color);
-    color: var(--text-primary);
+    color: var(--text-pri);
     border-radius: 8px;
     outline: none;
 }
 
 .modal-input:focus {
-    border-color: var(--accent-color);
+    border-color: var(--accent);
 }
 
 .modal-input:disabled {
     opacity: .5;
     cursor: not-allowed;
-    background: var(--component-bg-hover);
+    background: var(--comp-bg);
 }
 
 .modal-input.input-error {
@@ -2318,13 +2245,13 @@ onUnmounted(() => {
 .secondary-btn {
     background: transparent;
     border: 1px solid var(--border-color);
-    color: var(--component-text-primary);
+    color: var(--comp-text-pri);
     padding: 8px 16px;
     cursor: pointer;
 }
 
 .secondary-btn:hover {
-    background: var(--component-bg-hover);
+    background: var(--hover);
 }
 
 /* Table Grid Styles */
@@ -2341,7 +2268,7 @@ onUnmounted(() => {
     grid-template-columns: repeat(8, 24px);
     gap: 4px;
     padding: 10px;
-    background: var(--bg-secondary);
+    background: var(--bg-sec);
     border: 1px solid var(--border-color);
     border-radius: 4px;
 }
@@ -2350,23 +2277,23 @@ onUnmounted(() => {
     width: 24px;
     height: 24px;
     border: 1px solid var(--border-color);
-    background: var(--component-bg-blur-alt);
+    background: var(--comp-bg-glass);
     cursor: pointer;
     border-radius: 2px;
 }
 
 .grid-cell:hover {
-    border-color: var(--component-bg-accent);
+    border-color: var(--comp-bg-accent);
 }
 
 .grid-cell.active {
-    background: var(--component-bg-accent-blur);
-    border-color: var(--component-bg-accent);
+    background: var(--comp-bg-accent-blur);
+    border-color: var(--comp-bg-accent);
 }
 
 .grid-info {
     font-size: 13px;
-    color: var(--component-text-primary);
+    color: var(--comp-text-pri);
     font-weight: 500;
     font-variation-settings: 'wght' 500;
 }
@@ -2395,7 +2322,7 @@ onUnmounted(() => {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    background: var(--component-bg-blur-alt);
+    background: var(--comp-bg-glass);
     padding: 6px;
     border-radius: 8px;
     border: 1px solid var(--border-color);
@@ -2409,8 +2336,8 @@ onUnmounted(() => {
 }
 
 .tag-badge {
-    background: var(--accent-color-bg);
-    color: var(--component-text-primary);
+    background: var(--accent-bg);
+    color: var(--comp-text-pri);
     font-size: 12px;
     padding: 2px 8px 2px 10px;
     border-radius: 4px;
@@ -2431,7 +2358,7 @@ onUnmounted(() => {
 .tag-remove {
     background: none;
     border: none;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     cursor: pointer;
     padding: 0;
     display: flex;
@@ -2445,7 +2372,7 @@ onUnmounted(() => {
 }
 
 .tag-remove:hover {
-    color: var(--text-primary);
+    color: var(--text-pri);
 }
 
 .tag-remove .icon-svg, .tag-remove :deep(svg){
@@ -2493,7 +2420,7 @@ onUnmounted(() => {
 
 .file-menu-sidebar {
     width: 200px;
-    background: var(--bg-secondary);
+    background: var(--bg-sec);
     margin: .2rem;
     box-shadow: none;
     border: none;
@@ -2510,22 +2437,22 @@ onUnmounted(() => {
     margin-bottom: 4px;
     display: flex;
     align-items: center;
-    color: var(--component-text-primary);
+    color: var(--comp-text-pri);
     font-size: 14px;
 }
 
 .sidebar-btn:hover {
-    background: var(--component-bg-hover);
-    color: var(--text-primary);
+    background: var(--hover);
+    color: var(--text-pri);
 }
 
 .sidebar-btn.active {
-    background: var(--component-bg-accent-blur);
-    border: 1px solid var(--component-bg-accent);
+    background: var(--comp-bg-accent-blur);
+    border: 1px solid var(--comp-bg-accent);
 }
 
 .sidebar-btn.active:hover {
-    background: var(--component-bg-accent);
+    background: var(--comp-bg-accent);
 }
 
 .main-area {
@@ -2545,7 +2472,7 @@ onUnmounted(() => {
 
 .header h3 {
     margin: 0;
-    color: var(--text-primary);
+    color: var(--text-pri);
     font-size: 18px;
 }
 
@@ -2561,7 +2488,7 @@ onUnmounted(() => {
     border-left: 3px solid var(--featured);
     padding: 10px;
     margin: 15px 0;
-    color: var(--component-text-primary);
+    color: var(--comp-text-pri);
     font-size: 13px;
 }
 
@@ -2582,7 +2509,7 @@ onUnmounted(() => {
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     margin-bottom: 2px;
 }
 
@@ -2594,7 +2521,7 @@ onUnmounted(() => {
 
 .post-item {
     padding: 12px;
-    background: var(--component-bg-blur-alt);
+    background: var(--comp-bg-glass);
     border: 1px solid var(--border-color);
     border-radius: 4px;
     cursor: pointer;
@@ -2605,20 +2532,20 @@ onUnmounted(() => {
 }
 
 .post-item:hover {
-    background: var(--component-bg-hover);
+    background: var(--comp-bg-glass-hvr);
 }
 
 .post-title {
     font-size: 1rem;
     font-weight: bold;
     font-variation-settings: 'wght' 600;
-    color: var(--text-primary);
+    color: var(--text-pri);
     flex: 1;
     margin: 0 10px 0 0;
 }
 
 .post-date {
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     font-size: 0.85em;
     margin-right: 10px;
 }
@@ -2635,15 +2562,15 @@ onUnmounted(() => {
     border: 2px dashed var(--border-color);
     padding: 40px;
     text-align: center;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     margin: 20px 0;
     cursor: pointer;
     border-radius: 6px;
 }
 
 .file-drop-area:hover {
-    border-color: var(--accent-color);
-    color: var(--component-text-primary);
+    border-color: var(--accent);
+    color: var(--comp-text-pri);
 }
 
 /* Font Selector */
@@ -2659,7 +2586,7 @@ onUnmounted(() => {
     gap: 5px;
     cursor: pointer;
     font-size: 0.9em;
-    color: var(--component-text-primary);
+    color: var(--comp-text-pri);
 }
 
 .radio-label input {
@@ -2672,14 +2599,14 @@ onUnmounted(() => {
     bottom: 24px;
     right: 24px;
     width: 320px;
-    background: var(--component-bg-secondary);
+    background: var(--comp-bg-sec);
     border: 1px solid var(--border-color);
     border-radius: 4px;
     box-shadow: var(--shadow-elev-1);
     z-index: 2000;
     overflow: hidden;
     animation: slideIn 0.3s ease-out;
-    color: var(--component-text-primary);
+    color: var(--comp-text-pri);
     font-size: 13px;
 }
 
@@ -2693,7 +2620,7 @@ onUnmounted(() => {
 
 .upload-toast.uploading,
 .upload-toast.processing {
-    border-left: 4px solid var(--accent-color);
+    border-left: 4px solid var(--accent);
 }
 
 .toast-content {
@@ -2709,14 +2636,14 @@ onUnmounted(() => {
 
 .toast-title {
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--text-pri);
 }
 
 .toast-close {
     background: none;
     border: none;
     cursor: pointer;
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     padding: 0;
     line-height: 0;
     display: flex;
@@ -2725,7 +2652,7 @@ onUnmounted(() => {
 }
 
 .toast-close:hover {
-    color: var(--text-primary);
+    color: var(--text-pri);
 }
 
 .toast-close .icon-svg {
@@ -2735,7 +2662,7 @@ onUnmounted(() => {
 }
 
 .toast-message {
-    color: var(--component-text-secondary);
+    color: var(--comp-text-sec);
     margin-bottom: 12px;
     white-space: nowrap;
     overflow: hidden;
@@ -2744,19 +2671,19 @@ onUnmounted(() => {
 
 .toast-progress-bg {
     height: 4px;
-    background: var(--component-bg-secondary);
+    background: var(--comp-bg-sec);
     border-radius: 2px;
     overflow: hidden;
 }
 
 .toast-progress-bar {
     height: 100%;
-    background: var(--accent-color);
+    background: var(--accent);
     transition: width 0.2s ease;
 }
 
 .confirm-text {
-    color: var(--component-text-primary);
+    color: var(--comp-text-pri);
     margin-bottom: 20px;
 }
 
@@ -2779,12 +2706,12 @@ onUnmounted(() => {
 }
 
 .locale-select option {
-    background: var(--bg-secondary);
-    color: var(--component-text-primary);
+    background: var(--bg-sec);
+    color: var(--comp-text-pri);
 }
 
 .math-preview {
-    background: var(--component-bg-blur-alt);
+    background: var(--comp-bg-glass);
     border-radius: 8px;
     padding: 10px;
     margin-top: 10px;
@@ -2797,7 +2724,7 @@ onUnmounted(() => {
 .math-options { display: flex; gap: 20px; margin-top: 2px; }
 
 input[type="radio"] {
-    accent-color: var(--accent-color);
+    accent-color: var(--accent);
     height: 16px;
     width: 16px;
     transform: translateY(2px);

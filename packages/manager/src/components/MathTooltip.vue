@@ -4,7 +4,7 @@
       <div class="math-tooltip-editor" ref="tooltipEditor">
         <div class="editor-wrapper" ref="editorWrapper" @scroll="onWrapperScroll">
             <div class="editor-content">
-                <AsyncHighlight :code="state.tex" language="katex" class="syntax-highlight" />
+                <AsyncHighlight :code="state.tex" language="katex" class="syntax-hl" />
                 <textarea ref="textareaEl" v-model="state.tex" class="code-textarea" @scroll="syncScroll" spellcheck="false" :readonly="!state.isEditing"></textarea>
             </div>
         </div>
@@ -84,8 +84,8 @@ onUnmounted(() => {
 
 function syncScroll(e: Event) {
   const target = e.target as HTMLElement
-  if (tooltipEditor.value && tooltipEditor.value.querySelector('.syntax-highlight')) {
-    const highlight = tooltipEditor.value.querySelector('.syntax-highlight') as HTMLElement
+  if (tooltipEditor.value && tooltipEditor.value.querySelector('.syntax-hl')) {
+    const highlight = tooltipEditor.value.querySelector('.syntax-hl') as HTMLElement
     highlight.scrollTop = target.scrollTop
     highlight.scrollLeft = target.scrollLeft
   }
@@ -98,7 +98,7 @@ function onWrapperScroll(e: Event) {
   const scrollLeft = wrapper.scrollLeft
   // sync highlight
   if (tooltipEditor.value) {
-    const highlight = tooltipEditor.value.querySelector('.syntax-highlight') as HTMLElement
+    const highlight = tooltipEditor.value.querySelector('.syntax-hl') as HTMLElement
     if (highlight) {
       highlight.scrollTop = scrollTop
       highlight.scrollLeft = scrollLeft
@@ -205,7 +205,7 @@ onUnmounted(() => {
   min-width: 400px;
   width: 400px;
   font-family: var(--app-font-stack-mono);
-  background: var(--component-bg-blur);
+  background: var(--comp-bg-blur);
   backdrop-filter: blur(10px);
 }
 .math-tooltip.editing {
@@ -230,14 +230,14 @@ onUnmounted(() => {
   width: 100%;
   min-height: 100px;
   max-height: 200px;
-  background: var(--component-bg-blur-alt);
+  background: var(--comp-bg-glass);
 }
 .math-tooltip-editor .editor-content {
   position: relative;
   width: 100%;
   box-sizing: border-box;
 }
-.math-tooltip-editor .syntax-highlight {
+.math-tooltip-editor .syntax-hl {
   position: absolute;
   top: 0;
   left: 0;
@@ -246,7 +246,7 @@ onUnmounted(() => {
   margin: 0;
   padding: 8px;
   background: transparent;
-  color: var(--component-text-primary);
+  color: var(--comp-text-pri);
   font-size: 13.5px;
   line-height: 1.5;
   overflow: auto; /* show scrollbar on highlight layer */
@@ -264,7 +264,7 @@ onUnmounted(() => {
   padding: 8px;
   background: transparent;
   color: transparent; /* hide real text while keeping caret */
-  caret-color: var(--text-primary);
+  caret-color: var(--text-pri);
   border: none;
   outline: none;
   resize: none;
@@ -277,12 +277,12 @@ onUnmounted(() => {
 }
 
 /* Sync scrollbars look consistent */
-.math-tooltip-editor .syntax-highlight::-webkit-scrollbar,
+.math-tooltip-editor .syntax-hl::-webkit-scrollbar,
 .math-tooltip-editor .code-textarea::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
-.math-tooltip-editor .syntax-highlight::-webkit-scrollbar-thumb,
+.math-tooltip-editor .syntax-hl::-webkit-scrollbar-thumb,
 .math-tooltip-editor .code-textarea::-webkit-scrollbar-thumb {
   background: #565656;
 }

@@ -93,7 +93,7 @@ const previewType = computed(() => props.schema['x-preview-type'] || 'none')
 
 <style scoped>
 .form-row { margin-bottom: 1rem; }
-.field-label span { color: var(--component-text-secondary); font-size: .9rem; }
+.field-label span { color: var(--comp-text-sec); font-size: .9rem; }
 
 /* Shared style-picker grid (reused from original stylePicker.css pattern) */
 .style-picker {
@@ -111,21 +111,21 @@ const previewType = computed(() => props.schema['x-preview-type'] || 'none')
   padding: .9rem .7rem;
   border-radius: 12px;
   border: 2px solid var(--border-color);
-  background: var(--component-bg);
+  background: var(--comp-bg);
   cursor: pointer;
   text-align: center;
   transition: border-color .15s, box-shadow .15s;
 }
 
-.style-option:hover { border-color: var(--accent-color); }
+.style-option:hover { border-color: var(--accent); }
 
 .style-option.active {
-  border-color: var(--accent-color);
-  box-shadow: 0 0 0 1px var(--accent-color);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
 }
 
 .style-option strong { font-size: .95rem; }
-.option-desc { display: block; color: var(--component-text-secondary); font-size: .82rem; }
+.option-desc { display: block; color: var(--comp-text-sec); font-size: .82rem; }
 
 /* ── Preview thumb base ── */
 .style-option__thumb {
@@ -135,13 +135,13 @@ const previewType = computed(() => props.schema['x-preview-type'] || 'none')
   border-radius: 10px;
   overflow: hidden;
   pointer-events: none;
-  background: var(--component-bg-blur-alt);
+  background: var(--comp-bg-glass);
   position: relative;
 }
 
 /* ── SVG shapes (homepage-layout) ── */
 .thumb-svg { width: 100%; height: 100%; }
-.thumb-svg .shape { fill: var(--component-text-primary); }
+.thumb-svg .shape { fill: var(--comp-text-pri); }
 .thumb-svg .shape.card { opacity: 0.7 }
 .thumb-svg .shape.line { opacity: 0.9 }
 .thumb-svg .shape.short { opacity: 0.6 }

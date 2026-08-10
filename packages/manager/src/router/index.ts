@@ -91,17 +91,6 @@ const routes = [
       { path: 'about',      redirect: '/settings/profile' },
       { path: 'collection', redirect: '/settings/collections' },
       { path: 'i18n',       redirect: '/settings/template-appearance' },
-      // ═══════════════════════════════════════════════
-      // Legacy (archived hand-coded pages, for reference)
-      // ═══════════════════════════════════════════════
-      { path: 'legacy/homepage',    name: 'LegacyHomepage',    component: () => import(/* webpackChunkName: "legacy-homepage" */    '../pages/archive/SettingsHome.vue'),       meta: { title: 'settings.legacyHomepage' } },
-      { path: 'legacy/appearance',  name: 'LegacyAppearance',  component: () => import(/* webpackChunkName: "legacy-appearance" */  '../pages/archive/settings/SettingsAppearance.vue'), meta: { title: 'settings.legacyAppearance' } },
-      { path: 'legacy/features',    name: 'LegacyFeatures',    component: () => import(/* webpackChunkName: "legacy-features" */    '../pages/archive/settings/SettingsFeatures.vue'),   meta: { title: 'settings.legacyFeatures' } },
-      { path: 'legacy/build',       name: 'LegacyBuild',       component: () => import(/* webpackChunkName: "legacy-build" */       '../pages/archive/SettingsBuild.vue'),              meta: { title: 'settings.legacyBuild' } },
-      { path: 'legacy/collection',  name: 'LegacyCollection',  component: () => import(/* webpackChunkName: "legacy-collection" */  '../pages/archive/SettingsCollection.vue'),          meta: { title: 'settings.legacyCollection' } },
-      { path: 'legacy/friends',     name: 'LegacyFriends',     component: () => import(/* webpackChunkName: "legacy-friends" */     '../pages/archive/SettingsFriends.vue'),             meta: { title: 'settings.legacyFriends' } },
-      { path: 'legacy/about',       name: 'LegacyAbout',       component: () => import(/* webpackChunkName: "legacy-about" */       '../pages/archive/SettingsAbout.vue'),              meta: { title: 'settings.legacyAbout' } },
-      { path: 'legacy/security',    name: 'LegacySecurity',    component: () => import(/* webpackChunkName: "legacy-security" */    '../pages/archive/Security.vue'),                   meta: { title: 'settings.legacySecurity' } },
     ]
   },
   {

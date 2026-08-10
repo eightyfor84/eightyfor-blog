@@ -32,7 +32,7 @@ withDefaults(defineProps<{
 }
 .slide-indicator {
   position: absolute; bottom: 4px;
-  font-size: 11px; color: var(--component-text-secondary);
-  background: var(--bg-primary); padding: 2px 8px; border-radius: 4px;
+  font-size: 11px; color: var(--comp-text-sec);
+  background: var(--bg-pri); padding: 2px 8px; border-radius: 4px;
 }
 </style>

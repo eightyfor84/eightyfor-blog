@@ -393,7 +393,7 @@ export function getPublishedPosts(): PostMeta[] {
 /** Get a single post with content */
 export function getPostBySlug(slug: string, locale?: string): LocalPost | null {
     const posts = getAllPosts();
-    const meta = posts.find(p => p.id === slug || p.slug === slug);
+    const meta = posts.find(p => p.id === slug);
     if (!meta) return null;
     const mdPath = path.join(POSTS_DIR, slug, "index.md");
     if (!fs.existsSync(mdPath)) return null;

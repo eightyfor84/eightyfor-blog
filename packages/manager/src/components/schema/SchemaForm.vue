@@ -229,7 +229,7 @@ function handleReset() { emit('reset') }
   flex-wrap: wrap;
   padding: 0.6rem;
   border-radius: 12px;
-  background: var(--component-bg-blur);
+  background: var(--comp-bg-blur);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
   border: 1px solid var(--border-color);
   z-index: 100;
@@ -245,7 +245,7 @@ function handleReset() { emit('reset') }
   border-radius: 6px;
   border: none;
   background: transparent;
-  color: var(--text-primary);
+  color: var(--text-pri);
   cursor: pointer;
   font-size: 0.95rem;
   transition: background 0.15s;
@@ -268,11 +268,11 @@ function handleReset() { emit('reset') }
 }
 
 .schema-tab:hover {
-  background: var(--component-bg-hover);
+  background: var(--hover);
 }
 
 .schema-tab.active {
-  background: var(--accent-color);
+  background: var(--accent);
   color: var(--text-on-accent);
 }
 
@@ -281,7 +281,7 @@ function handleReset() { emit('reset') }
 }
 
 .group-card {
-  background: var(--component-bg-blur);
+  background: var(--comp-bg-blur);
   padding: 1.5rem;
   border-radius: 12px;
   border: 1px solid var(--border-color);
@@ -293,7 +293,7 @@ function handleReset() { emit('reset') }
   font-size: 0.95rem;
   font-weight: 500;
   font-variation-settings: 'wght' 500;
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }

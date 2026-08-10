@@ -165,7 +165,7 @@ export function updateResolvedOverlays() {
     const settings = (window as any).__CHRONICLE_SETTINGS__ || {};
     const hasFrontendBackground = Boolean(settings.frontendBackground);
     if (hasFrontendBackground) {
-      const baseColor = getComputedStyle(document.documentElement).getPropertyValue('--app-bg-primary') || '';
+      const baseColor = getComputedStyle(document.documentElement).getPropertyValue('--app-bg-pri') || '';
       const bodyColor = blendColors(baseColor, chosen || 'transparent');
       document.documentElement.style.setProperty('--frontend-body-bg-color', bodyColor);
     } else {

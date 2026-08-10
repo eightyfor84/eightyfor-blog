@@ -359,14 +359,14 @@ onBeforeUnmount(() => {
   border-radius: 8px;
   border: 1px solid var(--border-color);
   padding: 0 10px;
-  background: var(--component-bg);
-  color: var(--text-primary);
+  background: var(--comp-bg);
+  color: var(--text-pri);
 }
 
 .input-shell.selected .picker-input {
-  background: color-mix(in srgb, var(--accent-color) 16%, var(--component-bg));
-  border-color: color-mix(in srgb, var(--accent-color) 50%, var(--border-color));
-  color: var(--text-primary);
+  background: color-mix(in srgb, var(--accent) 16%, var(--comp-bg));
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--border-color));
+  color: var(--text-pri);
 }
 
 .icon-btn {
@@ -374,7 +374,7 @@ onBeforeUnmount(() => {
   height: 30px;
   border: none;
   background: transparent;
-  color: var(--text-secondary);
+  color: var(--text-sec);
   padding: 0;
   display: inline-flex;
   align-items: center;
@@ -384,8 +384,8 @@ onBeforeUnmount(() => {
 }
 
 .icon-btn:hover {
-  color: var(--text-primary);
-  background: color-mix(in srgb, var(--component-bg-hover) 70%, transparent);
+  color: var(--text-pri);
+  background: var(--hover);
 }
 
 .icon-btn svg {
@@ -405,9 +405,9 @@ onBeforeUnmount(() => {
   height: 30px;
   border-radius: 999px;
   padding: 0 10px;
-  background: color-mix(in srgb, var(--accent-color) 16%, transparent);
-  border: 1px solid color-mix(in srgb, var(--accent-color) 40%, var(--border-color));
-  color: var(--text-primary);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border-color));
+  color: var(--text-pri);
   max-width: 420px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -443,7 +443,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
   border-radius: 10px;
   border: 1px solid var(--border-color);
-  background: var(--component-bg-blur);
+  background: var(--comp-bg-blur);
   backdrop-filter: blur(12px);
   box-shadow: 0 16px 34px rgba(0, 0, 0, 0.26);
 }
@@ -461,12 +461,12 @@ onBeforeUnmount(() => {
   border: 1px solid var(--border-color);
   padding: 0 10px;
   background: var(--app-bg);
-  color: var(--text-primary);
+  color: var(--text-pri);
 }
 
 .picker-empty {
   padding: 14px;
-  color: var(--text-secondary);
+  color: var(--text-sec);
 }
 
 .picker-list {
@@ -484,7 +484,7 @@ onBeforeUnmount(() => {
   border-radius: 8px;
   border: 1px solid transparent;
   background: transparent;
-  color: var(--text-primary);
+  color: var(--text-pri);
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -492,7 +492,7 @@ onBeforeUnmount(() => {
 }
 
 .post-option:hover {
-  background: var(--component-bg-hover);
+  background: var(--hover);
   border-color: var(--border-color);
 }
 
@@ -500,13 +500,13 @@ onBeforeUnmount(() => {
   font-size: 1rem;
   font-weight: 500;
   font-variation-settings: 'wght' 500;
-  color: var(--text-primary);
+  color: var(--text-pri);
   line-height: 1.3;
 }
 
 .picker-post-id {
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--text-sec);
   line-height: 1.2;
 }
 

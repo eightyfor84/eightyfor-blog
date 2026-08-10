@@ -10,7 +10,7 @@
   padding: .8rem;
   border-radius: 14px;
   border: 1px solid var(--border-color);
-  background: var(--component-bg);
+  background: var(--comp-bg);
   display: grid;
   gap: .45rem;
   text-align: left;
@@ -23,13 +23,13 @@
 }
 
 .style-option.active:hover {
-  border-color: var(--accent-color) !important;
+  border-color: var(--accent) !important;
 }
 
 .style-option.active {
-  border-color: var(--accent-color);
-  background-color: color-mix(in srgb, var(--accent-color) 12%, var(--component-bg-blur-alt));
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-color) 36%, transparent);
+  border-color: var(--accent);
+  background-color: color-mix(in srgb, var(--accent) 12%, var(--comp-bg-glass));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 36%, transparent);
 }
 
 .style-option strong {
@@ -37,7 +37,7 @@
 }
 
 .style-option small {
-  color: var(--component-text-secondary);
+  color: var(--comp-text-sec);
   line-height: 1.4;
 }
 

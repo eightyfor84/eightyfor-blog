@@ -35,7 +35,7 @@
   display:inline-flex; align-items:center; gap:8px;
   padding:12px 28px; border:none; border-radius:8px;
   font-size:1rem; font-weight:500; text-decoration:none;
-  background:var(--accent-color-dark); color:#fff;
+  background:var(--accent-dark); color:#fff;
 }
 
 /* ── Card grid shell (split + cards mode, above fold) ── */
@@ -49,7 +49,7 @@
 .flow-column--right.column-empty { display:none; }
 .panel-card {
   position:relative; border:1px solid var(--border-color-blur);
-  border-radius:18px; overflow:hidden; background:var(--component-bg-blur);
+  border-radius:18px; overflow:hidden; background:var(--comp-bg-blur);
 }
 .flow-intro { padding:clamp(1.4rem,2.4vw,2.2rem); }
 .flow-intro h1 { margin:0; font-size:clamp(2.5rem,4vw,4rem); line-height:.92; }
@@ -68,7 +68,7 @@
 .stream-card {
   display:grid; grid-template-columns:110px minmax(0,1fr);
   gap:.85rem; padding:1rem; border:1px solid var(--border-color-blur); border-radius:14px;
-  background:var(--component-bg-blur-alt);
+  background:var(--comp-bg-glass);
 }
 .stream-card__body { display:grid; gap:.55rem; }
 .stream-card__top { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; }
