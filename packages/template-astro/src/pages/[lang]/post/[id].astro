@@ -227,7 +227,7 @@ const metaDescription = buildMetaDescription(post, locale);
 </Layout>
 ) : (
 <Layout title={pageTitle} settings={settings} locale={locale} navTitle={post?.title} navBackHref={backToBlogs} navBackLabel={t('inblog.backToBlogs')} meta={{ description: metaDescription, type: 'article' }}>
-  <div class="post-detail-container" id="post-top">
+  <div class="post-detail-container" class:list={[{ "has-collection-nav": !!post?.collection }]} id="post-top">
     {error ? (
       <div class="error-container">
         <h1>Post not found</h1>
@@ -394,15 +394,6 @@ const metaDescription = buildMetaDescription(post, locale);
 
   {post?.collection && (
     <CollectionNav postId={post?.id || id} collections={embeddedCollections} postTitles={embeddedPostTitles} postTypes={embeddedPostTypes} />
-  )}
-
-  <!-- CSS-only padding for CollectionNav sidebar — prevents CLS (was set by JS after first paint) -->
-  {post?.collection && (
-    <style>
-      @media (min-width: 1200px) {
-        .post-detail-container { padding-left: 280px; }
-      }
-    </style>
   )}
 
   <style is:global>
