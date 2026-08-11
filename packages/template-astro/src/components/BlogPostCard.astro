@@ -57,7 +57,7 @@ const tags = sortTagsList(post.tags);
     {featured ? (
       <div class="featured-card-layout">
         <div class="featured-card-date">{dateText}</div>
-        <h3 class="post-title">{post.type === 'slides' && <span class="slides-badge" set:html={slideIcon} />}{post.title}</h3>
+        <h3 class="card-post-title">{post.type === 'slides' && <span class="slides-badge" set:html={slideIcon} />}{post.title}</h3>
         {tags.length ? (
           <div class="post-tags">
             {tags.map((tag) => (
@@ -73,7 +73,7 @@ const tags = sortTagsList(post.tags);
         <div class="post-card-line">
           <span class="post-card-time">{dateText}</span>
           {tags.some((tag) => isFeaturedTag(String(tag))) ? <span class="post-featured-star" aria-hidden="true">★</span> : null}
-          <h4 class="post-title">{post.type === 'slides' && <span class="slides-badge" set:html={slideIcon} />}{post.title}</h4>
+          <h4 class="card-post-title">{post.type === 'slides' && <span class="slides-badge" set:html={slideIcon} />}{post.title}</h4>
         </div>
         {tags.length ? (
           <div class="post-tags">
