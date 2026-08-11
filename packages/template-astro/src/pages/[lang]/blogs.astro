@@ -194,7 +194,7 @@ const metaDescription = locale === 'zh-CN'
     gap: 16px;
   }
 
-  .featured-card .post-title {
+  .featured-card .card-post-title {
     font-size: 1.1em;
     margin-bottom: 0;
   }
@@ -300,7 +300,7 @@ const metaDescription = locale === 'zh-CN'
     white-space: nowrap;
   }
 
-  .post-title {
+  .card-post-title {
     font-size: 1.1em;
     margin: 0;
     font-weight: 600;
@@ -315,7 +315,7 @@ const metaDescription = locale === 'zh-CN'
     line-height: 1.4;
   }
 
-  html.is-mobile .post-title {
+  html.is-mobile .card-post-title {
     width: 0;
   }
 
@@ -413,8 +413,8 @@ const metaDescription = locale === 'zh-CN'
     transition: all 0.3s ease;
   }
 
-  html.is-mobile .featured-card .post-title,
-  html.is-mobile .compact-card .post-title {
+  html.is-mobile .featured-card .card-post-title,
+  html.is-mobile .compact-card .card-post-title {
     font-size: 0.98rem;
     font-weight: 500;
     font-variation-settings: 'wght' 500;
@@ -433,8 +433,8 @@ const metaDescription = locale === 'zh-CN'
     font-size: 0.75rem;
   }
 
-  html.is-mobile .featured-card .post-title,
-  html.is-mobile .compact-card .post-title {
+  html.is-mobile .featured-card .card-post-title,
+  html.is-mobile .compact-card .card-post-title {
     order: 1;
     white-space: nowrap;
   }
@@ -457,7 +457,7 @@ const metaDescription = locale === 'zh-CN'
     display: inline-flex;
   }
 
-  html.is-mobile .post-card-line .post-title {
+  html.is-mobile .post-card-line .card-post-title {
     order: 3;
     flex: 1 1 0;
     min-width: 0;
@@ -554,7 +554,7 @@ const metaDescription = locale === 'zh-CN'
       return `
         <div class="featured-card-layout">
           <div class="featured-card-date">${escapeHtml(dateText)}</div>
-          <span class="post-title">${escapeHtml(post.title)}</span>
+          <span class="card-post-title">${escapeHtml(post.title)}</span>
           ${tagHtml}
         </div>
       `;
@@ -566,7 +566,7 @@ const metaDescription = locale === 'zh-CN'
         <div class="post-card-line">
           <span class="post-card-time">${escapeHtml(dateText)}</span>
           ${featured ? '<span class="post-featured-star" aria-hidden="true">★</span>' : ''}
-          <span class="post-title">${escapeHtml(post.title)}</span>
+          <span class="card-post-title">${escapeHtml(post.title)}</span>
         </div>
       `;
     }

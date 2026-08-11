@@ -106,11 +106,13 @@ const searchBtnAsButton = props.searchBtnAsButton ?? true;
 <script
   define:vars={{ instanceId, initialTitle, searchOnEnter, searchBtnAsButton, showTagTrigger }}
 >
+  const __sbInitCache = new WeakSet();
+
   function initSearchBox() {
     // Re-query DOM on each init (handles view-transition swaps)
     const root = document.querySelector(`[data-searchbox-id="${instanceId}"]`);
-    if (!root || root.dataset.searchboxInit === '1') return;
-    root.dataset.searchboxInit = '1';
+    if (!root || __sbInitCache.has(root)) return;
+    __sbInitCache.add(root);
 
     const input = root.querySelector('#search-input');
     const searchBtn = root.querySelector('#search-btn');
@@ -202,8 +204,10 @@ const searchBtnAsButton = props.searchBtnAsButton ?? true;
 
   // Init on load
   initSearchBox();
-  // Re-init after Astro view transitions swap in new DOM
-  document.addEventListener('astro:after-swap', initSearchBox);
+  // Re-init after Astro view transitions swap in new DOM.
+  // `astro:page-load` fires after the new page is fully settled,
+  // guaranteeing the DOM is in place for querySelector.
+  document.addEventListener('astro:page-load', initSearchBox);
 </script>
 
 <style>

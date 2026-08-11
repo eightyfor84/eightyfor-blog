@@ -26,4 +26,4 @@ Chronicle takes a different path. **Your content is a Git repository.** The CMS 
 
 Chronicle is MIT licensed and developed in the open.
 
-[View on GitHub →](https://github.com/eightyfor/chronicle-aurora)
+[View on GitHub →](https://github.com/vanvanhasnophi/chronicle-aurora)

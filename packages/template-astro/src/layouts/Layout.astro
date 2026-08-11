@@ -9,6 +9,7 @@ import criticalBase from '../styles/critical-base.css?raw';
 import criticalHome from '../styles/critical-home.css?raw';
 import criticalPost from '../styles/critical-post.css?raw';
 import criticalBlogs from '../styles/critical-blogs.css?raw';
+import criticalSearch from '../styles/critical-search.css?raw';
 import '../styles/global.css';
 import '../styles/app.css';
 
@@ -19,11 +20,13 @@ const pathname = Astro.url.pathname;
 const isHome = /^\/(en|zh)\/?$/.test(pathname);
 const isPost = pathname.includes('/post/');
 const isBlogs = /\/(en|zh)\/blogs\/?$/.test(pathname);
+const isSearch = pathname.includes('/search');
 const criticalCSS = [
   criticalBase,
   isHome   ? criticalHome   : '',
   isPost   ? criticalPost   : '',
   isBlogs  ? criticalBlogs  : '',
+  isSearch ? criticalSearch : '',
 ].join('');
 
 export interface Props {
