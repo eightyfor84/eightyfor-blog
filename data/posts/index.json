@@ -51,7 +51,7 @@
       "story"
     ],
     "status": "published",
-    "summary": "Shower - Rapeter",
+    "summary": "",
     "font": "serif",
     "author": null,
     "aiGenerated": false,
@@ -78,7 +78,7 @@
       "featured"
     ],
     "status": "published",
-    "summary": "",
+    "summary": "适逢凯尔希重生归来，故改造主页以纪念。",
     "font": "sans",
     "author": null,
     "aiGenerated": false,
@@ -87,13 +87,13 @@
     "collectionPath": "Stories to tell / content theme"
   },
   "88394cb9-6f3b-4c20-a950-e6d74ea912a0": {
-    "title": "Chronicle README",
+    "title": "Chronicle legacy README",
     "date": "2026-05-30T10:56:56.153Z",
     "tags": [
       "README"
     ],
     "status": "published",
-    "summary": "Chronicle",
+    "summary": "",
     "font": "sans",
     "aiGenerated": false,
     "type": "article",
@@ -124,7 +124,7 @@
       "chronicle"
     ],
     "status": "published",
-    "summary": "一次社团课 2018 我接触编程不算很早，开始于初中学校社团的 VB 6.0 的课程。那节社团课，看着老社员做的各种小游戏，对编程一窍不通的我，瞬间对 VB 这个老掉牙的新东西来了兴趣。 Visual Basic 6.0 的界面 可以说，会用“画图”的人，上手 Visual Basic 一般都很快。我的第一行代码不是hello world，而是 仅仅学会 VB",
+    "summary": "",
     "font": "serif",
     "author": "Vincent Chen",
     "aiGenerated": false,

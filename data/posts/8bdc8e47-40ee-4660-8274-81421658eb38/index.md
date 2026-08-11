@@ -1,12 +1,12 @@
 ---
 title: Chronicle of "Chronicle"
 date: 2026-02-13T02:52:33.502Z
+updatedAt: 2026-08-11T23:21:39.383Z
 tags: featured, chronicle
 author: Vincent Chen
 aiGenerated: false
-font: serif
 status: published
-summary: 一次社团课 2018 我接触编程不算很早，开始于初中学校社团的 VB 6.0 的课程。那节社团课，看着老社员做的各种小游戏，对编程一窍不通的我，瞬间对 VB 这个老掉牙的新东西来了兴趣。 Visual Basic 6.0 的界面 可以说，会用“画图”的人，上手 Visual Basic 一般都很快。我的第一行代码不是hello world，而是 仅仅学会 VB
+font: serif
 ---
 
 #### 一次社团课 2018
@@ -70,24 +70,25 @@ Notion 一直是我大学常用的笔记软件，但是它的免费版满足不�
 
 ![Workdown 编辑器 @ Chronicle v1.1.2](asset://1771126181174_gty6_Screenshot_2026-02-15-11-29-04-944_com.microsoft.emmx-edit.jpg "Workdown 编辑器 @ Chronicle v1.1.2" =100%x)
 
+3.0版本的编辑器[^mspa63uk]
 
-再到前后台分开管理和身份验证：
+[^mspa63uk]: Workdown 编辑器 @ Chronicle Aurora 3.0：![Workdown 编辑器 @ Chronicle Aurora 3.0](image.png "Workdown 编辑器 @ Chronicle Aurora 3.0" =200x)
+
+
+再到前后台分开管理和身份验证[^mspa7zqg][^mspa7ymn]：
+
+[^mspa7zqg]: 2.x 网页端设置界面![访问密钥功能 @ Chronicle v2.0](asset://1779975545453_zutn_2026-05-28213853.png "访问密钥功能")
+
+[^mspa7ymn]: 2.x 正式版桌面应用：暂不支持密钥添加 ![访问密钥功能 @ Chronicle v2.0.1 July for Windows](asset://1781160912845_m2rc_2026-06-11145439.png "访问密钥功能 @ Chronicle v2.0.1 July for Windows")
 
 ![简单的访问密钥 @ Chronicle v1.1.2](asset://1771126572731_us2x_Screenshot_2026-02-15-11-35-39-020_com.microsoft.emmx-edit.jpg "简单的访问密钥 @ Chronicle v1.1.2" =100%x)
 
-> 二编：新版本的设置界面
-> ![访问密钥功能 @ Chronicle v2.0](asset://1779975545453_zutn_2026-05-28213853.png "访问密钥功能")
 
-> 三编：正式版桌面应用：暂不支持密钥添加 ![访问密钥功能 @ Chronicle v2.0.1 July for Windows](asset://1781160912845_m2rc_2026-06-11145439.png "访问密钥功能 @ Chronicle v2.0.1 July for Windows")
+博客 body[^mspa9bia]：
 
-
-
-博客 body：
+[^mspa9bia]: 2.x 版本及以上的 Chroncle 文章页 ![文章详情 @ Chronicle v2.0](asset://1779975235649_4slw_2026-05-28213253.png)
 
 ![文章详情 @ Chronicle v1.1.2](asset://1771132786788_m6dr_Screenshot_2026-02-15-13-19-24-893_com.microsoft.emmx-edit.jpg "文章详情 @ Chronicle v1.1.2" =100%x)
-
-> 二编: 新版本的 Chroncle 文章页
-> ![文章详情 @ Chronicle v2.0](asset://1779975235649_4slw_2026-05-28213253.png)
 
 
 > **Note**
@@ -120,3 +121,18 @@ Notion 一直是我大学常用的笔记软件，但是它的免费版满足不�
 ![带有全屏封面图的合集页面](asset://1781162987660_r001_2026-06-11152932.png "带有全屏封面图的合集页面" =100%x)
 
 我既希望提供一个优雅的解决方案来改善我们现有的工具，也希望通过创造新功能来改变世界。但实际上，很少有人能够兼顾两者，2.0 的功能取舍也说明了这一点。既有独善之心，又有济世之志，则需仰望星空，同时脚踏实地，方能成事。
+
+
+#### Aurora 上线后
+Chronicle Aurora是一个去繁就简的工程，在2.x版本的迭代中，我非常痛苦地发现：VPS部署本身非常繁琐，各种通信链路也要仔细斟酌。
+
+但自从Aurora去掉云端编辑能力后，编辑变简单了许多。我重构了`data/`结构，让CMS和本地文件直接修改的效果相同，并且将云端能力托管给静态站托管平台如Github Pages，Cloudflare Pages等等，直接省去了很多烦恼，旧版几乎可以退役，也让我从多版本并行的维护中腾出时间精力，专注项目结构本身。
+
+这是一个长远考虑的决定，Aurora是Chronicle真正的未来。
+
+现在Aurora已经在github上线： 
+[Chronicle Aurora](link:https://github.com/vanvanhasnophi/chronicle-aurora)
+
+初心不改，极光绚烂。
+
+各位，祝好。

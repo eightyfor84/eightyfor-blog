@@ -1,20 +1,12 @@
 ---
-title: Chronicle README
+title: Chronicle legacy README 
 date: 2026-05-30T10:56:56.153Z
+updatedAt: 2026-08-11T23:11:10.048Z
 tags: README
+author: 
 aiGenerated: false
-font: sans
 status: published
-summary:  Chronicle
-
-一个现代化的博客内容管理系统，支持 Markdown 编辑、多语言、主题定制，采用 双模式（静态/API）架构。
-
- 项目简介
-
-Chronicle 是一个功能完整的博客系统，基于 monorepo 架构，包含五个包：
-
-- packages/host — Express API 服务器（文章 CRUD、文件上传、WebAuthn 认证、流量统计）
--
+font: sans
 ---
 
 # Chronicle
