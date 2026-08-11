@@ -286,7 +286,9 @@ md.inline.ruler.before('link', 'chronicle_file_card', (state: any, silent: boole
     // Resolve asset:// and post:// in the URL after type-prefix stripping
     const cardUrl  = rawUrl.startsWith('asset://') ? resolveAssetUrl(rawUrl.slice(8))
                    : rawUrl.startsWith('post://') ? resolvePostUrl(rawUrl.slice(7))
-                   : rawUrl;
+                   : (_currentPostId && !rawUrl.startsWith('/') && !/^[a-zA-Z][\w+.-]*:/.test(rawUrl)
+                       ? `${_currentPostId === '__about__' ? '/about' : `/post_attachment/${_currentPostId}`}/${encodeFilename(rawUrl)}`
+                       : rawUrl);
     const subtitle = (isMailto || isLink) ? (prefixMatch?.actualUrl || href) : undefined;
 
     const token = state.push('html_inline', '', 0);

@@ -289,7 +289,9 @@ md.inline.ruler.before('link', 'chronicle_file_card', (state, silent) => {
     // Resolve asset:// and post:// in the URL after type-prefix stripping
     const cardUrl  = rawUrl.startsWith('asset://') ? resolveAssetUrl(rawUrl.slice(8))
                    : rawUrl.startsWith('post://') ? resolvePostUrl(rawUrl.slice(7))
-                   : rawUrl;
+                   : (_postSlug && !rawUrl.startsWith('/') && !/^[a-zA-Z][\w+.-]*:/.test(rawUrl)
+                       ? `${_postSlug === '__about__' ? '/data/__about__' : `/data/posts/${_postSlug}`}/${rawUrl.split('/').map((seg: string) => { try { decodeURI(seg); return seg } catch { return encodeURI(seg) } }).join('/')}`
+                       : rawUrl);
     const subtitle = (isMailto || isLink) ? (activePrefix?.actualUrl || href) : undefined;
 
     const token = state.push('html_inline', '', 0);
