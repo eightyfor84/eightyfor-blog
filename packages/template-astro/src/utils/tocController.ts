@@ -11,6 +11,7 @@ const state = {
   showBackToTop: false,
   floatCollapsed: true,
   initialized: false,
+  liveSyncPaused: false,
 };
 
 type Listener = () => void;
@@ -235,6 +236,8 @@ export function destroyController() {
   if (typeof window === 'undefined') return;
   if (!state.initialized) return;
   state.initialized = false;
+  liveSyncPaused = false;
+  state.liveSyncPaused = false;
   removeBoundScrollListener();
   window.removeEventListener('hashchange', syncFromHash);
   window.removeEventListener('resize', onScroll);
@@ -274,11 +277,13 @@ let userScrollIntentTimer: number | undefined;
 export function lockActiveId(id: string) {
   state.liveActiveId = id;
   liveSyncPaused = true;
+  state.liveSyncPaused = true;
   notify();
 }
 function unlockOnScroll() {
   if (!liveSyncPaused) return;
   liveSyncPaused = false;
+  state.liveSyncPaused = false;
   if (liveSyncPauseTimer) { clearTimeout(liveSyncPauseTimer); liveSyncPauseTimer = undefined; }
   computeLiveActiveFromBaseline();
   notify();
