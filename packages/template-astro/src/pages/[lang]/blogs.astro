@@ -539,6 +539,12 @@ const metaDescription = locale === 'zh-CN'
       return Array.isArray(tags) && tags.some((tag) => isFeaturedTag(String(tag)));
     }
 
+    const slideIconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M 2 12 L 2 22 L 14 22 L 14 12 Z"/><path d="M 6 10 L 6 8 L 18 8 L 18 18 L 16 18"/><path d="M 10 6 L 10 4 L 22 4 L 22 14 L 20 14"/></svg>';
+
+    function slidesBadgeHtml() {
+      return '<span class="slides-badge">' + slideIconSvg + '</span>';
+    }
+
     function buildFeaturedCardMarkup(post, dateText) {
       const tags = Array.isArray(post.tags) ? sortTagsList(post.tags) : [];
       const tagHtml = tags.length
@@ -548,7 +554,7 @@ const metaDescription = locale === 'zh-CN'
       return `
         <div class="featured-card-layout">
           <div class="featured-card-date">${escapeHtml(dateText)}</div>
-          <span class="card-post-title">${escapeHtml(post.title)}</span>
+          <span class="card-post-title">${post.type === 'slides' ? slidesBadgeHtml() : ''}${escapeHtml(post.title)}</span>
           ${tagHtml}
         </div>
       `;
@@ -560,7 +566,7 @@ const metaDescription = locale === 'zh-CN'
         <div class="post-card-line">
           <span class="post-card-time">${escapeHtml(dateText)}</span>
           ${featured ? '<span class="post-featured-star" aria-hidden="true">★</span>' : ''}
-          <span class="card-post-title">${escapeHtml(post.title)}</span>
+          <span class="card-post-title">${post.type === 'slides' ? slidesBadgeHtml() : ''}${escapeHtml(post.title)}</span>
         </div>
       `;
     }
