@@ -21,11 +21,13 @@
       "SBTI"
     ],
     "status": "published",
-    "summary": "没想好。",
+    "summary": "IMSB，就是你想的那个意思，\"I am Sha Bi\"，自我攻击者人格，可以表示自嘲，也可以表示做错事或者无用功时的懊恼，我想我在这表达的是后一种意思。",
     "font": "sans",
     "author": "Eightyfor",
     "aiGenerated": false,
-    "type": "article"
+    "type": "article",
+    "collection": "Stories to tell",
+    "collectionPath": "Stories to tell / content theme"
   },
   "3e246f38-0651-477f-9cb9-6dd9127ac659": {
     "title": "SSG + CSR 混合架构技术方案",
@@ -57,18 +59,6 @@
     "collection": "Stories to tell",
     "collectionPath": "Stories to tell"
   },
-  "6940f292-4d74-416d-bee7-3e6f7e33a595": {
-    "title": "【引用】解释模型预测的统一方法",
-    "date": "2026-02-17T11:44:26.238Z",
-    "tags": [
-      "quote"
-    ],
-    "status": "published",
-    "summary": "解释模型预测的统一方法",
-    "font": "sans",
-    "aiGenerated": false,
-    "type": "article"
-  },
   "6c96284f-a6ec-44d8-a0ed-acce66641cde": {
     "title": "乌萨奇？到！",
     "date": "2026-02-11T13:56:09.188Z",
@@ -88,8 +78,9 @@
       "featured"
     ],
     "status": "published",
-    "summary": "Stay tuned...",
+    "summary": "",
     "font": "sans",
+    "author": null,
     "aiGenerated": false,
     "type": "article",
     "collection": "Stories to tell",
@@ -117,8 +108,9 @@
       "semi-annual-theme"
     ],
     "status": "published",
-    "summary": "待完善",
+    "summary": "最近沉迷紫微斗数，通过很多渠道学习到紫微斗数的一些知识，其中最出圈的应该就是“杀破狼”命格。此命格命主人生充满挑战，风险和机遇并存。",
     "font": "sans",
+    "author": null,
     "aiGenerated": false,
     "type": "article",
     "collection": "Stories to tell",
@@ -155,16 +147,6 @@
     "collection": "Chronicle Docs",
     "collectionPath": "Chronicle Docs / legacy / changelog"
   },
-  "a8f190a9-016c-4aae-94e9-8d94214d7bf6": {
-    "title": "Untitled Post",
-    "date": "2026-05-25T21:54:15.073Z",
-    "tags": [],
-    "status": "draft",
-    "summary": "…",
-    "font": "sans",
-    "aiGenerated": false,
-    "type": "article"
-  },
   "b792d6ca-5efb-405e-84d2-609f056d4be9": {
     "title": "2.0更新规划",
     "date": "2026-03-20T03:06:39.816Z",
@@ -198,18 +180,34 @@
     "collection": "Chronicle Docs",
     "collectionPath": "Chronicle Docs / Changelog"
   },
+  "chronicle-aurora-css": {
+    "title": "Chronicle Aurora——CSS 设计文档",
+    "date": "2026-08-11T14:48:25.932Z",
+    "tags": [
+      "featured",
+      "design",
+      "chronicle"
+    ],
+    "status": "published",
+    "summary": "Chronicle 的设计以玻璃为主要 UI 元素，因此半透明和模糊叠层几乎用于所有组件。这对 UI 设计提出了很高的要求。我们需要兼顾：",
+    "font": "sans",
+    "author": "Eightyfor",
+    "aiGenerated": false,
+    "type": "article",
+    "collection": "Chronicle Docs",
+    "collectionPath": "Chronicle Docs"
+  },
   "f3372aca-8f34-4a28-afc0-914489410ab7": {
     "title": "概率论知识点",
     "date": "2026-08-01T22:32:17.035Z",
     "tags": [
       "statistics"
     ],
-    "status": "published",
-    "summary": "第1章：概率论基础 本章介绍了概率论的基本概念、公理、计数方法、条件概率和独立性，为后续学习统计推断奠定了基础。 1.1 基本概念 样本空间 (Sample Space, S)：一个实验所有可能结果的集合。 事件 (Event, A)：样本空间的子集，即某些结果的集合。 事件运算： 补集 (Aᶜ)：事件A不发生。 交集 (A∩B)：事件A和B同时发生。 并集 (A∪B)：事件A或B至少一个发生。",
+    "status": "draft",
+    "summary": "本章介绍了概率论的基本概念、公理、计数方法、条件概率和独立性，为后续学习统计推断奠定了基础。",
     "font": "sans",
+    "author": null,
     "aiGenerated": true,
-    "type": "article",
-    "collection": "知识点汇总",
-    "collectionPath": "知识点汇总"
+    "type": "article"
   }
 }

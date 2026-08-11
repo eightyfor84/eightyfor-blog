@@ -1,11 +1,22 @@
 ---
 title: 26S2：新生
 date: 2026-05-03T21:33:32.203Z
+updatedAt: 2026-08-11T22:23:54.544Z
 tags: featured
+author: 
 aiGenerated: false
-font: sans
 status: published
-summary: Stay tuned...
+font: sans
 ---
 
-Stay tuned...
+适逢凯尔希重生归来，故改造主页以纪念。
+
+*从这个主题开始，主题更新将不再按照固定周期，而是随机更新，并许诺在未来实装主页自定义功能，之后发布主题封面及文章将会更加方便。*
+
+> 曾有人告诉我，要去相信你的本性，寻找你超越记忆塑造的本来面目。对我来说，这是一条无比困难的道路。但我很高兴……这是一个正确的决定。
+>
+> ——凯尔希
+
+[《走过漫漫时空》](m_sys_act18d0d0_combine.mp3)
+
+*旅者遗尘步，归人临界生。*

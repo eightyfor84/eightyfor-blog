@@ -1,11 +1,12 @@
 ---
 title: 概率论知识点
 date: 2026-08-01T22:32:17.035Z
+updatedAt: 2026-08-11T21:33:25.363Z
 tags: statistics
+author: 
 aiGenerated: true
+status: draft
 font: sans
-status: published
-summary: 第1章：概率论基础 本章介绍了概率论的基本概念、公理、计数方法、条件概率和独立性，为后续学习统计推断奠定了基础。 1.1 基本概念 样本空间 (Sample Space, S)：一个实验所有可能结果的集合。 事件 (Event, A)：样本空间的子集，即某些结果的集合。 事件运算： 补集 (Aᶜ)：事件A不发生。 交集 (A∩B)：事件A和B同时发生。 并集 (A∪B)：事件A或B至少一个发生。
 ---
 
 ### **第1章：概率论基础**
