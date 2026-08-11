@@ -26,7 +26,11 @@ body { min-width:320px; min-height:100vh; }
   position:fixed; top:0; left:0; right:0; z-index:9999;
   height:70px; box-sizing:border-box;
   background:var(--comp-bg-blur); backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
   border-bottom:1px solid var(--border-color-blur);
+  /* Force GPU compositing layer so backdrop-filter survives View Transitions
+     without a 1-2 frame flicker during the crossfade. */
+  transform:translateZ(0);
 }
 html.immersive .nav-header {
   background:transparent; border-bottom:none; backdrop-filter:blur(1px);
@@ -72,6 +76,7 @@ a { color:var(--accent); }
 /* ── Mobile (≤768px) ── */
 @media (max-width:768px) {
   .nav-header { height:50px; }
+  .app-title { font-size:1.2rem; }
   .main-content { padding-top:50px; }
   .nav-content { padding:0 1.5rem; }
   /* Mobile: show hamburger, use text labels not icons */
