@@ -259,7 +259,7 @@ const metaDescription = locale === 'zh-CN'
     border: 1px solid var(--border-color-blur);
     border-radius: 12px;
     cursor: pointer;
-    box-shadow: var(--card-shadow);
+    box-shadow: var(--glass-shadow-elev-1);
     transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
   }
 
@@ -267,7 +267,7 @@ const metaDescription = locale === 'zh-CN'
     background: var(--comp-bg-glass-hvr);
     transform: scale(1.02);
     border-color: var(--comp-text-sec-hl);
-    box-shadow: 0 0 16px color-mix(in srgb, var(--comp-text-pri-hl) 30%, transparent);
+    box-shadow: var(--card-glow), var(--glass-shadow-elev-2);
   }
 
   .compact-card {
@@ -275,7 +275,7 @@ const metaDescription = locale === 'zh-CN'
     margin-bottom: 0;
     border: 1px solid var(--border-color-blur);
     background: var(--comp-bg-glass);
-    border-radius: 8px;
+    border-radius: 12px;
     transition: all 0.2s;
   }
 

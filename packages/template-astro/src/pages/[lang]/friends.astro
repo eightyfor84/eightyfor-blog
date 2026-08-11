@@ -199,7 +199,7 @@ const metaDescription =
     border-radius: 12px;
     border: 1px solid var(--border-color);
     background: var(--comp-bg-glass);
-    box-shadow: var(--card-shadow);
+    box-shadow: var(--glass-shadow-elev-1);
     overflow: hidden;
     transition:
       transform 0.18s ease,
@@ -213,7 +213,7 @@ const metaDescription =
     background: var(--comp-bg-glass-hvr);
     transform: scale(1.02);
     border-color: var(--comp-text-sec-hl);
-    box-shadow: 0 0 16px color-mix(in srgb, var(--comp-text-pri-hl) 30%, transparent);
+    box-shadow: var(--card-glow), var(--glass-shadow-elev-2);
   }
 
   html.is-mobile .friend-card:active {

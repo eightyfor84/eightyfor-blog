@@ -25,6 +25,10 @@
 
 /* ── Inline TOC ── */
 .markdown-toc { padding:10px 14px; margin-bottom:24px; border-radius:10px; border:1px solid var(--border-color-blur); }
+.markdown-toc .toc-summary { width:100%; padding:0; border:none; color:inherit; background:transparent; display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:0; }
+.markdown-toc .toc-title { font-weight:600; }
+.markdown-toc .toc-toggle-icon { width:16px; height:16px; flex:0 0 auto; transform:rotate(-90deg); display:inline-flex; align-items:center; justify-content:center; }
+.markdown-toc.open .toc-toggle-icon { transform:rotate(0deg); }
 .markdown-toc[open] .toc-body-wrap { grid-template-rows:1fr; }
 .toc-body-wrap { display:grid; grid-template-rows:0fr; transition:grid-template-rows 0.2s; }
 .toc-body { overflow:hidden; min-height:0; }
@@ -35,10 +39,52 @@
 /* ── Post nav (back link) ── */
 .post-nav { margin-bottom:1.5rem; }
 
+/* ── CollectionNav — prevent CLS ──
+   Component <style is:global> loads async (Astro CSS bundling).
+   Layout-only rules: panel positioning + internal tree geometry.
+   Without these the panel renders in-flow → 0.6 CLS on collection posts. */
+.cn-panel[data-cn-variant="sidebar"] { position:fixed; width:260px; min-height:200px; z-index:1200; border-radius:8px; overflow:auto; }
+@media (min-width:1200px) {
+  .cn-panel[data-cn-variant="sidebar"] { top:120px; left:calc(15vw - 160px); }
+  .post-detail-container.has-collection-nav { padding-left:280px; }
+}
+@media (max-width:1199px) {
+  .cn-panel[data-cn-variant="sidebar"] { top:90px; left:20px; }
+  .cn-panel[data-cn-variant="sidebar"].collapsed { transform:translateX(calc(-260px + 0px)); opacity:0.5; }
+}
+
+/* CollectionNav internal layout (panel is fixed → no CLS, but prevents visual chaos) */
+.cn-header { display:flex; align-items:center; justify-content:space-between; min-height:32px; }
+.cn-header-title { display:inline-flex; align-items:center; gap:8px; font-weight:700; }
+.cn-header-icon { width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
+.cn-header-icon svg { width:20px; height:20px; display:block; }
+.cn-body { overflow:auto; }
+.cn-tree ul { list-style:none; margin:0; padding:0; }
+.cn-tree li { margin:7px 0; }
+.ct-card { display:flex; align-items:center; gap:4px; padding:6px 8px; border-radius:8px; }
+.ct-card.post { cursor:pointer; }
+.ct-title { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1 1 auto; }
+.ct-icon { width:16px; height:16px; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; margin-right:8px; }
+.ct-icon svg { display:block; width:16px; height:16px; }
+.ct-caret { width:16px; height:16px; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; margin-left:auto; padding:0; }
+.ct-caret svg { display:block; width:16px; height:16px; }
+.ct-children { margin-left:12px; padding-left:12px; }
+.ct-children[hidden] { display:none; }
+.cn-empty { padding:0.5rem 0.35rem; }
+
 /* ── Mobile (≤768px) ── */
 @media (max-width:768px) {
   .post-detail-container { padding:1rem 0.5rem; }
   .post-title { font-size:2rem; }
   .meta-row { flex-direction:column; gap:0.5rem; }
   .post-nav { margin-bottom:0.5rem; }
+  .markdown-toc {display:none;}
+  .toc-float { display:none; }
+  .cn-panel[data-cn-variant="sidebar"] { display:none; }
 }
+
+/* ── CornerActions visibility ──
+   ca-left is mobile-only floating buttons.
+   Reverse media query: visible by default, hidden on desktop (≥769px).
+   Matches 768px breakpoint in post.css mobile section. */
+@media (min-width:769px) { .ca-left { display:none; } }
