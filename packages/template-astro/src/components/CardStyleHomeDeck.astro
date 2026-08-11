@@ -476,16 +476,28 @@ const yearLabel = new Date().getFullYear();
 </section>
 
 <script define:vars={{ searchPath }}>
-  const homeSearchBoxRoot = document.querySelector('[data-searchbox-id="home-searchbox"]');
+  let _homeSearchInit = false;
 
-  homeSearchBoxRoot?.addEventListener('searchbox:submit', (event) => {
-    const detail = event.detail || {};
-    const keyword = String(detail.query || '').trim();
-    const target = keyword
-      ? `${searchPath}?keyword=${encodeURIComponent(keyword)}`
-      : `${searchPath}`;
+  function initHomeSearchBox() {
+    const homeSearchBoxRoot = document.querySelector('[data-searchbox-id="home-searchbox"]');
+    if (!homeSearchBoxRoot || _homeSearchInit) return;
+    _homeSearchInit = true;
 
-    window.location.href = target;
+    homeSearchBoxRoot.addEventListener('searchbox:submit', (event) => {
+      const detail = event.detail || {};
+      const keyword = String(detail.query || '').trim();
+      const target = keyword
+        ? `${searchPath}?keyword=${encodeURIComponent(keyword)}`
+        : `${searchPath}`;
+
+      window.location.href = target;
+    });
+  }
+
+  initHomeSearchBox();
+  document.addEventListener('astro:page-load', initHomeSearchBox);
+  document.addEventListener('astro:before-swap', () => {
+    _homeSearchInit = false;
   });
 </script>
 

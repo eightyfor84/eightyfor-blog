@@ -440,7 +440,7 @@ const metaDescription = locale === "zh-CN"
     align-items: baseline;
     margin-bottom: 8px;
   }
-  .post-title {
+  .card-post-title {
     margin: 0;
     font-size: 1.2rem;
     color: var(--text-pri);
@@ -618,7 +618,6 @@ const metaDescription = locale === "zh-CN"
     resultsTitleText,
     resultsCountText,
   }}
-  data-astro-rerun
 >
   // 使用原生导航替代astro:transitions/client
   function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
@@ -626,9 +625,19 @@ const metaDescription = locale === "zh-CN"
     window.location.href = url;
   }
 
-  // Check if we are on the search page
-  const page = document.getElementById("search-page");
-  if (page) {
+  let _spController = null;
+
+  function initSearchPage() {
+    // Abort previous lifecycle to prevent duplicate listeners across soft navigations
+    if (_spController) {
+      _spController.abort();
+    }
+    _spController = new AbortController();
+    const { signal } = _spController;
+
+    // Check if we are on the search page
+    const page = document.getElementById("search-page");
+    if (!page) return;
     // 国际化支持 - 使用服务器端传递的语言设置
     const serverLocale = locale;
     const isChinese = serverLocale === 'zh-CN';
@@ -858,7 +867,7 @@ const metaDescription = locale === "zh-CN"
             filterPosts();
             updateCenteredMode();
             updateVisibility();
-          });
+          }, { signal });
         });
       } else {
         if (selectedTagsHeader) selectedTagsHeader.style.display = "none";
@@ -1038,7 +1047,7 @@ const metaDescription = locale === "zh-CN"
               return `
               <article class="result-card" data-post-id="${esc(String(post.id))}">
                 <div class="s__post-header">
-                  <h3 class="post-title">${esc(post.title)}</h3>
+                  <h3 class="card-post-title">${esc(post.title)}</h3>
                   <span class="post-date">${new Date(post.date).toLocaleDateString(locale)}</span>
                 </div>
                 ${
@@ -1069,7 +1078,7 @@ const metaDescription = locale === "zh-CN"
               const postId = card.getAttribute("data-post-id");
               if (!postId) return;
               navigateTo(`${routePrefix}/post/${postId}`);
-            });
+            }, { signal });
           });
         }
       } catch (error) {
@@ -1129,7 +1138,7 @@ const metaDescription = locale === "zh-CN"
       searchQuery = String(detail.query || "");
       syncTagTriggerState();
       performSearch();
-    });
+    }, { signal });
 
     searchBoxRoot?.addEventListener("searchbox:clear", () => {
       searchQuery = "";
@@ -1144,11 +1153,11 @@ const metaDescription = locale === "zh-CN"
       updateCenteredMode();
       updateVisibility();
       filterPosts();
-    });
+    }, { signal });
 
     searchBoxRoot?.addEventListener("searchbox:toggle-tag-cloud", () => {
       toggleTagCloud();
-    });
+    }, { signal });
 
     document.querySelectorAll(".tag-cloud-item").forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -1163,7 +1172,7 @@ const metaDescription = locale === "zh-CN"
         syncTagTriggerState();
         renderTagChips();
         // 标签选择后不自动触发搜索，等待用户手动触发
-      });
+      }, { signal });
     });
 
     // Initialize
@@ -1191,6 +1200,14 @@ const metaDescription = locale === "zh-CN"
     if (initialTitle || parsedInitialTags.length > 0) {
       window.history.replaceState({}, "", `${routePrefix}/search`);
     }
-
   }
+
+  initSearchPage();
+  document.addEventListener('astro:page-load', initSearchPage);
+  document.addEventListener('astro:before-swap', () => {
+    if (_spController) {
+      _spController.abort();
+      _spController = null;
+    }
+  });
 </script>
