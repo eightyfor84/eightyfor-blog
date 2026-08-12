@@ -296,14 +296,10 @@ try {
         grid-template-columns: 1fr;
         gap: 10px;
       }
-      .post-card.collection-card {
-        border-radius: 12px;
-        padding: 12px 14px;
-      }
       html.is-mobile .post-card.collection-card:active {
         transform: scale(1.03);
         border-color: var(--comp-text-sec-hl);
-        box-shadow: 0 0 16px color-mix(in srgb, var(--comp-text-pri-hl) 30%, transparent);
+        box-shadow: var(--card-glow), var(--glass-shadow-elev-2);
         background: var(--comp-bg-glass-active);
       }
     }
