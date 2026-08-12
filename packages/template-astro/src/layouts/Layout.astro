@@ -189,14 +189,6 @@ try {
          media="print" onload removes this from the render-blocking critical path. -->
     <link rel="stylesheet" href="/fonts/inter.css" media="print" onload="this.media='all'" data-astro-transition-persist="font-inter" />
     <noscript><link rel="stylesheet" href="/fonts/inter.css" /></noscript>
-    {frontendFont === 'serif' ? (
-      <>
-        <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin data-astro-transition-persist="font-pre-1" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin data-astro-transition-persist="font-pre-2" />
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@200..900&display=optional" crossorigin="anonymous" data-astro-transition-persist="font-noto" />
-      </>
-    ) : null}
-
     <ClientRouter />
 
     <!-- Theme init MUST run before any CSS that depends on data-theme -->
@@ -671,6 +663,48 @@ try {
       document.addEventListener('astro:after-swap', () => {
         document.documentElement.classList.remove('home-transition-disabled');
       });
+
+      // ── iOS WebKit backdrop-filter + View Transition workaround ──
+      // WebKit bug 302256: backdrop-filter is not composited into View Transition
+      // snapshots, so the bg-overlay blur "pops" out and back in during soft
+      // routing. Chrome/Android composite it correctly. Workaround: turn the blur
+      // off before the old snapshot is captured, fade it back in after the swap.
+      // https://wiki.webkit.org/show_bug.cgi?id=302256
+      if (typeof document !== 'undefined' && 'startViewTransition' in document
+        && /^((?!chrome|android).)*safari/i.test(navigator.userAgent)) {
+        let _bgOverlayBlur: { filter: string; webkitFilter: string } | null = null;
+        const _bgOverlayEl = () => {
+          const layer = document.getElementById('chronicle-bg-layer');
+          return layer ? (layer.querySelector('.bg-overlay') as HTMLElement | null) : null;
+        };
+
+        document.addEventListener('astro:after-preparation', () => {
+          const overlay = _bgOverlayEl();
+          if (!overlay) return;
+          _bgOverlayBlur = {
+            filter: overlay.style.backdropFilter || '',
+            webkitFilter: overlay.style.webkitBackdropFilter || '',
+          };
+          // Instant off — the old snapshot is captured right after this event,
+          // so the change must not animate into the snapshot.
+          overlay.style.transition = 'none';
+          overlay.style.backdropFilter = 'none';
+          overlay.style.webkitBackdropFilter = 'none';
+          void overlay.offsetHeight; // commit the style change before snapshot
+        });
+
+        document.addEventListener('astro:after-swap', () => {
+          const overlay = _bgOverlayEl();
+          if (!overlay || !_bgOverlayBlur) return;
+          // Restore the CSS transition first, then re-apply the blur so it
+          // fades in (backdrop-filter 0.3s ease) after the transition ends.
+          overlay.style.transition = '';
+          void overlay.offsetHeight; // commit the transition property first
+          overlay.style.backdropFilter = _bgOverlayBlur.filter;
+          overlay.style.webkitBackdropFilter = _bgOverlayBlur.webkitFilter;
+          _bgOverlayBlur = null;
+        });
+      }
 
       // 监听页面DOM替换后，立即恢复主题，防止浅色模式和独立主题配置在SPA切换时丢失
       document.addEventListener('astro:after-swap', () => {

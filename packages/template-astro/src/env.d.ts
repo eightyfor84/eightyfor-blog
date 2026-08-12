@@ -7,6 +7,13 @@ declare namespace App {
   }
 }
 
+// Safari 的 -webkit-backdrop-filter 前缀属性在运行时存在（JS camelCase 写法为
+// webkitBackdropFilter），但 lib.dom.d.ts 只声明了标准 backdropFilter。
+// 补充声明以免在 style.webkitBackdropFilter 处报类型错误。
+interface CSSStyleDeclaration {
+  webkitBackdropFilter: string;
+}
+
 // 构建时注入的全局变量
 declare const __VERSION__: string;
 declare const __YEAR__: number;
