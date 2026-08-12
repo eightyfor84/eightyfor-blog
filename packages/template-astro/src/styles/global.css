@@ -771,8 +771,12 @@ html.bg-no-img #chronicle-bg-layer .bg-image {
   inset: 0;
   background: transparent;
   z-index: 3;
-  /* 最上层：遮罩层。backdrop-filter 由 backgroundLayer.ts 内联控制，不需过渡 */
-  transition: background 0.3s ease;
+  /* 最上层：遮罩层 + 模糊 */
+  transition: background 0.3s ease, backdrop-filter 0.3s ease, -webkit-backdrop-filter 0.3s ease;
+  /* Force GPU compositing layer so backdrop-filter survives View Transition
+     rasterization on mobile — without this the compositor may drop the
+     filter during the multi-group transition window. */
+  transform: translateZ(0);
 }
 
 html.focus #chronicle-bg-layer .bg-overlay {
