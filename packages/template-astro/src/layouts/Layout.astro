@@ -226,7 +226,7 @@ try {
     <!-- Custom properties from SSR (before skeleton so var() refs resolve first-paint) -->
     <style define:vars={{
       accentColor: frontendAccent,
-      fontStack: frontendFont === 'serif' ? "'Noto Serif SC', serif" : "var(--app-font-stack-inter)"
+      fontStack: frontendFont === 'serif' ? "var(--app-font-stack-serif)" : "var(--app-font-stack-inter)"
     }}>
       .frontend-body {
         margin: 0;
@@ -547,7 +547,7 @@ try {
 
           // 应用字体
           if (settings.frontendFont === 'serif') {
-            document.documentElement.style.setProperty('--app-font-stack', "'Noto Serif SC', serif");
+            document.documentElement.style.setProperty('--app-font-stack', 'var(--app-font-stack-serif)');
           } else {
             document.documentElement.style.setProperty('--app-font-stack', 'var(--app-font-stack-inter)');
           }

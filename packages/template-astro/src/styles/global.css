@@ -9,7 +9,7 @@
   /* Backend font stack (admin/editor). Defaults to same as frontend stack unless overridden */
   --backend-font-stack: var(--app-font-stack-inter);
 
-  --app-font-stack-serif: "Noto Serif SC", "Songti SC", "SimSun", serif;
+  --app-font-stack-serif: "Noto Serif SC", "Songti SC", "STSongti-SC", "SimSun", serif;
   --app-font-stack-mono: 'Consolas', 'SF Mono', 'Menlo', 'Monaco', 'Ubuntu Mono', 'Courier New', monospace, var(--app-font-stack-inter);
 
   font-family: var(--app-font-stack);
@@ -771,8 +771,8 @@ html.bg-no-img #chronicle-bg-layer .bg-image {
   inset: 0;
   background: transparent;
   z-index: 3;
-  /* 最上层：遮罩层 + 模糊 */
-  transition: background 0.3s ease, backdrop-filter 0.3s ease, -webkit-backdrop-filter 0.3s ease;
+  /* 最上层：遮罩层。backdrop-filter 由 backgroundLayer.ts 内联控制，不需过渡 */
+  transition: background 0.3s ease;
 }
 
 html.focus #chronicle-bg-layer .bg-overlay {
