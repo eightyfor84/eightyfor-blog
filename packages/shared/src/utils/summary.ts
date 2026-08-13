@@ -26,7 +26,7 @@
  * @param {number} [maxLen=160]
  * @returns {string} plain-text summary, or '' if no content found
  */
-export function extractBodySummary(raw, maxLen = 160) {
+export function extractBodySummary(raw: string, maxLen = 160): string {
   // Remove frontmatter block
   let body = raw
   if (body.startsWith('---')) {

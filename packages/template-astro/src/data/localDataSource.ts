@@ -230,11 +230,8 @@ export interface LocalPost extends PostMeta {
 }
 
 export interface CommentConfig {
-  backend: '' | 'chronicle' | 'github' | 'twikoo';
-  apiBase?: string;
-  githubRepo?: string;
-  githubIssueNumber?: string;
-  twikooEnvId?: string;
+  backend: '' | 'waline';
+  walineServerUrl?: string;
 }
 
 export interface LocalSettings {
@@ -254,6 +251,7 @@ export interface LocalSettings {
     homepageMode?: string;
     singleColumnHomepage?: boolean;
     cardVisibility?: { author?: boolean; taxonomy?: boolean; activity?: boolean };
+    recentUpdates?: { staleDays?: number; aggregateDays?: number };
     gaMeasurementId?: string;
     icpNumber?: string;
     defaultPerformanceMode?: string;
@@ -522,6 +520,7 @@ export function getPublicSettings(): LocalSettings {
         homepageMode: raw.homepageMode,
         singleColumnHomepage: raw.singleColumnHomepage,
         cardVisibility: raw.cardVisibility || {},
+        recentUpdates: raw.recentUpdates || {},
         gaMeasurementId: raw.gaMeasurementId,
         icpNumber: raw.icpNumber || '',
         defaultPerformanceMode: raw.defaultPerformanceMode || 'auto',

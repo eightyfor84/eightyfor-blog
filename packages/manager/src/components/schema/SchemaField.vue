@@ -37,6 +37,7 @@ import NativeDropdown from './fields/NativeDropdown.vue'
 import NativeToggle from './fields/NativeToggle.vue'
 import NativeColor from './fields/NativeColor.vue'
 import NativeRange from './fields/NativeRange.vue'
+import NativeNumber from './fields/NativeNumber.vue'
 import NativeFieldset from './fields/NativeFieldset.vue'
 import CardToggle from './fields/CardToggle.vue'
 import ImagePickerField from './fields/ImagePickerField.vue'
@@ -111,6 +112,7 @@ const resolvedComponent = computed(() => {
     toggle:             NativeToggle,
     color:              NativeColor,
     range:              NativeRange,
+    number:             NativeNumber,
     hidden:             NativeHidden,
     fieldset:           NativeFieldset,
     'radio-group':      CardToggle,

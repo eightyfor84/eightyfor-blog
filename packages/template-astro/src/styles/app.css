@@ -303,30 +303,6 @@ html.immersive:not(.focus) .main-content {
   color: var(--text-pri);
 }
 
-.nav-settings-menu {
-  /* reduce opacity to make blur more visible */
-  backdrop-filter: blur(16px);
-  /* Use fixed so the menu overlays page content — allows backdrop-filter to blur underlying page */
-  position: fixed;
-  color: var(--comp-text-sec);
-  top: 70px;
-  /* immediately under the header */
-  right: 24px;
-  /* align near the nav padding on desktop */
-  left: auto;
-  border-radius: 8px;
-  min-width: 160px;
-  max-width: calc(100vw - 24px);
-  max-height: 70vh;
-  box-sizing: border-box;
-  overflow: auto;
-  display: flex;
-  flex-direction: column;
-  padding: 6px;
-  z-index: 1200;
-  font-size: 0.9rem;
-}
-
   /* allow internal scrolling instead of overflowing viewport */
   /* keep icon sizing inline */
   .locale-icon {

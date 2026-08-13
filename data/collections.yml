@@ -25,6 +25,9 @@
         - _localId: n_51jn9vc
           id: friend-config
           type: post
+        - _localId: n_cmtcfg1
+          id: comments-config
+          type: post
     - id: slides-demo
       type: post
       _localId: n_z878bd7

@@ -7,7 +7,7 @@ let previewServer = null
 import { join, extname, basename, dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import YAML from 'yaml'
-import { extractBodySummary } from '../shared/src/utils/summary.js'
+import { extractBodySummary } from '../shared/src/utils/summary.ts'
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 const repoRoot = resolve(__dirname, '..', '..')

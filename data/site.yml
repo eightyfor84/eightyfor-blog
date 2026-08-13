@@ -1,3 +1,6 @@
+comment:
+  backend: waline
+  walineServerUrl: https://chronicle-aurora-comments.vercel.app
 siteName: Chronicle Demo
 siteDescription: A local-first, git-backed Jamstack blogging platform. Write in Markdown, sync with Git, deploy anywhere.
 icpNumber: ""

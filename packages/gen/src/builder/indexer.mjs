@@ -13,7 +13,7 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import YAML from 'yaml'
-import { extractBodySummary } from '../../../shared/src/utils/summary.js'
+import { extractBodySummary } from '../../../shared/src/utils/summary.ts'
 
 /**
  * @typedef {Object} IndexEntry

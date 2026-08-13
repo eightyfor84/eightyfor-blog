@@ -15,6 +15,22 @@
     "collection": "Chronicle Guide",
     "collectionPath": "Chronicle Guide / Configuration"
   },
+  "comments-config": {
+    "title": "Comments Configuration",
+    "date": "2026-08-14",
+    "tags": [
+      "comments",
+      "guide"
+    ],
+    "status": "published",
+    "summary": "data/site.yml controls how comments work on your Chronicle site. Chronicle is local-first with no runtime server, so comments are either read from static JSON…",
+    "font": "sans",
+    "author": "Eightyfor",
+    "aiGenerated": true,
+    "type": "article",
+    "collection": "Chronicle Guide",
+    "collectionPath": "Chronicle Guide / Configuration"
+  },
   "friend-config": {
     "title": "Friends Management",
     "date": "2026-08-07T07:41:27.554Z",

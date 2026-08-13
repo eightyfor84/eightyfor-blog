@@ -75,10 +75,7 @@ settings = getPublicSettings() as Record<string, any>;
 // ── Comment config ────────────────────────────────────
 const commentCfg = (settings as Record<string, any>).comment || {};
 const commentBackend = String(commentCfg.backend || '');
-const commentApiBase = String(commentCfg.apiBase || '');
-const commentRepo = String(commentCfg.githubRepo || '');
-const commentIssueNumber = String(commentCfg.githubIssueNumber || '');
-const commentTwikooEnvId = String(commentCfg.twikooEnvId || '');
+const commentWalineServerUrl = String(commentCfg.walineServerUrl || '');
 
 // ── Comments feature flag ────────────────────────────────
 const commentsEnabled = (settings as Record<string, any>).comments !== false;
@@ -381,10 +378,7 @@ const metaDescription = buildMetaDescription(post, locale);
         postId={post?.id || id}
         locale={locale}
         backend={commentBackend}
-        apiBase={commentApiBase}
-        repo={commentRepo}
-        issueNumber={commentIssueNumber}
-        twikooEnvId={commentTwikooEnvId}
+        walineServerUrl={commentWalineServerUrl}
       />
     )}
   </div>

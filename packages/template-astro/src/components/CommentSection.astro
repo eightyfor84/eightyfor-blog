@@ -4,23 +4,19 @@
  *
  * Supported backends (via `data-comment-backend`):
  *   "" (empty)   → static SSR only — reads data/comments/{postId}.json at build time
- *   "chronicle"  → Chronicle Host API (VPS/Cloud) — full read/write
- *   "github"     → GitHub Issues API — read comments, link to issue for submission
- *   "twikoo"     → Twikoo SDK — full third-party takeover
+ *   "waline"     → Waline headless REST API, rendered with Chronicle's own UI
  *
  * Props:
- *   postId       — unique post identifier
- *   comments     — pre-fetched comments (overrides file read)
- *   locale       — i18n locale ("en" | "zh-CN")
- *   apiBase      — Chronicle Host API base URL
- *   backend      — "" | "chronicle" | "github" | "twikoo"
- *   repo         — GitHub repository (owner/name), for "github" backend
- *   issueNumber  — GitHub issue number, for "github" backend
- *   twikooEnvId  — Twikoo environment ID, for "twikoo" backend
+ *   postId          — unique post identifier
+ *   comments        — pre-fetched comments (overrides file read)
+ *   locale          — i18n locale ("en" | "zh-CN")
+ *   backend         — "" | "waline"
+ *   walineServerUrl — Waline server URL, for "waline" backend
  *
- * SSR: renders static comments from data/comments/{postId}.json
- * Hydration (IntersectionObserver): updates relative dates, fetches live data,
- *   and activates the comment form per backend.
+ * SSR: renders static comments from data/comments/{postId}.json ("" backend only).
+ * Hydration (IntersectionObserver): for "waline", fetches + renders the comment
+ *   list via the Waline REST API and wires up the Chronicle comment form — no
+ *   third-party SDK or UI is ever loaded.
  */
 import { createHash } from 'node:crypto';
 import { getTranslation } from '../utils/i18n';
@@ -30,22 +26,16 @@ interface Props {
   postId?: string;
   comments?: ChronicleComment[];
   locale?: string;
-  apiBase?: string;
   backend?: string;
-  repo?: string;
-  issueNumber?: string;
-  twikooEnvId?: string;
+  walineServerUrl?: string;
 }
 
 const {
   postId,
   comments: propComments,
   locale = 'en',
-  apiBase = '',
   backend = '',
-  repo = '',
-  issueNumber = '',
-  twikooEnvId = '',
+  walineServerUrl = '',
 } = Astro.props as Props;
 
 const t = (key: string) => getTranslation(locale as 'en' | 'zh-CN', key);
@@ -80,141 +70,70 @@ function countReplies(nodes: any[]): number {
 const commentCount = countReplies(commentTree);
 const sectionTitle = t('comment.title');
 const isEmpty = commentTree.length === 0;
+
+// i18n strings needed by the client (Waline hydration). Single source of truth = locale files.
+const clientI18n = {
+  reply: t('comment.reply'),
+  loading: t('comment.loading'),
+  loadError: t('comment.loadError'),
+  noComments: t('comment.noComments'),
+  submitted: t('comment.submitted'),
+  submitError: t('comment.submitError'),
+};
 ---
 
 <div
   class="comment-section"
   id="comments"
   data-post-id={postId || ''}
-  data-api-base={apiBase}
   data-comment-backend={backend}
-  data-repo={repo}
-  data-issue-number={issueNumber}
-  data-twikoo-env-id={twikooEnvId}
+  data-waline-server-url={walineServerUrl}
   data-locale={locale}
 >
-  <!-- Comment form (top) — hidden for static JSON, shown for dynamic backends -->
-  {backend ? (
-  <div class="cs-form-wrap" id="__chronicle-comment">
-    <h3 class="cs-form-title">{t('comment.leaveComment')}</h3>
-    <div class="cs-reply-indicator" id="cs-reply-indicator" hidden>
-      <span>{t('comment.replyingTo')} <strong id="cs-reply-to-name"></strong></span>
-      <button type="button" class="cs-cancel-reply inline-clear-btn" id="cs-cancel-reply" aria-label="Cancel reply">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
-      </button>
-    </div>
-    <form class="cs-form" id="comment-form" method="post">
-      <input type="hidden" name="parent" id="comment-parent" value="" />
-      <div class="cs-form-row">
-        <label class="cs-field">
-          <span class="cs-field-label">{t('comment.name')} <span class="cs-required">*</span></span>
-          <input
-            type="text"
-            name="author"
-            class="cs-input"
-            placeholder={t('comment.namePlaceholder')}
-            required
-            maxlength="64"
-            autocomplete="name"
-          />
-        </label>
-        <label class="cs-field">
-          <span class="cs-field-label">{t('comment.email')} <span class="cs-field-hint">({t('comment.emailHint')})</span></span>
-          <input
-            type="email"
-            name="email"
-            class="cs-input"
-            placeholder={t('comment.emailPlaceholder')}
-            maxlength="128"
-            autocomplete="email"
-          />
-        </label>
-        <label class="cs-field">
-          <span class="cs-field-label">{t('comment.website')}</span>
-          <input
-            type="url"
-            name="website"
-            class="cs-input"
-            placeholder={t('comment.websitePlaceholder')}
-            maxlength="256"
-            autocomplete="url"
-          />
-        </label>
-      </div>
-      <label class="cs-field">
-        <span class="cs-field-label">{t('comment.content')} <span class="cs-required">*</span></span>
-        <textarea
-          name="content"
-          class="cs-textarea"
-          placeholder={t('comment.contentPlaceholder')}
-          required
-          rows="4"
-          maxlength="4096"
-        ></textarea>
-      </label>
-      <div class="cs-form-actions">
-        <button type="submit" class="cs-submit" data-label={t('comment.submit')}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <line x1="22" y1="2" x2="11" y2="13"></line>
-            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-          </svg>
-          {t('comment.submit')}
-        </button>
-        <button type="button" class="cs-preview-btn" id="cs-preview-toggle">{t('comment.preview')}</button>
-        <span class="cs-form-note">
-          {t('comment.reviewNote')}
-        </span>
-      </div>
-    </form>
+  <script type="application/json" data-role="comment-i18n" set:html={JSON.stringify(clientI18n)}></script>
 
-    <!-- Preview area (hidden by default, shown by adapter on toggle) -->
-    <div class="cs-preview" id="cs-preview" hidden>
-      <div class="cs-preview-header">
-        <span class="cs-preview-label">{t('comment.preview')}</span>
+  {backend === 'waline' ? (
+  <form class="cs-form" data-role="comment-form">
+    <div class="cs-form-row">
+      <input class="cs-form-input" data-role="author" type="text" placeholder={t('comment.namePlaceholder')} autocomplete="name" required />
+      <input class="cs-form-input" data-role="email" type="email" placeholder={t('comment.emailPlaceholder')} autocomplete="email" />
+      <input class="cs-form-input" data-role="website" type="url" placeholder={t('comment.websitePlaceholder')} autocomplete="url" />
+    </div>
+    <textarea class="cs-form-textarea" data-role="content" placeholder={t('comment.contentPlaceholder')} required></textarea>
+
+    <div class="cs-form-footer">
+      <div class="cs-reply-indicator" data-role="reply-indicator" hidden>
+        <span>{t('comment.replyingTo')} <strong data-role="reply-target"></strong></span>
+        <button type="button" class="cs-reply-cancel" data-role="reply-cancel" aria-label="Cancel">&times;</button>
       </div>
-      <!-- Original comment being replied to (shown only when replying) -->
-      <div class="cs-thread" id="cs-preview-parent-wrap" hidden>
-        <div class="cs-comment" id="cs-preview-parent-card">
-          <div class="cs-avatar">
-            <span class="cs-avatar-initial" id="cs-preview-parent-avatar">?</span>
-          </div>
-          <div class="cs-body">
-            <div class="cs-meta">
-              <span class="cs-author" id="cs-preview-parent-author"></span>
-              <span class="cs-date" id="cs-preview-parent-date"></span>
-            </div>
-            <div class="cs-content" id="cs-preview-parent-body"></div>
-          </div>
-        </div>
-      </div>
-      <!-- Reply preview (indented when replying) -->
-      <div class="cs-comment cs-comment--preview" id="cs-preview-content">
-        <div class="cs-avatar">
-          <span class="cs-avatar-initial" id="cs-preview-avatar">?</span>
-        </div>
-        <div class="cs-body">
-          <div class="cs-meta">
-            <span class="cs-author" id="cs-preview-author"></span>
-            <span class="cs-date">{t('comment.previewNow')}</span>
-          </div>
-          <div class="cs-content" id="cs-preview-body"></div>
-        </div>
+      <div class="cs-form-actions">
+        <button type="button" class="cs-image-btn" data-role="image-btn" aria-label={t('comment.imageUpload')} title={t('comment.imageUpload')}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        </button>
+        <button type="button" class="cs-preview-toggle" data-role="preview-toggle">{t('comment.preview')}</button>
+        <button type="submit" class="cs-submit-btn" data-role="submit">{t('comment.submit')}</button>
       </div>
     </div>
-  </div>
+
+    <div class="cs-form-preview" data-role="preview" hidden></div>
+    <div class="cs-form-note" data-role="form-note" hidden></div>
+
+    <input type="hidden" data-role="parent" />
+    <input type="hidden" data-role="root" />
+    <input type="file" data-role="image-input" accept="image/*" hidden />
+  </form>
   ) : (
-  <div class="cs-form-placeholder">
-    <p>{t('comment.staticPlaceholder')}</p>
-  </div>
+    !backend && (
+      <div class="cs-form-placeholder">
+        <p>{t('comment.staticPlaceholder')}</p>
+      </div>
+    )
   )}
 
   <!-- Comment list header -->
   <div class="cs-header">
     <h2 class="cs-title">{sectionTitle}</h2>
-    {commentCount > 0 && <span class="cs-count">{commentCount}</span>}
+    <span class="cs-count" style={commentCount > 0 ? '' : 'display:none'}>{commentCount}</span>
   </div>
 
   <!-- Comment list -->
@@ -259,9 +178,6 @@ const isEmpty = commentTree.length === 0;
               </div>
               <div class="cs-content" set:html={comment.content} />
             </div>
-            <button type="button" class="cs-reply-btn" data-reply-to={comment.id} data-reply-author={comment.author}>
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="10" x2="20" y2="10"/><polyline points="8 6 4 10 8 14"/><path d="M20 10v4a4 4 0 0 1-4 4H8"/></svg> {t('comment.reply')}
-            </button>
           </div>
 
           {comment.replies && comment.replies.length > 0 && (
@@ -291,9 +207,6 @@ const isEmpty = commentTree.length === 0;
                     </div>
                     <div class="cs-content" set:html={reply.content} />
                   </div>
-                  <button type="button" class="cs-reply-btn" data-reply-to={reply.id} data-reply-author={reply.author}>
-                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="10" x2="20" y2="10"/><polyline points="8 6 4 10 8 14"/><path d="M20 10v4a4 4 0 0 1-4 4H8"/></svg> {t('comment.reply')}
-                  </button>
                 </div>
               ))}
             </div>
@@ -332,7 +245,7 @@ const isEmpty = commentTree.length === 0;
   /* ═══════════════════════════════════════════════════════════
      CommentSection — Chronicle design system
      NOTE: is:global because commentAdapter.ts injects HTML dynamically
-     (client-side rendering for chronicle/github/twikoo backends),
+     (client-side rendering for the waline backend),
      and scoped styles won't match JS-generated DOM.
      All selectors are namespaced inside .comment-section to avoid leaks.
      ═══════════════════════════════════════════════════════════ */
@@ -384,6 +297,13 @@ const isEmpty = commentTree.length === 0;
     margin: 0;
   }
 
+  .cs-loading {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--app-text-sec);
+    font-size: 0.9rem;
+  }
+
   .cs-thread {
     margin-bottom: 0.75rem;
   }
@@ -397,18 +317,8 @@ const isEmpty = commentTree.length === 0;
     transition: background 0.15s;
   }
 
-  .cs-comment--preview {
-    background: var(--comp-bg);
-    border: 1px dashed var(--border-color);
-    border-radius: 10px;
-  }
-
   .cs-comment:hover {
     background: var(--hover);
-  }
-
-  .cs-comment--preview:hover {
-    background: var(--comp-bg);
   }
 
   .cs-comment--reply {
@@ -515,15 +425,206 @@ const isEmpty = commentTree.length === 0;
     gap: 0.5rem;
   }
 
-  @media (max-width: 600px) {
-    .cs-comment--reply {
-      margin-left: 1.5rem;
-    }
+  .cs-reply-btn {
+    border: none;
+    background: transparent;
+    color: var(--app-text-sec);
+    font-size: 0.78rem;
+    cursor: pointer;
+    padding: 0;
+    margin-top: 0.35rem;
+    opacity: 0.7;
+    transition: opacity 0.15s, color 0.15s;
   }
 
-  .cs-form-wrap {
+  .cs-reply-btn:hover {
+    opacity: 1;
+    color: var(--accent);
+  }
+
+  /* ── Comment form (Waline backend) ─────────────────────── */
+
+  .cs-form {
     margin-bottom: 2rem;
-    padding-bottom: 1.5rem;
+  }
+
+  .cs-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.6rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .cs-form-input,
+  .cs-form-textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.6rem 0.85rem;
+    font-size: 0.9rem;
+    font-family: inherit;
+    color: var(--app-text-pri);
+    background: var(--comp-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .cs-form-input::placeholder,
+  .cs-form-textarea::placeholder {
+    color: var(--app-text-sec);
+    opacity: 0.6;
+  }
+
+  .cs-form-input:focus,
+  .cs-form-textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-bg);
+  }
+
+  .cs-form-textarea {
+    min-height: 6rem;
+    resize: vertical;
+    line-height: 1.6;
+  }
+
+  .cs-form-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 0.6rem;
+    flex-wrap: wrap;
+  }
+
+  .cs-form-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+  }
+
+  .cs-reply-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.82rem;
+    color: var(--app-text-sec);
+    background: var(--comp-bg-alt);
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+  }
+
+  .cs-reply-cancel {
+    border: none;
+    background: transparent;
+    color: var(--app-text-sec);
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0 0.2rem;
+  }
+
+  .cs-reply-cancel:hover {
+    color: var(--app-text-pri);
+  }
+
+  .cs-image-btn,
+  .cs-preview-toggle,
+  .cs-submit-btn {
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--app-text-sec);
+    padding: 0.45rem 0.9rem;
+    font-size: 0.85rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, filter 0.15s;
+  }
+
+  .cs-image-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.45rem 0.6rem;
+  }
+
+  .cs-image-btn svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .cs-image-btn:hover,
+  .cs-preview-toggle:hover {
+    background: var(--hover);
+    color: var(--app-text-pri);
+  }
+
+  .cs-submit-btn {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .cs-submit-btn:hover:not(:disabled) {
+    filter: brightness(1.05);
+  }
+
+  .cs-submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .cs-form-preview {
+    margin-top: 0.6rem;
+    padding: 0.75rem 0.9rem;
+    background: var(--comp-bg);
+    border: 1px dashed var(--border-color);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--app-text-pri);
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .cs-form-preview :where(p, ul, ol, blockquote, pre) {
+    margin: 0 0 0.5rem;
+  }
+
+  .cs-form-preview :where(p, ul, ol, blockquote, pre):last-child {
+    margin-bottom: 0;
+  }
+
+  .cs-form-preview :where(ul, ol) {
+    padding-left: 1.25rem;
+  }
+
+  .cs-form-preview :where(img) {
+    max-width: 100%;
+    border-radius: 6px;
+  }
+
+  .cs-form-preview :where(pre) {
+    padding: 0.5rem 0.7rem;
+    background: var(--comp-bg-alt);
+    border-radius: 6px;
+    overflow-x: auto;
+  }
+
+  .cs-form-preview :where(code) {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.85em;
+  }
+
+  .cs-form-note {
+    margin-top: 0.6rem;
+    font-size: 0.85rem;
+    color: var(--app-text-sec);
+  }
+
+  .cs-form-note--error {
+    color: #e5484d;
   }
 
   .cs-form-placeholder {
@@ -534,230 +635,17 @@ const isEmpty = commentTree.length === 0;
     font-size: 0.9rem;
   }
 
-  .cs-form-title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--app-text-pri);
-    margin: 0 0 1rem;
-  }
-
-  .cs-form {
-    display: flex;
-    flex-direction: column;
-    gap: 0.9rem;
-  }
-
-  .cs-form-row {
-    display: flex;
-    gap: 0.75rem;
-  }
-
-  .cs-form-row .cs-field {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .cs-field {
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-  }
-
-  .cs-field-label {
-    font-size: 0.82rem;
-    font-weight: 500;
-    color: var(--app-text-sec);
-  }
-
-  .cs-required {
-    color: var(--warning);
-  }
-
-  .cs-field-hint {
-    font-weight: 400;
-    font-size: 0.78rem;
-    opacity: 0.65;
-  }
-
-  .cs-input,
-  .cs-textarea {
-    font-family: var(--app-font-stack);
-    font-size: 0.9rem;
-    padding: 0.6rem 0.8rem;
-    background: var(--app-bg-sec);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    color: var(--app-text-pri);
-    transition: border-color 0.15s, box-shadow 0.15s;
-    outline: none;
-    box-sizing: border-box;
-  }
-
-  .cs-input:focus,
-  .cs-textarea:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-bg);
-  }
-
-  .cs-input::placeholder,
-  .cs-textarea::placeholder {
-    color: var(--app-text-sec);
-    opacity: 0.55;
-  }
-
-  .cs-textarea {
-    resize: vertical;
-    min-height: 100px;
-  }
-
-  .cs-form-actions {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-  }
-
-  .cs-submit {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    padding: 0.6rem 1.4rem;
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    font-size: 0.92rem;
-    font-weight: 500;
-    font-family: var(--app-font-stack);
-    cursor: pointer;
-    transition: filter 0.25s, transform 0.25s, color 0.25s, background 0.25s;
-  }
-
-  .cs-submit:hover {
-    filter: brightness(1.6);
-    color: #000;
-    transform: scale(1.05);
-  }
-
-  .cs-submit:active {
-    transform: translateY(0);
-  }
-
-  .cs-submit svg {
-    width: 16px;
-    height: 16px;
-  }
-
-  .cs-form-note {
-    font-size: 0.8rem;
-    color: var(--app-text-sec);
-    opacity: 0.7;
-  }
-
-  .cs-form-note--warn {
-    color: var(--warning);
-    opacity: 0.85;
-  }
-
-
-  .cs-reply-indicator:not([hidden]) {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    width: calc(100% - 1.5rem);
-    padding: 0.3rem 0.4rem 0.3rem 0.75rem;
-    margin-bottom: 0.75rem;
-    font-size: 0.82rem;
-    color: var(--app-text-pri);
-    background: var(--accent-bg);
-    border: 1px solid var(--accent);
-    border-radius: 8px;
-  }
-  .cs-reply-indicator strong { color: var(--accent); font-weight: 600; }
-  .cs-cancel-reply.inline-clear-btn {
-    margin-left: auto;
-    flex-shrink: 0;
-    width: 26px;
-    height: 26px;
-    padding: 0;
-    border: none;
-    border-radius: 4px;
-    background: transparent;
-    color: var(--app-text-sec);
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.15s, color 0.15s;
-  }
-  .cs-cancel-reply svg { width: 16px; height: 16px; display: block; }
-  .cs-cancel-reply:hover { color: var(--warning); background:var(--warning-bg); }
-
-  .cs-comment:hover .cs-reply-btn { opacity: 1; visibility: visible; }
-
-  .cs-preview-btn {
-    padding: 0.55rem 1.2rem;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    background: var(--comp-bg-blur);
-    color: var(--app-text-sec);
-    font-size: 0.92rem;
-    font-family: var(--app-font-stack);
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.12s, color 0.12s;
-  }
-  .cs-preview-btn:hover { background: var(--comp-bg-blur-hvr); color: var(--app-text-pri); }
-  .cs-preview-btn.active { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
-
-  .cs-preview {
-    margin-top: 1rem;
-  }
-  .cs-preview:not([hidden]) {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  .cs-preview-label {
-    font-size: 0.8rem;
-    font-weight: 500;
-    color: var(--app-text-sec);
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-  }
-
-  .cs-reply-btn {
-    flex-shrink: 0;
-    align-self: flex-start;
-    margin-top: 0.15rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    background: none;
-    border: none;
-    color: var(--app-text-sec);
-    font-size: 0.78rem;
-    cursor: pointer;
-    padding: 0.2rem 0.5rem;
-    border-radius: 4px;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.15s, visibility 0.15s, color 0.12s, background 0.12s;
-  }
-
-  html.is-mobile .cs-reply-btn { opacity: 1; visibility: visible; }
-
-  .cs-reply-btn svg { flex-shrink: 0; }
-  .cs-comment:hover .cs-reply-btn,
-  .cs-comment:focus-within .cs-reply-btn { opacity: 1; visibility: visible; }
-  .cs-reply-btn:hover { color: var(--accent); background: var(--accent-bg); }
-
-  @media (max-width: 500px) {
+  @media (max-width: 600px) {
     .cs-form-row {
-      flex-direction: column;
-      gap: 0.75rem;
+      grid-template-columns: 1fr;
     }
 
+    .cs-comment--reply {
+      margin-left: 1.5rem;
+    }
+  }
+
+  @media (max-width: 500px) {
     .cs-comment {
       padding: 0.85rem;
     }
