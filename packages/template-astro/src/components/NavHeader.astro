@@ -228,7 +228,7 @@ const isActive = (path: string) => {
       </button>
 
       <!-- Settings Menu -->
-      <div class="nav-settings-menu" id="settings-menu">
+      <div class="nav-settings-menu mtl-container" id="settings-menu">
         <!-- Theme controls (top) -->
         <button class="popup-item" data-theme="follow">
           <span class="popup-label"
@@ -488,7 +488,7 @@ const isActive = (path: string) => {
     color: var(--text-inactive);
     text-decoration: none;
     padding: 0.5rem 1rem;
-    border-radius: 4px;
+    border-radius: 6px;
     transition:
       background-color 0.4s ease,
       color 0.4s ease,
@@ -623,12 +623,9 @@ const isActive = (path: string) => {
 
   /* Settings Menu */
   .nav-settings-menu {
-    background: var(--comp-bg);
     position: fixed;
     color: var(--comp-text-sec);
-    border: 1px solid var(--border-color);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
-    border-radius: 8px;
+    border-radius: 12px;
     min-width: 180px;
     max-width: 250px;
     box-sizing: border-box;
@@ -827,7 +824,7 @@ const isActive = (path: string) => {
       align-items: center;
       overflow: auto;
       transform: translateY(-100%);
-      transition: opacity 0.2s ease, transform 1s ease;
+      transition: opacity 0.2s ease, transform 1s ease, gap 0.3s ease;
       z-index: 101;
       gap: 30px;
     }

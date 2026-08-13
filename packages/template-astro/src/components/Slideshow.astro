@@ -13,9 +13,10 @@ interface Props {
   id: string;
   locale?: string;
   config?: { theme?: string; ratio?: string; footer?: string };
+  collectionEnabled?: boolean;
 }
 
-const { id, locale = "zh", config = {} } = Astro.props as Props;
+const { id, locale = "zh", config = {}, collectionEnabled = true } = Astro.props as Props;
 const post = getPostById(id);
 const md = post?.content || "";
 const ratio = config.ratio || "16:9";
@@ -187,7 +188,7 @@ if (md.trim()) {
             )
           }
           {
-            postMeta.collection && (
+            postMeta.collection && collectionEnabled && (
               <a
                 href={
                   collectionUrl + "#" + encodeURIComponent(postMeta.collection)
@@ -769,7 +770,7 @@ if (md.trim()) {
   // Label click → toggle popup
   zoomLabel.addEventListener("click", (e) => {
     e.stopPropagation();
-    if (window.matchMedia("(max-width: 540px)").matches)
+    if (window.matchMedia("(max-width: 768px)").matches)
       togglePopup(zoomPopup, zoomLabel);
   });
   // Click outside → close
@@ -881,7 +882,9 @@ if (md.trim()) {
     opacity: 0.4;
     transition:
       opacity 0.2s,
-      background 0.2s;
+      background 0.2s,
+      padding 0.2s,
+      gap 0.2s;
     background: transparent;
     color: var(--comp-text-sec);
     font-size: 14px;
@@ -1149,6 +1152,15 @@ if (md.trim()) {
   @media (max-width: 768px) {
     .icon-label-btn {
       padding: 8px;
+    }
+
+    .slides-controls {
+      padding: 8px;
+      gap: 4px;
+    }
+
+    .slide-counter {
+      padding: 6px !important;
     }
 
     /* ── Zoom popup (narrow screens) ─────────────── */

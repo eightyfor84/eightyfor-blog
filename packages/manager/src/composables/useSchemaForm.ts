@@ -44,6 +44,16 @@ function buildDefaults(schema: Record<string, any>): Record<string, any> {
   return defaults
 }
 
+/** Collect property keys marked `x-site-flag` — their value lives in site.yml, not this schema's file. */
+function collectSiteFlags(schema: Record<string, any>): string[] {
+  const flags: string[] = []
+  const props = schema.properties || {}
+  for (const [key, prop] of Object.entries(props)) {
+    if ((prop as Record<string, any>)?.['x-site-flag'] === true) flags.push(key)
+  }
+  return flags
+}
+
 export interface SchemaFormState {
   schema: Ref<Record<string, any> | null>
   data: Ref<Record<string, any>>
@@ -62,6 +72,10 @@ export function useSchemaForm(schemaId: string) {
   const error = ref('')
   const metaRefs = ref<Record<string, any>>({})
   const activeSchemaId = ref(schemaId)
+
+  // ── Master switch (site.yml feature flag gating this page) ──────────
+  const headerFlagName = ref<string | null>(null)
+  const headerFlagEnabled = ref(true)
 
   // ── Load schema ──────────────────────────────────────────
   async function loadSchema(id: string): Promise<Record<string, any> | null> {
@@ -105,6 +119,15 @@ export function useSchemaForm(schemaId: string) {
       return
     }
 
+    // Load the page's master switch from site.yml (defaults to enabled).
+    headerFlagName.value = mapping.headerFlag ?? null
+    if (mapping.headerFlag) {
+      const site = await readYaml<Record<string, any>>('data/site.yml')
+      headerFlagEnabled.value = site?.[mapping.headerFlag] !== false
+    } else {
+      headerFlagEnabled.value = true
+    }
+
     try {
       let fileData: any = null
       if (mapping.format === 'yaml') {
@@ -140,6 +163,15 @@ export function useSchemaForm(schemaId: string) {
             if (val !== undefined && val !== null) merged[key] = val
           }
         }
+        // Fields marked x-site-flag live in site.yml, not this schema's file.
+        const siteFlags = collectSiteFlags(sch)
+        if (siteFlags.length > 0) {
+          const site = await readYaml<Record<string, any>>('data/site.yml')
+          for (const key of siteFlags) {
+            if (site?.[key] !== undefined) merged[key] = site[key]
+          }
+        }
+
         // Pre-populate metaRefs from *Meta fields
         for (const key of Object.keys(merged)) {
           if (key.endsWith('Meta') && merged[key]) {
@@ -173,12 +205,18 @@ export function useSchemaForm(schemaId: string) {
         ? (Array.isArray(data.value) ? data.value : [])
         : { ...data.value as Record<string, any> }
 
-      // Strip fields that have their own persistence (x-persist: false)
+      // Strip fields that have their own persistence (x-persist: false),
+      // and fields that live in site.yml (x-site-flag: true).
+      const siteFlags: string[] = []
       if (!isArraySchema && schema.value?.properties) {
         for (const [key, prop] of Object.entries(schema.value.properties as Record<string, any>)) {
           if (prop['x-persist'] === false) {
             delete payload[key]
             delete payload[`${key}Meta`]
+          }
+          if (prop['x-site-flag'] === true) {
+            delete payload[key]
+            siteFlags.push(key)
           }
         }
       }
@@ -200,6 +238,24 @@ export function useSchemaForm(schemaId: string) {
         ok = await writeYaml(mapping.filePath, payload)
       } else {
         ok = await writeJson(mapping.filePath, payload)
+      }
+
+      // Persist the master-switch flag to site.yml when it lives outside this
+      // page's data file (friends → friends.yml, collections → collections.yml).
+      // When the flag is in site.yml already (comments), it was written above.
+      if (ok && headerFlagName.value && mapping.filePath !== 'data/site.yml') {
+        const site = (await readYaml<Record<string, any>>('data/site.yml')) ?? {}
+        site[headerFlagName.value] = headerFlagEnabled.value
+        ok = await writeYaml('data/site.yml', site)
+      }
+
+      // Persist x-site-flag fields to site.yml (e.g. profile's aboutPage).
+      if (ok && siteFlags.length > 0) {
+        const site = (await readYaml<Record<string, any>>('data/site.yml')) ?? {}
+        for (const key of siteFlags) {
+          site[key] = (data.value as Record<string, any>)?.[key]
+        }
+        ok = await writeYaml('data/site.yml', site)
       }
 
       // After saving collections, rebuild the full post index
@@ -227,6 +283,12 @@ export function useSchemaForm(schemaId: string) {
     metaRefs.value = {}
   }
 
+  /** Re-read the current file from disk, discarding unsaved in-memory edits. */
+  async function restore() {
+    metaRefs.value = {}
+    await load()
+  }
+
   function setDataValue(key: string, val: any) {
     if (Array.isArray(data.value)) {
       data.value = val
@@ -239,9 +301,31 @@ export function useSchemaForm(schemaId: string) {
     metaRefs.value = { ...metaRefs.value, [key]: val }
   }
 
+  /**
+   * Toggle the page's master switch (in-memory only — persisted by save()).
+   * When the flag lives in the same file the page edits (comments → site.yml),
+   * the in-memory form data is kept in sync so save() writes it naturally.
+   */
+  function toggleHeaderFlag(enabled: boolean) {
+    const name = headerFlagName.value
+    if (!name) return
+    headerFlagEnabled.value = enabled
+
+    const mapping = getMapping(activeSchemaId.value)
+    if (
+      mapping?.filePath === 'data/site.yml'
+      && data.value
+      && typeof data.value === 'object'
+      && !Array.isArray(data.value)
+    ) {
+      data.value = { ...(data.value as Record<string, any>), [name]: enabled }
+    }
+  }
+
   return {
     schema, data, defaults, loading, saving, error,
-    load, save, reset, setDataValue, setMeta, metaRefs,
+    load, save, reset, restore, setDataValue, setMeta, metaRefs,
+    headerFlagName, headerFlagEnabled, toggleHeaderFlag,
     dataEndpoint: mappingName(activeSchemaId.value),
   }
 }

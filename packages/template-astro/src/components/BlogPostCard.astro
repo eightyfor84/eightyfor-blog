@@ -11,12 +11,11 @@ type Post = {
   type?: 'slides' | 'article';
 };
 
-const { post, locale, routeLang, featured = false, hidden = false } = Astro.props as {
+const { post, locale, routeLang, featured = false } = Astro.props as {
   post: Post;
   locale: string;
   routeLang: 'zh' | 'en';
   featured?: boolean;
-  hidden?: boolean;
 };
 
 const normalizeTag = (tag: unknown) =>
@@ -52,8 +51,8 @@ const dateText = featured ? date.toLocaleDateString(locale) : String(date.getDat
 const tags = sortTagsList(post.tags);
 ---
 
-<a href={buildLocalizedPath(routeLang, `/post/${encodeURIComponent(post.id)}`)} style={`text-decoration:none; color:inherit;${hidden ? ' display:none;' : ''}`} class:list={[hidden ? 'hidden-featured' : '']}>
-  <article class:list={['post-card', featured ? 'featured-card' : 'compact-card']}>
+<a href={buildLocalizedPath(routeLang, `/post/${encodeURIComponent(post.id)}`)} style={`text-decoration:none; color:inherit;`}>
+  <article class:list={['post-card', 'mtl-surface', 'interactive', 'glowable', 'scalable', featured ? 'featured-card' : 'compact-card']}>
     {featured ? (
       <div class="featured-card-layout">
         <div class="featured-card-date">{dateText}</div>
@@ -89,7 +88,7 @@ const tags = sortTagsList(post.tags);
   </article>
 </a>
 
-<style>
+<style is:global>
   .slides-badge { transform:translateY(3px); justify-content: center; opacity:.5; display: inline-flex; margin: 0 8px 0 0; flex-shrink: 0; }
   .slides-badge svg { width: 18px; height: 18px; }
 </style>

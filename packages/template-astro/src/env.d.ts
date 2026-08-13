@@ -14,6 +14,12 @@ interface CSSStyleDeclaration {
   webkitBackdropFilter: string;
 }
 
+// 页面脚本里用 window.__chronicleBlogsFeaturedToggle 作「只挂一次监听器」的守卫。
+// lib.dom.d.ts 的 Window 接口没有该属性，补声明以免在脚本里报类型错误。
+interface Window {
+  __chronicleBlogsFeaturedToggle?: boolean;
+}
+
 // 构建时注入的全局变量
 declare const __VERSION__: string;
 declare const __YEAR__: number;

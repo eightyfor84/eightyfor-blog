@@ -29,8 +29,8 @@ const md = new MarkdownIt({
 md.validateLink = (url: string) => /^(https?:|file:|mailto:|\/|#|asset:|post:|[a-zA-Z][a-zA-Z0-9+.-]*:)/i.test(String(url));
 
 // Current post context — set by BlogEditor when post changes
-let _postSlug = ''
-export function setPreviewPostSlug(slug: string) { _postSlug = slug }
+let _postId = ''
+export function setPreviewPostId(id: string) { _postId = id }
 
 // Resolve custom protocols
 function resolveAssetUrl(file: string): string { return '/data/assets/' + file }
@@ -45,8 +45,8 @@ md.normalizeLink = (url: string) => {
   if (url.startsWith('asset://')) return resolveAssetUrl(url.slice(8));
   if (url.startsWith('post://')) return resolvePostUrl(url.slice(7));
   // Relative path — resolve to post directory, encode non-ASCII filenames
-  if (_postSlug && !url.startsWith('/') && !/^[a-zA-Z][\w+.-]*:/.test(url)) {
-    const base = _postSlug === '__about__' ? '/data/__about__' : `/data/posts/${_postSlug}`; // manager uses filesystem path
+  if (_postId && !url.startsWith('/') && !/^[a-zA-Z][\w+.-]*:/.test(url)) {
+    const base = _postId === '__about__' ? '/data/__about__' : `/data/posts/${_postId}`; // manager uses filesystem path
     const encoded = url.split('/').map(seg => { try { decodeURI(seg); return seg } catch { return encodeURI(seg) } }).join('/');
     const resolved = `${base}/${encoded}`;
     console.log('[markdownPreview] relative →', resolved);
@@ -289,8 +289,8 @@ md.inline.ruler.before('link', 'chronicle_file_card', (state, silent) => {
     // Resolve asset:// and post:// in the URL after type-prefix stripping
     const cardUrl  = rawUrl.startsWith('asset://') ? resolveAssetUrl(rawUrl.slice(8))
                    : rawUrl.startsWith('post://') ? resolvePostUrl(rawUrl.slice(7))
-                   : (_postSlug && !rawUrl.startsWith('/') && !/^[a-zA-Z][\w+.-]*:/.test(rawUrl)
-                       ? `${_postSlug === '__about__' ? '/data/__about__' : `/data/posts/${_postSlug}`}/${rawUrl.split('/').map((seg: string) => { try { decodeURI(seg); return seg } catch { return encodeURI(seg) } }).join('/')}`
+                   : (_postId && !rawUrl.startsWith('/') && !/^[a-zA-Z][\w+.-]*:/.test(rawUrl)
+                       ? `${_postId === '__about__' ? '/data/__about__' : `/data/posts/${_postId}`}/${rawUrl.split('/').map((seg: string) => { try { decodeURI(seg); return seg } catch { return encodeURI(seg) } }).join('/')}`
                        : rawUrl);
     const subtitle = (isMailto || isLink) ? (activePrefix?.actualUrl || href) : undefined;
 

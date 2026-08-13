@@ -267,6 +267,7 @@ export interface LocalSettings {
     searchSuggestions?: boolean;
     relatedPosts?: boolean;
     traffic?: boolean;
+    comments?: boolean;
 }
 
 // ── Post Access ──────────────────────────────────────────
@@ -368,7 +369,7 @@ export function getAllPosts(): PostMeta[] {
             let posts: any[] = [];
             if (Array.isArray(parsed) && parsed.length > 0) { posts = parsed; }
             else if (typeof parsed === "object" && Object.keys(parsed).length > 0) {
-              posts = Object.entries(parsed).map(([slug, entry]: [string, any]) => ({ id: slug, slug, ...entry }));
+              posts = Object.entries(parsed).map(([slug, entry]: [string, any]) => ({ id: slug, ...entry }));
             }
             if (posts.length > 0) {
                 _postCache = posts;
@@ -402,26 +403,26 @@ export function getPublishedPosts(): PostMeta[] {
 }
 
 /** Get a single post with content */
-export function getPostBySlug(slug: string, locale?: string): LocalPost | null {
+export function getPostById(id: string, locale?: string): LocalPost | null {
     const posts = getAllPosts();
-    const meta = posts.find(p => p.id === slug);
+    const meta = posts.find(p => p.id === id);
     if (!meta) return null;
-    const mdPath = path.join(POSTS_DIR, slug, "index.md");
+    const mdPath = path.join(POSTS_DIR, id, "index.md");
     if (!fs.existsSync(mdPath)) return null;
     const raw = fs.readFileSync(mdPath, "utf-8");
     const content = meta?.type === "slides" ? raw : stripFrontmatter(raw);
 
     // Render markdown to HTML (cached per locale — SSG builds en/zh in parallel)
     const loc = locale || 'en';
-    const cacheKey = slug + ':' + loc;
+    const cacheKey = id + ':' + loc;
     let compiledHtml = _htmlCache.get(cacheKey) || '';
     if (!compiledHtml && content) {
         try {
-            setRenderPostId(slug);
+            setRenderPostId(id);
             compiledHtml = renderChronicleMarkdown(content, loc);
             _htmlCache.set(cacheKey, compiledHtml);
         } catch (e) {
-            console.warn('[localDataSource] Failed to render markdown for', slug, e);
+            console.warn('[localDataSource] Failed to render markdown for', id, e);
         }
     }
 
@@ -429,9 +430,6 @@ export function getPostBySlug(slug: string, locale?: string): LocalPost | null {
     // For breadcrumb navigation (multiple collections), use getPostCollections().
     return { ...meta, content, compiledHtml };
 }
-
-/** @deprecated Use getPostBySlug — slug is now the sole identifier */
-export function getPostById(id: string, locale?: string): LocalPost | null { return getPostBySlug(id, locale); }
 
 /** Search posts by keyword */
 export function searchPosts(keyword: string, tags?: string[]): PostMeta[] {
@@ -506,6 +504,19 @@ export function getPublicSettings(): LocalSettings {
         searchSuggestions: raw.searchSuggestions ?? raw.featureFlags?.searchSuggestions ?? false,
         relatedPosts: raw.relatedPosts ?? raw.featureFlags?.relatedPosts ?? false,
         traffic: raw.traffic ?? raw.featureFlags?.traffic ?? true,
+        comments: raw.comments ?? raw.featureFlags?.comments ?? true,
+        // Nested featureFlags mirror — pages read flags via resolveFeatureFlags(settings.featureFlags).
+        featureFlags: {
+            collectionPage: raw.collectionPage ?? raw.featureFlags?.collectionPage ?? true,
+            aboutPage: raw.aboutPage ?? raw.featureFlags?.aboutPage ?? true,
+            friendsPage: raw.friendsPage ?? raw.featureFlags?.friendsPage ?? raw.friends ?? true,
+            rss: raw.rss ?? raw.featureFlags?.rss ?? true,
+            sitemap: raw.sitemap ?? raw.featureFlags?.sitemap ?? false,
+            searchSuggestions: raw.searchSuggestions ?? raw.featureFlags?.searchSuggestions ?? false,
+            relatedPosts: raw.relatedPosts ?? raw.featureFlags?.relatedPosts ?? false,
+            traffic: raw.traffic ?? raw.featureFlags?.traffic ?? true,
+            comments: raw.comments ?? raw.featureFlags?.comments ?? true,
+        },
         friendsCards: readFriendsCards(),
         friendsGlobalStyle: readFriendsGlobalStyle(),
         homepageMode: raw.homepageMode,
@@ -616,8 +627,8 @@ export interface ChronicleComment {
 }
 
 /** Read comments for a post from data/comments/{postId}.json */
-export function getComments(slug: string): ChronicleComment[] {
-  const file = path.join(COMMENTS_DIR, `${slug}.json`);
+export function getComments(postId: string): ChronicleComment[] {
+  const file = path.join(COMMENTS_DIR, `${postId}.json`);
   if (!fs.existsSync(file)) return [];
   try {
     const raw = fs.readFileSync(file, 'utf-8');

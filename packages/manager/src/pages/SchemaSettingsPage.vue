@@ -8,24 +8,30 @@
     </div>
 
     <template v-else-if="schema">
-      <!-- For array-type schemas (collections, friends), render directly -->
-      <template v-if="schema.type === 'array'">
+      <!-- Master switch — site.yml feature flag gating this whole page -->
+      <CheckRow v-if="headerFlagName" class="master-toggle" :model-value="headerFlagEnabled"
+        :title="$t('settings.featureToggle')" :hint="$t('settings.masterToggleHint')"
+        @update:model-value="onToggleHeader" />
+
+      <!-- For array-type schemas (collections), render directly -->
+      <div v-if="schema.type === 'array'" class="settings-body" :class="{ 'is-disabled': isDisabled }">
         <SchemaField :field-key="schema.$id" :field-schema="schema" :model-value="data"
           @update:model-value="(v) => setDataValue('_root', v)" />
-        <!-- Actions -->
-        <div class="actions-wrapper">
-          <div class="actions">
-            <button class="primary" :disabled="saving" @click="handleSave">{{ $t('settings.save') }}</button>
-            <button class="secondary" :disabled="saving" @click="handleReset">{{ $t('settings.reset') }}</button>
-          </div>
-        </div>
-      </template>
+      </div>
 
       <!-- For object-type schemas, use SchemaForm -->
-      <SchemaForm v-else :schema="schema" :data="data" :saving="saving" :active-tab="tab"
-        :save-label="$t('settings.save')" :reset-label="$t('settings.reset')" :field-meta-map="metaRefs"
-        @update:data="(v) => data = v" @update:meta="(key, val) => setMeta(key, val)" @save="handleSave"
-        @reset="handleReset" />
+      <SchemaForm v-else :schema="schema" :data="data" :active-tab="tab" :disabled="isDisabled"
+        :field-meta-map="metaRefs"
+        @update:data="(v) => data = v" @update:meta="(key, val) => setMeta(key, val)" />
+
+      <!-- Actions — always interactive, even when the feature is off -->
+      <div class="actions-wrapper">
+        <div class="actions">
+          <button class="primary" :disabled="saving" @click="handleSave">{{ $t('settings.save') }}</button>
+          <button class="secondary" :disabled="saving" @click="handleRestore">{{ $t('settings.restore') }}</button>
+          <button class="danger" :disabled="saving" @click="handleReset">{{ $t('settings.reset') }}</button>
+        </div>
+      </div>
     </template>
 
     <div v-else class="error-state">
@@ -42,6 +48,7 @@ import { useSchemaForm } from '../composables/useSchemaForm'
 import { resolveLocale } from '../utils/resolveLocale'
 import SchemaForm from '../components/schema/SchemaForm.vue'
 import SchemaField from '../components/schema/SchemaField.vue'
+import CheckRow from '../components/ui/CheckRow.vue'
 import QuarterCircleSpinner from '../components/ui/QuarterCircleSpinner.vue'
 import useToast from '../composables/useToast'
 
@@ -64,14 +71,20 @@ const {
   load,
   save,
   reset,
+  restore,
   setDataValue,
   setMeta,
   metaRefs,
+  headerFlagName,
+  headerFlagEnabled,
+  toggleHeaderFlag,
 } = useSchemaForm(props.schemaId)
 
 const pageTitle = computed(() => {
   return resolveLocale(schema.value?.title, props.schemaId)
 })
+
+const isDisabled = computed(() => !!headerFlagName.value && !headerFlagEnabled.value)
 
 const pageHint = computed(() => {
   return resolveLocale(schema.value?.description, '')
@@ -88,9 +101,19 @@ async function handleSave() {
   }
 }
 
+async function handleRestore() {
+  if (!window.confirm(t('settings.restoreConfirm') as string)) return
+  await restore()
+  show(t('settings.restoreSuccess') as string, { status: 'success' })
+}
+
 function handleReset() {
   if (!window.confirm(t('settings.resetConfirm') as string)) return
   reset()
+}
+
+function onToggleHeader(value: boolean) {
+  toggleHeaderFlag(value)
 }
 
 // RouterView uses :key="$route.fullPath" so this component remounts
@@ -122,6 +145,16 @@ onMounted(() => { load() })
   color: var(--status-error);
 }
 
+.master-toggle {
+  margin-bottom: 1rem;
+}
+
+.settings-body.is-disabled {
+  pointer-events: none;
+  opacity: 0.45;
+  filter: grayscale(0.3);
+  user-select: none;
+}
 
 h2.settings-title {
   margin-bottom: 1rem;

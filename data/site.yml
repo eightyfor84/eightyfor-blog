@@ -14,6 +14,7 @@ relatedPosts: true
 collectionPage: true
 aboutPage: true
 friendsPage: true
+comments: true
 traffic: true
 rss: true
 sitemap: true

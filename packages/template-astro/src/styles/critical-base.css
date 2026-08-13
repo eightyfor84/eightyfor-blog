@@ -15,7 +15,7 @@
   text-rendering:optimizeLegibility; -webkit-font-smoothing:antialiased; color-scheme:dark;
 }
 html { overflow:hidden; }
-body { min-width:320px; min-height:100vh; }
+body { min-height:100vh; }
 
 /* ── Shell ── */
 #app { display:flex; flex-direction:column; height:100vh; }

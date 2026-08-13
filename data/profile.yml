@@ -1,5 +1,5 @@
 $about_edit: ""
-showProfileCard: true
+showProfileCard: false
 name: Chronicle
 bio: A local-first, git-backed Jamstack blogging platform. No server, no database, just files.
 location: GitHub

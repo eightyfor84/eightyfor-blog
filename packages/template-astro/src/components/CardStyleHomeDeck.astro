@@ -271,13 +271,15 @@ for (const post of recentPosts.slice(0, 3)) {
     tone: 'post',
   });
 }
-for (const collection of collectionSummaries.slice(0, 2)) {
-  interactionFeed.push({
-    title: collection.name,
-    meta: interpolate(t('home.collectionMeta'), { posts: collection.posts, groups: collection.groups }),
-    href: collectionPath,
-    tone: 'collection',
-  });
+if (isCollectionEnabled) {
+  for (const collection of collectionSummaries.slice(0, 2)) {
+    interactionFeed.push({
+      title: collection.name,
+      meta: interpolate(t('home.collectionMeta'), { posts: collection.posts, groups: collection.groups }),
+      href: collectionPath,
+      tone: 'collection',
+    });
+  }
 }
 if (isFriendsEnabled && Array.isArray(settings?.friendsCards)) {
   for (const friend of settings.friendsCards.slice(0, 2)) {
@@ -306,7 +308,7 @@ const yearLabel = new Date().getFullYear();
 <section class="home-shell">
   <div class="card-flows" class:list={[{"single-col": isSingleColumn || rightColumnEmpty}]}>
     <main class="flow-column flow-column--left">
-      <article class="panel-card flow-intro">
+      <article class="panel-card mtl-container flow-intro">
         <h1>{siteTitle}</h1>
         <p class="hero-description">{cardSubtitle}</p>
 
@@ -320,7 +322,7 @@ const yearLabel = new Date().getFullYear();
         </div>
       </article>
 
-      <section class="panel-card content-panel">
+      <section class="panel-card mtl-container content-panel">
         <div class="section-head">
           <div>
             <h2 class="panel-kicker">{t('home.latestFeaturedArticles')}</h2>
@@ -332,7 +334,7 @@ const yearLabel = new Date().getFullYear();
         <div class="recent-stream">
           {recentPosts.length ? recentPosts.map((post) => (
             <a href={buildPostUrl(post.id)} class="stream-card-link">
-            <article class="stream-card">
+            <article class="stream-card mtl-surface interactive glowable scalable">
               <div class="stream-card__date">{formatDate(safeDateValue(post.date))}</div>
               <div class="stream-card__body">
                 <div class="stream-card__top">
@@ -356,7 +358,7 @@ const yearLabel = new Date().getFullYear();
 
     <aside class="flow-column flow-column--right" class:list={[{"column-empty": rightColumnEmpty}]}>
       {showAuthorCard && (
-      <article class="author-card panel-card">
+      <article class="author-card panel-card mtl-container">
         <div class="author-card__top">
           {authorAvatar ? (
             <ChronicleImage src={authorAvatar} alt={authorName} class="author-avatar" width="64" height="64" loading="eager" decoding="async" fetchpriority="auto" style="cursor:zoom-in" data-source={authorAvatarSource} onclick="window.__openFilePreview?.({ url: event.target.dataset.source || event.target.src, title: event.target.alt, type: 'image' })" />
@@ -373,7 +375,7 @@ const yearLabel = new Date().getFullYear();
       )}
 
       {showTaxonomyCard && (
-      <section class="panel-card taxonomy-card">
+      <section class="panel-card mtl-container taxonomy-card">
         <div class="section-head" style="margin-bottom: 0;">
           <div>
             <h2 class="panel-kicker">{t('home.topicNavigation')}</h2>
@@ -394,11 +396,12 @@ const yearLabel = new Date().getFullYear();
           />
         </div>
 
-        <div v-if={isCollectionEnabled} class="taxonomy-block">
+        {isCollectionEnabled && (
+        <div class="taxonomy-block">
           <h3>{t('home.collectionList')}</h3>
           <div class="taxonomy-list">
             {collectionSummaries.length ? collectionSummaries.map((collection) => (
-              <a href={collectionPath + '#' + encodeURIComponent(collection.name)}>
+              <a class="mtl-surface interactive glowable scalable" href={collectionPath + '#' + encodeURIComponent(collection.name)}>
                 <span>{collection.name}</span>
                 <strong>{collection.posts}</strong>
               </a>
@@ -410,6 +413,7 @@ const yearLabel = new Date().getFullYear();
             </a>
           ) : null}
         </div>
+        )}
 
         <div class="taxonomy-block">
           <h3>{t('home.tagCloud')}</h3>
@@ -431,7 +435,7 @@ const yearLabel = new Date().getFullYear();
       )}
 
       {showActivityCard && (
-      <section class="panel-card activity-card">
+      <section class="panel-card mtl-container activity-card">
         <div class="section-head">
           <div>
             <h2 class="panel-kicker">{t('home.recentActivityCard')}</h2>
@@ -451,7 +455,7 @@ const yearLabel = new Date().getFullYear();
     </aside>
   </div>
 
-  <footer class="panel-card home-footer">
+  <footer class="panel-card mtl-container home-footer">
     <div class="home-footer__links">
       <nav class="home-footer__nav" aria-label={t('home.siteLinksAria')}>
         {profile.links?.length ? profile.links.map((link: { label: string; url: string }) => (
@@ -543,10 +547,7 @@ const yearLabel = new Date().getFullYear();
 
   .panel-card {
     position: relative;
-    border: 1px solid var(--border-color-blur);
     border-radius: 18px;
-    background: linear-gradient(180deg,  var(--comp-bg-blur), color-mix(in srgb, var(--comp-bg-blur) 80%, transparent));
-    box-shadow: var(--shadow-elev-1);
     backdrop-filter: blur(12px);
     overflow: hidden;
   }
@@ -612,17 +613,6 @@ const yearLabel = new Date().getFullYear();
   .story-card__footer a {
     text-decoration: none;
     color: inherit;
-  }
-
-
-  .story-card__footer a:hover,
-  .taxonomy-list a:hover,
-  .recommend-item:hover,
-  .social-link:hover,
-  .friend-link:hover,
-  .footer-links a:hover {
-    transform: scale(1.02);
-    border-color: color-mix(in srgb, var(--accent) 44%, var(--border-color-blur));
   }
 
   .story-card__footer a,
@@ -700,11 +690,6 @@ const yearLabel = new Date().getFullYear();
   a.stream-card-link {
     text-decoration: none;
     color: inherit;
-  }
-
-  .stream-card:hover {
-    background: var(--comp-bg-glass-hl);
-    border-color: var(--comp-text-pri-hl);
   }
 
   .story-card p,
@@ -840,10 +825,8 @@ const yearLabel = new Date().getFullYear();
     grid-template-columns: 110px minmax(0, 1fr);
     gap: .85rem;
     padding: 1rem;
-    border: 1px solid var(--border-color-blur);
     border-radius: 14px;
-    background: var(--comp-bg-glass);
-    transition: background .18s ease, border-color .18s ease;
+    transition: background .2s ease, border-color .2s ease, transform .2s ease;
   }
 
   .stream-card__date {
@@ -953,8 +936,6 @@ const yearLabel = new Date().getFullYear();
     gap: .75rem;
     padding: .85rem .95rem;
     border-radius: 18px;
-    border: 1px solid var(--border-color-blur);
-    background: var(--comp-bg-glass);
   }
 
   .taxonomy-list a span {
@@ -1197,10 +1178,6 @@ const yearLabel = new Date().getFullYear();
   @media (max-width: 768px) {
     .home-shell {
       padding: .9rem .85rem 2rem;
-    }
-
-    .panel-card {
-      border-radius: 18px;
     }
 
     .section-head {

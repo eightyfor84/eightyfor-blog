@@ -15,6 +15,12 @@ export interface SchemaMapping {
   filePath: string
   /** File format */
   format: 'yaml' | 'json'
+  /**
+   * Site-level feature flag (a top-level key in data/site.yml) that gates this
+   * page. When set, the page renders a master switch that disables the whole
+   * editing body while the flag is off.
+   */
+  headerFlag?: string
 }
 
 /**
@@ -51,16 +57,19 @@ export const SCHEMA_REGISTRY: Record<string, SchemaMapping> = {
     schemaId: 'chronicle:collections',
     filePath: 'data/collections.yml',
     format: 'yaml',
+    headerFlag: 'collectionPage',
   },
   'chronicle:friends': {
     schemaId: 'chronicle:friends',
     filePath: 'data/friends.yml',
     format: 'yaml',
+    headerFlag: 'friendsPage',
   },
   'chronicle:comments-config': {
     schemaId: 'chronicle:comments-config',
     filePath: 'data/site.yml',
     format: 'yaml',
+    headerFlag: 'comments',
   },
 }
 

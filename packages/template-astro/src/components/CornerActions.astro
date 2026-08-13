@@ -5,15 +5,15 @@ import CollectionNav from './CollectionNav.astro';
 import type { TocItem } from '../utils/toc';
 import { getTranslation, getLocale } from '../utils/i18n';
 
-interface Props { toc?: TocItem[]; collections?: any[]; postTitles?: Record<string, string>; postTypes?: Record<string, string>; postId?: string }
-const { toc=[], collections=[], postTitles={}, postTypes={}, postId='' } = Astro.props as Props;
+interface Props { toc?: TocItem[]; collections?: any[]; postTitles?: Record<string, string>; postTypes?: Record<string, string>; postId?: string; commentsEnabled?: boolean; collectionEnabled?: boolean }
+const { toc=[], collections=[], postTitles={}, postTypes={}, postId='', commentsEnabled=true, collectionEnabled=true } = Astro.props as Props;
 
 const locale = getLocale(Astro.locals);
 const t = (key: string) => getTranslation(locale, key);
 
 function inCol(n:any[]|undefined,pid:string):boolean{if(!Array.isArray(n))return false;for(const x of n){if(x?.type==='post'&&String(x.id)===pid)return true;if(x?.children&&inCol(x.children,pid))return true}return false}
-const hasCol=!!(postId&&collections.length)&&collections.some((c:any)=>inCol(c.nodes,postId));
-const hasToc=toc.length>0, hasComment=true, btnCount=(hasToc?1:0)+(hasCol?1:0)+(hasComment?1:0), capW=btnCount*50+(btnCount-1);
+const hasCol=collectionEnabled&&!!(postId&&collections.length)&&collections.some((c:any)=>inCol(c.nodes,postId));
+const hasToc=toc.length>0, hasComment=commentsEnabled, btnCount=(hasToc?1:0)+(hasCol?1:0)+(hasComment?1:0), capW=btnCount*50+(btnCount-1);
 ---
 
 <BackToTop />

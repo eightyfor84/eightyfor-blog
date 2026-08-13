@@ -443,7 +443,6 @@ b {
 
 body {
   margin: 0;
-  min-width: 320px;
   min-height: var(--app-height);
   background: var(--app-bg-pri);
   color: var(--app-text-pri);
@@ -629,6 +628,16 @@ button.secondary {
   background: transparent;
   border-color: var(--accent) !important;
   color: var(--accent);
+}
+
+button.danger {
+  background: transparent;
+  border-color: var(--status-error) !important;
+  color: var(--status-error);
+}
+
+html:not(.is-mobile) button.danger:hover {
+  background: var(--status-error-bg);
 }
 
 .titlebar-btn {

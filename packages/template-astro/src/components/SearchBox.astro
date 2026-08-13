@@ -23,7 +23,7 @@ const searchBtnAsButton = props.searchBtnAsButton ?? true;
 ---
 
 <div class="search-box-wrapper" data-searchbox-id={instanceId}>
-  <div class="search-box">
+  <div class="search-box mtl-surface">
     {showTagTrigger && (
       <>
         <button
@@ -222,12 +222,9 @@ const searchBtnAsButton = props.searchBtnAsButton ?? true;
   .search-box {
     display: flex;
     align-items: center;
-    background: var(--comp-bg-glass);
-    border: 1px solid var(--border-color-blur);
     border-radius: 12px;
     padding: 4px;
     transition: box-shadow 0.3s ease;
-    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.05);
   }
   .search-box:focus-within {
     border-color: var(--accent);
