@@ -8,6 +8,7 @@ const { app, BrowserWindow, shell, Menu, dialog, ipcMain } = require('electron')
 const path = require('path');
 const fs = require('fs');
 const yaml = require('js-yaml');
+const { convertBackgroundVideo } = require('./video-convert.cjs');
 
 const isDev = process.env.NODE_ENV === 'development' || process.argv.includes('--dev');
 const DEV_URL = process.env.VITE_DEV_URL || 'http://localhost:5173';
@@ -848,6 +849,26 @@ ipcMain.handle('build:compress-background', async (_event, options) => {
   // compression happens in the build pipeline.
   console.log('[chronicle] Background compress requested (deferred to CI/CD):', options?.background?.sourcePath || 'unknown')
   return { success: true, skipped: true, message: 'Compression deferred to CI/CD build pipeline' }
+})
+
+// ── Background video conversion (compress + poster) ────────
+
+ipcMain.handle('video:convert-background', async (_event, options) => {
+  try {
+    const { sourceUrl, posterExt, crf, maxHeight } = options || {}
+    if (!sourceUrl) return { success: false, error: 'Missing sourceUrl' }
+    // Resolve asset:// protocol → data/assets/
+    let srcRel = String(sourceUrl).replace(/^[/\\]+/, '')
+    if (srcRel.startsWith('asset://')) srcRel = path.join('data', 'assets', srcRel.slice('asset://'.length))
+    const srcAbs = resolveRepoPath(srcRel)
+    const targetDir = path.join(DATA_DIR, 'background')
+    const result = await convertBackgroundVideo(srcAbs, targetDir, { posterExt, crf, maxHeight })
+    if (!result) return { success: false, error: 'ffmpeg unavailable or conversion failed' }
+    return { success: true, ...result }
+  } catch (e) {
+    console.error('[video:convert-background]', e.message)
+    return { success: false, error: e.message }
+  }
 })
 
 // ── Build trigger ──────────────────────────────────────────

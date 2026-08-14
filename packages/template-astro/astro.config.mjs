@@ -12,6 +12,14 @@ const pkg = JSON.parse(readFileSync(join(__dirname, 'package.json'), 'utf-8'));
 
 // ── Image formats to compress ─────────────────────────────
 const IMG_RE = /\.(jpg|jpeg|png|gif)$/i;
+
+// ── Background video guardrail ────────────────────────────
+// Videos are copied verbatim (sharp can't decode them), so an oversized source
+// lands on the CDN as-is. Warn (never fail) when a background video exceeds the
+// threshold — the author should compress it with `scripts/convert-video.mjs`.
+// statSync only — no ffmpeg dependency at build time.
+const BG_VIDEO_RE = /\.(mp4|webm|mov|ogg)$/i;
+const BG_VIDEO_MAX_MB = Number(process.env.CHRONICLE_BG_VIDEO_MAX_MB || 10);
 let _sharpMod = null;
 async function loadSharp() {
   if (!_sharpMod) {
@@ -121,6 +129,28 @@ export default defineConfig({
           try { writeFileSync(cacheFile, JSON.stringify(_cache)); } catch {}
         }
 
+        /**
+         * Warn when a background video in data/background/ exceeds the size
+         * threshold. Reads only file stats — no ffmpeg, no re-reading content.
+         */
+        function warnOversizedBackgroundVideo() {
+          const bgDir = join(DATA_DIR, 'background');
+          if (!existsSync(bgDir)) return;
+          let vids;
+          try { vids = readdirSync(bgDir).filter((f) => BG_VIDEO_RE.test(f) && !f.startsWith('.')); } catch { return; }
+          for (const name of vids) {
+            let size = 0;
+            try { size = statSync(join(bgDir, name)).size; } catch { continue; }
+            const mb = size / (1024 * 1024);
+            if (mb > BG_VIDEO_MAX_MB) {
+              console.warn(
+                `[chronicle-asset-pipeline] ⚠️  background video "${name}" is ${mb.toFixed(1)} MB (limit ${BG_VIDEO_MAX_MB} MB). ` +
+                `Compress it with: node scripts/convert-video.mjs compress data/background/${name}`
+              );
+            }
+          }
+        }
+
         return {
           name: 'chronicle-asset-pipeline',
           enforce: 'post',
@@ -188,6 +218,7 @@ export default defineConfig({
             await syncDir(join(DATA_DIR, '__about__'), join(distDir, 'about'), { aggressive: true, webpQuality: 65, avifQuality: 40 });
 
             // ── Background + Avatar (aggressive, display-size aware) ──
+            warnOversizedBackgroundVideo();
             await syncDir(join(DATA_DIR, 'background'), join(distDir, 'data', 'background'), { aggressive: true, webpQuality: 60, avifQuality: 35 });
             await syncDir(join(DATA_DIR, 'avatar'), join(distDir, 'data', 'avatar'), { aggressive: true, webpQuality: 50, avifQuality: 30 });
 

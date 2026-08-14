@@ -9,6 +9,8 @@
         <div class="preview-area">
           <div class="preview">
             <div class="preview-inner" :style="previewInnerStyle"></div>
+            <video v-if="currentVideoUrl" class="preview-video" :src="resolveMediaUrl(currentVideoUrl)"
+              muted playsinline loop autoplay preload="metadata"></video>
             <div class="overlay" :style="overlayStyle"></div>
             <div class="preview-theme-toggle">
               <button :class="{ 'active': previewTheme === 'light' }" @click.prevent="previewTheme = 'light'"
@@ -76,12 +78,30 @@
                 <span>{{ meta.overlayDarkOpacity }}%</span>
               </div>
             </div>
+
+            <div v-if="currentVideoUrl && allowVideo" class="video-controls">
+              <div class="video-controls__title">{{ t('backgroundEditor.videoSection') }}</div>
+              <div class="control-row">
+                <label>{{ t('backgroundEditor.videoAutoplay') }}</label>
+                <input type="checkbox" v-model="meta.videoAutoplay" />
+              </div>
+              <div class="control-row">
+                <label>{{ t('backgroundEditor.videoLoop') }}</label>
+                <input type="checkbox" v-model="meta.videoLoop" />
+              </div>
+              <div class="control-row">
+                <label>{{ t('backgroundEditor.videoPlaybackRate') }}</label>
+                <input type="range" min="0.25" max="3" step="0.25" v-model.number="meta.videoPlaybackRate" />
+                <span>{{ meta.videoPlaybackRate }}×</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
       <div class="bg-editor-actions">
         <button class="secondary" @click="close">{{ t('settings.cancel') }}</button>
-        <button class="secondary" @click.prevent="openPicker">{{ t('settings.chooseImage') }}</button>
+        <button class="secondary" @click.prevent="openPicker('image')">{{ t('settings.chooseImage') }}</button>
+        <button v-if="allowVideo" class="secondary" @click.prevent="openPicker('video')">{{ t('settings.chooseVideo') }}</button>
         <button class="primary" @click="save">{{ t('settings.save') }}</button>
       </div>
     </div>
@@ -90,12 +110,12 @@
   <div v-if="isFilePickerOpen" class="modal-overlay file-picker-overlay" @click.self="handleFilePickerCancel">
     <div class="file-picker-modal">
       <div class="file-picker-modal__header">
-        <h3>{{ t('settings.chooseImage') }}</h3>
+        <h3>{{ pickerType === 'video' ? t('settings.chooseVideo') : t('settings.chooseImage') }}</h3>
         <button type="button" class="close-btn" @click="handleFilePickerCancel">
           <span class="icon-svg" v-html="Icons.close"></span>
         </button>
       </div>
-      <FilePicker selectionMode="single" :restrictedTypes="['image']" :allowUpload="true"
+      <FilePicker selectionMode="single" :restrictedTypes="pickerType === 'video' ? ['video'] : ['image']" :allowUpload="true"
         @select="handleFilePickerSelect" @cancel="handleFilePickerCancel" />
     </div>
   </div>
@@ -109,18 +129,24 @@ import { useI18n } from 'vue-i18n'
 import FilePicker from './FilePicker.vue'
 import { resolveMediaUrl } from '../utils/backgroundSettings'
 const { t } = useI18n()
-const props = defineProps<{ 
-  url: string; 
+const props = defineProps<{
+  url: string;
+  videoUrl?: string;
   initial?: any;
   sourcePath?: string;
   sourceName?: string;
+  /** False hides the "choose video" action + video controls (image-only). */
+  allowVideo?: boolean;
  }>()
 const emit = defineEmits<{
   (e: 'save', meta: any): void
   (e: 'close'): void
 }>()
 const isFilePickerOpen = ref(false)
+const pickerType = ref<'image' | 'video'>('image')
+const allowVideo = computed(() => props.allowVideo === true)
 const currentUrl = ref(props.url)
+const currentVideoUrl = ref(props.videoUrl || '')
 const currentSourcePath = ref(props.sourcePath || props.initial?.sourcePath || '')
 const currentSourceName = ref(props.sourceName || props.initial?.sourceName || '')
 
@@ -135,6 +161,10 @@ const defaultMeta = {
   overlayLightOpacity: 0,
   overlayDarkColor: '#000000',
   overlayDarkOpacity: 0,
+  // video
+  videoAutoplay: true,
+  videoLoop: true,
+  videoPlaybackRate: 1,
   // backward compat
   overlayColor: undefined,
   overlayOpacity: undefined
@@ -150,11 +180,16 @@ watch(() => props.url, (v) => {
   currentUrl.value = v
 })
 
+watch(() => props.videoUrl, (v) => {
+  currentVideoUrl.value = v || ''
+})
+
 function close() { emit('close') }
 
 function save() {
   const out = {
     url: currentUrl.value,
+    videoUrl: currentVideoUrl.value,
     sourcePath: currentSourcePath.value,
     sourceName: currentSourceName.value,
     mode: meta.mode,
@@ -168,7 +203,11 @@ function save() {
     overlayDarkColor: meta.overlayDarkColor || '#000000',
     overlayDarkOpacity: Number(meta.overlayDarkOpacity || 0),
     overlayColor: meta.overlayDarkColor || meta.overlayLightColor || undefined,
-    overlayOpacity: Number(meta.overlayDarkOpacity || meta.overlayLightOpacity || 0)
+    overlayOpacity: Number(meta.overlayDarkOpacity || meta.overlayLightOpacity || 0),
+    // video
+    videoAutoplay: meta.videoAutoplay !== false,
+    videoLoop: meta.videoLoop !== false,
+    videoPlaybackRate: Number(meta.videoPlaybackRate ?? 1) || 1
   }
 
   // Source fields: prefer picked values; if URL changed but no source, derive from new URL
@@ -191,7 +230,8 @@ function save() {
   emit('save', out)
 }
 
-function openPicker() {
+function openPicker(type: 'image' | 'video') {
+  pickerType.value = type
   isFilePickerOpen.value = true
 }
 
@@ -204,10 +244,19 @@ function handleFilePickerSelect(entry: any) {
   if (url) {
     // Normalize: strip origin to store as relative path (consistent with CMS)
     const normalized = url.replace(/^https?:\/\/[^/]+/, '')
-    currentUrl.value = normalized
-    currentSourcePath.value = normalized.replace(/^\/+/, '').replace(/^server\/data\/(?:background|upload)\//, '')
-    currentSourceName.value = picked.sourceName || currentSourcePath.value.split('/').pop() || picked.name || ''
-    console.log('[BgEditorModal] FilePicker — set currentUrl:', currentUrl.value, 'currentSourcePath:', currentSourcePath.value);
+    if (pickerType.value === 'video') {
+      // 图片/视频互斥：选了视频就清空图片槽位，反之亦然。
+      currentVideoUrl.value = normalized
+      currentUrl.value = ''
+      currentSourcePath.value = ''
+      currentSourceName.value = ''
+    } else {
+      currentUrl.value = normalized
+      currentVideoUrl.value = ''
+      currentSourcePath.value = normalized.replace(/^\/+/, '').replace(/^server\/data\/(?:background|upload)\//, '')
+      currentSourceName.value = picked.sourceName || currentSourcePath.value.split('/').pop() || picked.name || ''
+      console.log('[BgEditorModal] FilePicker — set currentUrl:', currentUrl.value, 'currentSourcePath:', currentSourcePath.value);
+    }
   }
   isFilePickerOpen.value = false
 }
@@ -221,7 +270,6 @@ const previewInnerStyle = computed(() => {
   const url = displayUrl ? `url(${displayUrl})` : 'none'
   const pos = `${meta.posX}% ${meta.posY}%`
   const size = `${meta.size}%`
-  const blur = `${meta.blur}px`
 
   let backgroundPosition = pos
   let backgroundSize = size
@@ -251,12 +299,13 @@ const previewInnerStyle = computed(() => {
       break
   }
 
+  // No `filter` here — media stays sharp. Blur belongs on the overlay via
+  // backdrop-filter (mirrors #chronicle-bg-layer .bg-overlay).
   return {
     backgroundImage: url,
     backgroundPosition,
     backgroundSize,
-    backgroundRepeat,
-    filter: `blur(${blur})`
+    backgroundRepeat
   }
 })
 
@@ -265,7 +314,16 @@ const previewTheme = ref<'light' | 'dark'>('light')
 const overlayStyle = computed(() => {
   const c = (previewTheme.value === 'light') ? (meta.overlayLightColor || '#000') : (meta.overlayDarkColor || '#000')
   const o = (previewTheme.value === 'light') ? ((meta.overlayLightOpacity || 0) / 100) : ((meta.overlayDarkOpacity || 0) / 100)
-  return { background: `rgba(${hexToRgbString(c)}, ${o})` }
+  const blur = Number(meta.blur || 0)
+  const hasMedia = Boolean(currentUrl.value || currentVideoUrl.value)
+
+  // 遮罩容器用 backdrop-filter 模糊其背后的媒体（图片/视频），而不是给媒体本身加 filter。
+  const style: Record<string, string> = { background: `rgba(${hexToRgbString(c)}, ${o})` }
+  if (hasMedia && blur > 0) {
+    style.backdropFilter = `blur(${blur}px)`
+    style.webkitBackdropFilter = `blur(${blur}px)`
+  }
+  return style
 })
 
 function copyLightToDark() {
@@ -346,6 +404,15 @@ const canEditSize = computed(() => meta.mode === 'custom' || meta.mode === 'tile
 .preview-inner {
   position: absolute;
   inset: 0;
+  z-index: 0
+}
+
+.preview-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   z-index: 0
 }
 
@@ -437,6 +504,21 @@ const canEditSize = computed(() => meta.mode === 'custom' || meta.mode === 'tile
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.video-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+  margin-top: 4px;
+  border-top: 1px solid var(--border-color);
+}
+
+.video-controls__title {
+  font-weight: 600;
+  color: var(--text-sec);
+  font-size: 0.85rem;
 }
 
 .control-row {

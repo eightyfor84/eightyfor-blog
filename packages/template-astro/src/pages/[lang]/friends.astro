@@ -136,16 +136,12 @@ const metaDescription =
                 </div>
 
                 <div class="friend-card__copy">
-                  <p class="friend-card__intro">{card.intro}</p>
-                  {storyHref ? (
+                  {storyHref && (
                     <a class="friend-card__story" href={storyHref}>
                       {t("friends.viewStory")}
                     </a>
-                  ) : (
-                    <p class="friend-card__nostory">
-                      {t("friends.learnMore")}
-                    </p>
-                  )}
+                  ) }
+                  <p class="friend-card__intro">{card.intro}</p>
                 </div>
               </div>
             </article>
@@ -277,52 +273,33 @@ const metaDescription =
   }
 
   .friend-card__copy {
-    display: grid;
+    display: flex;
+    flex-direction: column;
     align-items: start;
     justify-items: start;
+    gap: .4rem;
     min-height: 3.8rem;
     padding: 0 1px;
     overflow: hidden;
   }
 
   .friend-card__intro,
-  .friend-card__story,
-  .friend-card__nostory {
+  .friend-card__story {
     margin: 0;
-    grid-area: 1 / 1;
     color: var(--comp-text-sec);
-    transition:
-      opacity 0.2s ease,
-      transform 0.2s ease;
   }
 
-  .friend-card__story,
-  .friend-card__nostory {
+  .friend-card__story{
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0.35rem 0;
     font-weight: 600;
+    font-variation-settings: 'wght' 600;
     text-decoration: none;
-    opacity: 0;
-    transform: translateY(8px);
-    pointer-events: none;
-  }
-
-  .friend-card__story {
-    color: var(--accent);
-  }
-
-  .friend-card:hover .friend-card__intro {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-
-  .friend-card:hover .friend-card__story,
-  .friend-card:hover .friend-card__nostory {
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: auto;
+    color: #fff;
+    background: var(--accent-dark);
+    border-radius: 999px;
+    padding: 0.4rem 1rem;
   }
 
   .friend-card--left-sm {
@@ -340,7 +317,7 @@ const metaDescription =
   }
 
   .friend-card--left-sm .friend-card__copy {
-    height: 90px;
+    height: 85px;
   }
 
   .friend-card--left-sm .friend-card__heading {
@@ -372,7 +349,7 @@ const metaDescription =
   }
 
   .friend-card--left-lg .friend-card__copy {
-    height: 170px;
+    height: 168px;
   }
 
   .friend-card--top-lg {
@@ -392,23 +369,7 @@ const metaDescription =
 
   .friend-card--top-lg .friend-card__copy {
     min-height: 170px;
-  }
-
-  @media (hover: none) {
-    .friend-card__intro {
-      opacity: 1;
-      transform: none;
-    }
-
-    .friend-card__story {
-      opacity: 1;
-      transform: none;
-      pointer-events: auto;
-    }
-
-    .friend-card__copy {
-      min-height: 0;
-    }
+    gap: .7rem;
   }
 
   @media (max-width: 760px) {

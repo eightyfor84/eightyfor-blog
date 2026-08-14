@@ -81,6 +81,14 @@
           "en": "Features",
           "zh-CN": "功能开关"
         }
+      },
+      "template-search": {
+        "icon": "search",
+        "order": 4,
+        "label": {
+          "en": "Search",
+          "zh-CN": "搜索"
+        }
       }
     }
   },
@@ -481,9 +489,9 @@
       "type": "boolean",
       "default": false,
       "x-widget": "toggle",
-      "x-tab": "template-features",
-      "x-group": "advanced",
-      "x-order": 10,
+      "x-tab": "template-search",
+      "x-group": "general",
+      "x-order": 1,
       "title": {
         "en": "Search Suggestions",
         "zh-CN": "搜索建议"
@@ -491,6 +499,38 @@
       "description": {
         "en": "Show search suggestions as users type.",
         "zh-CN": "在用户输入时显示搜索建议。"
+      }
+    },
+    "globalSearch": {
+      "type": "boolean",
+      "default": false,
+      "x-widget": "toggle",
+      "x-tab": "template-search",
+      "x-group": "general",
+      "x-order": 2,
+      "title": {
+        "en": "Global Search",
+        "zh-CN": "全局搜索"
+      },
+      "description": {
+        "en": "Show a Spotlight-style search overlay on all pages (Ctrl/Cmd+K or /).",
+        "zh-CN": "在所有页面用 Ctrl/Cmd+K 或 / 调出 Spotlight 式全局搜索遮罩。"
+      }
+    },
+    "fullTextSearch": {
+      "type": "boolean",
+      "default": false,
+      "x-widget": "toggle",
+      "x-tab": "template-search",
+      "x-group": "general",
+      "x-order": 3,
+      "title": {
+        "en": "Full-Text Search",
+        "zh-CN": "全文搜索"
+      },
+      "description": {
+        "en": "Index post body text for full-text search (generates full_index.json at build time).",
+        "zh-CN": "构建时生成含正文的 full_index.json 索引，支持全文搜索。"
       }
     },
     "relatedPosts": {
@@ -643,8 +683,8 @@
       "x-group": "background",
       "x-order": 1,
       "title": {
-        "en": "Background Image",
-        "zh-CN": "背景图片"
+        "en": "Background Media",
+        "zh-CN": "背景图片/视频"
       }
     },
     "frontendBackgroundMeta": {

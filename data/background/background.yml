@@ -8,3 +8,6 @@ overlayLightColor: "#fefbfb"
 overlayLightOpacity: 70
 overlayDarkColor: "#000000"
 overlayDarkOpacity: 75
+videoAutoplay: true
+videoLoop: true
+videoPlaybackRate: 1

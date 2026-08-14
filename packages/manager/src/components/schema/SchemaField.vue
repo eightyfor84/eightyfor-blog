@@ -16,6 +16,7 @@
     :form-data="formData"
     :source-path="modelValue?.sourcePath"
     :source-name="modelValue?.sourceName"
+    :allow-video="fieldKey === 'frontendBackground'"
     @update:model-value="(v: any) => emit('update:modelValue', v)"
     @update:meta="(v: any) => emit('update:meta', v)"
   >

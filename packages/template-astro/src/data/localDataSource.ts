@@ -76,20 +76,61 @@ function readDataFile(filePath: string): Record<string, any> | null {
   } catch { return null }
 }
 
-/** Auto-discover background image from data/background/ */
+// Content-hash cache keyed by (path, size, mtime): a background video is large,
+// and getPublicSettings() runs once per rendered page, so we must not re-read +
+// re-hash the whole file 38× per build. Size+mtime is a safe "did it change"
+// proxy — dev edits bump mtime and recompute the hash.
+const _fileHashCache = new Map<string, string>();
+function fileHash(src: string): string {
+  const stat = fs.statSync(src);
+  const key = `${src}:${stat.size}:${stat.mtimeMs}`;
+  let hash = _fileHashCache.get(key);
+  if (!hash) {
+    hash = crypto.createHash('sha256').update(fs.readFileSync(src)).digest('hex').slice(0, 8);
+    _fileHashCache.set(key, hash);
+  }
+  return hash;
+}
+
+const BG_IMAGE_RE = /\.(jpg|jpeg|png|gif|webp|avif|svg)$/i;
+const BG_VIDEO_RE = /\.(mp4|webm|ogg|mov)$/i;
+// A fallback first-frame poster (background_alt.<ext>) is NOT a background image —
+// it is the <video> poster. Skip it in image discovery so it never "covers" the video.
+const BG_POSTER_RE = /_alt\.(jpg|jpeg|png|gif|webp|avif|svg)$/i;
+
+/** Auto-discover background image from data/background/ (poster files are skipped) */
 function readBackgroundUrl(): string {
   try {
     const bgDir = path.join(DATA_DIR, 'background')
     if (!fs.existsSync(bgDir)) return ''
-    const imgs = fs.readdirSync(bgDir).filter(f => /\.(jpg|jpeg|png|gif|webp|avif|svg)$/i.test(f) && !f.startsWith('.'))
+    const imgs = fs.readdirSync(bgDir).filter(f => BG_IMAGE_RE.test(f) && !f.startsWith('.') && !BG_POSTER_RE.test(f))
     if (imgs.length === 0) return ''
     const file = imgs[0]
-    // Content-hash cache-busting: URL changes only when the image bytes change,
-    // so browsers/CDN re-fetch on update but stay cached otherwise. Keeps the
-    // stable `/data/background/<file>` path while breaking stale HTTP cache.
-    const src = path.join(bgDir, file)
-    const hash = crypto.createHash('sha256').update(fs.readFileSync(src)).digest('hex').slice(0, 8)
-    return `/data/background/${file}?v=${hash}`
+    return `/data/background/${file}?v=${fileHash(path.join(bgDir, file))}`
+  } catch { return '' }
+}
+
+/** Auto-discover the fallback first-frame poster (background_alt.<ext>) for the video. */
+function readBackgroundPoster(): string {
+  try {
+    const bgDir = path.join(DATA_DIR, 'background')
+    if (!fs.existsSync(bgDir)) return ''
+    const posters = fs.readdirSync(bgDir).filter(f => BG_POSTER_RE.test(f) && !f.startsWith('.'))
+    if (posters.length === 0) return ''
+    const file = posters[0]
+    return `/data/background/${file}?v=${fileHash(path.join(bgDir, file))}`
+  } catch { return '' }
+}
+
+/** Auto-discover background video from data/background/ (image/poster = above) */
+function readBackgroundVideo(): string {
+  try {
+    const bgDir = path.join(DATA_DIR, 'background')
+    if (!fs.existsSync(bgDir)) return ''
+    const vids = fs.readdirSync(bgDir).filter(f => BG_VIDEO_RE.test(f) && !f.startsWith('.'))
+    if (vids.length === 0) return ''
+    const file = vids[0]
+    return `/data/background/${file}?v=${fileHash(path.join(bgDir, file))}`
   } catch { return '' }
 }
 
@@ -247,6 +288,8 @@ export interface LocalSettings {
     frontendTheme?: string;
     frontendAccent?: string;
     frontendBackground?: unknown;
+    frontendBackgroundVideo?: string;
+    frontendBackgroundPoster?: string;
     frontendBackgroundMeta?: string;
     frontendBackgroundColorLight?: string;
     frontendBackgroundColorDark?: string;
@@ -496,6 +539,8 @@ export function getPublicSettings(): LocalSettings {
         frontendTheme: raw.frontendTheme,
         frontendAccent: raw.frontendAccent,
         frontendBackground: readBackgroundUrl(),
+        frontendBackgroundVideo: readBackgroundVideo(),
+        frontendBackgroundPoster: readBackgroundPoster(),
         frontendBackgroundMeta: readBackgroundMeta(),
         frontendBackgroundColorLight: raw.frontendBackgroundColorLight || '',
         frontendBackgroundColorDark: raw.frontendBackgroundColorDark || '',

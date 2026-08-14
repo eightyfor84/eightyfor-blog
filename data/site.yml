@@ -4,6 +4,7 @@ icpNumber: ""
 homepageMode: split
 singleColumnHomepage: false
 cardVisibility: {}
+recentUpdates: {}
 frontendTheme: follow
 frontendAccent: "#36a32e"
 frontendFont: sans

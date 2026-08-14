@@ -251,7 +251,22 @@ function checkAuth() {
 const localInput = ref<HTMLInputElement | null>(null)
 const uploadInput = ref<HTMLInputElement | null>(null)
 const view = ref<'card' | 'list'>('card')
-const activeTypeTab = ref(restrictedTypes && restrictedTypes.length > 0 ? 'image' : 'all')
+// Default the active type tab to the first restricted type (video picker must
+// open on the "video" tab, not "image"), falling back to "all" when unrestricted.
+function initialActiveTab(): string {
+    if (!restrictedTypes || restrictedTypes.length === 0) return 'all'
+    const first = restrictedTypes[0].toLowerCase()
+    const idMap: Record<string, string> = {
+        image: 'image',
+        video: 'video',
+        audio: 'audio',
+        document: 'document',
+        text: 'text',
+        file: 'other',
+    }
+    return idMap[first] || 'all'
+}
+const activeTypeTab = ref(initialActiveTab())
 const { openPreview: openGlobalPreview, openImagePreview } = usePreview()
 
 const fileTypeTabs = computed(() => {

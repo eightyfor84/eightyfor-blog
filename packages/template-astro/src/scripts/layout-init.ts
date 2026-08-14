@@ -75,3 +75,36 @@ document.addEventListener('astro:after-swap', () => applyPerfMode(resolvePerfMod
   applyPerfMode(next);
 };
 (window as any).__chronicleGetPerf = resolvePerfMode;
+
+// ── Background video ──────────────────────────────────────
+// The <video> renders with `preload="metadata"` and `src` set at build time, so
+// the browser loads (and displays) the first frame as a native frozen poster.
+// Here we only decide whether to play(): autoplay off or prefers-reduced-motion
+// leaves it paused on that first frame; otherwise play() resumes it.
+function initBackgroundVideo() {
+  const video = document.querySelector<HTMLVideoElement>('#chronicle-bg-layer .bg-video');
+  if (!video) return;
+
+  const autoplay = video.dataset.autoplay !== '0';
+  const playbackRate = parseFloat(video.dataset.playbackRate || '1');
+
+  let reducedMotion = false;
+  try { reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch {}
+
+  // 加载失败 / 格式不支持 → 隐藏视频，露出下层（图片 / 底色）。
+  video.addEventListener('error', () => {
+    video.style.display = 'none';
+  }, { once: true });
+
+  if (Number.isFinite(playbackRate) && playbackRate > 0) {
+    video.playbackRate = playbackRate;
+  }
+
+  // 不自动播放或减动效 → 不 play()，浏览器停在 preload="metadata" 加载的首帧（原生定格占位图）。
+  if (!autoplay || reducedMotion) return;
+
+  // muted + playsinline 自动播放；被拦截时静默忽略。
+  video.play().catch(() => {});
+}
+
+initBackgroundVideo();
