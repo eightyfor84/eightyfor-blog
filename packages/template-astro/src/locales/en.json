@@ -81,6 +81,7 @@
     "newPost": "New post",
     "updatedPosts": "Updated posts",
     "newCollections": "New collections",
+    "deletedPosts": "Deleted {count} posts",
     "noRecentChanges": "No recent content changes",
     "siteLinksAria": "Site links",
     "rssSubscribe": "RSS",

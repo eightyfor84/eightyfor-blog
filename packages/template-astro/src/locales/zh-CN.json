@@ -81,6 +81,7 @@
     "newPost": "新增文章",
     "updatedPosts": "更新文章",
     "newCollections": "新增合集",
+    "deletedPosts": "删除 {count} 篇文章",
     "noRecentChanges": "最近无内容更新",
     "siteLinksAria": "站点链接",
     "rssSubscribe": "RSS 订阅",

@@ -13,6 +13,7 @@ import {
   resolveRepoRoot,
   getLatestCommit,
   getChangedFiles,
+  getDiffFiles,
   getFileAtRevision,
   getLastCommitBefore,
 } from '@chronicle/shared/src/utils/git';
@@ -23,8 +24,8 @@ const MAX_POSTS = 5;
 export interface RecentUpdates {
   latestCommitDate: string;
   appUpdated: boolean;
-  newPosts: { id: string; title: string }[];
-  modifiedPosts: { id: string; title: string }[];
+  changedPosts: { id: string; title: string; isNew: boolean }[];
+  deletedCount: number;
   newCollections: { slug: string; name: string }[];
 }
 
@@ -66,8 +67,8 @@ export async function getRecentUpdates(opts: {
     return {
       latestCommitDate: new Date().toISOString(),
       appUpdated: false,
-      newPosts: [],
-      modifiedPosts: [],
+      changedPosts: [],
+      deletedCount: 0,
       newCollections: [{ slug: 'mock-collection', name: 'Mock Collection' }],
     };
   }
@@ -79,8 +80,12 @@ export async function getRecentUpdates(opts: {
   if (!latest) return null;
 
   const sinceIso = new Date(Date.now() - (aggregateDays || 7) * DAY_MS).toISOString();
-  const changed = getChangedFiles(root, { sinceIso });
+  const changed = getChangedFiles(root, { sinceIso, firstParent: true });
   if (changed === null) return null;
+
+  // Net (accumulated) diff over the window → deletion count + App-updated.
+  const base = getLastCommitBefore(root, sinceIso);
+  const netDiff = base ? getDiffFiles(root, base, 'HEAD') : null;
 
   // Title lookups from current data
   const postTitleById = new Map<string, string>();
@@ -98,8 +103,8 @@ export async function getRecentUpdates(opts: {
   // ignored (site.yml, profile.yml, friends.yml, index.json, background/avatar).
   let appUpdated = false;
   let collectionsTouched = false;
-  const ordered: { id: string; status: 'new' | 'modified' }[] = [];
-  const seen = new Map<string, 'new' | 'modified'>();
+  const ordered: { id: string; isNew: boolean }[] = [];
+  const seen = new Map<string, boolean>();
 
   for (const f of changed) {
     const p = f.path;
@@ -119,29 +124,49 @@ export async function getRecentUpdates(opts: {
       const id = segments[0];
       // Only `data/posts/<id>/…` counts as a post. Skip `data/posts/index.json`
       // (the derived metadata index) and any other file directly under posts/.
-      if (!id || segments.length < 2 || f.status === 'D') continue; // deletions ignored
-      const status = f.status === 'A' ? 'new' : 'modified';
+      if (!id || segments.length < 2) continue;
+      // Deletions are counted separately from the net diff below.
+      if (f.status === 'D') continue;
+      // "new" only when the post's `index.md` was added; an added attachment
+      // alone marks the post as "modified", not "new".
+      const isIndex = segments.length === 2 && segments[1] === 'index.md';
+      const isNew = isIndex && f.status === 'A';
       const prev = seen.get(id);
       if (prev === undefined) {
-        seen.set(id, status);
-        ordered.push({ id, status });
-      } else if (status === 'new' && prev === 'modified') {
+        seen.set(id, isNew);
+        ordered.push({ id, isNew });
+      } else if (isNew && !prev) {
         // A post added then modified within the window stays "new".
-        seen.set(id, 'new');
+        seen.set(id, true);
         const item = ordered.find((o) => o.id === id);
-        if (item) item.status = 'new';
+        if (item) item.isNew = true;
       }
     }
     // Any other data/ path is intentionally ignored.
   }
 
-  // Cap total posts at MAX_POSTS, prioritizing new over modified.
-  const newItems = ordered.filter((o) => o.status === 'new').slice(0, MAX_POSTS);
-  const remaining = Math.max(0, MAX_POSTS - newItems.length);
-  const modifiedItems = ordered.filter((o) => o.status === 'modified').slice(0, remaining);
+  // Net diff: count posts whose `index.md` was deleted, and catch App changes
+  // that only arrived via merge commits (invisible to the first-parent log).
+  let deletedCount = 0;
+  if (netDiff !== null) {
+    for (const f of netDiff) {
+      const inData = f.path.startsWith('data/');
+      const inChronicle = f.path.startsWith('.chronicle/');
+      if (!inData && !inChronicle) {
+        appUpdated = true;
+        continue;
+      }
+      if (f.status === 'D' && /^data\/posts\/[^/]+\/index\.md$/.test(f.path)) {
+        deletedCount += 1;
+      }
+    }
+  }
 
-  const newPosts = newItems.map((o) => ({ id: o.id, title: postTitleById.get(o.id) || o.id }));
-  const modifiedPosts = modifiedItems.map((o) => ({ id: o.id, title: postTitleById.get(o.id) || o.id }));
+  // Single time-ordered list capped at MAX_POSTS; "new"/"modified" are labels,
+  // not selection priority. `ordered` is already newest-commit first.
+  const changedPosts = ordered
+    .slice(0, MAX_POSTS)
+    .map((o) => ({ id: o.id, title: postTitleById.get(o.id) || o.id, isNew: o.isNew }));
 
   // New collections: diff slugs between the window start and HEAD.
   let newCollections: { slug: string; name: string }[] = [];
@@ -163,8 +188,8 @@ export async function getRecentUpdates(opts: {
   return {
     latestCommitDate: latest.dateIso,
     appUpdated,
-    newPosts,
-    modifiedPosts,
+    changedPosts,
+    deletedCount,
     newCollections,
   };
 }
