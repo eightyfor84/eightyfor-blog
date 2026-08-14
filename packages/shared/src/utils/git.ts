@@ -51,19 +51,8 @@ export interface ChangedFile {
   path: string;
 }
 
-/**
- * Files changed (committed) since `sinceIso`, newest commit first.
- * `--format=` suppresses commit headers so each line is `STATUS\tpath`.
- */
-export function getChangedFiles(
-  cwd?: string,
-  opts?: { sinceIso?: string },
-): ChangedFile[] | null {
-  const args = ['log', '--name-status', '--format='];
-  if (opts?.sinceIso) args.push(`--since=${opts.sinceIso}`);
-  const out = runGit(args, cwd);
-  if (out === null) return null;
-
+/** Parse `--name-status` output (one `STATUS\tpath` per line). */
+function parseNameStatus(out: string): ChangedFile[] {
   const files: ChangedFile[] = [];
   for (const line of out.split('\n')) {
     const trimmed = line.trim();
@@ -76,6 +65,45 @@ export function getChangedFiles(
     }
   }
   return files;
+}
+
+/**
+ * Files changed (committed) since `sinceIso`, newest commit first.
+ * `--format=` suppresses commit headers so each line is `STATUS\tpath`.
+ * `firstParent` follows only the main (non-merge) line so upstream merges and
+ * their backing-out of `data/` don't surface as content churn.
+ */
+export function getChangedFiles(
+  cwd?: string,
+  opts?: { sinceIso?: string; firstParent?: boolean },
+): ChangedFile[] | null {
+  const args = ['log', '--name-status', '--format='];
+  if (opts?.firstParent) args.push('--first-parent');
+  if (opts?.sinceIso) args.push(`--since=${opts.sinceIso}`);
+  const out = runGit(args, cwd);
+  if (out === null) return null;
+  return parseNameStatus(out);
+}
+
+/**
+ * Net (accumulated) file changes between two revisions via
+ * `git diff --name-status <from> <to>`. Unlike `getChangedFiles` (per-commit),
+ * this nets out add-then-delete churn within the range: a file added then later
+ * removed appears as neither `A` nor `D` — only the surviving change remains.
+ * Used for the "deleted posts" count, which the per-commit log over-reports
+ * during a backup/restore merge.
+ */
+export function getDiffFiles(
+  cwd: string | undefined,
+  from: string,
+  to: string,
+  path?: string,
+): ChangedFile[] | null {
+  const args = ['diff', '--name-status', from, to];
+  if (path) args.push('--', path);
+  const out = runGit(args, cwd);
+  if (out === null) return null;
+  return parseNameStatus(out);
 }
 
 /** Raw content of `path` at `revision` (e.g. `HEAD`), or null. */

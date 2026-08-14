@@ -52,6 +52,8 @@ const activityIcons = {
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M 12 2 L 21 8 L 12 14 L 3 8 Z"/><path d="M 18 14 L 21 16 L 12 22 L 3 16 L 6 14"/></svg>',
   stale:
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+  delete:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>',
 };
 
 // Home footer site links (profile links + RSS + About). Separators are rendered
@@ -364,18 +366,22 @@ const recommendedPosts = uniqueById([...featuredPosts, ...recentPosts])
 type RecentUpdatesData = {
   latestCommitDate: string;
   appUpdated: boolean;
-  newPosts: { id: string; title: string }[];
-  modifiedPosts: { id: string; title: string }[];
+  changedPosts: { id: string; title: string; isNew: boolean }[];
+  deletedCount: number;
   newCollections: { slug: string; name: string }[];
 };
 type ActivityItem = {
-  tone: "app" | "post" | "collection";
+  tone: "app" | "post" | "collection" | "delete";
   label?: string;
   title: string;
   href?: string;
+  external?: boolean;
 };
 const staleDays = settings?.recentUpdates?.staleDays ?? 30;
 const aggregateDays = settings?.recentUpdates?.aggregateDays ?? 7;
+// Fixed changelog target for the "App updated" activity item.
+const appChangelogUrl =
+  "https://github.com/vanvanhasnophi/chronicle-aurora/commits/main/";
 
 let recentUpdates: RecentUpdatesData | null = null;
 if (isLocal) {
@@ -404,22 +410,27 @@ const isStale =
 const activityItems: ActivityItem[] = [];
 if (recentUpdates) {
   if (recentUpdates.appUpdated) {
-    activityItems.push({ tone: "app", title: t("home.updatedApp") as string });
+    activityItems.push({
+      tone: "app",
+      title: t("home.updatedApp") as string,
+      href: appChangelogUrl,
+      external: true,
+    });
   }
-  for (const p of recentUpdates.newPosts) {
+  for (const p of recentUpdates.changedPosts) {
     activityItems.push({
       tone: "post",
-      label: t("home.newPost") as string,
+      label: (p.isNew ? t("home.newPost") : t("home.updatedPosts")) as string,
       title: p.title,
       href: buildPostUrl(p.id),
     });
   }
-  for (const p of recentUpdates.modifiedPosts) {
+  if (recentUpdates.deletedCount > 0) {
     activityItems.push({
-      tone: "post",
-      label: t("home.updatedPosts") as string,
-      title: p.title,
-      href: buildPostUrl(p.id),
+      tone: "delete",
+      title: interpolate(t("home.deletedPosts") as string, {
+        count: recentUpdates.deletedCount,
+      }),
     });
   }
   for (const c of recentUpdates.newCollections) {
@@ -708,6 +719,8 @@ const yearLabel = new Date().getFullYear();
                             "mtl-surface interactive glowable scalable",
                           ]}
                           href={item.href}
+                          target={item.external ? "_blank" : undefined}
+                          rel={item.external ? "noopener noreferrer" : undefined}
                         >
                           <span
                             class="activity-item__icon"
@@ -724,7 +737,7 @@ const yearLabel = new Date().getFullYear();
                           </span>
                         </a>
                       ) : (
-                        <div class:list={["activity-item", item.tone]}>
+                        <div class:list={["activity-item", item.tone, "mtl-surface"]}>
                           <span
                             class="activity-item__icon"
                             aria-hidden="true"
@@ -1429,6 +1442,11 @@ const yearLabel = new Date().getFullYear();
   .activity-item.stale .activity-item__icon {
     background: transparent;
     color: var(--status-warning);
+  }
+
+  .activity-item.delete .activity-item__icon {
+    background: color-mix(in srgb, var(--status-error) 20%, transparent);
+    color: var(--status-error);
   }
 
   .activity-item.date .activity-item__icon {
