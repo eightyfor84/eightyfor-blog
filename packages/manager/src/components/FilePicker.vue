@@ -31,7 +31,7 @@
             </div>
             <template v-else>
                 <div class="cloud-leftbar sidebar">
-                    <!-- Source switch (only when postSlug provided) -->
+                    <!-- Source switch (only when postId provided) -->
                     <div v-if="showSourceSwitch" class="sidebar-source-switch">
                         <button type="button" class="sidebar-items"
                             :class="{ active: currentSource === 'post' }" @click="currentSource = 'post'; loadCloudFiles()">
@@ -214,7 +214,7 @@ const props = defineProps<{
   allowLocalPick?: boolean
   restrictedTypes?: string[]
   source?: 'assets' | 'post'
-  postSlug?: string
+  postId?: string
 }>()
 
 const emit = defineEmits<{
@@ -237,7 +237,7 @@ const restrictedTypes = Array.isArray(props.restrictedTypes) ? props.restrictedT
 
 // Source: assets (public) or post directory (private)
 const currentSource = ref<'assets' | 'post'>(props.source || 'assets')
-const showSourceSwitch = computed(() => !!props.postSlug)
+const showSourceSwitch = computed(() => !!props.postId)
 
 const isAuthenticated = ref(false)
 const authChecked = ref(false)
@@ -386,9 +386,9 @@ async function loadCloudFiles() {
     }
 
     try {
-        const isPost = currentSource.value === 'post' && props.postSlug
-        const dir = isPost ? `data/posts/${props.postSlug}` : 'data/assets'
-        const urlBase = isPost ? `/data/posts/${props.postSlug}` : '/data/assets'
+        const isPost = currentSource.value === 'post' && props.postId
+        const dir = isPost ? `data/posts/${props.postId}` : 'data/assets'
+        const urlBase = isPost ? `/data/posts/${props.postId}` : '/data/assets'
         const names = await readDir(dir)
         const filtered = isPost ? names.filter(n => n !== 'index.md' && n !== 'index.json') : names
         cloudFiles.value = filtered.map((name) => ({
@@ -566,9 +566,9 @@ async function uploadFileToServer(file: File) {
     try {
         const isElec = typeof window !== 'undefined' && !!(window as any).chronicleElectron?.isElectron
         const safeName = file.name.replace(/[^\w.\-一-鿿]/g, '_')
-        const isPost = currentSource.value === 'post' && props.postSlug
-        const destDir = isPost ? `data/posts/${props.postSlug}` : 'data/assets'
-        const urlBase = isPost ? `/data/posts/${props.postSlug}` : '/data/assets'
+        const isPost = currentSource.value === 'post' && props.postId
+        const destDir = isPost ? `data/posts/${props.postId}` : 'data/assets'
+        const urlBase = isPost ? `/data/posts/${props.postId}` : '/data/assets'
         if (isElec) {
             const buf = await file.arrayBuffer()
             const base64 = btoa(String.fromCharCode(...new Uint8Array(buf)))

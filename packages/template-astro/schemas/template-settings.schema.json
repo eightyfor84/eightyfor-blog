@@ -227,6 +227,47 @@
         }
       }
     },
+    "recentUpdates": {
+      "type": "object",
+      "x-widget": "fieldset",
+      "x-tab": "template-homepage",
+      "x-group": "cards",
+      "x-order": 12,
+      "title": {
+        "en": "Recently Updated Card",
+        "zh-CN": "最近更新卡片"
+      },
+      "properties": {
+        "staleDays": {
+          "type": "number",
+          "default": 30,
+          "minimum": 0,
+          "x-widget": "number",
+          "title": {
+            "en": "Stale threshold (days)",
+            "zh-CN": "久未更新阈值（天）"
+          },
+          "description": {
+            "en": "If the latest commit is older than this many days, show the “no updates for a while” notice instead of update content.",
+            "zh-CN": "最近一次提交距今超过该天数时，改为显示「已有比较长的时间未更新」，不再展示更新内容。"
+          }
+        },
+        "aggregateDays": {
+          "type": "number",
+          "default": 7,
+          "minimum": 1,
+          "x-widget": "number",
+          "title": {
+            "en": "Aggregation window (days)",
+            "zh-CN": "连更聚合阈值（天）"
+          },
+          "description": {
+            "en": "Commits within this many days are aggregated into the “recently updated” content list.",
+            "zh-CN": "该天数窗口内的提交会被聚合成「更新内容」列表。"
+          }
+        }
+      }
+    },
     "frontendTheme": {
       "type": "string",
       "default": "follow",
@@ -514,6 +555,22 @@
       "description": {
         "en": "Enable the friends page on the frontend.",
         "zh-CN": "在前台启用友链页面。"
+      }
+    },
+    "comments": {
+      "type": "boolean",
+      "default": true,
+      "x-widget": "toggle",
+      "x-tab": "template-features",
+      "x-group": "pages",
+      "x-order": 4,
+      "title": {
+        "en": "Comments",
+        "zh-CN": "评论"
+      },
+      "description": {
+        "en": "Enable comments on article pages.",
+        "zh-CN": "在文章页启用评论。"
       }
     },
     "traffic": {

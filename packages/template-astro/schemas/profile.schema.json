@@ -28,7 +28,8 @@
         "en": "About Page",
         "zh-CN": "关于页"
       },
-      "order": 1
+      "order": 1,
+      "toggle": "aboutPage"
     },
     "profile": {
       "title": {
@@ -42,6 +43,22 @@
     "name"
   ],
   "properties": {
+    "aboutPage": {
+      "type": "boolean",
+      "default": true,
+      "x-widget": "toggle",
+      "x-site-flag": true,
+      "x-group": "about",
+      "x-order": 0,
+      "title": {
+        "en": "About Page",
+        "zh-CN": "关于页面"
+      },
+      "description": {
+        "en": "Enable the about page on the frontend.",
+        "zh-CN": "在前台启用关于页面。"
+      }
+    },
     "$about_edit": {
       "type": "null",
       "x-group": "about",

@@ -75,10 +75,15 @@ settings = getPublicSettings() as Record<string, any>;
 // ── Comment config ────────────────────────────────────
 const commentCfg = (settings as Record<string, any>).comment || {};
 const commentBackend = String(commentCfg.backend || '');
-const commentApiBase = String(commentCfg.apiBase || '');
-const commentRepo = String(commentCfg.githubRepo || '');
-const commentIssueNumber = String(commentCfg.githubIssueNumber || '');
-const commentTwikooEnvId = String(commentCfg.twikooEnvId || '');
+const commentWalineServerUrl = String(commentCfg.walineServerUrl || '');
+
+// ── Comments feature flag ────────────────────────────────
+const commentsEnabled = (settings as Record<string, any>).comments !== false;
+
+// ── Collection feature flag (distinct from data result — see getCollections) ──
+const collectionEnabled = (settings as Record<string, any>).collectionPage !== false;
+// Single source of truth for "render the collection nav + reserve its sidebar space".
+const hasCollectionNav = collectionEnabled && !!post?.collection;
 
 // ── Collections + post titles for CollectionNav ──────────
 let embeddedCollections: any[] = [];
@@ -223,11 +228,11 @@ const metaDescription = buildMetaDescription(post, locale);
 
 {isSlidesView && post ? (
 <Layout title={pageTitle} settings={settings} locale={locale} navTitle={post?.title} navBackHref={backToBlogs} navBackLabel={t('inblog.backToBlogs')} meta={{ description: metaDescription, type: 'article' }}>
-  <Slideshow id={post.id} locale={locale} config={post.slideshow || {}} />
+  <Slideshow id={post.id} locale={locale} config={post.slideshow || {}} collectionEnabled={collectionEnabled} />
 </Layout>
 ) : (
 <Layout title={pageTitle} settings={settings} locale={locale} navTitle={post?.title} navBackHref={backToBlogs} navBackLabel={t('inblog.backToBlogs')} meta={{ description: metaDescription, type: 'article' }}>
-  <div class="post-detail-container" class:list={[{ "has-collection-nav": !!post?.collection }]} id="post-top">
+  <div class="post-detail-container" class:list={[{ "has-collection-nav": hasCollectionNav }]} id="post-top">
     {error ? (
       <div class="error-container">
         <h1>Post not found</h1>
@@ -366,16 +371,16 @@ const metaDescription = buildMetaDescription(post, locale);
         <link rel="stylesheet" href={chronicleMarkdownCssUrl} media="print" onload="this.media='all'" />
         <noscript><link rel="stylesheet" href={chronicleMarkdownCssUrl} /></noscript>
       </article>
+    ) : null}
+
+    {post && commentsEnabled && (
       <CommentSection
         postId={post?.id || id}
         locale={locale}
         backend={commentBackend}
-        apiBase={commentApiBase}
-        repo={commentRepo}
-        issueNumber={commentIssueNumber}
-        twikooEnvId={commentTwikooEnvId}
+        walineServerUrl={commentWalineServerUrl}
       />
-    ) : null}
+    )}
   </div>
   <div class="scroll-blank"/>
 
@@ -390,9 +395,9 @@ const metaDescription = buildMetaDescription(post, locale);
     </>
   )}
 
-  <CornerActions toc={tocItems} postId={post?.id || id} collections={embeddedCollections} postTitles={embeddedPostTitles} postTypes={embeddedPostTypes} />
+  <CornerActions toc={tocItems} postId={post?.id || id} collections={embeddedCollections} postTitles={embeddedPostTitles} postTypes={embeddedPostTypes} commentsEnabled={commentsEnabled} collectionEnabled={collectionEnabled} />
 
-  {post?.collection && (
+  {hasCollectionNav && (
     <CollectionNav postId={post?.id || id} collections={embeddedCollections} postTitles={embeddedPostTitles} postTypes={embeddedPostTypes} />
   )}
 

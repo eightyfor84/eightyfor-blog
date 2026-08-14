@@ -49,7 +49,7 @@
         "backend": {
           "type": "string",
           "default": "",
-          "enum": ["", "chronicle", "github", "twikoo"],
+          "enum": ["", "waline"],
           "x-widget": "select",
           "x-order": 1,
           "title": {
@@ -57,80 +57,45 @@
             "zh-CN": "后端"
           },
           "description": {
-            "en": "Static JSON (no interaction) / Chronicle API (self-hosted, full features) / GitHub Issues (read-only, link to issue) / Twikoo (third-party, full features)",
-            "zh-CN": "静态 JSON（无交互）/ Chronicle API（自建，完整功能）/ GitHub Issues（只读，跳转提交）/ Twikoo（第三方托管，完整功能）"
+            "en": "Static JSON (no interaction) / Waline (headless API, Chronicle-rendered UI)",
+            "zh-CN": "静态 JSON（无交互）/ Waline（headless API，Chronicle 自绘 UI）"
           },
           "x-options": [
             { "value": "", "label": { "en": "Static JSON (no interaction)", "zh-CN": "静态 JSON（无交互）" } },
-            { "value": "chronicle", "label": { "en": "Chronicle API (VPS / self-hosted)", "zh-CN": "Chronicle API（VPS / 自建）" } },
-            { "value": "github", "label": { "en": "GitHub Issues (read + link)", "zh-CN": "GitHub Issues（阅读 + 跳转）" } },
-            { "value": "twikoo", "label": { "en": "Twikoo (third-party)", "zh-CN": "Twikoo（第三方托管）" } }
+            { "value": "waline", "label": { "en": "Waline (headless API)", "zh-CN": "Waline（headless API）" } }
           ]
         },
-        "apiBase": {
+        "walineServerUrl": {
           "type": "string",
           "default": "",
           "maxLength": 256,
           "x-widget": "input",
-          "x-order": 2,
-          "x-visible-when": { "field": "backend", "equals": "chronicle" },
+          "x-order": 6,
+          "x-visible-when": { "field": "backend", "equals": "waline" },
           "title": {
-            "en": "API Base URL",
-            "zh-CN": "API 地址"
+            "en": "Waline Server URL",
+            "zh-CN": "Waline 服务地址"
           },
           "description": {
-            "en": "Chronicle Host API base URL, e.g. https://blog.example.com.",
-            "zh-CN": "Chronicle Host API 地址，如 https://blog.example.com。"
-          }
-        },
-        "githubRepo": {
-          "type": "string",
-          "default": "",
-          "maxLength": 128,
-          "x-widget": "input",
-          "x-order": 3,
-          "x-visible-when": { "field": "backend", "equals": "github" },
-          "title": {
-            "en": "GitHub Repository",
-            "zh-CN": "GitHub 仓库"
-          },
-          "description": {
-            "en": "Repository in owner/name format, e.g. eightyfor/blog.",
-            "zh-CN": "仓库名（owner/name 格式），如 eightyfor/blog。"
-          }
-        },
-        "githubIssueNumber": {
-          "type": "string",
-          "default": "",
-          "maxLength": 20,
-          "x-widget": "input",
-          "x-order": 4,
-          "x-visible-when": { "field": "backend", "equals": "github" },
-          "title": {
-            "en": "GitHub Issue Number",
-            "zh-CN": "GitHub Issue 编号"
-          },
-          "description": {
-            "en": "Default issue number for comments. Can be overridden per post via frontmatter.",
-            "zh-CN": "默认 Issue 编号，可在文章 frontmatter 中单独覆盖。"
-          }
-        },
-        "twikooEnvId": {
-          "type": "string",
-          "default": "",
-          "maxLength": 256,
-          "x-widget": "input",
-          "x-order": 5,
-          "x-visible-when": { "field": "backend", "equals": "twikoo" },
-          "title": {
-            "en": "Twikoo Env ID",
-            "zh-CN": "Twikoo 环境 ID"
-          },
-          "description": {
-            "en": "Twikoo environment ID (URL or Vercel app address).",
-            "zh-CN": "Twikoo 环境 ID（URL 或 Vercel 应用地址）。"
+            "en": "Waline server URL (Vercel / LeanCloud / Deta deployment).",
+            "zh-CN": "Waline 服务地址（Vercel / LeanCloud / Deta 部署）。"
           }
         }
+      }
+    },
+    "$waline_admin": {
+      "type": "null",
+      "x-chronicle-class": "waline-admin-link",
+      "x-group": "backend",
+      "x-order": 2,
+      "x-visible-when": { "field": "comment.backend", "equals": "waline" },
+      "title": {
+        "en": "Open Waline Admin",
+        "zh-CN": "打开 Waline 后台"
+      },
+      "description": {
+        "en": "Jump to the Waline admin dashboard to review, approve, hide, or delete comments. Opens in your default browser at <server>/ui.",
+        "zh-CN": "跳转到 Waline 管理后台，用于审核、批准、隐藏或删除评论。点击后将在默认浏览器打开 <server>/ui。"
       }
     }
   }

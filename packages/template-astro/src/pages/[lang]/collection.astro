@@ -8,6 +8,9 @@ import { getCollections, getPublishedPosts } from "../../data/localDataSource";
 export const prerender = true;
 
 export async function getStaticPaths() {
+  const settings = await loadSiteSettings();
+  const featureFlags = resolveFeatureFlags(settings?.featureFlags);
+  if (featureFlags.collectionPage === false) return [];
   return [{ params: { lang: "en" } }, { params: { lang: "zh" } }];
 }
 
@@ -17,7 +20,6 @@ const routePrefix = locale === "zh-CN" ? "/zh" : "/en";
 
 const settings = await loadSiteSettings();
 
-const featureFlags = resolveFeatureFlags((settings as any)?.featureFlags);
 const metaDescription =
   locale === "zh-CN"
     ? "浏览 Chronicle 的合集页面，查看分组内容与关联文章。"
@@ -100,21 +102,12 @@ try {
     }
     .post-card.collection-card {
       padding: 0;
-      background: var(--comp-bg-glass);
-      border: 1px solid var(--border-color-blur);
       border-radius: 12px;
       cursor: pointer;
-      box-shadow: var(--glass-shadow-elev-1);
       transition:
         transform 0.2s,
         border-color 0.2s,
         box-shadow-color 0.2s;
-    }
-    html:not(.is-mobile) .post-card.collection-card:hover {
-      background: var(--comp-bg-glass-hvr);
-      transform: scale(1.02);
-      border-color: var(--comp-text-sec-hl);
-      box-shadow: var(--card-glow), var(--glass-shadow-elev-2);
     }
     .collection-card-content {
       padding: 14px 16px;
@@ -177,6 +170,7 @@ try {
       background: transparent;
       border: 1px solid transparent;
       cursor: pointer;
+      user-select: none;
       transition:
         background 0.12s ease,
         transform 0.08s ease,
@@ -189,18 +183,6 @@ try {
       font-weight: 700;
       font-variation-settings: "wght" 700;
       color: var(--comp-text-pri);
-    }
-    .mini-card .caret {
-      width: 18px;
-      height: 18px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 4px;
-      background: transparent;
-      border: 0;
-      color: var(--comp-text-sec);
-      margin-left: auto;
     }
     .mini-card .mini-title {
       white-space: nowrap;
@@ -222,6 +204,13 @@ try {
       display: block;
       width: 18px !important;
       height: 18px !important;
+    }
+    .mini-card.group-header .mini-icon svg {
+      transition: transform 120ms linear;
+      transform-origin: center;
+    }
+    .mini-card.group-header.active .mini-icon svg {
+      transform: rotate(90deg);
     }
     .children-container {
       margin-left: 12px;
@@ -247,21 +236,6 @@ try {
         var(--comp-text-pri-hvr) 70%,
         transparent
       );
-    }
-    .mini-card .caret svg {
-      transition: transform 120ms linear;
-      transform-origin: center;
-      display: block !important;
-      width: 18px !important;
-      height: 18px !important;
-    }
-    .mini-card .caret.expanded svg {
-      transform: rotate(180deg);
-    }
-    .mini-card .caret {
-      min-width: 18px;
-      min-height: 18px;
-      padding: 0;
     }
     .collection-tree ul {
       list-style: none;
@@ -295,12 +269,6 @@ try {
       .collections-grid {
         grid-template-columns: 1fr;
         gap: 10px;
-      }
-      html.is-mobile .post-card.collection-card:active {
-        transform: scale(1.03);
-        border-color: var(--comp-text-sec-hl);
-        box-shadow: var(--card-glow), var(--glass-shadow-elev-2);
-        background: var(--comp-bg-glass-active);
       }
     }
 
@@ -529,7 +497,7 @@ try {
             link.setAttribute("data-collection-name", c.name);
 
             const card = document.createElement("article");
-            card.className = "post-card collection-card";
+            card.className = "post-card mtl-surface interactive glowable scalable collection-card";
 
             // 添加封面图
             if (c.cover) {
@@ -609,21 +577,13 @@ try {
               const icon = document.createElement("span");
               icon.className = "mini-icon";
               icon.innerHTML =
-                '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>';
 
               const title = document.createElement("span");
               title.className = "mini-title";
               title.textContent = node.title || node.name || "Group";
               header.appendChild(icon);
               header.appendChild(title);
-
-              const caret = document.createElement("button");
-              caret.className = "caret";
-              caret.type = "button";
-              caret.setAttribute("aria-hidden", "true");
-              caret.innerHTML =
-                '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>';
-              header.appendChild(caret);
 
               li.appendChild(header);
 
@@ -772,8 +732,6 @@ try {
               const wasHidden = children.hidden;
               children.hidden = !wasHidden;
               const expanded = !children.hidden;
-              const caret = hdr.querySelector(".caret");
-              if (caret) caret.classList.toggle("expanded", expanded);
               hdr.classList.toggle("active", expanded);
               return;
             }

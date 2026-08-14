@@ -5,8 +5,8 @@
  * Replaces the old /api/comments HTTP endpoints.
  *
  * Directory is state:
- *   data/comments/{uuid}.json         — Approved comments
- *   data/comments-pending/{uuid}.json  — Pending review
+ *   data/comments/{id}.json         — Approved comments
+ *   data/comments-pending/{id}.json  — Pending review
  *
  * Comments are stored in Staticman-compatible flat format:
  *   { id, parent, author, content, date, hidden?, ... }
@@ -47,13 +47,13 @@ const error = ref<string | null>(null)
 // ═══════════════════════════════════════════════════════════════
 
 /**
- * Load approved comments for a post by UUID.
+ * Load approved comments for a post by id.
  */
-async function loadComments(postUuid: string): Promise<ChronicleComment[]> {
+async function loadComments(postId: string): Promise<ChronicleComment[]> {
   loading.value = true
   error.value = null
   try {
-    const data = await readJson<ChronicleComment[]>(`${COMMENTS_DIR}/${postUuid}.json`)
+    const data = await readJson<ChronicleComment[]>(`${COMMENTS_DIR}/${postId}.json`)
     comments.value = data ?? []
     return comments.value
   } catch (e: any) {
@@ -66,11 +66,11 @@ async function loadComments(postUuid: string): Promise<ChronicleComment[]> {
 }
 
 /**
- * Load pending comments for a post by UUID.
+ * Load pending comments for a post by id.
  */
-async function loadPending(postUuid: string): Promise<ChronicleComment[]> {
+async function loadPending(postId: string): Promise<ChronicleComment[]> {
   try {
-    const data = await readJson<ChronicleComment[]>(`${PENDING_DIR}/${postUuid}.json`)
+    const data = await readJson<ChronicleComment[]>(`${PENDING_DIR}/${postId}.json`)
     pendingComments.value = data ?? []
     return pendingComments.value
   } catch {
@@ -80,24 +80,24 @@ async function loadPending(postUuid: string): Promise<ChronicleComment[]> {
 }
 
 /**
- * List all post UUIDs that have comment files (approved or pending).
+ * List all post ids that have comment files (approved or pending).
  */
-async function listPostsWithComments(): Promise<{ uuid: string; approved: number; pending: number }[]> {
+async function listPostsWithComments(): Promise<{ id: string; approved: number; pending: number }[]> {
   try {
     const approvedDirs = await readDir(COMMENTS_DIR)
     const pendingDirs = await readDir(PENDING_DIR)
 
-    const uuids = new Set([
+    const ids = new Set([
       ...approvedDirs.map(f => f.replace(/\.json$/, '')),
       ...pendingDirs.map(f => f.replace(/\.json$/, '')),
     ])
 
-    const result: { uuid: string; approved: number; pending: number }[] = []
-    for (const uuid of uuids) {
-      const approved = await readJson<ChronicleComment[]>(`${COMMENTS_DIR}/${uuid}.json`)
-      const pending = await readJson<ChronicleComment[]>(`${PENDING_DIR}/${uuid}.json`)
+    const result: { id: string; approved: number; pending: number }[] = []
+    for (const id of ids) {
+      const approved = await readJson<ChronicleComment[]>(`${COMMENTS_DIR}/${id}.json`)
+      const pending = await readJson<ChronicleComment[]>(`${PENDING_DIR}/${id}.json`)
       result.push({
-        uuid,
+        id,
         approved: approved?.length ?? 0,
         pending: pending?.length ?? 0,
       })
@@ -115,11 +115,11 @@ async function listPostsWithComments(): Promise<{ uuid: string; approved: number
 /**
  * Approve a pending comment: move from pending/ to comments/.
  */
-async function approveComment(postUuid: string, commentId: string): Promise<boolean> {
+async function approveComment(postId: string, commentId: string): Promise<boolean> {
   try {
     // Load both files
-    const pending = await readJson<ChronicleComment[]>(`${PENDING_DIR}/${postUuid}.json`) ?? []
-    const approved = await readJson<ChronicleComment[]>(`${COMMENTS_DIR}/${postUuid}.json`) ?? []
+    const pending = await readJson<ChronicleComment[]>(`${PENDING_DIR}/${postId}.json`) ?? []
+    const approved = await readJson<ChronicleComment[]>(`${COMMENTS_DIR}/${postId}.json`) ?? []
 
     const idx = pending.findIndex(c => c.id === commentId)
     if (idx === -1) return false
@@ -129,12 +129,12 @@ async function approveComment(postUuid: string, commentId: string): Promise<bool
     approved.push(comment)
 
     // Write both
-    await writeJson(`${PENDING_DIR}/${postUuid}.json`, pending)
-    await writeJson(`${COMMENTS_DIR}/${postUuid}.json`, approved)
+    await writeJson(`${PENDING_DIR}/${postId}.json`, pending)
+    await writeJson(`${COMMENTS_DIR}/${postId}.json`, approved)
 
     // Clean up empty pending file
     if (pending.length === 0) {
-      await deleteFile(`${PENDING_DIR}/${postUuid}.json`)
+      await deleteFile(`${PENDING_DIR}/${postId}.json`)
     }
 
     // Update local state
@@ -151,14 +151,14 @@ async function approveComment(postUuid: string, commentId: string): Promise<bool
 /**
  * Toggle hidden state on an approved comment.
  */
-async function toggleHidden(postUuid: string, commentId: string, hidden: boolean): Promise<boolean> {
+async function toggleHidden(postId: string, commentId: string, hidden: boolean): Promise<boolean> {
   try {
-    const approved = await readJson<ChronicleComment[]>(`${COMMENTS_DIR}/${postUuid}.json`) ?? []
+    const approved = await readJson<ChronicleComment[]>(`${COMMENTS_DIR}/${postId}.json`) ?? []
     const comment = approved.find(c => c.id === commentId)
     if (!comment) return false
 
     comment.hidden = hidden
-    await writeJson(`${COMMENTS_DIR}/${postUuid}.json`, approved)
+    await writeJson(`${COMMENTS_DIR}/${postId}.json`, approved)
     comments.value = approved
     return true
   } catch (e: any) {
@@ -170,10 +170,10 @@ async function toggleHidden(postUuid: string, commentId: string, hidden: boolean
 /**
  * Delete a comment (from either approved or pending).
  */
-async function deleteComment(postUuid: string, commentId: string, isPending: boolean): Promise<boolean> {
+async function deleteComment(postId: string, commentId: string, isPending: boolean): Promise<boolean> {
   try {
     const dir = isPending ? PENDING_DIR : COMMENTS_DIR
-    const list = await readJson<ChronicleComment[]>(`${dir}/${postUuid}.json`) ?? []
+    const list = await readJson<ChronicleComment[]>(`${dir}/${postId}.json`) ?? []
 
     // Also remove replies to this comment
     const toRemove = new Set([commentId])
@@ -182,11 +182,11 @@ async function deleteComment(postUuid: string, commentId: string, isPending: boo
     }
 
     const filtered = list.filter(c => !toRemove.has(c.id))
-    await writeJson(`${dir}/${postUuid}.json`, filtered)
+    await writeJson(`${dir}/${postId}.json`, filtered)
 
     // Clean up empty file
     if (filtered.length === 0) {
-      await deleteFile(`${dir}/${postUuid}.json`)
+      await deleteFile(`${dir}/${postId}.json`)
     }
 
     if (isPending) {

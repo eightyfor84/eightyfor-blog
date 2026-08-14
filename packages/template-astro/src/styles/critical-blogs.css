@@ -17,6 +17,9 @@
 
 /* ── Featured grid ── */
 .featured-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:16px; }
+/* Featured collapse: show first 3, reveal the rest when expanded */
+#featured-grid > :nth-child(n+4) { display:none; }
+#featured-grid.expanded > :nth-child(n+4) { display:block; }
 
 /* ── Archive list ── */
 .archive-list { margin-top:20px; }
@@ -27,8 +30,8 @@
 .month-posts { flex-grow:1; display:flex; flex-direction:column; gap:12px; }
 
 /* ── Post cards ── */
-.post-card { padding:16px; border-radius:8px; border:1px solid var(--border-color-blur); }
-.compact-card { padding:14px 16px; border-radius:8px; border:1px solid var(--border-color-blur); }
+.post-card { padding:16px; border-radius:12px; border-width:1px; }
+.compact-card { padding:14px 16px; border-radius:12px; border-width:1px; }
 .post-card-line { display:flex; justify-content:flex-start; align-items:center; gap:12px; min-width:0; }
 .post-card .card-post-title { font-size:1.1em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1 1 0; min-width:0; margin:0; }
 .post-card-time { flex-shrink:0; white-space:nowrap; }

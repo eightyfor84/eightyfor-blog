@@ -303,27 +303,6 @@ html.immersive:not(.focus) .main-content {
   color: var(--text-pri);
 }
 
-.nav-settings-menu {
-  /* reduce opacity to make blur more visible */
-  background: var(--comp-bg);
-  backdrop-filter: blur(16px);
-  /* Use fixed so the menu overlays page content — allows backdrop-filter to blur underlying page */
-  position: fixed;
-  color: var(--comp-text-sec);
-  top: 70px;
-  /* immediately under the header */
-  right: 24px;
-  /* align near the nav padding on desktop */
-  left: auto;
-  border: 1px solid var(--border-color);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
-  border-radius: 8px;
-  min-width: 160px;
-  max-width: calc(100vw - 24px);
-  max-height: 70vh;
-  box-sizing: border-box;
-  overflow: auto;
-
   /* allow internal scrolling instead of overflowing viewport */
   /* keep icon sizing inline */
   .locale-icon {
@@ -332,13 +311,6 @@ html.immersive:not(.focus) .main-content {
     display: inline-block;
     vertical-align: middle
   }
-
-  display: flex;
-  flex-direction: column;
-  padding: 6px;
-  z-index: 1200;
-  font-size: 0.9rem;
-}
 
 .popup-item {
   display: flex;

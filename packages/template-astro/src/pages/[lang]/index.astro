@@ -7,7 +7,6 @@ export async function getStaticPaths() {
 
 import Layout from "../../layouts/Layout.astro";
 import { getTranslation, getLocale } from "../../utils/i18n.ts";
-import { buildLocalizedPath } from "../../utils/routeLocale.ts";
 import { loadSiteSettings } from "../../utils/siteSettings";
 import CardStyleHomeDeck from "../../components/CardStyleHomeDeck.astro";
 import HomeCoverDeck from "../../components/HomeCoverDeck.astro";
@@ -17,10 +16,7 @@ import { resolveFeatureFlags } from "../../utils/featureFlags.ts";
 // Get locale from Astro.locals (set by middleware)
 const locale = getLocale(Astro.locals);
 const t = (key: string) => getTranslation(locale, key);
-const themePostPath = buildLocalizedPath(
-  locale,
-  "/post/6d879241-fa6c-4099-82a5-066853046b9a",
-);
+const themePostPath = "";
 const metaDescription = t("home.metaDescription");
 
 const settings = await loadSiteSettings();

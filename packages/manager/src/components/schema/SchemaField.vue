@@ -37,6 +37,7 @@ import NativeDropdown from './fields/NativeDropdown.vue'
 import NativeToggle from './fields/NativeToggle.vue'
 import NativeColor from './fields/NativeColor.vue'
 import NativeRange from './fields/NativeRange.vue'
+import NativeNumber from './fields/NativeNumber.vue'
 import NativeFieldset from './fields/NativeFieldset.vue'
 import CardToggle from './fields/CardToggle.vue'
 import ImagePickerField from './fields/ImagePickerField.vue'
@@ -47,6 +48,7 @@ import BackgroundEditorField from './fields/BackgroundEditorField.vue'
 import CardListField from './fields/CardListField.vue'
 import CollectionTreeField from './fields/CollectionTreeField.vue'
 import AboutEditorButton from './fields/AboutEditorButton.vue'
+import WalineAdminLink from './fields/WalineAdminLink.vue'
 
 // ── Component registry: x-chronicle-class → generic component ──
 const COMPONENT_MAP: Record<string, any> = {
@@ -67,6 +69,7 @@ const COMPONENT_MAP: Record<string, any> = {
   'card-list':           CardListField,
   'collection-tree':     CollectionTreeField,
   'about-editor':        AboutEditorButton,
+  'waline-admin-link':   WalineAdminLink,
   'passkey-list':        null, // handled by security page directly
 }
 
@@ -111,6 +114,7 @@ const resolvedComponent = computed(() => {
     toggle:             NativeToggle,
     color:              NativeColor,
     range:              NativeRange,
+    number:             NativeNumber,
     hidden:             NativeHidden,
     fieldset:           NativeFieldset,
     'radio-group':      CardToggle,

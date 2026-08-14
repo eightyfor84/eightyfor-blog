@@ -228,7 +228,7 @@ const isActive = (path: string) => {
       </button>
 
       <!-- Settings Menu -->
-      <div class="nav-settings-menu" id="settings-menu">
+      <div class="nav-settings-menu mtl-container" id="settings-menu">
         <!-- Theme controls (top) -->
         <button class="popup-item" data-theme="follow">
           <span class="popup-label"
@@ -260,9 +260,7 @@ const isActive = (path: string) => {
           </span>
         </button>
 
-        <hr
-          style="margin:6px 4px; border:none; border-top:1px solid var(--comp-text-sec); opacity: 0.4;"
-        />
+        <hr/>
 
         <!-- Performance toggle -->
         <button class="popup-item" id="perf-toggle" onclick="window.__chronicleTogglePerf?.()">
@@ -274,9 +272,7 @@ const isActive = (path: string) => {
           </span>
         </button>
 
-        <hr
-          style="margin:6px 4px; border:none; border-top:1px solid var(--comp-text-sec); opacity: 0.4;"
-        />
+        <hr/>
 
         <!-- Language controls (below) -->
         <button class="popup-item" data-locale="follow">
@@ -304,9 +300,7 @@ const isActive = (path: string) => {
           </span>
         </button>
 
-        <hr
-          style="margin:6px 4px; border:none; border-top:1px solid var(--comp-text-sec); opacity: 0.4;"
-        />
+        <hr/>
 
         <!-- About -->
         {showAbout && (
@@ -488,7 +482,7 @@ const isActive = (path: string) => {
     color: var(--text-inactive);
     text-decoration: none;
     padding: 0.5rem 1rem;
-    border-radius: 4px;
+    border-radius: 6px;
     transition:
       background-color 0.4s ease,
       color 0.4s ease,
@@ -615,36 +609,56 @@ const isActive = (path: string) => {
     display: flex;
     align-items: center;
     justify-content: center;
+    /* Anchor the settings menu to this button (CSS Anchor Positioning). */
+    anchor-name: --settings-anchor;
   }
 
   .nav-setting-btn:hover {
     color: var(--text-pri);
   }
 
-  /* Settings Menu */
+  /* Settings Menu — JS appends it to <body> once; position is pure CSS. */
   .nav-settings-menu {
-    background: var(--comp-bg);
     position: fixed;
+    display: flex;
+    flex-direction: column;
     color: var(--comp-text-sec);
-    border: 1px solid var(--border-color);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
-    border-radius: 8px;
-    min-width: 180px;
-    max-width: 250px;
+    backdrop-filter: blur(12px);
+    border-radius: 12px;
+    min-width: 250px;
+    max-width: min(1400px + 20%, 80% + 100px);
     box-sizing: border-box;
     padding: 6px;
+    gap: 2px;
     z-index: 10000;
     font-size: 0.9rem;
     opacity: 0;
     pointer-events: none;
     transform: translateY(-4px);
     transition: opacity 0.15s ease, transform 0.15s ease;
+    /* Fallback position (browsers without CSS Anchor Positioning). */
+    top: 78px;
+    right: 2rem;
+  }
+  @supports (anchor-name: none) {
+    .nav-settings-menu {
+      position-anchor: --settings-anchor;
+      top: calc(anchor(bottom) + 8px);
+      right: anchor(right);
+    }
   }
 
   .nav-settings-menu.is-open {
     transform: translateY(0);
     opacity: 1;
     pointer-events: auto;
+  }
+
+  .nav-settings-menu hr {
+    margin:2px 4px; 
+    border:none; 
+    border-top:1px solid var(--comp-text-sec); 
+    opacity: 0.4;     
   }
 
   .popup-item {
@@ -662,7 +676,12 @@ const isActive = (path: string) => {
     transition: all 0.2s;
   }
 
-  .popup-item:hover {
+  .popup-item.active {
+    background: var(--highlight);
+    color: var(--comp-text-pri-hl);
+  }
+
+  .popup-item:not(.active):hover {
     background: var(--hover);
     color: var(--comp-text-pri-hvr);
   }
@@ -678,7 +697,7 @@ const isActive = (path: string) => {
   }
 
   .popup-check {
-    color: var(--accent);
+    color: var(--comp-text-pri-hl);
     display: none;
     align-items: center;
   }
@@ -827,7 +846,7 @@ const isActive = (path: string) => {
       align-items: center;
       overflow: auto;
       transform: translateY(-100%);
-      transition: opacity 0.2s ease, transform 1s ease;
+      transition: opacity 0.2s ease, transform 1s ease, gap 0.3s ease;
       z-index: 101;
       gap: 30px;
     }
@@ -1029,23 +1048,10 @@ const isActive = (path: string) => {
         btn.classList.toggle("active", shouldBeActive);
       });
     }
-    function positionSettingsMenu() {
-      if (!settingBtn || !settingsMenu) return;
-      const rect = settingBtn.getBoundingClientRect();
-      settingsMenu.classList.add('is-open');
-      settingsMenu.style.visibility = "hidden";
-      const menuWidth = settingsMenu.offsetWidth;
-      const top = rect.bottom + 8;
-      let left = rect.right - menuWidth;
-      if (left < 12) left = 12;
-      settingsMenu.style.top = top + "px";
-      settingsMenu.style.left = left + "px";
-      settingsMenu.style.visibility = "visible";
-    }
     settingBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       if (settingsMenu.classList.contains('is-open')) { settingsMenu.classList.remove('is-open'); }
-      else { updateMenuState(); positionSettingsMenu(); }
+      else { updateMenuState(); settingsMenu.classList.add('is-open'); }
     });
     document.addEventListener("click", (e) => {
       if (!settingsMenu.contains(e.target as Node) && e.target !== settingBtn) settingsMenu.classList.remove('is-open');

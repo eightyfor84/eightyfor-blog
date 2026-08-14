@@ -1,7 +1,8 @@
 /**
  * useCloudRelay — Local filesystem backend (Aurora)
  *
- * Slug is the sole identifier. No UUID, no allocateId, no validateId.
+ * id (normally a readable slug) is the sole identifier. No allocateId, no validateId.
+ * crypto.randomUUID() is the last-resort fallback when a slug can't be derived.
  * All operations go through dataAccess (IPC → main → fs).
  */
 
@@ -37,10 +38,25 @@ function uniqueSlug(idx: Record<string, any>, slug: string): string {
   return `${slug}-${n}`
 }
 
+/**
+ * Derive a readable slug from a title. When no readable characters remain
+ * (e.g. a title of only CJK or emoji), fall back to crypto.randomUUID() so
+ * the post still gets a stable, unique id.
+ */
+export function slugify(title: string): string {
+  const s = title.toLowerCase()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80)
+  return s || crypto.randomUUID()
+}
+
 function deriveSlug(content: string): string {
   // Slug = directory name. Derive from title in frontmatter.
   const tm = content.match(/^title:\s*(.+)$/m)
-  return (tm?.[1]?.trim() || 'untitled').toLowerCase().replace(/[^\w\s-]/g, '').replace(/[\s_]+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80)
+  return slugify(tm?.[1]?.trim() || '')
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -84,7 +100,7 @@ export async function savePost(
       id = deriveSlug(payload.content)
       console.log('[savePost] derived slug:', id)
       const idx = await getIndex()
-      id = uniqueSlug(idx, id || 'untitled')
+      id = uniqueSlug(idx, id)
       console.log('[savePost] unique slug:', id)
       console.log('[savePost] calling mkdir data/posts/', id)
       await mkdir(`data/posts/${id}`)

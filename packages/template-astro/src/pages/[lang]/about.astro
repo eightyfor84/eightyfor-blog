@@ -2,13 +2,15 @@
 export const prerender = true;
 
 export async function getStaticPaths() {
+  const settings = await loadSiteSettings();
+  const featureFlags = resolveFeatureFlags(settings?.featureFlags);
+  if (featureFlags.aboutPage === false) return [];
   return [{ params: { lang: 'zh' } }, { params: { lang: 'en' } }];
 }
 
 import Layout from '../../layouts/Layout.astro';
 import { getTranslation, getLocale } from '../../utils/i18n';
 import { resolveFeatureFlags } from '../../utils/featureFlags';
-import { buildLocalizedPath } from '../../utils/routeLocale';
 import { loadSiteSettings } from '../../utils/siteSettings';
 import { renderChronicleMarkdown } from '../../utils/chronicleMarkdown';
 import { getProfile } from '../../data/localDataSource';
@@ -20,12 +22,10 @@ const locale = getLocale(Astro.locals);
 const t = (key: string) => getTranslation(locale, key);
 
 const settings = await loadSiteSettings();
-const featureFlags = resolveFeatureFlags(settings?.featureFlags);
-const aboutEnabled = featureFlags.aboutPage !== false;
 
 // Profile card
 const profile = getProfile() as Record<string, any>;
-const showProfileCard = settings?.about?.showProfileCard !== false;
+const showProfileCard = profile?.showProfileCard !== false;
 
 // About markdown — same pipeline as post rendering
 import { setRenderPostId } from '../../utils/chronicleMarkdown';
@@ -51,7 +51,6 @@ try {
   }
 } catch {}
 
-const homeHref = buildLocalizedPath(locale, '/');
 const pageTitle = locale === 'zh-CN' ? '关于' : 'About';
 const metaDescription = profile?.bio
   ? String(profile.bio).slice(0, 160)
@@ -59,84 +58,73 @@ const metaDescription = profile?.bio
 ---
 
 <Layout title={pageTitle} settings={settings} locale={locale} meta={{ description: metaDescription }}>
-  {
-    !aboutEnabled ? (
-      <main class="about-page">
-        <div class="about-placeholder">
-          <p>{t('page.disabled')}</p>
-          <a href={homeHref}>{t('nav.home')}</a>
-        </div>
-      </main>
-    ) : (
-      <main class="about-page">
-        <article class="about-article">
-          <h1 class="about-title">{pageTitle}</h1>
+  <main class="about-page">
+    <article class="about-article">
+      <h1 class="about-title">{pageTitle}</h1>
 
-          {
-            showProfileCard && (profile?.name || profile?.avatar || profile?.bio) ? (
-              <div class="about-profile-card">
-                {profile.avatar ? (
-                  <ChronicleImage src={profile.avatar} alt={profile.name || ''} class="about-avatar" loading="lazy" decoding="async" style="cursor:pointer" onclick="window.__openFilePreview?.({ url: event.target.src, title: event.target.alt, type: 'image' })" />
-                ) : null}
-                <div class="about-profile-body">
-                  {profile.name ? <h2 class="about-name">{profile.name}</h2> : null}
-                  {profile.bio ? <p class="about-bio">{profile.bio}</p> : null}
-                  {profile.location ? (
-                    <span class="about-location">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                        <circle cx="12" cy="10" r="3" />
-                      </svg>
-                      {profile.location}
-                    </span>
-                  ) : null}
-                  {profile.links?.length ? (
-                    <div class="about-links">
-                      {profile.links.map((link: { label: string; url: string }) => (
-                        <a
-                          class="about-link"
-                          href={link.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          {link.label}
-                        </a>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
-              </div>
-            ) : null
-          }
-
-          {
-            aboutHtml ? (
-              <div class="chronicle-markdown" set:html={aboutHtml} />
-            ) : (
-              <div class="about-empty">
-                <p>{locale === 'zh-CN' ? '暂无内容。' : 'Nothing here yet.'}</p>
-              </div>
-            )
-          }
-
-          <!-- chronicle-markdown.css loaded async (43KB) — non-render-blocking -->
-          <link rel="stylesheet" href={chronicleMarkdownCssUrl} media="print" onload="this.media='all'" />
-          <noscript><link rel="stylesheet" href={chronicleMarkdownCssUrl} /></noscript>
-
-          {
-            lastModified ? (
-              <div class="about-last-modified">
-                <span class="about-modified-label">
-                  {locale === 'zh-CN' ? '最后更新' : 'Last updated'}:
+      {
+        showProfileCard && (profile?.name || profile?.avatar || profile?.bio) ? (
+          <div class="about-profile-card">
+            {profile.avatar ? (
+              <ChronicleImage src={profile.avatar} alt={profile.name || ''} class="about-avatar" loading="lazy" decoding="async" style="cursor:pointer" onclick="window.__openFilePreview?.({ url: event.target.src, title: event.target.alt, type: 'image' })" />
+            ) : null}
+            <div class="about-profile-body">
+              {profile.name ? <h2 class="about-name">{profile.name}</h2> : null}
+              {profile.bio ? <p class="about-bio">{profile.bio}</p> : null}
+              {profile.location ? (
+                <span class="about-location">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                  {profile.location}
                 </span>
-                <time datetime={lastModified}>{lastModified}</time>
-              </div>
-            ) : null
-          }
-        </article>
-      </main>
-    )
-  }
+              ) : null}
+              {profile.links?.length ? (
+                <div class="about-links">
+                  {profile.links.map((link: { label: string; url: string }) => (
+                    <a
+                      class="about-link"
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {link.label}
+                    </a>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        ) : null
+      }
+
+      {
+        aboutHtml ? (
+          <div class="chronicle-markdown" set:html={aboutHtml} />
+        ) : (
+          <div class="about-empty">
+            <p>{locale === 'zh-CN' ? '暂无内容。' : 'Nothing here yet.'}</p>
+          </div>
+        )
+      }
+
+      <!-- chronicle-markdown.css loaded async (43KB) — non-render-blocking -->
+      <link rel="stylesheet" href={chronicleMarkdownCssUrl} media="print" onload="this.media='all'" />
+      <noscript><link rel="stylesheet" href={chronicleMarkdownCssUrl} /></noscript>
+
+      {
+        lastModified ? (
+          <div class="about-last-modified">
+            <span class="about-modified-label">
+              {locale === 'zh-CN' ? '最后更新' : 'Last updated'}:
+            </span>
+            <time datetime={lastModified}>{lastModified}</time>
+          </div>
+        ) : null
+      }
+    </article>
+  </main>
 </Layout>
 
 <style>
@@ -144,12 +132,6 @@ const metaDescription = profile?.bio
   max-width: 860px;
   margin: 0 auto;
   padding: 48px 24px 64px;
-}
-
-.about-placeholder {
-  text-align: center;
-  padding: 80px 0;
-  color: var(--comp-text-sec);
 }
 
 .about-article {

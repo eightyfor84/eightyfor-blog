@@ -69,7 +69,7 @@ const searchIndex = posts.map(p => ({
 // URL params for initial state — only available client-side (SSG)
 const url = Astro.url;
 const keywordParam = "";
-const tagsParam = "";
+const tagsParam = "" as string | null;
 
 // 处理旧格式兼容性
 const initialTitle = keywordParam || url.searchParams.get("title") || "";
@@ -280,6 +280,7 @@ const metaDescription = locale === "zh-CN"
 
   /* Content Area Wrapper */
   .content-wrapper {
+    transform: translateY(20px) scale(.7);
     flex: 1;
     min-height: 0;
     margin-bottom: 10vh;
@@ -288,10 +289,12 @@ const metaDescription = locale === "zh-CN"
     visibility: hidden;
     transition:
       opacity 0.2s ease,
-      visibility 0.2s ease;
+      visibility 0.2s ease,
+      transform .6s cubic-bezier(.19,1,.22,1);
   }
 
   .content-wrapper.visible {
+    transform: none;
     opacity: 1;
     visibility: visible;
   }
@@ -299,8 +302,7 @@ const metaDescription = locale === "zh-CN"
   .content-scroll-area {
     height: 100%;
     overflow-y: auto;
-    padding-top: 20px;
-    padding-bottom: 20px;
+    padding: 20px;
     scrollbar-width: none;
     -ms-overflow-style: none;
     /* Blur mask - moved to scroll area */
@@ -423,16 +425,10 @@ const metaDescription = locale === "zh-CN"
     padding-bottom: 30px;
   }
   .result-card {
-    background: var(--comp-bg-glass);
-    border: 1px solid var(--border-color);
     padding: 16px;
-    border-radius: 8px;
+    border-radius: 12px;
     cursor: pointer;
-    transition: background 0.2s ease;
-  }
-  .result-card:hover {
-    background: var(--comp-bg-glass-hvr);
-    border-color: var(--comp-text-pri-hvr);
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
   }
   .s__post-header {
     display: flex;
@@ -500,7 +496,7 @@ const metaDescription = locale === "zh-CN"
     justify-content: space-between;
     align-items: center;
     margin-bottom: 8px;
-    padding: 0;
+    padding: 0 10px;
     flex-shrink: 0;
   }
 
@@ -1045,7 +1041,7 @@ const metaDescription = locale === "zh-CN"
             .map((post) => {
               const isF = (tag) => tag === "featured" || tag === "精选";
               return `
-              <article class="result-card" data-post-id="${esc(String(post.id))}">
+              <article class="result-card mtl-surface interactive glowable scalable" data-post-id="${esc(String(post.id))}">
                 <div class="s__post-header">
                   <h3 class="card-post-title">${esc(post.title)}</h3>
                   <span class="post-date">${new Date(post.date).toLocaleDateString(locale)}</span>

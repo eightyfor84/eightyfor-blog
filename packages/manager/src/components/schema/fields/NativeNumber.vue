@@ -1,0 +1,34 @@
+<template>
+  <div class="form-row">
+    <label v-if="label">{{ label }}</label>
+    <input
+      class="modern-input"
+      type="number"
+      :value="modelValue"
+      :placeholder="placeholder"
+      :min="schema.minimum"
+      :max="schema.maximum"
+      :step="schema.multipleOf || 1"
+      @input="onInput"
+    />
+    <p v-if="hint" class="small muted">{{ hint }}</p>
+  </div>
+</template>
+
+<script setup lang="ts">
+const props = defineProps<{
+  modelValue: number | string | undefined
+  schema: Record<string, any>
+  label?: string
+  hint?: string
+  placeholder?: string
+}>()
+
+const emit = defineEmits<{
+  'update:modelValue': [value: number]
+}>()
+
+function onInput(e: Event) {
+  emit('update:modelValue', Number((e.target as HTMLInputElement).value))
+}
+</script>

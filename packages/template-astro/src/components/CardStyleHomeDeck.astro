@@ -1,35 +1,90 @@
 ---
-import { buildLocalizedPath } from '../utils/routeLocale';
-import { getApiUrl } from '../config/api';
-import { loadSiteSettings } from '../utils/siteSettings';
-import { loadSiteProfile } from '../utils/siteProfile';
-import { getTranslation, getLocale } from '../utils/i18n';
-import SearchBox from './SearchBox.astro';
-import ChronicleImage from './ChronicleImage.astro';
+import { buildLocalizedPath } from "../utils/routeLocale";
+import { getApiUrl } from "../config/api";
+import { loadSiteSettings } from "../utils/siteSettings";
+import { loadSiteProfile } from "../utils/siteProfile";
+import { getTranslation, getLocale } from "../utils/i18n";
+import SearchBox from "./SearchBox.astro";
+import ChronicleImage from "./ChronicleImage.astro";
 
-const { locale, featureFlags } = Astro.props || { locale: 'zh-CN', featureFlags: {} };
+const { locale, featureFlags } = Astro.props || {
+  locale: "zh-CN",
+  featureFlags: {},
+};
 const t = (key: string) => getTranslation(locale, key);
 const routeLang = locale;
-const blogsPath = buildLocalizedPath(locale, '/blogs');
-const friendsPath = buildLocalizedPath(locale, '/friends');
-const aboutPath = buildLocalizedPath(locale, '/about');
-const collectionPath = buildLocalizedPath(locale, '/collection');
-const searchPath = buildLocalizedPath(locale, '/search');
+const blogsPath = buildLocalizedPath(locale, "/blogs");
+const friendsPath = buildLocalizedPath(locale, "/friends");
+const aboutPath = buildLocalizedPath(locale, "/about");
+const collectionPath = buildLocalizedPath(locale, "/collection");
+const searchPath = buildLocalizedPath(locale, "/search");
 const settings = await loadSiteSettings();
 const profile = await loadSiteProfile();
 
-const siteTitle = settings?.siteName || 'Chronicle';
-const authorName = profile?.name || settings?.authorName || (t('home.defaultAuthorName') as string);
-const authorBio = profile?.bio || '';
-const authorAvatar = profile?.avatar || '';
-const authorAvatarSourceRaw = profile?.avatarSource || '';
-const authorAvatarSource = authorAvatarSourceRaw && !authorAvatarSourceRaw.startsWith('/') && !authorAvatarSourceRaw.startsWith('http')
-  ? `/server/data/upload/${authorAvatarSourceRaw}`
-  : (authorAvatarSourceRaw || authorAvatar);
-const cardSubtitle = settings?.siteDescription || (t('home.cardSubtitle') as string);
-const cardAuthorLine = t('home.cardAuthorLine') as string;
+const siteTitle = settings?.siteName || "Chronicle";
+const authorName =
+  profile?.name ||
+  settings?.authorName ||
+  (t("home.defaultAuthorName") as string);
+const authorBio = profile?.bio || "";
+const authorAvatar = profile?.avatar || "";
+const authorAvatarSourceRaw = profile?.avatarSource || "";
+const authorAvatarSource =
+  authorAvatarSourceRaw &&
+  !authorAvatarSourceRaw.startsWith("/") &&
+  !authorAvatarSourceRaw.startsWith("http")
+    ? `/server/data/upload/${authorAvatarSourceRaw}`
+    : authorAvatarSourceRaw || authorAvatar;
+const cardSubtitle =
+  settings?.siteDescription || (t("home.cardSubtitle") as string);
+const cardAuthorLine = t("home.cardAuthorLine") as string;
 const isFriendsEnabled = featureFlags?.friendsPage !== false;
 const isCollectionEnabled = featureFlags?.collectionPage !== false;
+
+// Icon glyphs (Lucide-style, stroke=currentColor) for the activity-card items.
+// Each type's colour is applied via `.activity-item__icon { color }`, so the
+// stroke inherits it through `currentColor`.
+const activityIcons = {
+  date: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+  app: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>',
+  post: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
+  collection:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M 12 2 L 21 8 L 12 14 L 3 8 Z"/><path d="M 18 14 L 21 16 L 12 22 L 3 16 L 6 14"/></svg>',
+  stale:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+};
+
+// Home footer site links (profile links + RSS + About). Separators are rendered
+// only *between* items, so disabling any item never leaves a dangling "·".
+type FooterLink = {
+  label: string;
+  href: string;
+  attrs: Record<string, string>;
+};
+const footerLinks: FooterLink[] = [
+  ...profile.links.map((l) => ({
+    label: l.label,
+    href: l.url,
+    attrs: { target: "_blank", rel: "noopener noreferrer" },
+  })),
+  ...(featureFlags?.rss !== false
+    ? [
+        {
+          label: t("home.rssSubscribe") as string,
+          href: "/rss.xml",
+          attrs: {
+            rel: "alternate nofollow",
+            type: "application/rss+xml",
+            target: "_blank",
+            title: t("home.rssSubscribe") as string,
+          },
+        },
+      ]
+    : []),
+  ...(featureFlags?.aboutPage !== false
+    ? [{ label: t("nav.about") as string, href: aboutPath, attrs: {} }]
+    : []),
+];
 
 // Homepage card visibility
 const cv = settings?.cardVisibility || {};
@@ -39,12 +94,15 @@ const showActivityCard = cv?.activity !== false;
 const isSingleColumn = settings?.singleColumnHomepage === true;
 
 // Right column is empty if all cards in it are hidden
-const rightColumnEmpty = !showAuthorCard && !showTaxonomyCard && !showActivityCard;
+const rightColumnEmpty =
+  !showAuthorCard && !showTaxonomyCard && !showActivityCard;
 
-function interpolate(template: string, values: Record<string, string | number>) {
-  return template.replace(/\{(\w+)\}/g, (_, key) => String(values[key] ?? ''));
+function interpolate(
+  template: string,
+  values: Record<string, string | number>,
+) {
+  return template.replace(/\{(\w+)\}/g, (_, key) => String(values[key] ?? ""));
 }
-
 
 function normalizeApiList(payload: any) {
   // Unwrap Chronicle API envelope { code, data, message } → data
@@ -56,51 +114,57 @@ function normalizeApiList(payload: any) {
 }
 
 function toPlainText(input: unknown) {
-  return String(input || '')
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/&nbsp;/gi, ' ')
-    .replace(/&amp;/gi, '&')
-    .replace(/&lt;/gi, '<')
-    .replace(/&gt;/gi, '>')
+  return String(input || "")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
     .replace(/&quot;/gi, '"')
     .replace(/&#39;/gi, "'")
-    .replace(/\s+/g, ' ')
+    .replace(/\s+/g, " ")
     .trim();
 }
 
 function pickSummary(post: any) {
-  const raw = post?.summary || post?.excerpt || post?.description || post?.content || post?.html || '';
+  const raw =
+    post?.summary ||
+    post?.excerpt ||
+    post?.description ||
+    post?.content ||
+    post?.html ||
+    "";
   const text = toPlainText(raw);
-  if (!text) return t('home.noSummary') as string;
-  return text.slice(0, 140) + (text.length > 140 ? '…' : '');
+  if (!text) return t("home.noSummary") as string;
+  return text.slice(0, 140) + (text.length > 140 ? "…" : "");
 }
 
 function normalizeTag(tag: unknown) {
-  return String(tag || '')
+  return String(tag || "")
     .trim()
-    .replace(/^#+/, '')
+    .replace(/^#+/, "")
     .toLowerCase();
 }
 
 function isFeaturedTag(tag: unknown) {
   const normalized = normalizeTag(tag);
-  return normalized === 'featured' || normalized === '精选';
+  return normalized === "featured" || normalized === "精选";
 }
 
 function canonicalTag(tag: unknown) {
-  return isFeaturedTag(tag) ? 'featured' : normalizeTag(tag);
+  return isFeaturedTag(tag) ? "featured" : normalizeTag(tag);
 }
 
 function safeDateValue(value: unknown) {
-  const date = new Date(String(value || ''));
+  const date = new Date(String(value || ""));
   return Number.isNaN(date.getTime()) ? new Date(0) : date;
 }
 
 function formatDate(date: Date, options: Intl.DateTimeFormatOptions = {}) {
   return date.toLocaleDateString(locale, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
+    year: "numeric",
+    month: "short",
+    day: "numeric",
     ...options,
   });
 }
@@ -112,7 +176,7 @@ function buildPostUrl(postId: string) {
 function uniqueById(list: any[]) {
   const seen = new Set<string>();
   return list.filter((item) => {
-    const id = String(item?.id || '').trim();
+    const id = String(item?.id || "").trim();
     if (!id || seen.has(id)) return false;
     seen.add(id);
     return true;
@@ -123,7 +187,7 @@ function buildTagStats(postsList: any[]) {
   const counts = new Map<string, number>();
   for (const post of postsList) {
     for (const tag of Array.isArray(post?.tags) ? post.tags : []) {
-      const normalized = String(tag || '').trim();
+      const normalized = String(tag || "").trim();
       if (!normalized) continue;
       counts.set(normalized, (counts.get(normalized) || 0) + 1);
     }
@@ -143,12 +207,19 @@ function buildTagStats(postsList: any[]) {
 }
 
 function buildArchiveStats(postsList: any[]) {
-  const years = new Map<number, { count: number; months: Map<number, number>; latest: Date }>();
+  const years = new Map<
+    number,
+    { count: number; months: Map<number, number>; latest: Date }
+  >();
   for (const post of postsList) {
     const date = safeDateValue(post?.date);
     const year = date.getFullYear();
     const month = date.getMonth();
-    const current = years.get(year) || { count: 0, months: new Map<number, number>(), latest: date };
+    const current = years.get(year) || {
+      count: 0,
+      months: new Map<number, number>(),
+      latest: date,
+    };
     current.count += 1;
     current.latest = current.latest > date ? current.latest : date;
     current.months.set(month, (current.months.get(month) || 0) + 1);
@@ -179,8 +250,8 @@ function buildCollectionSummaries(collectionsList: any[]) {
         if (!Array.isArray(items)) return;
         for (const node of items) {
           if (!node) continue;
-          if (node.type === 'post' && node.id) stats.posts += 1;
-          if (node.type === 'group') {
+          if (node.type === "post" && node.id) stats.posts += 1;
+          if (node.type === "group") {
             stats.groups += 1;
             walk(node.children);
           }
@@ -188,8 +259,10 @@ function buildCollectionSummaries(collectionsList: any[]) {
       };
       walk(nodes);
       return {
-        name: String(collection.name || '').trim() || (t('home.unnamedCollection') as string),
-        description: String(collection.description || '').trim(),
+        name:
+          String(collection.name || "").trim() ||
+          (t("home.unnamedCollection") as string),
+        description: String(collection.description || "").trim(),
         posts: stats.posts,
         groups: stats.groups,
       };
@@ -202,28 +275,40 @@ let posts: any[] = [];
 let collections: any[] = [];
 
 // In local/filesystem mode, read directly from data/ without API
-const isLocal = process.env.DATA_SOURCE !== 'api';
+const isLocal = process.env.DATA_SOURCE !== "api";
 if (isLocal) {
   try {
-    const { getPublishedPosts, getCollections } = await import('../data/localDataSource');
-    posts = getPublishedPosts().map((p: any) => ({ ...p, content: undefined, compiledHtml: undefined }));
+    const { getPublishedPosts, getCollections } =
+      await import("../data/localDataSource");
+    posts = getPublishedPosts().map((p: any) => ({
+      ...p,
+      content: undefined,
+      compiledHtml: undefined,
+    }));
     collections = (getCollections() as any) || [];
     // unwrap legacy collection format
-    if (!Array.isArray(collections) && Array.isArray((collections as any).collections)) {
+    if (
+      !Array.isArray(collections) &&
+      Array.isArray((collections as any).collections)
+    ) {
       collections = (collections as any).collections;
     }
     if (!Array.isArray(collections)) collections = [];
   } catch (e) {
-    console.warn('[CardStyleHomeDeck] localDataSource fallback failed, posts empty');
+    console.warn(
+      "[CardStyleHomeDeck] localDataSource fallback failed, posts empty",
+    );
   }
 } else {
   // Remote API mode — fetch at build time
   const [postsRes, collectionsRes] = await Promise.allSettled([
-    fetch(getApiUrl(`/api/posts?t=${Date.now()}`, true), { cache: 'no-store' }),
-    fetch(getApiUrl(`/api/collections?t=${Date.now()}`, true), { cache: 'no-store' }),
+    fetch(getApiUrl(`/api/posts?t=${Date.now()}`, true), { cache: "no-store" }),
+    fetch(getApiUrl(`/api/collections?t=${Date.now()}`, true), {
+      cache: "no-store",
+    }),
   ]);
 
-  if (postsRes.status === 'fulfilled' && postsRes.value.ok) {
+  if (postsRes.status === "fulfilled" && postsRes.value.ok) {
     try {
       const data = await postsRes.value.json();
       posts = normalizeApiList(data);
@@ -232,7 +317,7 @@ if (isLocal) {
     }
   }
 
-  if (collectionsRes.status === 'fulfilled' && collectionsRes.value.ok) {
+  if (collectionsRes.status === "fulfilled" && collectionsRes.value.ok) {
     try {
       const data = await collectionsRes.value.json();
       collections = normalizeApiList(data);
@@ -242,17 +327,28 @@ if (isLocal) {
   }
 }
 
-const sortedPosts = [...posts].sort((a, b) => safeDateValue(b?.date).getTime() - safeDateValue(a?.date).getTime());
-const featuredPosts = sortedPosts.filter((post) => Array.isArray(post?.tags) && post.tags.some(isFeaturedTag)).slice(0, 5);
+const sortedPosts = [...posts].sort(
+  (a, b) => safeDateValue(b?.date).getTime() - safeDateValue(a?.date).getTime(),
+);
+const featuredPosts = sortedPosts
+  .filter((post) => Array.isArray(post?.tags) && post.tags.some(isFeaturedTag))
+  .slice(0, 5);
 const recentPosts = sortedPosts.slice(0, 10);
 const leadPost = recentPosts[0] || featuredPosts[0] || null;
-const secondaryPosts = uniqueById([...featuredPosts, ...recentPosts]).filter((post) => post?.id && post?.id !== leadPost?.id).slice(0, 4);
+const secondaryPosts = uniqueById([...featuredPosts, ...recentPosts])
+  .filter((post) => post?.id && post?.id !== leadPost?.id)
+  .slice(0, 4);
 const TAG_LIMIT = 14;
 const COLLECTION_LIMIT = 3;
 const allTagStats = buildTagStats(sortedPosts);
-const tagStats = allTagStats.filter((item) => !item.featured).slice(0, TAG_LIMIT);
-const hasMoreTags = allTagStats.filter((item) => !item.featured).length > TAG_LIMIT;
-const featuredTagStats = allTagStats.filter((item) => item.featured).slice(0, 1);
+const tagStats = allTagStats
+  .filter((item) => !item.featured)
+  .slice(0, TAG_LIMIT);
+const hasMoreTags =
+  allTagStats.filter((item) => !item.featured).length > TAG_LIMIT;
+const featuredTagStats = allTagStats
+  .filter((item) => item.featured)
+  .slice(0, 1);
 const archiveStats = buildArchiveStats(sortedPosts);
 const allCollectionSummaries = buildCollectionSummaries(collections);
 const collectionSummaries = allCollectionSummaries.slice(0, COLLECTION_LIMIT);
@@ -262,215 +358,438 @@ const recommendedPosts = uniqueById([...featuredPosts, ...recentPosts])
   .filter((post) => post?.id && post?.id !== leadPost?.id)
   .slice(0, 3);
 
-const interactionFeed: Array<{ title: string; meta: string; href: string; tone: string }> = [];
-for (const post of recentPosts.slice(0, 3)) {
-  interactionFeed.push({
-    title: post.title,
-    meta: t('home.recentPublished') as string,
-    href: buildPostUrl(post.id),
-    tone: 'post',
-  });
-}
-for (const collection of collectionSummaries.slice(0, 2)) {
-  interactionFeed.push({
-    title: collection.name,
-    meta: interpolate(t('home.collectionMeta'), { posts: collection.posts, groups: collection.groups }),
-    href: collectionPath,
-    tone: 'collection',
-  });
-}
-if (isFriendsEnabled && Array.isArray(settings?.friendsCards)) {
-  for (const friend of settings.friendsCards.slice(0, 2)) {
-    const friendName = String(friend?.name || '').trim();
-    const friendUrl = String(friend?.homeUrl || '').trim();
-    if (!friendName || !friendUrl) continue;
-    interactionFeed.push({
-      title: friendName,
-      meta: t('home.friendPageInteraction'),
-      href: friendUrl,
-      tone: 'friend',
+// Recent updates (git-based) with a static fallback (recent posts + collections,
+// no friends). Fallback shares the exact same rendering — only the data differs:
+// the "last updated" label reads "Unknown" and the content list is static.
+type RecentUpdatesData = {
+  latestCommitDate: string;
+  appUpdated: boolean;
+  newPosts: { id: string; title: string }[];
+  modifiedPosts: { id: string; title: string }[];
+  newCollections: { slug: string; name: string }[];
+};
+type ActivityItem = {
+  tone: "app" | "post" | "collection";
+  label?: string;
+  title: string;
+  href?: string;
+};
+const staleDays = settings?.recentUpdates?.staleDays ?? 30;
+const aggregateDays = settings?.recentUpdates?.aggregateDays ?? 7;
+
+let recentUpdates: RecentUpdatesData | null = null;
+if (isLocal) {
+  try {
+    const { getRecentUpdates } = await import("../utils/recentUpdates");
+    recentUpdates = await getRecentUpdates({
+      posts,
+      collections,
+      aggregateDays,
     });
+  } catch {
+    recentUpdates = null;
   }
 }
 
-const authorInitials = authorName
-  .split(/\s+/)
-  .filter(Boolean)
-  .slice(0, 2)
-  .map((item: string) => item[0])
-  .join('') || 'C';
+const updateTimeLabel = recentUpdates
+  ? formatDate(safeDateValue(recentUpdates.latestCommitDate))
+  : (t("home.unknownTime") as string);
+const isStale =
+  !!recentUpdates &&
+  Date.now() - safeDateValue(recentUpdates.latestCommitDate).getTime() >
+    staleDays * 86400000;
+
+// Unified content list — same shape for the git-derived (fresh) and the static
+// fallback feed, so the markup renders identically in both cases.
+const activityItems: ActivityItem[] = [];
+if (recentUpdates) {
+  if (recentUpdates.appUpdated) {
+    activityItems.push({ tone: "app", title: t("home.updatedApp") as string });
+  }
+  for (const p of recentUpdates.newPosts) {
+    activityItems.push({
+      tone: "post",
+      label: t("home.newPost") as string,
+      title: p.title,
+      href: buildPostUrl(p.id),
+    });
+  }
+  for (const p of recentUpdates.modifiedPosts) {
+    activityItems.push({
+      tone: "post",
+      label: t("home.updatedPosts") as string,
+      title: p.title,
+      href: buildPostUrl(p.id),
+    });
+  }
+  for (const c of recentUpdates.newCollections) {
+    activityItems.push({
+      tone: "collection",
+      label: t("home.newCollections") as string,
+      title: c.name,
+      href: collectionPath + "#" + encodeURIComponent(c.name),
+    });
+  }
+} else {
+  for (const post of recentPosts.slice(0, 3)) {
+    activityItems.push({
+      tone: "post",
+      label: t("home.recentPublished") as string,
+      title: post.title,
+      href: buildPostUrl(post.id),
+    });
+  }
+  if (isCollectionEnabled) {
+    for (const collection of collectionSummaries.slice(0, 2)) {
+      activityItems.push({
+        tone: "collection",
+        label: interpolate(t("home.collectionMeta"), {
+          posts: collection.posts,
+          groups: collection.groups,
+        }),
+        title: collection.name,
+        href: collectionPath + "#" + encodeURIComponent(collection.name),
+      });
+    }
+  }
+}
+
+const authorInitials =
+  authorName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((item: string) => item[0])
+    .join("") || "C";
 
 const yearLabel = new Date().getFullYear();
 ---
 
 <section class="home-shell">
-  <div class="card-flows" class:list={[{"single-col": isSingleColumn || rightColumnEmpty}]}>
+  <div
+    class="card-flows"
+    class:list={[{ "single-col": isSingleColumn || rightColumnEmpty }]}
+  >
     <main class="flow-column flow-column--left">
-      <article class="panel-card flow-intro">
+      <article class="panel-card mtl-container flow-intro">
         <h1>{siteTitle}</h1>
         <p class="hero-description">{cardSubtitle}</p>
 
         <div class="hero-actions">
-          <a class="float-btn primary" href={leadPost ? buildPostUrl(leadPost.id) : blogsPath}>
-            {t('home.readingLatest')}
+          <a
+            class="float-btn primary"
+            href={leadPost ? buildPostUrl(leadPost.id) : blogsPath}
+          >
+            {t("home.readingLatest")}
           </a>
           <a class="float-btn" href={blogsPath}>
-            {t('home.browseAllPosts')}
+            {t("home.browseAllPosts")}
           </a>
         </div>
       </article>
 
-      <section class="panel-card content-panel">
+      <section class="panel-card mtl-container content-panel">
         <div class="section-head">
           <div>
-            <h2 class="panel-kicker">{t('home.latestFeaturedArticles')}</h2>
-            <h3>{t('home.mainContentStream')}</h3>
+            <h2 class="panel-kicker">{t("home.latestFeaturedArticles")}</h2>
+            <h3>{t("home.mainContentStream")}</h3>
           </div>
-          <a href={blogsPath}>{t('home.viewAll')}</a>
+          <a href={blogsPath}>{t("home.viewAll")}</a>
         </div>
 
         <div class="recent-stream">
-          {recentPosts.length ? recentPosts.map((post) => (
-            <a href={buildPostUrl(post.id)} class="stream-card-link">
-            <article class="stream-card">
-              <div class="stream-card__date">{formatDate(safeDateValue(post.date))}</div>
-              <div class="stream-card__body">
-                <div class="stream-card__top">
-                  <h4>{post.title}</h4>
-                  {Array.isArray(post.tags) && post.tags.some(isFeaturedTag) ? <span class="stream-card__flag featured">{t('blog.featured')}</span> : null}
-                </div>
-                <p>{pickSummary(post)}</p>
-                <div class="stream-card__tags">
-                  {Array.isArray(post.tags) && post.tags.slice(0, 3).map((tag: string) => (
-                    <span class:list={['tag', canonicalTag(tag) === 'featured' && 'featured']}># {tag}</span>
-                  ))}
-                </div>
-              </div>
-            </article>
-            </a>
-          )) : <div class="empty-state">{t('home.noPostsAvailable')}</div>}
+          {
+            recentPosts.length ? (
+              recentPosts.map((post) => (
+                <a href={buildPostUrl(post.id)} class="stream-card-link">
+                  <article class="stream-card mtl-surface interactive glowable scalable">
+                    <div class="stream-card__date">
+                      {formatDate(safeDateValue(post.date))}
+                    </div>
+                    <div class="stream-card__body">
+                      <div class="stream-card__top">
+                        <h4>{post.title}</h4>
+                        {Array.isArray(post.tags) &&
+                        post.tags.some(isFeaturedTag) ? (
+                          <span class="stream-card__flag featured">
+                            {t("blog.featured")}
+                          </span>
+                        ) : null}
+                      </div>
+                      <p>{pickSummary(post)}</p>
+                      <div class="stream-card__tags">
+                        {Array.isArray(post.tags) &&
+                          post.tags
+                            .slice(0, 3)
+                            .map((tag: string) => (
+                              <span
+                                class:list={[
+                                  "tag",
+                                  canonicalTag(tag) === "featured" &&
+                                    "featured",
+                                ]}
+                              >
+                                # {tag}
+                              </span>
+                            ))}
+                      </div>
+                    </div>
+                  </article>
+                </a>
+              ))
+            ) : (
+              <div class="empty-state">{t("home.noPostsAvailable")}</div>
+            )
+          }
         </div>
       </section>
-
     </main>
 
-    <aside class="flow-column flow-column--right" class:list={[{"column-empty": rightColumnEmpty}]}>
-      {showAuthorCard && (
-      <article class="author-card panel-card">
-        <div class="author-card__top">
-          {authorAvatar ? (
-            <ChronicleImage src={authorAvatar} alt={authorName} class="author-avatar" width="64" height="64" loading="eager" decoding="async" fetchpriority="auto" style="cursor:zoom-in" data-source={authorAvatarSource} onclick="window.__openFilePreview?.({ url: event.target.dataset.source || event.target.src, title: event.target.alt, type: 'image' })" />
-          ) : (
-            <div class="author-avatar" aria-hidden="true">{authorInitials}</div>
-          )}
-          <div>
-            <h2 class="panel-kicker">{t('home.authorInfo')}</h2>
-            <h3>{authorName}</h3>
-          </div>
-        </div>
-        {authorBio ? <p class="author-bio">{authorBio}</p> : <p style="margin-bottom:0;">{cardAuthorLine}</p>}
-      </article>
-      )}
+    <aside
+      class="flow-column flow-column--right"
+      class:list={[{ "column-empty": rightColumnEmpty }]}
+    >
+      {
+        showAuthorCard && (
+          <article class="author-card panel-card mtl-container">
+            <div class="author-card__top">
+              {authorAvatar ? (
+                <ChronicleImage
+                  src={authorAvatar}
+                  alt={authorName}
+                  class="author-avatar"
+                  width="64"
+                  height="64"
+                  loading="eager"
+                  decoding="async"
+                  fetchpriority="auto"
+                  style="cursor:zoom-in"
+                  data-source={authorAvatarSource}
+                  onclick="window.__openFilePreview?.({ url: event.target.dataset.source || event.target.src, title: event.target.alt, type: 'image' })"
+                />
+              ) : (
+                <div class="author-avatar" aria-hidden="true">
+                  {authorInitials}
+                </div>
+              )}
+              <div>
+                <h2 class="panel-kicker">{t("home.authorInfo")}</h2>
+                <h3>{authorName}</h3>
+              </div>
+            </div>
+            {authorBio ? (
+              <p class="author-bio">{authorBio}</p>
+            ) : (
+              <p style="margin-bottom:0;">{cardAuthorLine}</p>
+            )}
+          </article>
+        )
+      }
 
-      {showTaxonomyCard && (
-      <section class="panel-card taxonomy-card">
-        <div class="section-head" style="margin-bottom: 0;">
-          <div>
-            <h2 class="panel-kicker">{t('home.topicNavigation')}</h2>
-          </div>
-        </div>
+      {
+        showTaxonomyCard && (
+          <section class="panel-card mtl-container taxonomy-card">
+            <div class="section-head" style="margin-bottom: 0;">
+              <div>
+                <h2 class="panel-kicker">{t("home.topicNavigation")}</h2>
+              </div>
+            </div>
 
-        <div class="taxonomy-block">
-          <h3>{t('home.quickSearch')}</h3>
-          <SearchBox
-            instanceId="home-searchbox"
-            searchSuggestionsEnabled= {false}
-            showTagTrigger={false}
-            placeholder={t("search.placeholder")}
-            featuredLabel={t("tag.featured")}
-            searchOnEnter={true}
-            
-            t={t}
-          />
-        </div>
+            <div class="taxonomy-block">
+              <h3>{t("home.quickSearch")}</h3>
+              <SearchBox
+                instanceId="home-searchbox"
+                searchSuggestionsEnabled={false}
+                showTagTrigger={false}
+                placeholder={t("search.placeholder")}
+                featuredLabel={t("tag.featured")}
+                searchOnEnter={true}
+                t={t}
+              />
+            </div>
 
-        <div v-if={isCollectionEnabled} class="taxonomy-block">
-          <h3>{t('home.collectionList')}</h3>
-          <div class="taxonomy-list">
-            {collectionSummaries.length ? collectionSummaries.map((collection) => (
-              <a href={collectionPath + '#' + encodeURIComponent(collection.name)}>
-                <span>{collection.name}</span>
-                <strong>{collection.posts}</strong>
-              </a>
-            )) : null}
-          </div>
-          {hasMoreCollections ? (
-            <a href={collectionPath} class="view-more-link">
-              {t('home.viewAll')} →
-            </a>
-          ) : null}
-        </div>
+            {isCollectionEnabled && (
+              <div class="taxonomy-block">
+                <h3>{t("home.collectionList")}</h3>
+                <div class="taxonomy-list">
+                  {collectionSummaries.length
+                    ? collectionSummaries.map((collection) => (
+                        <a
+                          class="mtl-surface interactive glowable scalable"
+                          href={
+                            collectionPath +
+                            "#" +
+                            encodeURIComponent(collection.name)
+                          }
+                        >
+                          <span>{collection.name}</span>
+                          <strong>{collection.posts}</strong>
+                        </a>
+                      ))
+                    : null}
+                </div>
+                {hasMoreCollections ? (
+                  <a href={collectionPath} class="view-more-link">
+                    {t("home.viewAll")} →
+                  </a>
+                ) : null}
+              </div>
+            )}
 
-        <div class="taxonomy-block">
-          <h3>{t('home.tagCloud')}</h3>
-          <div class="tag-cloud">
-            {tagStats.map((tag) => (
-              <a class:list={['tag-cloud-item', tag.featured ? 'featured' : '']} href={searchPath + '?tags=' + encodeURIComponent(tag.name)}>
-                {tag.featured ? t('blog.featured') : tag.name}
-                <span class="tag-count">{tag.count}</span>
-              </a>
-            ))}
-          </div>
-          {hasMoreTags ? (
-            <a href={searchPath + '?view=tags'} class="view-more-link">
-              {t('home.viewAllTags')} →
-            </a>
-          ) : null}
-        </div>
-      </section>
-      )}
+            <div class="taxonomy-block">
+              <h3>{t("home.tagCloud")}</h3>
+              <div class="tag-cloud">
+                {tagStats.map((tag) => (
+                  <a
+                    class:list={[
+                      "tag-cloud-item",
+                      tag.featured ? "featured" : "",
+                    ]}
+                    href={searchPath + "?tags=" + encodeURIComponent(tag.name)}
+                  >
+                    {tag.featured ? t("blog.featured") : tag.name}
+                    <span class="tag-count">{tag.count}</span>
+                  </a>
+                ))}
+              </div>
+              {hasMoreTags ? (
+                <a href={searchPath + "?view=tags"} class="view-more-link">
+                  {t("home.viewAllTags")} →
+                </a>
+              ) : null}
+            </div>
+          </section>
+        )
+      }
 
-      {showActivityCard && (
-      <section class="panel-card activity-card">
-        <div class="section-head">
-          <div>
-            <h2 class="panel-kicker">{t('home.recentActivityCard')}</h2>
-            <h3>{t('home.siteActivity')}</h3>
-          </div>
-        </div>
-        <div class="activity-list">
-          {interactionFeed.length ? interactionFeed.map((item) => (
-            <a class:list={['activity-item', item.tone]} href={item.href}>
-              <span>{item.meta}</span>
-              <strong>{item.title}</strong>
-            </a>
-          )) : <div class="empty-state">{t('home.noInteractionData')}</div>}
-        </div>
-      </section>
-      )}
+      {
+        showActivityCard && (
+          <section class="panel-card mtl-container activity-card">
+            <div class="section-head" style="margin-bottom: 0;">
+              <div>
+                <h2 class="panel-kicker">{t("home.recentUpdates")}</h2>
+              </div>
+            </div>
+            <div class="taxonomy-block">
+              <h3>{t("home.updateTime")}</h3>
+              <div class="activity-item date mtl-surface">
+                <span
+                  class="activity-item__icon"
+                  aria-hidden="true"
+                  set:html={activityIcons.date}
+                />
+                <span class="activity-item__text">
+                  <strong>{updateTimeLabel}</strong>
+                </span>
+              </div>
+            </div>
+            {isStale ? (
+              <div class="activity-item stale">
+                <span
+                  class="activity-item__icon"
+                  aria-hidden="true"
+                  set:html={activityIcons.stale}
+                />
+                <span class="activity-item__text">
+                  <strong>{t("home.staleNotice")}</strong>
+                </span>
+              </div>
+            ) : (
+              <div class="taxonomy-block">
+                <h3>{t("home.updateContent")}</h3>
+                <div class="activity-list">
+                  {activityItems.length ? (
+                    activityItems.map((item) =>
+                      item.href ? (
+                        <a
+                          class:list={[
+                            "activity-item",
+                            item.tone,
+                            "mtl-surface interactive glowable scalable",
+                          ]}
+                          href={item.href}
+                        >
+                          <span
+                            class="activity-item__icon"
+                            aria-hidden="true"
+                            set:html={activityIcons[item.tone]}
+                          />
+                          <span class="activity-item__text">
+                            {item.label ? (
+                              <span class="activity-item__label">
+                                {item.label}
+                              </span>
+                            ) : null}
+                            <strong>{item.title}</strong>
+                          </span>
+                        </a>
+                      ) : (
+                        <div class:list={["activity-item", item.tone]}>
+                          <span
+                            class="activity-item__icon"
+                            aria-hidden="true"
+                            set:html={activityIcons[item.tone]}
+                          />
+                          <span class="activity-item__text">
+                            {item.label ? (
+                              <span class="activity-item__label">
+                                {item.label}
+                              </span>
+                            ) : null}
+                            <strong>{item.title}</strong>
+                          </span>
+                        </div>
+                      )
+                    )
+                  ) : (
+                    <div class="empty-state">{t("home.noRecentChanges")}</div>
+                  )}
+                </div>
+              </div>
+            )}
+          </section>
+        )
+      }
     </aside>
   </div>
 
-  <footer class="panel-card home-footer">
+  <footer class="panel-card mtl-container home-footer">
     <div class="home-footer__links">
-      <nav class="home-footer__nav" aria-label={t('home.siteLinksAria')}>
-        {profile.links?.length ? profile.links.map((link: { label: string; url: string }) => (
-          <><a href={link.url} target="_blank" rel="noopener noreferrer">{link.label}</a><span class="home-footer__sep">·</span></>
-        )) : null}
-        {featureFlags?.rss !== false ? (
-          <><a href="/rss.xml" rel="alternate nofollow" type="application/rss+xml" target="_blank" title={t('home.rssSubscribe')}>{t('home.rssSubscribe')}</a><span class="home-footer__sep">·</span></>
-        ) : null}
-        {featureFlags?.aboutPage !== false ? (
-          <a href={aboutPath}>{t('nav.about')}</a>
-        ) : null}
+      <nav class="home-footer__nav" aria-label={t("home.siteLinksAria")}>
+        {
+          footerLinks.map((link, i) => (
+            <>
+              {i > 0 ? <span class="home-footer__sep">·</span> : null}
+              <a href={link.href} {...link.attrs}>
+                {link.label}
+              </a>
+            </>
+          ))
+        }
       </nav>
     </div>
 
     <div class="home-footer__meta">
-      <div>© {__YEAR__} {siteTitle} · All rights reserved · Powered by Chronicle Aurora v{__VERSION__}</div>
-      {settings?.icpNumber ? (
-        <div>备案号：<a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">{settings.icpNumber}</a></div>
-      ) : null}
+      <div>
+        © {__YEAR__}
+        {siteTitle} · All rights reserved · Powered by Chronicle Aurora v{
+          __VERSION__
+        }
+      </div>
+      {
+        settings?.icpNumber ? (
+          <div>
+            备案号：
+            <a
+              href="https://beian.miit.gov.cn/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {settings.icpNumber}
+            </a>
+          </div>
+        ) : null
+      }
     </div>
   </footer>
 </section>
@@ -479,13 +798,15 @@ const yearLabel = new Date().getFullYear();
   let _homeSearchInit = false;
 
   function initHomeSearchBox() {
-    const homeSearchBoxRoot = document.querySelector('[data-searchbox-id="home-searchbox"]');
+    const homeSearchBoxRoot = document.querySelector(
+      '[data-searchbox-id="home-searchbox"]',
+    );
     if (!homeSearchBoxRoot || _homeSearchInit) return;
     _homeSearchInit = true;
 
-    homeSearchBoxRoot.addEventListener('searchbox:submit', (event) => {
+    homeSearchBoxRoot.addEventListener("searchbox:submit", (event) => {
       const detail = event.detail || {};
-      const keyword = String(detail.query || '').trim();
+      const keyword = String(detail.query || "").trim();
       const target = keyword
         ? `${searchPath}?keyword=${encodeURIComponent(keyword)}`
         : `${searchPath}`;
@@ -495,8 +816,8 @@ const yearLabel = new Date().getFullYear();
   }
 
   initHomeSearchBox();
-  document.addEventListener('astro:page-load', initHomeSearchBox);
-  document.addEventListener('astro:before-swap', () => {
+  document.addEventListener("astro:page-load", initHomeSearchBox);
+  document.addEventListener("astro:before-swap", () => {
     _homeSearchInit = false;
   });
 </script>
@@ -519,7 +840,7 @@ const yearLabel = new Date().getFullYear();
 
   .card-flows {
     display: grid;
-    grid-template-columns: minmax(0, 1.45fr) minmax(320px, .85fr);
+    grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.85fr);
     gap: 1rem;
     align-items: start;
   }
@@ -543,10 +864,7 @@ const yearLabel = new Date().getFullYear();
 
   .panel-card {
     position: relative;
-    border: 1px solid var(--border-color-blur);
     border-radius: 18px;
-    background: linear-gradient(180deg,  var(--comp-bg-blur), color-mix(in srgb, var(--comp-bg-blur) 80%, transparent));
-    box-shadow: var(--shadow-elev-1);
     backdrop-filter: blur(12px);
     overflow: hidden;
   }
@@ -564,20 +882,20 @@ const yearLabel = new Date().getFullYear();
   .panel-kicker,
   .story-card__eyebrow,
   .taxonomy-subhead {
-    margin: 0 0 .55rem;
+    margin: 0 0 0.55rem;
     color: var(--comp-text-sec);
     text-transform: uppercase;
-    letter-spacing: .18em;
-    font-size: .78rem;
+    letter-spacing: 0.18em;
+    font-size: 0.78rem;
     font-weight: 400;
-    font-variation-settings: 'wght' 400;
+    font-variation-settings: "wght" 400;
   }
 
   .flow-intro h1 {
     margin: 0;
     font-size: clamp(2.5rem, 4vw, 4rem);
-    line-height: .92;
-    letter-spacing: -.02em;
+    line-height: 0.92;
+    letter-spacing: -0.02em;
   }
 
   .hero-description {
@@ -589,7 +907,7 @@ const yearLabel = new Date().getFullYear();
   }
 
   .hero-note {
-    margin: .85rem 0 0;
+    margin: 0.85rem 0 0;
     color: var(--comp-text-sec);
   }
 
@@ -604,7 +922,6 @@ const yearLabel = new Date().getFullYear();
     margin-top: 1rem;
   }
 
-
   .social-link,
   .recommend-item,
   .taxonomy-list a,
@@ -612,17 +929,6 @@ const yearLabel = new Date().getFullYear();
   .story-card__footer a {
     text-decoration: none;
     color: inherit;
-  }
-
-
-  .story-card__footer a:hover,
-  .taxonomy-list a:hover,
-  .recommend-item:hover,
-  .social-link:hover,
-  .friend-link:hover,
-  .footer-links a:hover {
-    transform: scale(1.02);
-    border-color: color-mix(in srgb, var(--accent) 44%, var(--border-color-blur));
   }
 
   .story-card__footer a,
@@ -642,7 +948,7 @@ const yearLabel = new Date().getFullYear();
   .footer-meta {
     display: flex;
     flex-wrap: wrap;
-    gap: .5rem .7rem;
+    gap: 0.5rem 0.7rem;
   }
 
   .hero-badges {
@@ -658,9 +964,9 @@ const yearLabel = new Date().getFullYear();
     border-radius: 999px;
     border: 1px solid var(--border-color-blur);
     background: var(--comp-bg-glass);
-    padding: .45rem .75rem;
+    padding: 0.45rem 0.75rem;
     color: var(--comp-text-sec);
-    font-size: .86rem;
+    font-size: 0.86rem;
   }
 
   .hero-feature {
@@ -669,7 +975,7 @@ const yearLabel = new Date().getFullYear();
 
   .story-card {
     display: grid;
-    gap: .7rem;
+    gap: 0.7rem;
     padding: 1.15rem 1.2rem;
     border-radius: 18px;
     border: 1px solid var(--border-color-blur);
@@ -685,7 +991,7 @@ const yearLabel = new Date().getFullYear();
   .story-card--empty h2 {
     margin: 0;
     line-height: 1.12;
-    letter-spacing: -.03em;
+    letter-spacing: -0.03em;
   }
 
   .story-card--lead h2 {
@@ -700,11 +1006,6 @@ const yearLabel = new Date().getFullYear();
   a.stream-card-link {
     text-decoration: none;
     color: inherit;
-  }
-
-  .stream-card:hover {
-    background: var(--comp-bg-glass-hl);
-    border-color: var(--comp-text-pri-hl);
   }
 
   .story-card p,
@@ -724,7 +1025,7 @@ const yearLabel = new Date().getFullYear();
     gap: 1rem;
     align-items: center;
     color: var(--comp-text-sec);
-    font-size: .92rem;
+    font-size: 0.92rem;
   }
 
   .author-card,
@@ -740,9 +1041,9 @@ const yearLabel = new Date().getFullYear();
 
   .author-card__top {
     display: flex;
-    gap: .9rem;
+    gap: 0.9rem;
     align-items: center;
-    margin-bottom: .8rem;
+    margin-bottom: 0.8rem;
   }
 
   .author-card h3,
@@ -767,7 +1068,7 @@ const yearLabel = new Date().getFullYear();
     background: color-mix(in srgb, var(--accent) 18%, var(--comp-bg-glass));
     color: var(--app-text-pri);
     font-weight: 700;
-    letter-spacing: -.04em;
+    letter-spacing: -0.04em;
     font-size: 1.2rem;
   }
   img.author-avatar {
@@ -781,23 +1082,23 @@ const yearLabel = new Date().getFullYear();
   }
 
   .mini-stats {
-    margin-top: .9rem;
+    margin-top: 0.9rem;
   }
 
   .mini-stats span {
-    font-size: .78rem;
+    font-size: 0.78rem;
   }
 
   .home-footer p {
-    margin: .45rem 0 0;
+    margin: 0.45rem 0 0;
     color: var(--comp-text-sec);
     line-height: 1.7;
   }
 
   .subscribe-links {
     display: grid;
-    gap: .6rem;
-    margin-top: .9rem;
+    gap: 0.6rem;
+    margin-top: 0.9rem;
   }
 
   .subscribe-links a,
@@ -822,7 +1123,7 @@ const yearLabel = new Date().getFullYear();
   .featured-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: .85rem;
+    gap: 0.85rem;
     margin-bottom: 1rem;
   }
 
@@ -832,32 +1133,33 @@ const yearLabel = new Date().getFullYear();
   .activity-list,
   .social-list {
     display: grid;
-    gap: .85rem;
+    gap: 0.85rem;
   }
 
   .stream-card {
     display: grid;
     grid-template-columns: 110px minmax(0, 1fr);
-    gap: .85rem;
+    gap: 0.85rem;
     padding: 1rem;
-    border: 1px solid var(--border-color-blur);
     border-radius: 14px;
-    background: var(--comp-bg-glass);
-    transition: background .18s ease, border-color .18s ease;
+    transition:
+      background 0.2s ease,
+      border-color 0.2s ease,
+      transform 0.2s ease;
   }
 
   .stream-card__date {
     color: var(--comp-text-sec);
-    font-size: .9rem;
+    font-size: 0.9rem;
   }
 
   .stream-card__body {
     display: grid;
-    gap: .55rem;
+    gap: 0.55rem;
   }
 
   .stream-card__body p {
-    font-size: .9rem;
+    font-size: 0.9rem;
   }
 
   .stream-card__top {
@@ -875,11 +1177,12 @@ const yearLabel = new Date().getFullYear();
 
   .stream-card__flag {
     border-radius: 999px;
-    padding: .35rem .6rem;
+    padding: 0.35rem 0.6rem;
     background: color-mix(in srgb, var(--accent) 16%, var(--comp-bg-glass));
     color: var(--recommended-accent-text);
-    border: 1px solid color-mix(in srgb, var(--accent) 34%, var(--border-color-blur));
-    font-size: .78rem;
+    border: 1px solid
+      color-mix(in srgb, var(--accent) 34%, var(--border-color-blur));
+    font-size: 0.78rem;
     line-height: 1;
     white-space: nowrap;
   }
@@ -892,19 +1195,18 @@ const yearLabel = new Date().getFullYear();
 
   .stream-card__tags {
     display: flex;
-    gap: .5rem;
+    gap: 0.5rem;
     flex-wrap: wrap;
   }
 
-
   .tag-chip span,
   .archive-row {
-    padding: .95rem 1rem;
+    padding: 0.95rem 1rem;
     border-radius: 22px;
     background: var(--comp-bg-glass);
     border: 1px solid var(--border-color-blur);
     display: grid;
-    gap: .7rem;
+    gap: 0.7rem;
   }
 
   .tag {
@@ -918,10 +1220,10 @@ const yearLabel = new Date().getFullYear();
     overflow-wrap: break-word;
     word-break: break-word;
   }
-  
+
   .tag.featured {
     font-weight: 500;
-    font-variation-settings: 'wght' 500;
+    font-variation-settings: "wght" 500;
     background: var(--featured-bg);
     color: var(--featured);
   }
@@ -933,7 +1235,7 @@ const yearLabel = new Date().getFullYear();
 
   .archive-row__main strong {
     font-size: 1.15rem;
-    letter-spacing: -.03em;
+    letter-spacing: -0.03em;
   }
 
   .taxonomy-block + .taxonomy-block {
@@ -943,18 +1245,16 @@ const yearLabel = new Date().getFullYear();
   .taxonomy-list {
     display: flex;
     flex-direction: column;
-    gap: .6rem;
+    gap: 0.6rem;
   }
 
   .taxonomy-list a {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: .75rem;
-    padding: .85rem .95rem;
+    gap: 0.75rem;
+    padding: 0.85rem 0.95rem;
     border-radius: 18px;
-    border: 1px solid var(--border-color-blur);
-    background: var(--comp-bg-glass);
   }
 
   .taxonomy-list a span {
@@ -963,11 +1263,11 @@ const yearLabel = new Date().getFullYear();
 
   .taxonomy-list a strong {
     border-radius: 999px;
-    padding: .3rem .55rem;
+    padding: 0.3rem 0.55rem;
     background: var(--comp-bg-glass);
     color: var(--comp-text-sec);
     border: 1px solid var(--border-color-blur);
-    font-size: .78rem;
+    font-size: 0.78rem;
     line-height: 1;
   }
 
@@ -1002,7 +1302,7 @@ const yearLabel = new Date().getFullYear();
   .tag-cloud-item.featured {
     color: var(--featured);
     font-weight: 500;
-    font-variation-settings: 'wght' 500;
+    font-variation-settings: "wght" 500;
   }
 
   .tag-cloud-item.featured:hover {
@@ -1051,56 +1351,109 @@ const yearLabel = new Date().getFullYear();
     border: 1px solid var(--border-color-blur);
     border-radius: 20px;
     background: var(--comp-bg-glass);
-    padding: .95rem 1rem;
+    padding: 0.95rem 1rem;
     display: grid;
-    gap: .35rem;
+    gap: 0.35rem;
   }
 
   .activity-item {
-    border: 1px solid var(--border-color-blur);
-    background: var(--comp-bg-glass);
-    padding: .95rem .75rem;
+    padding: 0.75rem;
     display: grid;
-    gap: .35rem;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0.7rem;
     border-radius: 12px;
-    border-left: 12px solid transparent;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .activity-item.stale {
+    display: flex;
+    justify-content: center;
+    margin: 1rem 0 0.5rem;
+  }
+
+  .activity-item.stale .activity-item__text {
+    color: var(--status-warning) !important;
   }
 
   .recommend-item strong,
   .social-link strong,
-  .activity-item strong,
+  .activity-item:not(.stale) strong,
   .friend-link strong {
     color: var(--app-text-pri);
     font-size: 1rem;
   }
 
   .recommend-item__meta,
-  .activity-item span {
+  .activity-item__label {
     color: var(--comp-text-sec);
-    font-size: .82rem;
+    font-size: 0.82rem;
   }
 
-  .activity-item.post {
-    border-left-color: color-mix(in srgb, var(--accent) 45%, var(--border-color-blur));
+  .activity-item__icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
   }
 
-  .activity-item.collection {
-    border-left-color: var(--featured);
+  .activity-item__icon :global(svg) {
+    width: 24px;
+    height: 24px;
+    display: block;
   }
 
-  .activity-item.friend {
-    border-left-color: color-mix(in srgb, var(--sec-color) 60%, var(--border-color-blur));
+  .activity-item__text {
+    display: grid;
+    gap: 0.2rem;
+    min-width: 0;
+  }
+
+  .activity-item.post .activity-item__icon {
+    background: var(--comp-bg-accent-blur);
+    color: var(--comp-text-accent-ghost);
+  }
+
+  .activity-item.collection .activity-item__icon {
+    background: var(--accent-dark);
+    color: #fff;
+  }
+
+  .activity-item.app .activity-item__icon {
+    background: var(--comp-bg);
+    color: var(--app-text-pri);
+  }
+
+  .activity-item.stale .activity-item__icon {
+    background: transparent;
+    color: var(--status-warning);
+  }
+
+  .activity-item.date .activity-item__icon {
+    background: color-mix(
+      in srgb,
+      var(--comp-text-sec) 14%,
+      var(--comp-bg-glass)
+    );
+    color: var(--comp-text-sec);
+  }
+
+  a.activity-item {
+    text-decoration: none;
+    color: inherit;
   }
 
   .social-list {
-    gap: .65rem;
+    gap: 0.65rem;
   }
 
   .friend-link {
     display: grid;
     grid-template-columns: 44px minmax(0, 1fr);
     align-items: center;
-    gap: .75rem;
+    gap: 0.75rem;
   }
 
   .friend-link__avatar {
@@ -1122,38 +1475,38 @@ const yearLabel = new Date().getFullYear();
   .home-footer {
     margin-top: 1rem;
     display: grid;
-    gap: .9rem;
+    gap: 0.9rem;
   }
 
   .home-footer__links {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: .6rem 1rem;
+    padding: 0.6rem 1rem;
   }
 
   .home-footer__nav a {
-    margin: 0 .45rem;
+    margin: 0 0.45rem;
     color: inherit;
     text-decoration: none;
     font-weight: 600;
   }
 
   .home-footer__sep {
-    margin: 0 .35rem;
+    margin: 0 0.35rem;
     color: var(--comp-text-sec);
   }
 
   .home-footer__meta {
     text-align: center;
     color: var(--comp-text-sec);
-    font-size: .95rem;
-    padding: .25rem 0 .55rem;
+    font-size: 0.95rem;
+    padding: 0.25rem 0 0.55rem;
   }
 
   .home-footer__top {
     display: grid;
-    grid-template-columns: minmax(0, 1.2fr) minmax(220px, .8fr);
+    grid-template-columns: minmax(0, 1.2fr) minmax(220px, 0.8fr);
     gap: 1rem;
     align-items: start;
   }
@@ -1165,11 +1518,11 @@ const yearLabel = new Date().getFullYear();
   .footer-links {
     display: flex;
     flex-wrap: wrap;
-    gap: .7rem;
+    gap: 0.7rem;
   }
 
   .footer-links a {
-    padding: .55rem .85rem;
+    padding: 0.55rem 0.85rem;
     border-radius: 999px;
     border: 1px solid var(--border-color-blur);
     background: var(--comp-bg-glass);
@@ -1196,11 +1549,7 @@ const yearLabel = new Date().getFullYear();
 
   @media (max-width: 768px) {
     .home-shell {
-      padding: .9rem .85rem 2rem;
-    }
-
-    .panel-card {
-      border-radius: 18px;
+      padding: 0.9rem 0.85rem 2rem;
     }
 
     .section-head {
@@ -1217,6 +1566,4 @@ const yearLabel = new Date().getFullYear();
       grid-template-columns: 1fr;
     }
   }
-
-
 </style>

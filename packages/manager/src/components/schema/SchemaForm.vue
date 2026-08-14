@@ -14,12 +14,23 @@
 
     <!-- Tab content -->
     <div v-for="tab in visibleTabs" :key="tab.key" class="schema-tab-content"
-      :class="{ hidden: activeTab !== tab.key }">
+      :class="{ hidden: activeTab !== tab.key, 'is-disabled': disabled }">
       <!-- Top-level groups (cards) -->
       <section v-for="group in tab.groups" :key="group.key" class="group-card">
         <h3 v-if="group.label && group.label !== '_'" class="group-title">{{ group.label }}</h3>
 
-        <div class="group-fields">
+        <!-- Master toggle — rendered above the block, always interactive -->
+        <div v-if="group.toggleField" class="group-toggle">
+          <SchemaField :key="group.toggleField.key" :field-key="group.toggleField.key"
+            :field-schema="group.toggleField.schema" :model-value="getValue(group.toggleField.key)"
+            :disabled="isDisabled(group.toggleField)" :disabled-text="disabledText(group.toggleField)"
+            :field-meta="fieldMetaMap?.[group.toggleField.key]"
+            :form-data="data"
+            @update:model-value="(v: any) => setToggleValue(group, v)"
+            @update:meta="(v: any) => onToggleMeta(group, v)" />
+        </div>
+
+        <div class="group-fields" :class="{ 'is-disabled': isGroupDisabled(group) }">
           <SchemaField v-for="field in group.fields" :key="field.key" :field-key="field.key"
             :field-schema="field.schema" :model-value="getValue(field.key)" :disabled="isDisabled(field)"
             :disabled-text="disabledText(field)" :field-meta="fieldMetaMap?.[field.key]"
@@ -28,14 +39,6 @@
             @update:meta="(v: any) => onFieldMeta(field.key, v)" />
         </div>
       </section>
-    </div>
-
-    <!-- Actions -->
-    <div class="actions-wrapper">
-      <div class="actions">
-        <button class="primary" :disabled="saving" @click="handleSave">{{ saveLabel }}</button>
-        <button class="secondary" :disabled="saving" @click="handleReset">{{ resetLabel }}</button>
-      </div>
     </div>
   </div>
 </template>
@@ -49,25 +52,22 @@ import { resolveLocale } from '../../utils/resolveLocale'
 const route = useRoute()
 
 interface TabDef { key: string; label: string; icon?: string; iconHtml?: string; order: number; groups: GroupDef[] }
-interface GroupDef { key: string; label: string; order: number; fields: FieldDef[] }
+interface GroupDef { key: string; label: string; order: number; fields: FieldDef[]; toggleField?: FieldDef }
 interface FieldDef { key: string; schema: Record<string, any> }
 
 const props = defineProps<{
   schema: Record<string, any>
   data: Record<string, any>
-  saving?: boolean
-  saveLabel?: string
-  resetLabel?: string
   fieldMetaMap?: Record<string, any>
   /** Pre-select this tab (from route prop, fallback) */
   activeTab?: string
+  /** Gray out the field area (not the actions) when true. */
+  disabled?: boolean
 }>()
 
 const emit = defineEmits<{
   'update:data': [value: Record<string, any>]
   'update:meta': [key: string, value: any]
-  'save': []
-  'reset': []
 }>()
 
 /** Derive active tab from route path (e.g. /settings/template-homepage → template-homepage) */
@@ -124,7 +124,7 @@ const tabs = computed<TabDef[]>(() => {
 })
 
 function buildGroups(fieldKeys: string[], propsMap: Record<string, any>, xGroups: Record<string, any>): GroupDef[] {
-  const groupMap = new Map<string, { label: string; order: number; fields: FieldDef[] }>()
+  const groupMap = new Map<string, { label: string; order: number; fields: FieldDef[]; toggle?: string }>()
 
   for (const key of fieldKeys) {
     const schema = propsMap[key]
@@ -137,13 +137,19 @@ function buildGroups(fieldKeys: string[], propsMap: Record<string, any>, xGroups
       if (groupKey !== '_default' && xGroups[groupKey]) {
         label = resolveLocale(xGroups[groupKey].label, groupKey)
       }
-      groupMap.set(groupKey, { label, order: xGroups[groupKey]?.order ?? 99, fields: [] })
+      groupMap.set(groupKey, { label, order: xGroups[groupKey]?.order ?? 99, fields: [], toggle: xGroups[groupKey]?.toggle })
     }
     groupMap.get(groupKey)!.fields.push({ key, schema })
   }
 
   return Array.from(groupMap.entries())
-    .map(([key, g]) => ({ key, label: g.label, order: g.order, fields: g.fields }))
+    .map(([key, g]) => {
+      // A group's toggle field (x-groups[].toggle → a boolean property key) is
+      // rendered once above the rest and excluded from the detail fields.
+      const toggleField = g.toggle ? g.fields.find(f => f.key === g.toggle) : undefined
+      const fields = g.toggle ? g.fields.filter(f => f.key !== g.toggle) : g.fields
+      return { key, label: g.label, order: g.order, toggleField, fields }
+    })
     .sort((a, b) => a.order - b.order)
 }
 
@@ -212,8 +218,22 @@ function disabledText(field: FieldDef): string {
   return field.schema['x-disabled-text'] || ''
 }
 
-function handleSave() { emit('save') }
-function handleReset() { emit('reset') }
+/** A group with a toggle is disabled when its toggle field resolves to a falsy value. */
+function isGroupDisabled(group: GroupDef): boolean {
+  return !!group.toggleField && !getValue(group.toggleField.key)
+}
+
+/** Update a group's toggle field value (no-op when the group has no toggle). */
+function setToggleValue(group: GroupDef, v: any) {
+  if (!group.toggleField) return
+  setValue(group.toggleField.key, v)
+}
+
+/** Update a group's toggle field meta (no-op when the group has no toggle). */
+function onToggleMeta(group: GroupDef, v: any) {
+  if (!group.toggleField) return
+  onFieldMeta(group.toggleField.key, v)
+}
 </script>
 
 <style scoped>
@@ -302,6 +322,24 @@ function handleReset() { emit('reset') }
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+
+.group-toggle {
+  margin-bottom: 0.75rem;
+}
+
+.group-fields.is-disabled {
+  pointer-events: none;
+  opacity: 0.45;
+  filter: grayscale(0.3);
+  user-select: none;
+}
+
+.schema-tab-content.is-disabled {
+  pointer-events: none;
+  opacity: 0.45;
+  filter: grayscale(0.3);
+  user-select: none;
 }
 
 @media (max-width: 768px) {

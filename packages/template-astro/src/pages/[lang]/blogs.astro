@@ -3,8 +3,8 @@ import Layout from '../../layouts/Layout.astro';
 import BackToTop from '../../components/BackToTop.astro';
 import BlogPostCard from '../../components/BlogPostCard.astro';
 import { getTranslation } from '../../utils/i18n';
-import { buildLocalizedPath, toContentLocale } from '../../utils/routeLocale';
-import { getPublishedPosts, isLocalMode } from '../../data/localDataSource';
+import { toContentLocale } from '../../utils/routeLocale';
+import { getPublishedPosts } from '../../data/localDataSource';
 import { loadSiteSettings } from '../../utils/siteSettings';
 
 export const prerender = true;
@@ -16,29 +16,16 @@ export async function getStaticPaths() {
 const routeLang = Astro.params.lang === 'en' ? 'en' : 'zh';
 const locale = toContentLocale(routeLang);
 const t = (key: string) => getTranslation(locale, key);
-const postRoutePrefix = `/${routeLang}`;
 
-let initialPosts: any[] = [];
-let initialFeaturedPosts: any[] = [];
-let initialFeaturedTotal = 0;
-// Always define for the client script (used in define:vars)
-let initialPostsRequestUrl = '/api/posts?page=1&perPage=20&timeline=desc';
-
-// ── Local data source ──────────────────────────────
+// ── Local data source (fully SSR — no client fetching) ──────
 const allPublished = getPublishedPosts();
 const sorted = [...allPublished].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-initialPosts = sorted;
 // Featured = posts with 'featured' or '精选' tag
 const featured = sorted.filter(p => (p.tags || []).some((t: string) => {
   const nt = String(t).trim().toLowerCase();
   return nt === 'featured' || nt === '精选';
 }));
-initialFeaturedPosts = featured;
-initialFeaturedTotal = featured.length;
-
-// Local mode: embed all posts for client-side fake pagination
-const allPostsJSON = JSON.stringify(sorted);
 
 const settings = await loadSiteSettings();
 
@@ -74,10 +61,8 @@ const buildArchiveGroups = (posts: any[]) => {
     ;
 };
 
-const featuredPosts = [...initialFeaturedPosts].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 3);
-const archiveGroups = buildArchiveGroups(initialPosts);
-const hasInitialPosts = initialPosts.length > 0;
-const hasFeaturedPosts = initialFeaturedPosts.length > 0;
+const archiveGroups = buildArchiveGroups(sorted);
+const hasFeaturedPosts = featured.length > 0;
 const metaDescription = locale === 'zh-CN'
   ? '浏览 Chronicle 的全部博客文章、精选内容和归档列表。'
   : 'Browse Chronicle blog posts, featured content, and the full archive.';
@@ -90,9 +75,11 @@ const metaDescription = locale === 'zh-CN'
         <div class="section-header featured">
           <h2 class="section-title">{t('blog.featured')}</h2>
           <button
+            type="button"
             class="toggle-btn"
             id="featured-toggle"
-            style={`display:${initialFeaturedTotal > 3 ? 'inline-block' : 'none'};`}
+            aria-expanded="false"
+            style={`display:${featured.length > 3 ? 'inline-block' : 'none'};`}
             data-expand-text={t('blog.expand')}
             data-collapse-text={t('blog.collapse')}
           >
@@ -100,7 +87,7 @@ const metaDescription = locale === 'zh-CN'
           </button>
         </div>
         <div class="featured-grid" id="featured-grid">
-          {featuredPosts.map((post) => <BlogPostCard post={post} locale={locale} routeLang={routeLang} featured={true} />)}
+          {featured.map((post) => <BlogPostCard post={post} locale={locale} routeLang={routeLang} featured={true} />)}
         </div>
       </section>
 
@@ -121,12 +108,9 @@ const metaDescription = locale === 'zh-CN'
             </div>
           ))}
         </div>
-        <div class="loading initial-loading" id="timeline-placeholder" style={`display:${hasInitialPosts ? 'none' : 'flex'};`}>
-          正在加载文章...
-        </div>
-        <div class="empty" id="timeline-empty" style={`display:${hasInitialPosts ? 'none' : 'block'};`}>
-          {t('blog.noPostsStartWriting')}
-        </div>
+        {sorted.length === 0 && (
+          <div class="empty">{t('blog.noPostsStartWriting')}</div>
+        )}
       </section>
     </main>
   </div>
@@ -194,6 +178,10 @@ const metaDescription = locale === 'zh-CN'
     gap: 16px;
   }
 
+  /* Featured collapse: show the first 3, reveal the rest when expanded */
+  #featured-grid > :nth-child(n+4) { display: none; }
+  #featured-grid.expanded > :nth-child(n+4) { display: block; }
+
   .featured-card .card-post-title {
     font-size: 1.1em;
     margin-bottom: 0;
@@ -255,26 +243,15 @@ const metaDescription = locale === 'zh-CN'
 
   .post-card {
     padding: 16px;
-    background: var(--comp-bg-glass);
-    border: 1px solid var(--border-color-blur);
     border-radius: 12px;
     cursor: pointer;
-    box-shadow: var(--glass-shadow-elev-1);
     transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
   }
 
-  html:not(.is-mobile) .post-card:hover {
-    background: var(--comp-bg-glass-hvr);
-    transform: scale(1.02);
-    border-color: var(--comp-text-sec-hl);
-    box-shadow: var(--card-glow), var(--glass-shadow-elev-2);
-  }
 
   .compact-card {
     padding: 14px 16px;
     margin-bottom: 0;
-    border: 1px solid var(--border-color-blur);
-    background: var(--comp-bg-glass);
     border-radius: 12px;
     transition: all 0.2s;
   }
@@ -370,19 +347,10 @@ const metaDescription = locale === 'zh-CN'
     color: var(--featured);
   }
 
-  .loading,
   .empty {
     text-align: center;
     padding: 60px;
     color: var(--comp-text-sec);
-  }
-
-  .initial-loading {
-    min-height: 200px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.05em;
   }
 
   html.is-mobile .featured-grid {
@@ -392,15 +360,8 @@ const metaDescription = locale === 'zh-CN'
 
   html.is-mobile .post-card {
     padding: 12px 14px;
-    pointer-events: none;
   }
 
-  html.is-mobile .compact-card:active{
-    transform: scale(1.03);
-    border-color: var(--comp-text-sec-hl);
-    box-shadow: 0 0 16px color-mix(in srgb, var(--comp-text-pri-hl) 30%, transparent);
-    background: var(--comp-bg-glass-active);
-  }
 
   html.is-mobile .featured-card {
     border-radius: 12px;
@@ -466,368 +427,22 @@ const metaDescription = locale === 'zh-CN'
   html.is-mobile .post-tags {
     display: none;
   }
-
-  html.is-mobile .featured-card,
-  html.is-mobile .compact-card {
-    background: var(--comp-bg-glass);
-    border-color: var(--border-color-blur);
-  }
-
-  html.is-mobile .featured-card:hover,
-  html.is-mobile .compact-card:hover {
-    transform: none;
-    background: var(--comp-bg-glass-hvr);
-  }
 </style>
 
-<script type="module" define:vars={{ expandText: t('blog.expand'), collapseText: t('blog.collapse'), daySuffix: t('blog.daySuffix'), featuredLabel: t('tag.featured'), initialPosts, initialPostsRequestUrl, initialFeaturedPosts, initialFeaturedTotal, locale, postRoutePrefix, isLocalMode, allPostsJSON }}>
-  (function () {
-    const getApiUrlClient = (endpoint) => {
-      endpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-      return endpoint;
-    };
-
-    const perPage = 10;
-    let page = initialPosts.length > 0 ? 2 : 1;
-    let loading = false;
-    let done = false;
-    let loadedAny = initialPosts.length > 0;
-    const featuredMap = new Map();
-    let featuredExpanded = false;
-
-    const archive = document.getElementById('archive-list');
-    const placeholder = document.getElementById('timeline-placeholder');
-    const empty = document.getElementById('timeline-empty');
-    const featuredSection = document.getElementById('featured-section');
-    const featuredGrid = document.getElementById('featured-grid');
-    const featuredToggle = document.getElementById('featured-toggle');
-
-    function escapeHtml(str) {
-      return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-    }
-
-    function normalizeTag(tag) {
-      return String(tag || '')
-        .trim()
-        .replace(/^#+/, '')
-        .toLowerCase();
-    }
-
-    function isFeaturedTag(tag) {
-      const normalized = normalizeTag(tag);
-      return normalized === 'featured' || normalized === '精选';
-    }
-
-    function sortTagsList(tags) {
-      if (!Array.isArray(tags)) return [];
-      return [...tags].sort((a, b) => {
-        if (isFeaturedTag(a) && !isFeaturedTag(b)) return -1;
-        if (!isFeaturedTag(a) && isFeaturedTag(b)) return 1;
-        return String(a).localeCompare(String(b));
-      });
-    }
-
-    function formatMonthNameISO(iso) {
-      try {
-        return new Date(iso).toLocaleString(locale, { month: 'short' });
-      } catch (e) {
-        return '';
-      }
-    }
-
-    function hasFeaturedTag(tags) {
-      return Array.isArray(tags) && tags.some((tag) => isFeaturedTag(String(tag)));
-    }
-
-    const slideIconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M 2 12 L 2 22 L 14 22 L 14 12 Z"/><path d="M 6 10 L 6 8 L 18 8 L 18 18 L 16 18"/><path d="M 10 6 L 10 4 L 22 4 L 22 14 L 20 14"/></svg>';
-
-    function slidesBadgeHtml() {
-      return '<span class="slides-badge">' + slideIconSvg + '</span>';
-    }
-
-    function buildFeaturedCardMarkup(post, dateText) {
-      const tags = Array.isArray(post.tags) ? sortTagsList(post.tags) : [];
-      const tagHtml = tags.length
-        ? `<div class="post-tags">${tags.map((tag) => `<span class="tag${isFeaturedTag(tag) ? ' featured' : ''}"># ${isFeaturedTag(tag) ? escapeHtml(featuredLabel) : escapeHtml(tag)}</span>`).join('')}</div>`
-        : '';
-
-      return `
-        <div class="featured-card-layout">
-          <div class="featured-card-date">${escapeHtml(dateText)}</div>
-          <span class="card-post-title">${post.type === 'slides' ? slidesBadgeHtml() : ''}${escapeHtml(post.title)}</span>
-          ${tagHtml}
-        </div>
-      `;
-    }
-
-    function buildCompactCardMarkup(post, dateText) {
-      const featured = hasFeaturedTag(post.tags);
-      return `
-        <div class="post-card-line">
-          <span class="post-card-time">${escapeHtml(dateText)}</span>
-          ${featured ? '<span class="post-featured-star" aria-hidden="true">★</span>' : ''}
-          <span class="card-post-title">${post.type === 'slides' ? slidesBadgeHtml() : ''}${escapeHtml(post.title)}</span>
-        </div>
-      `;
-    }
-
-    function logRequestUrl(stage, url) {
-      let resolved = url;
-      try {
-        resolved = getApiUrlClient(url);
-      } catch (e) {
-        // keep raw url when URL constructor cannot parse
-      }
-    }
-
-    logRequestUrl('ssr', initialPostsRequestUrl);
-
-    async function loadFeaturedPosts(loadAll = false) {
-      try {
-        let arr;
-        if (isLocalMode) {
-          const allPosts = JSON.parse(allPostsJSON);
-          const featured = allPosts.filter(p => (p.tags || []).some(t => {
-            const nt = String(t).trim().toLowerCase();
-            return nt === 'featured' || nt === '精选';
-          }));
-          arr = loadAll ? featured : featured.slice(0, 3);
-        } else {
-          const url = loadAll
-            ? `/api/posts?featured=true&timeline=desc&_ts=${Date.now()}`
-            : `/api/posts?featured=true&timeline=desc&page=1&perPage=3&_ts=${Date.now()}`;
-          logRequestUrl('featured', url);
-          const res = await fetch(getApiUrlClient(url), { cache: 'no-store' });
-          if (!res.ok) return;
-          const data = await res.json();
-          const unwrapped = (data && data.data) ?? data;
-          arr = Array.isArray(unwrapped) ? unwrapped : unwrapped.posts || [];
-        }
-        arr.forEach((post) => featuredMap.set(post.id, post));
-        renderFeatured();
-      } catch (e) {
-        console.error('[blogs] Error loading featured posts:', e);
-      }
-    }
-
-    if (!window.__chronicleBlogsFeaturedToggleBound) {
-      window.__chronicleBlogsFeaturedToggleBound = true;
-      document.addEventListener('click', async (event) => {
-        if (!(event.target instanceof Element)) return;
-        const btn = event.target.closest('#featured-toggle');
-        if (!btn) return;
-
-        const expanded = btn.dataset.expanded === 'true';
-        const next = !expanded;
-        const expandLabel = btn.dataset.expandText || expandText;
-        const collapseLabel = btn.dataset.collapseText || collapseText;
-        btn.dataset.expanded = next ? 'true' : 'false';
-        btn.textContent = next ? collapseLabel : expandLabel;
-        featuredExpanded = next;
-
-        if (next) {
-          await loadFeaturedPosts(true);
-        } else {
-          renderFeatured();
-        }
-      });
-    }
-
-    function ensureYearMonthContainer(year, monthName, monthIndex = null) {
-      if (!archive) return null;
-      let yearBlock = archive.querySelector(`.year-block[data-year="${year}"]`);
-      if (!yearBlock) {
-        yearBlock = document.createElement('div');
-        yearBlock.className = 'year-block';
-        yearBlock.setAttribute('data-year', String(year));
-        const yHeader = document.createElement('h3');
-        yHeader.className = 'year-header';
-        yHeader.textContent = String(year);
-        yearBlock.appendChild(yHeader);
-        const existing = Array.from(archive.querySelectorAll('.year-block'));
-        let inserted = false;
-        for (const eb of existing) {
-          const ey = parseInt(eb.getAttribute('data-year') || '0', 10);
-          if (ey < year) {
-            archive.insertBefore(yearBlock, eb);
-            inserted = true;
-            break;
-          }
-        }
-        if (!inserted) archive.appendChild(yearBlock);
-      }
-      let monthRow = Array.from(yearBlock.querySelectorAll('.month-row')).find(
-        (m) => m.getAttribute('data-month') === monthName,
-      );
-      if (!monthRow) {
-        monthRow = document.createElement('div');
-        monthRow.className = 'month-row';
-        monthRow.setAttribute('data-month', monthName);
-        if (monthIndex !== null) monthRow.setAttribute('data-month-index', String(monthIndex));
-        const label = document.createElement('div');
-        label.className = 'month-label';
-        const span = document.createElement('span');
-        span.textContent = monthName;
-        label.appendChild(span);
-        const postsDiv = document.createElement('div');
-        postsDiv.className = 'month-posts';
-        monthRow.appendChild(label);
-        monthRow.appendChild(postsDiv);
-        const siblings = Array.from(yearBlock.querySelectorAll('.month-row'));
-        let insertedM = false;
-        for (const s of siblings) {
-          const si = s.getAttribute('data-month-index');
-          if (si !== null && monthIndex !== null) {
-            const sidx = parseInt(si, 10);
-            if (sidx < monthIndex) {
-              yearBlock.insertBefore(monthRow, s);
-              insertedM = true;
-              break;
-            }
-          }
-        }
-        if (!insertedM) yearBlock.appendChild(monthRow);
-      }
-      return monthRow.querySelector('.month-posts');
-    }
-
-    function appendPosts(arr) {
-      arr.forEach((post) => {
-        const d = new Date(post.date);
-        const year = d.getFullYear();
-        const monthName = formatMonthNameISO(post.date);
-        const monthIndex = d.getMonth();
-        const container = ensureYearMonthContainer(year, monthName, monthIndex);
-        if (!container) return;
-
-        const a = document.createElement('a');
-        a.href = `${postRoutePrefix}/post/${post.id}`;
-        a.style.textDecoration = 'none';
-        a.style.color = 'inherit';
-        a.setAttribute('data-post-date', post.date);
-        const article = document.createElement('article');
-        article.className = 'post-card compact-card';
-        article.innerHTML = buildCompactCardMarkup(post, String(d.getDate()));
-        if (post.tags && post.tags.length) {
-          const tagsDiv = document.createElement('div');
-          tagsDiv.className = 'post-tags';
-          sortTagsList(post.tags).forEach((tag) => {
-            const s = document.createElement('span');
-            s.className = 'tag' + (isFeaturedTag(tag) ? ' featured' : '');
-            s.textContent = '# ' + (isFeaturedTag(tag) ? featuredLabel : tag);
-            tagsDiv.appendChild(s);
-          });
-          article.appendChild(tagsDiv);
-        }
-        a.appendChild(article);
-
-        const newTs = d.getTime();
-        let inserted = false;
-        const siblings = Array.from(container.querySelectorAll('a'));
-        for (const s of siblings) {
-          const existingDate = s.getAttribute('data-post-date');
-          const existingTs = existingDate ? new Date(existingDate).getTime() : 0;
-          if (existingTs < newTs) {
-            container.insertBefore(a, s);
-            inserted = true;
-            break;
-          }
-        }
-        if (!inserted) container.appendChild(a);
-      });
-    }
-
-    function renderFeatured() {
-      const featuredSectionEl = document.getElementById('featured-section');
-      const featuredGridEl = document.getElementById('featured-grid');
-      const featuredToggleEl = document.getElementById('featured-toggle');
-      if (!featuredSectionEl || !featuredGridEl || !featuredToggleEl) return;
-      const featured = Array.from(featuredMap.values()).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      if (!featured.length) {
-        featuredSectionEl.style.display = 'none';
-        return;
-      }
-      featuredSectionEl.style.display = 'block';
-      const displayLimit = featuredExpanded ? featured.length : 3;
-      const shouldShowToggle = initialFeaturedTotal > 3;
-
-      featuredGridEl.innerHTML = featured.slice(0, displayLimit).map((post) => {
-        const dateText = new Date(post.date).toLocaleDateString(locale);
-        return `<a href="${postRoutePrefix}/post/${encodeURIComponent(post.id)}" style="text-decoration:none; color:inherit;" class="featured-card">
-          <article class="post-card featured-card">
-            ${buildFeaturedCardMarkup(post, dateText)}
-          </article>
-        </a>`;
-      }).join('');
-
-      featuredToggleEl.style.display = shouldShowToggle ? 'inline-block' : 'none';
-      featuredToggleEl.dataset.expanded = featuredExpanded ? 'true' : 'false';
-      featuredToggleEl.textContent = featuredExpanded ? (featuredToggleEl.dataset.collapseText || collapseText) : (featuredToggleEl.dataset.expandText || expandText);
-    }
-
-    async function loadNext() {
-      if (loading || done) return;
-      loading = true;
-      page += 1;
-      try {
-        let arr;
-        if (isLocalMode) {
-          const allPosts = JSON.parse(allPostsJSON);
-          const start = (page - 1) * perPage;
-          arr = allPosts.slice(start, start + perPage);
-        } else {
-          const url = `/api/posts?page=${page}&perPage=${perPage}&timeline=desc&_ts=${Date.now()}`;
-          logRequestUrl('csr', url);
-          const res = await fetch(getApiUrlClient(url), { cache: 'no-store' });
-          if (!res.ok) { done = true; return; }
-          const data = await res.json();
-          const unwrapped = (data && data.data) ?? data;
-          arr = Array.isArray(unwrapped) ? unwrapped : unwrapped.posts || [];
-        }
-        if (page === 2 && placeholder) placeholder.style.display = 'none';
-        if (!arr.length) {
-          done = true;
-          if (!loadedAny && empty) empty.style.display = 'block';
-          return;
-        }
-        loadedAny = true;
-        if (empty) empty.style.display = 'none';
-        appendPosts(arr);
-        if (arr.length < perPage) done = true;
-      } catch (e) {
-        console.error('[blogs] Error loading posts:', e);
-        done = true;
-        if (page === 2 && placeholder) placeholder.style.display = 'none';
-        if (!loadedAny && empty) empty.style.display = 'block';
-      } finally {
-        loading = false;
-      }
-    }
-
-    const sentinel = document.createElement('div');
-    sentinel.id = 'infinite-sentinel';
-    if (archive) archive.appendChild(sentinel);
-
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((ent) => {
-          if (ent.isIntersecting) loadNext();
-        });
-      },
-      {
-        root: document.querySelector('.main-content') || null,
-        rootMargin: '200px',
-      },
-    );
-    io.observe(sentinel);
-
-    if (initialFeaturedPosts.length > 0) {
-      initialFeaturedPosts.forEach((post) => featuredMap.set(post.id, post));
-      if (featuredSection) featuredSection.style.display = 'block';
-      if (featuredToggle && initialFeaturedTotal > 3) {
-        featuredToggle.style.display = 'inline-block';
-      }
-      renderFeatured();
-    }
-  })();
+<script>
+  // Featured expand/collapse — pure client toggle over SSR-rendered DOM (no fetching).
+  // Delegated on document so it survives ViewTransitions client navigation.
+  if (!window.__chronicleBlogsFeaturedToggle) {
+    window.__chronicleBlogsFeaturedToggle = true;
+    document.addEventListener('click', (event) => {
+      const btn = event.target instanceof Element ? event.target.closest<HTMLElement>('#featured-toggle') : null;
+      if (!btn) return;
+      const grid = document.getElementById('featured-grid');
+      if (!grid) return;
+      const expanded = grid.classList.toggle('expanded');
+      btn.textContent = expanded ? (btn.dataset.collapseText ?? '') : (btn.dataset.expandText ?? '');
+      btn.setAttribute('aria-expanded', String(expanded));
+    });
+  }
 </script>
+

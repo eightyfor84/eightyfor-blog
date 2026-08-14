@@ -451,6 +451,70 @@ h6 {
 }
 
 
+/* Textures & interaction */
+html:not(.is-mobile) .interactive.scalable:hover{
+  transform: scale(1.02);
+}
+
+html.is-mobile .interactive.scalable:active{
+  transform: scale(1.04);
+}
+
+html:not(.is-mobile) .interactive.glowable:hover, html.is-mobile .interactive.glowable:active{
+  box-shadow: var(--card-glow);
+  border-color: var(--comp-text-sec-hl);
+}
+
+.mtl-surface {
+  background: var(--comp-bg-glass);
+  border: 1px solid var(--border-color-blur);
+  box-shadow: var(--glass-shadow-elev-1);
+}
+
+html:not(.is-mobile) .mtl-surface.interactive:hover {
+  background: var(--comp-bg-glass-hvr);
+  box-shadow: var(--glass-shadow-elev-2);
+}
+
+html.is-mobile .mtl-surface.interactive:active {
+  background: var(--comp-bg-glass-active);
+  box-shadow: var(--glass-shadow-elev-3);
+}
+
+html:not(.is-mobile) .mtl-surface.interactive.glowable:hover{
+  box-shadow: var(--card-glow), var(--glass-shadow-elev-2);
+}
+
+html.is-mobile .mtl-surface.interactive.glowable:active{
+  box-shadow: var(--card-glow), var(--glass-shadow-elev-3);
+}
+
+.mtl-container {
+  background: var(--comp-bg-blur);
+  border: 1px solid var(--border-color-blur);
+  box-shadow: var(--shadow-elev-1);
+}
+
+html:not(.is-mobile) .mtl-container.interactive:hover {
+  background: var(--comp-bg-glass-hvr);
+  box-shadow: var(--glass-shadow-elev-2);
+}
+
+html.is-mobile .mtl-container.interactive:active {
+  background: var(--comp-bg-glass-active);
+  box-shadow: var(--glass-shadow-elev-3);
+}
+
+html:not(.is-mobile) .mtl-container.interactive.glowable:hover{
+  box-shadow: var(--card-glow), var(--glass-shadow-elev-2);
+}
+
+html.is-mobile .mtl-container.interactive.glowable:active{
+  box-shadow: var(--card-glow), var(--glass-shadow-elev-3);
+}
+
+
+
 button {
   border-radius: 8px;
   border: 1px solid transparent;

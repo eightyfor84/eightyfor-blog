@@ -107,6 +107,7 @@ const isMenu = template === 'menu';
 
   /* === Shell (collapsed) === */
   .cb__btn {
+    --max-open-width: 9999px;
     position:fixed;bottom:30px;width:50px;min-height:50px;border-radius:50px;
     background:var(--comp-bg-glass);border:1px solid var(--border-color-blur);
     color:var(--comp-text-pri);box-shadow:var(--glass-shadow-elev-1);
@@ -144,7 +145,7 @@ const isMenu = template === 'menu';
   /* === Open state === */
   .cb__btn.cb--open {
     left:30px!important;right:30px!important;bottom:90px;
-    width:calc(100vw - 60px)!important;max-height:60vh;border-radius:12px;
+    width: min(calc(100vw - 60px), var(--max-open-width)) !important;max-height:60vh;border-radius:12px;
     background:var(--comp-bg-blur);border-color:var(--border-color);
     color:var(--comp-text-pri);box-shadow:var(--glass-shadow-elev-2);
     z-index:1400!important;cursor:default;overflow:hidden;

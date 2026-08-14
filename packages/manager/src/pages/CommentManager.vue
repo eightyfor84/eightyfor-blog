@@ -254,11 +254,11 @@ async function loadPendingOverview() {
   error.value = ''
   try {
     const pendingFiles = await readDir('data/comments-pending')
-    const uuids = pendingFiles.map(f => f.replace('.json', ''))
+    const ids = pendingFiles.map(f => f.replace('.json', ''))
     const groups = []
-    for (const uuid of uuids) {
-      const comments = await readJson<any[]>('data/comments-pending/' + uuid + '.json') ?? []
-      if (comments.length) groups.push({ postId: uuid, postTitle: uuid, comments })
+    for (const id of ids) {
+      const comments = await readJson<any[]>('data/comments-pending/' + id + '.json') ?? []
+      if (comments.length) groups.push({ postId: id, postTitle: id, comments })
     }
     pendingGroups.value = groups
     pendingTotal.value = groups.reduce((s, g) => s + g.comments.length, 0)

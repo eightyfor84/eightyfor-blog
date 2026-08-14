@@ -13,6 +13,7 @@
       max-width: 1000px;
       margin: 0 auto;
       padding: 2rem 1rem;
+      transition: padding 0.2s ease;
     }
 
     .error-container {
@@ -318,6 +319,8 @@
       line-height: 1.2;
       letter-spacing: 0;
     }
+    
+    .cb__btn.cb--open { --max-open-width: 600px !important;}
 
     /* Image preview styles moved to FilePreviewModal.astro
        so they are available on every page, not just post pages. */

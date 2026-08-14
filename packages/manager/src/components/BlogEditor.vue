@@ -315,7 +315,7 @@
                     <FilePicker selectionMode="multiple" :allowLocalPick="!isCloudEditing"
                         :allowUpload="isCloudAuthenticated()"
                         :source="isCloudEditing ? 'post' : 'assets'"
-                        :postSlug="postSlug || postId || undefined"
+                        :postId="postSlug || postId || undefined"
                         :initialFiles="displayedFiles.map(f => ({ name: f.name, uploadedUrl: f.url, preview: f.thumb || f.url }))"
                         @select="handleMediaPicked" @cancel="activeModal = 'none'" />
                 </div>
@@ -673,7 +673,7 @@ import { Icons } from '../utils/icons.ts'
 /** Hollow ring icon for new/unsaved state — 2.5px stroke, 12px outer diameter */
 
 import { convertToHtml } from '../utils/markdownParser.ts'
-import { renderPreview, setPreviewPostSlug } from '../utils/markdownPreview.ts'
+import { renderPreview, setPreviewPostId } from '../utils/markdownPreview.ts'
 import { sortTags } from '../utils/tagUtils.ts'
 import { formatDate as formatDateUtil, formatDateTime } from '../utils/dateUtils.ts'
 import { debounce } from '../utils/debounce.ts'
@@ -698,6 +698,7 @@ import { useEditorToolbar, type RibbonTool } from '../composables/editor/core/us
 import { useEditorFile } from '../composables/editor/markdown/useEditorFile'
 import { useEditorSession } from '../composables/editor/core/useEditorLifecycle'
 import { resolveEditorRoute } from '../composables/editor/cloud/useCloudRouter'
+import { slugify } from '../composables/editor/cloud/useCloudRelay'
 import { useFileMenu } from '../composables/editor/markdown/useMarkdownFileMenu'
 
 import type { IEditorBody } from './editor/IEditorBody.ts'
@@ -1104,9 +1105,10 @@ async function doImport() {
   if (!postDate.value) postDate.value = new Date().toISOString()
   postStatus.value = 'published'
 
-  // Use custom slug if user entered one; otherwise derive from title.
-  // Must pass the same validation as validateSlug().
-  const fallbackSlug = (postTitle.value || 'untitled').toLowerCase().replace(/[^\w\s-]/g, '').replace(/[\s_]+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80)
+  // Use custom slug if user entered one; otherwise derive from title
+  // (slugify falls back to a random UUID when the title has no readable characters).
+  // Custom slug must pass the same validation as validateSlug().
+  const fallbackSlug = slugify(postTitle.value || '')
   const custom = postSlug.value?.trim()
   const slugRe = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
   let slug = fallbackSlug
@@ -1191,7 +1193,7 @@ watch(fmChanged, () => {}, { flush: 'sync' })
 
 // Sync post slug to preview renderer for private asset resolution
 watch([postSlug, postId], () => {
-  setPreviewPostSlug(postSlug.value || postId.value || '')
+  setPreviewPostId(postSlug.value || postId.value || '')
 }, { immediate: true })
 
 // Popstate handler — 浏览器前进后退时触发 initLoad。
