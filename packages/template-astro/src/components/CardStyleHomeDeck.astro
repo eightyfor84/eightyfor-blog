@@ -420,7 +420,7 @@ if (recentUpdates) {
   for (const p of recentUpdates.changedPosts) {
     activityItems.push({
       tone: "post",
-      label: (p.isNew ? t("home.newPost") : t("home.updatedPosts")) as string,
+      label: (p.isNew ? t("home.newPost") : t("home.updatedPost")) as string,
       title: p.title,
       href: buildPostUrl(p.id),
     });
