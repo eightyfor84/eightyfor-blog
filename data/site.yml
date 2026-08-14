@@ -18,6 +18,6 @@ icpNumber: 京ICP备2025153813号-1
 homepageMode: split
 singleColumnHomepage: false
 cardVisibility:
-
 comment:
-
+  backend: waline
+  walineServerUrl: https://chronicle-aurora-comments.vercel.app
