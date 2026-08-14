@@ -20,6 +20,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # Partial clone: full commit+tree history (needed by `git log --since`
+          # and `git diff <base>..HEAD`), but no blob content. Historical media
+          # is never downloaded — only the current files' blobs (fetched lazily
+          # at checkout). The recent-updates card reads only file names/status
+          # (see `--no-renames` in shared/git.ts) plus one tiny collections.yml,
+          # so it works without pulling media history. Keeps clone size ~constant
+          # regardless of how much media churn the repo accumulates.
+          fetch-depth: 0
+          filter: blob:none
 
       - name: Setup Node
         uses: actions/setup-node@v5
