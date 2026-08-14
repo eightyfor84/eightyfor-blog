@@ -14,6 +14,7 @@ import '../styles/global.css';
 import '../styles/app.css';
 
 import criticalTokens from '../styles/critical-tokens.css?raw';
+import { hexToRgbString } from '../utils/colorUtils';
 
 // Assemble critical CSS based on page type — only inject what this page needs.
 const pathname = Astro.url.pathname;
@@ -55,9 +56,6 @@ const { title, settings, locale: propLocale, meta, navTitle, navBackHref, navBac
 const pageMeta = typeof meta === 'string' ? { description: meta } : (meta || {});
 const featureFlags = resolveFeatureFlags(settings?.featureFlags || Astro.props.featureFlags);
 const mediaDomain = String(process.env.MEDIA_DOMAIN || '').replace(/\/$/, '');
-const frontendDomain = String(process.env.FRONTEND_DOMAIN || '').replace(/\/$/, '');
-const backendMediaBase = '';
-const backgroundBaseUrls = [mediaDomain, backendMediaBase, frontendDomain, ''];
 
 function resolveMediaUrl(value: any) {
   const normalized = String(value || '').trim();
@@ -106,6 +104,100 @@ const frontendBackgroundColorLight = settings?.frontendBackgroundColorLight || '
 const frontendBackgroundColorDark = settings?.frontendBackgroundColorDark || '';
 const frontendFont = settings?.frontendFont || 'sans';
 const defaultPerformanceMode = settings?.defaultPerformanceMode || 'auto';
+
+// ── Background layer: resolve build-time CSS values ──
+// The background image URL, mode-derived size/position/repeat, blur, and the
+// light/dark overlay + surface colors are all known at build time. Emit them as
+// static CSS so no runtime JS is needed to render the background layer.
+const backgroundImageUrl = typeof frontendBackground === 'string'
+  ? frontendBackground
+  : (frontendBackground && (frontendBackground as any).url) || '';
+
+let backgroundMeta: any = null;
+try {
+  backgroundMeta = frontendBackgroundMeta ? JSON.parse(String(frontendBackgroundMeta)) : null;
+} catch (e) { backgroundMeta = null; }
+
+const bgMode = backgroundMeta?.mode || 'cover';
+const bgCompression = Number(backgroundMeta?.compressionFactor ?? backgroundMeta?.compression ?? backgroundMeta?.bgCompression ?? backgroundMeta?.scale ?? 1);
+const bgScale = Number(backgroundMeta?.size || 100);
+const bgEffectiveScale = Number.isFinite(bgCompression) && bgCompression > 0 ? bgCompression : 1;
+
+let bgImagePosition = 'center';
+let bgImageSize = 'cover';
+let bgImageRepeat = 'no-repeat';
+switch (bgMode) {
+  case 'contain':
+    bgImageSize = 'contain';
+    break;
+  case 'fill':
+    bgImageSize = '100% 100%';
+    break;
+  case 'tile':
+    bgImagePosition = '0 0';
+    bgImageSize = `${bgScale * bgEffectiveScale}%`;
+    bgImageRepeat = 'repeat';
+    break;
+  case 'custom':
+    bgImagePosition = `${backgroundMeta?.posX ?? 50}% ${backgroundMeta?.posY ?? 50}%`;
+    bgImageSize = `${bgScale * bgEffectiveScale}%`;
+    bgImageRepeat = 'no-repeat';
+    break;
+  case 'cover':
+  default:
+    bgImagePosition = 'center';
+    bgImageSize = 'cover';
+    bgImageRepeat = 'no-repeat';
+}
+
+const bgBlur = Number(backgroundMeta?.blur || 0);
+
+function overlayRgba(color: any, opacity: any): string {
+  const c = String(color || '').trim();
+  if (!c || c === 'transparent') return 'transparent';
+  const opa = (opacity != null ? (Number(opacity) || 0) : 0) / 100;
+  const rgb = hexToRgbString(c);
+  return `rgba(${rgb}, ${opa})`;
+}
+
+const bgOverlayLight = overlayRgba(
+  backgroundMeta?.overlayLightColor || backgroundMeta?.overlayColor,
+  backgroundMeta?.overlayLightOpacity != null ? backgroundMeta?.overlayLightOpacity : backgroundMeta?.overlayOpacity
+);
+const bgOverlayDark = overlayRgba(
+  backgroundMeta?.overlayDarkColor || backgroundMeta?.overlayColor,
+  backgroundMeta?.overlayDarkOpacity != null ? backgroundMeta?.overlayDarkOpacity : backgroundMeta?.overlayOpacity
+);
+
+const hasSurfaceLight = Boolean(frontendBackgroundColorLight);
+const hasSurfaceDark = Boolean(frontendBackgroundColorDark);
+
+let backgroundCss = '';
+if (backgroundImageUrl) {
+  backgroundCss += '#chronicle-bg-layer .bg-image {\n';
+  backgroundCss += `  background-image: url("${backgroundImageUrl}") !important;\n`;
+  backgroundCss += `  background-size: ${bgImageSize} !important;\n`;
+  backgroundCss += `  background-position: ${bgImagePosition} !important;\n`;
+  backgroundCss += `  background-repeat: ${bgImageRepeat} !important;\n`;
+  backgroundCss += '}\n';
+  if (bgBlur > 0) {
+    backgroundCss += '#chronicle-bg-layer .bg-overlay {\n';
+    backgroundCss += `  backdrop-filter: blur(${bgBlur}px);\n`;
+    backgroundCss += `  -webkit-backdrop-filter: blur(${bgBlur}px);\n`;
+    backgroundCss += '}\n';
+  }
+  backgroundCss += ':root {\n';
+  backgroundCss += `  --frontend-bg-overlay-light: ${bgOverlayLight};\n`;
+  backgroundCss += `  --frontend-bg-overlay-dark: ${bgOverlayDark};\n`;
+  backgroundCss += '}\n';
+}
+if (hasSurfaceLight || hasSurfaceDark) {
+  if (hasSurfaceLight) backgroundCss += `:root { --bg-surface-color-light: ${frontendBackgroundColorLight}; }\n`;
+  if (hasSurfaceDark) backgroundCss += `:root { --bg-surface-color-dark: ${frontendBackgroundColorDark}; }\n`;
+  backgroundCss += ':root { --bg-surface-color: var(--bg-surface-color-dark, var(--app-bg-pri)); }\n';
+  backgroundCss += ':root[data-theme="light"] { --bg-surface-color: var(--bg-surface-color-light, var(--app-bg-pri)); }\n';
+  backgroundCss += '@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) { --bg-surface-color: var(--bg-surface-color-light, var(--app-bg-pri)); } }\n';
+}
 
 // 从Astro.locals获取locale（由middleware设置）
 const locale = propLocale || getLocale(Astro.locals);
@@ -254,6 +346,9 @@ try {
     <!-- Critical CSS skeleton (geometry + colours — tokens are inline above) -->
     <style is:inline set:html={criticalCSS}></style>
 
+    <!-- Background layer CSS: image + mode + blur + overlay/surface colors resolved at build time -->
+    {backgroundCss ? <style is:inline set:html={backgroundCss}></style> : null}
+
     <script define:vars={{ frontendTheme, frontendAccent, frontendBackground, frontendBackgroundMeta, frontendBackgroundColorLight, frontendBackgroundColorDark, frontendFont, featureFlags, GA_MEASUREMENT_ID }}>
       // 将settings传递给客户端
       window.__CHRONICLE_SETTINGS__ = {
@@ -269,9 +364,8 @@ try {
       };
     </script>
 
-    <script define:vars={{ mediaBaseUrl: mediaDomain, backgroundBaseUrls }}>
+    <script define:vars={{ mediaBaseUrl: mediaDomain }}>
       window.__CHRONICLE_MEDIA_BASE_URL__ = mediaBaseUrl;
-      window.__CHRONICLE_BACKGROUND_BASE_URLS__ = backgroundBaseUrls;
     </script>
 
     <script>
@@ -292,7 +386,7 @@ try {
       </defs>
     </svg>
     <!-- 背景层 - 使用transition:persist保持跨页面持久化 -->
-    <div id="chronicle-bg-layer" transition:persist="background-layer">
+    <div id="chronicle-bg-layer" transition:persist="background-layer" class:list={backgroundImageUrl ? 'is-ready' : undefined}>
       <div class="bg-image"></div>
       <div class="bg-surface"></div>
       <div class="bg-overlay"></div>
@@ -315,111 +409,9 @@ try {
     <FilePreviewModal />
 
     <script>
-      import { applyTheme, writeBackgroundMetaVars, updateResolvedOverlays, parseBackgroundMeta } from '../utils/themeUtils';
-      // backgroundLayer (ensureBackgroundLayer, stageBackgroundLayer) — dynamically
-      // imported on first use to keep the initial bundle smaller. The background
-      // is never part of the critical rendering path; it renders after LCP.
-      let _bgMod: typeof import('../utils/backgroundLayer') | null = null;
-      async function _loadBg() {
-        if (!_bgMod) _bgMod = await import('../utils/backgroundLayer');
-        return _bgMod;
-      }
-      const backgroundMeta = parseBackgroundMeta((window as any).__CHRONICLE_SETTINGS__?.frontendBackgroundMeta);
-      
-      // 确保背景层在页面切换时不被重新创建
-      async function ensureBackgroundLayerExists() {
-        const { ensureBackgroundLayer } = await _loadBg();
-        if (!document.getElementById('chronicle-bg-layer')) {          ensureBackgroundLayer();
-        } else {
-          // 如果背景层已存在，确保它不会被View Transitions替换
-          const existingLayer = document.getElementById('chronicle-bg-layer');
-          if (existingLayer && existingLayer.parentNode === document.body) {
-            // 背景层已经在正确位置，不需要操作
-                      } else {
-            // 背景层存在但位置不正确，重新创建            ensureBackgroundLayer();
-          }
-        }
-      }
+      import { applyTheme } from '../utils/themeUtils';
 
-      // 立即检查并创建背景层 (fire-and-forget — best-effort early init)
-      ensureBackgroundLayerExists();
-
-      // 复用背景层渲染逻辑
-      async function applyBackgroundLayer(forceReload = false) {
-        const { stageBackgroundLayer, ensureBackgroundLayer } = await _loadBg();
-                const settings = { ...(window as any).__CHRONICLE_SETTINGS__ };
-
-        if (settings.frontendBackground) {
-                    const meta = backgroundMeta;
-
-          writeBackgroundMetaVars('frontend', meta);
-          updateResolvedOverlays();
-
-          const overlayVar = '--frontend-bg-overlay';
-          const overlayValue = getComputedStyle(document.documentElement).getPropertyValue(overlayVar) || 'transparent';
-
-          const layer = document.getElementById('chronicle-bg-layer');
-
-          if (layer) {
-            // 如果需要强制重载，设置标记
-            if (forceReload) {
-              layer.setAttribute('data-force-reload', 'true');
-                          }
-
-            // 强制设置背景层样式
-            layer.style.opacity = '1';
-            layer.style.visibility = 'visible';
-            layer.style.display = 'block';
-
-            const overlayEl = layer.querySelector('.bg-overlay') as HTMLElement | null;
-            if (overlayEl) {
-              overlayEl.style.background = overlayValue || 'transparent';
-                          }
-
-            // 强制渲染背景图片
-                        stageBackgroundLayer(settings.frontendBackground, meta, overlayValue);
-                      } else {
-            // 如果背景层丢失，重新创建并渲染
-                        ensureBackgroundLayer();
-                      }
-        } else {
-                  }
-      }
-
-      // 立即应用背景设置，确保首次加载时背景层正确渲染
-      setTimeout(() => {
-        applyBackgroundLayer(true); // 强制重载，确保首次加载正确渲染
-      }, 100);
-
-      let isBackgroundReady = false;
-      let bgLcpActivationScheduled = false;
-
-      // ── 背景底色解析（深/浅 → --bg-surface-color） ──
-      function resolveBackgroundColorVar() {
-        const dt = document.documentElement.getAttribute('data-theme');
-        let chosen = '';
-        if (dt === 'light') {
-          chosen = getComputedStyle(document.documentElement).getPropertyValue('--bg-surface-color-light') || '';
-        } else if (dt === 'dark') {
-          chosen = getComputedStyle(document.documentElement).getPropertyValue('--bg-surface-color-dark') || '';
-        } else {
-          try {
-            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-            chosen = prefersDark
-              ? (getComputedStyle(document.documentElement).getPropertyValue('--bg-surface-color-dark') || '')
-              : (getComputedStyle(document.documentElement).getPropertyValue('--bg-surface-color-light') || '');
-          } catch (e) {
-            chosen = getComputedStyle(document.documentElement).getPropertyValue('--bg-surface-color-light') || '';
-          }
-        }
-        if (chosen && chosen.trim()) {
-          document.documentElement.style.setProperty('--bg-surface-color', chosen);
-        } else {
-          document.documentElement.style.removeProperty('--bg-surface-color');
-        }
-      }
-
-      // System theme change listener
+      // 系统主题变化监听（follow/system 模式）
       function initThemeListener() {
         try {
           const settings = JSON.parse(localStorage.getItem('chronicle.settings') || '{}');
@@ -449,78 +441,12 @@ try {
         }
       }
 
-      // initNavState removed - NavHeader component handles all navigation logic
-
-      function enableCustomBackgroundRendering() {
-        if (isBackgroundReady) return;
-        isBackgroundReady = true;
-        // 背景层已在HTML中定义，不需要ensureBackgroundLayer
-        applyBackgroundSettings();
-      }
-
-      function scheduleCustomBackgroundAfterLcp() {
-        if (bgLcpActivationScheduled) return;
-        bgLcpActivationScheduled = true;
-
-        const activate = () => {
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              enableCustomBackgroundRendering();
-            });
-          });
-        };
-
-        // 简化版：3秒后激活
-        setTimeout(() => {
-          activate();
-        }, 3000);
-
-        // 尝试使用PerformanceObserver
-        try {
-          if (typeof PerformanceObserver !== 'undefined') {
-            const observer = new PerformanceObserver(() => {
-              activate();
-              observer.disconnect();
-            });
-            observer.observe({ type: 'largest-contentful-paint', buffered: true } as any);
-          }
-        } catch (e) {
-          // fallback已经设置
-        }
-      }
-
-      async function applyBackgroundSettings() {
-        const settings = (window as any).__CHRONICLE_SETTINGS__;
-        if (!settings) return;
-
-        try {
-          if (isBackgroundReady && settings.frontendBackground) {
-            const meta = backgroundMeta;
-
-            // 先写入背景元数据变量
-            writeBackgroundMetaVars('frontend', meta);
-
-            // 更新resolved overlays以确保遮罩正确
-            updateResolvedOverlays();
-
-            // 获取计算后的overlay值
-            const overlayVar = '--frontend-bg-overlay';
-            const overlayValue = getComputedStyle(document.documentElement).getPropertyValue(overlayVar) || 'transparent';
-
-            const { stageBackgroundLayer } = await _loadBg();
-                        stageBackgroundLayer(settings.frontendBackground, meta, overlayValue);
-          }
-        } catch (e) {
-          console.error('[Layout] Error applying background:', e);
-        }
-      }
-
-      async function applySettings(forceBackgroundReload = false) {
+      function applySettings() {
         const settings = { ...(window as any).__CHRONICLE_SETTINGS__ };
         if (!settings) return;
 
+        // 本地保存的主题覆盖 SSR 设置
         try {
-          // 如果本地有保存的设置，覆盖全局设置
           const localSettings = JSON.parse(localStorage.getItem('chronicle.settings') || '{}');
           if (localSettings.frontendTheme) {
             settings.frontendTheme = localSettings.frontendTheme;
@@ -528,13 +454,12 @@ try {
         } catch (e) {}
 
         try {
-          // 应用主题
+          // 主题：设置 <html data-theme>，背景/遮罩/底色均由 CSS 变量按主题解析
           applyTheme(settings.frontendTheme);
 
           // 应用accent颜色
           if (settings.frontendAccent) {
-            const accent = settings.frontendAccent;
-            document.documentElement.style.setProperty('--accent', accent);
+            document.documentElement.style.setProperty('--accent', settings.frontendAccent);
           }
 
           // 应用字体
@@ -543,122 +468,27 @@ try {
           } else {
             document.documentElement.style.setProperty('--app-font-stack', 'var(--app-font-stack-inter)');
           }
-
-          // 应用背景底色（bg-surface，深/浅色各一套）
-          if (settings.frontendBackgroundColorLight || settings.frontendBackgroundColorDark) {
-            if (settings.frontendBackgroundColorLight) {
-              document.documentElement.style.setProperty('--bg-surface-color-light', settings.frontendBackgroundColorLight);
-            } else {
-              document.documentElement.style.removeProperty('--bg-surface-color-light');
-            }
-            if (settings.frontendBackgroundColorDark) {
-              document.documentElement.style.setProperty('--bg-surface-color-dark', settings.frontendBackgroundColorDark);
-            } else {
-              document.documentElement.style.removeProperty('--bg-surface-color-dark');
-            }
-            // 按当前主题解析到 --bg-surface-color
-            resolveBackgroundColorVar();
-          } else {
-            document.documentElement.style.removeProperty('--bg-surface-color-light');
-            document.documentElement.style.removeProperty('--bg-surface-color-dark');
-            document.documentElement.style.removeProperty('--bg-surface-color');
-          }
-
-          // 应用背景和overlay
-          if (settings.frontendBackground) {
-            const meta = backgroundMeta;
-
-            // 先写入背景元数据变量（总是需要）
-            writeBackgroundMetaVars('frontend', meta);
-
-            // 更新resolved overlays以确保遮罩正确（总是需要）
-            updateResolvedOverlays();
-
-            // 获取计算后的overlay值（总是需要）
-            const overlayVar = '--frontend-bg-overlay';
-            const overlayValue = getComputedStyle(document.documentElement).getPropertyValue(overlayVar) || 'transparent';
-
-            // 仅在首次加载或强制重载时重新渲染背景图片
-            if (forceBackgroundReload || !isBackgroundReady) {
-              const { stageBackgroundLayer } = await _loadBg();
-                            stageBackgroundLayer(settings.frontendBackground, meta, overlayValue);
-            } else {
-              // 页面导航时，只更新overlay而不重新加载背景图片
-                            
-              const layer = document.getElementById('chronicle-bg-layer');
-              if (layer) {
-                const overlayEl = layer.querySelector('.bg-overlay') as HTMLElement | null;
-                if (overlayEl) {
-                  overlayEl.style.background = overlayValue || 'transparent';
-                }
-              }
-            }
-          }
-
-          // 更新resolved overlays
-          updateResolvedOverlays();
         } catch (e) {
           console.error('[Layout] Error applying settings:', e);
-        }
-      }
-
-      function initThemeObserver() {
-        try {
-          // 观察data-theme属性变化
-          const observer = new MutationObserver(() => {
-            updateResolvedOverlays();
-            resolveBackgroundColorVar();
-          });
-          observer.observe(document.documentElement, {
-            attributes: true,
-            attributeFilter: ['data-theme']
-          });
-
-          // 监听系统主题变化
-          if (window.matchMedia) {
-            const mql = window.matchMedia('(prefers-color-scheme: dark)');
-            const handler = () => {
-              updateResolvedOverlays();
-              resolveBackgroundColorVar();
-            };
-            if (typeof mql.addEventListener === 'function') {
-              mql.addEventListener('change', handler);
-            } else if (typeof mql.addListener === 'function') {
-              mql.addListener(handler);
-            }
-          }
-        } catch (e) {
-          console.error('[Layout] Error initializing theme observer:', e);
         }
       }
 
       let initialized = false;
 
       function init() {
-        // NavHeader handles its own initialization
-
         if (!initialized) {
-          // 首次硬加载：完整初始化（主题、背景、监听器）
-          applySettings(true);
+          // 首次硬加载：完整初始化（主题、监听器）
+          applySettings();
           initThemeListener();
-          initThemeObserver();
-          scheduleCustomBackgroundAfterLcp();
           initialized = true;
         } else {
-          // 软路由：transition:persist 完整保留背景层
-          // （DOM、inline style、is-ready、background-image 全部原样继承）。
-          // 只需重新应用主题/accent/字体/overlay 到新的 <html>。
-          applySettings(false);
-          updateResolvedOverlays();
+          // 软路由：重新应用主题/accent/字体到新的 <html>
+          applySettings();
         }
       }
 
       // Astro 每次路由切换完毕会抛出 page-load 事件 (包含首次加载)
       document.addEventListener('astro:page-load', init);
-
-      // transition:persist 会完整保留 #chronicle-bg-layer 元素
-      // 及其所有 inline style、class、子元素——无需 JS 干预。
-      // 直接 URL (非 blob) 的 background-image 跨 View Transition 天然有效。
 
       document.addEventListener('astro:after-swap', () => {
         document.documentElement.classList.remove('home-transition-disabled');

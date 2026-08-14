@@ -77,7 +77,7 @@ export function getChangedFiles(
   cwd?: string,
   opts?: { sinceIso?: string; firstParent?: boolean },
 ): ChangedFile[] | null {
-  const args = ['log', '--name-status', '--format='];
+  const args = ['log', '--name-status', '--no-renames', '--format='];
   if (opts?.firstParent) args.push('--first-parent');
   if (opts?.sinceIso) args.push(`--since=${opts.sinceIso}`);
   const out = runGit(args, cwd);
@@ -99,7 +99,7 @@ export function getDiffFiles(
   to: string,
   path?: string,
 ): ChangedFile[] | null {
-  const args = ['diff', '--name-status', from, to];
+  const args = ['diff', '--name-status', '--no-renames', from, to];
   if (path) args.push('--', path);
   const out = runGit(args, cwd);
   if (out === null) return null;

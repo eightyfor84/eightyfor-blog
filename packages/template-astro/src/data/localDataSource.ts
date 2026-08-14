@@ -82,7 +82,14 @@ function readBackgroundUrl(): string {
     const bgDir = path.join(DATA_DIR, 'background')
     if (!fs.existsSync(bgDir)) return ''
     const imgs = fs.readdirSync(bgDir).filter(f => /\.(jpg|jpeg|png|gif|webp|avif|svg)$/i.test(f) && !f.startsWith('.'))
-    return imgs.length > 0 ? `/data/background/${imgs[0]}` : ''
+    if (imgs.length === 0) return ''
+    const file = imgs[0]
+    // Content-hash cache-busting: URL changes only when the image bytes change,
+    // so browsers/CDN re-fetch on update but stay cached otherwise. Keeps the
+    // stable `/data/background/<file>` path while breaking stale HTTP cache.
+    const src = path.join(bgDir, file)
+    const hash = crypto.createHash('sha256').update(fs.readFileSync(src)).digest('hex').slice(0, 8)
+    return `/data/background/${file}?v=${hash}`
   } catch { return '' }
 }
 

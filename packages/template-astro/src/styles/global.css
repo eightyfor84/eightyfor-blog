@@ -179,26 +179,10 @@
   color: var(--app-text-pri);
   background-color: transparent;
 
-  /* 背景图片和遮罩相关的CSS变量 */
-  --frontend-bg-image: none;
-  --frontend-bg-pos: 50% 50%;
-  --frontend-bg-size: 100%;
-  --frontend-bg-blur: 0px;
-  --frontend-bg-opacity: 0;
-  --frontend-bg-compression: 1;
-  --frontend-bg-overlay-light: transparent;
-  --frontend-bg-overlay-dark: transparent;
-  --frontend-bg-overlay: transparent;
-
-  --backend-bg-image: none;
-  --backend-bg-pos: 50% 50%;
-  --backend-bg-size: 100%;
-  --backend-bg-blur: 0px;
-  --backend-bg-opacity: 0;
-  --backend-bg-compression: 1;
-  --backend-bg-overlay-light: transparent;
-  --backend-bg-overlay-dark: transparent;
-  --backend-bg-overlay: transparent;
+  /* 背景遮罩明暗解析：具体值由 SSR（Layout.astro）注入
+     --frontend-bg-overlay-light/dark。此处仅定义默认解析
+     （dark 为默认；light 走下方 [data-theme] / 系统偏好）。 */
+  --frontend-bg-overlay: var(--frontend-bg-overlay-dark, transparent);
 
   /* font-synthesis: none; */
   text-rendering: optimizeLegibility;
@@ -846,10 +830,10 @@ html.bg-no-img #chronicle-bg-layer .bg-image {
 #chronicle-bg-layer .bg-overlay {
   position: absolute;
   inset: 0;
-  background: transparent;
+  background: var(--frontend-bg-overlay, transparent);
   z-index: 3;
   /* 最上层：遮罩层 + 模糊 */
-  transition: background 0.3s ease, backdrop-filter 0.3s ease, -webkit-backdrop-filter 0.3s ease;
+  transition: backdrop-filter 0.3s ease, -webkit-backdrop-filter 0.3s ease;
   /* Force GPU compositing layer so backdrop-filter survives View Transition
      rasterization on mobile — without this the compositor may drop the
      filter during the multi-group transition window. */
