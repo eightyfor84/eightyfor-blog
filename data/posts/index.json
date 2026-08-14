@@ -51,7 +51,7 @@
       "story"
     ],
     "status": "published",
-    "summary": "",
+    "summary": "Shower - Rapeter",
     "font": "serif",
     "author": null,
     "aiGenerated": false,
@@ -93,8 +93,9 @@
       "README"
     ],
     "status": "published",
-    "summary": "",
+    "summary": "一个现代化的博客内容管理系统，支持 Markdown 编辑、多语言、主题定制，采用 双模式（静态/API）架构。",
     "font": "sans",
+    "author": null,
     "aiGenerated": false,
     "type": "article",
     "collection": "Chronicle Docs",
@@ -124,7 +125,7 @@
       "chronicle"
     ],
     "status": "published",
-    "summary": "",
+    "summary": "我接触编程不算很早，开始于初中学校社团的 VB 6.0 的课程。那节社团课，看着老社员做的各种小游戏，对编程一窍不通的我，瞬间对 VB 这个老掉牙的新东西来了兴趣。",
     "font": "serif",
     "author": "Vincent Chen",
     "aiGenerated": false,

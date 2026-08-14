@@ -1,23 +1,28 @@
-# Chronicle Aurora
 siteName: Blogs →
 siteDescription: 爱我所爱，自成一派。 Love what you wanna love, be what you wanna be.
+icpNumber: 京ICP备2025153813号-1
+homepageMode: split
+singleColumnHomepage: false
+cardVisibility: {}
+recentUpdates:
+  aggregateDays: 3
 frontendTheme: follow
 frontendAccent: "#51a32e"
 frontendFont: sans
 frontendLocale: follow
+defaultPerformanceMode: auto
 searchSuggestions: false
 relatedPosts: false
 collectionPage: true
 aboutPage: true
 friendsPage: true
+comments: true
 traffic: true
 rss: true
 sitemap: false
 gaMeasurementId: G-VPZBFWJ7FJ
-icpNumber: 京ICP备2025153813号-1
-homepageMode: split
-singleColumnHomepage: false
-cardVisibility:
+frontendBackgroundColorLight: ""
+frontendBackgroundColorDark: ""
 comment:
   backend: waline
   walineServerUrl: https://chronicle-aurora-comments.vercel.app
