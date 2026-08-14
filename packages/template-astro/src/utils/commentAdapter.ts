@@ -44,6 +44,7 @@ function readI18n(container: HTMLElement): Record<string, string> {
 
 function formatRelativeDate(dateStr: string, lang: string): string {
   const date = new Date(dateStr);
+  if (Number.isNaN(date.getTime())) return '';
   const now = new Date();
   const diffSec = Math.floor((now.getTime() - date.getTime()) / 1000);
   const diffMin = Math.floor(diffSec / 60);
@@ -71,18 +72,25 @@ export interface CommentData {
   parent?: string | null;
   rootId?: string;
   avatarUrl?: string;
+  /** Pinned (置顶) comment — Waline `sticky` flag. */
+  pinned?: boolean;
 }
 
 interface WalineComment {
-  objectId: string;
+  objectId: string | number;
   nick?: string;
   mail?: string;
   link?: string;
   avatar?: string;
   comment?: string;
   insertedAt?: string;
-  pid?: string;
-  rid?: string;
+  /** v3 API: epoch-ms timestamp. `insertedAt` is deleted by the server when `!deprecated`. */
+  time?: number;
+  pid?: string | number | null;
+  rid?: string | number | null;
+  /** Waline pinned flag — boolean after `formatCmt`, but tolerate raw string/number storage. */
+  sticky?: boolean | number | string;
+  children?: WalineComment[];
 }
 
 // ── DOM rendering ──────────────────────────────────────────
@@ -121,10 +129,20 @@ function renderAvatar(comment: CommentData, isReply: boolean): string {
   return `<span class="cs-avatar-initial${sm}">${escapeHtml(initial)}</span>`;
 }
 
-function renderCommentHTML(comment: CommentData, lang: string, isReply: boolean, replyLabel: string): string {
+function renderCommentHTML(comment: CommentNode, lang: string, isReply: boolean, replyLabel: string, replyToLabel: string, pinnedLabel: string): string {
   const author = comment.website
     ? `<a href="${escapeHtml(comment.website)}" rel="nofollow noopener" target="_blank">${escapeHtml(comment.author)}</a>`
     : escapeHtml(comment.author);
+
+  // For a reply that targets another reply (not the root), show "回复 @xxx".
+  const replyTo = comment.replyToAuthor
+    ? `<span class="cs-reply-to">${escapeHtml(replyToLabel)} @${escapeHtml(comment.replyToAuthor)}</span>`
+    : '';
+
+  // Pinned (置顶) badge — only roots are pinned by Waline, but render defensively.
+  const pinnedBadge = comment.pinned
+    ? `<span class="cs-pinned-badge" aria-label="${escapeHtml(pinnedLabel)}">${escapeHtml(pinnedLabel)}</span>`
+    : '';
 
   return `
     <div class="cs-comment${isReply ? ' cs-comment--reply' : ''}" id="comment-${escapeHtml(comment.id)}">
@@ -132,6 +150,8 @@ function renderCommentHTML(comment: CommentData, lang: string, isReply: boolean,
       <div class="cs-body">
         <div class="cs-meta">
           <span class="cs-author">${author}</span>
+          ${pinnedBadge}
+          ${replyTo}
           <span class="cs-date" data-date="${escapeHtml(comment.date)}">${escapeHtml(formatRelativeDate(comment.date, lang))}</span>
         </div>
         <div class="cs-content">${comment.content}</div>
@@ -142,34 +162,58 @@ function renderCommentHTML(comment: CommentData, lang: string, isReply: boolean,
 
 interface CommentNode extends CommentData {
   replies: CommentNode[];
+  /** Author being replied to, when this reply targets another reply (not the root). */
+  replyToAuthor?: string;
 }
 
-function buildTree(flat: CommentData[]): CommentNode[] {
-  const byId = new Map<string, CommentNode>();
-  flat.forEach((c) => byId.set(c.id, { ...c, replies: [] }));
+/**
+ * Build a flat two-level thread: roots + their replies. All descendants are grouped
+ * under their root (via rid) and rendered at the same second level — a reply that
+ * targets another reply keeps `replyToAuthor` for an inline "回复 @xxx" attribution,
+ * mirroring Waline's own flattening rather than infinite nesting.
+ */
+function buildThreads(flat: CommentData[]): CommentNode[] {
+  const byId = new Map<string, CommentData>();
+  flat.forEach((c) => byId.set(c.id, c));
 
   const roots: CommentNode[] = [];
   flat.forEach((c) => {
-    const node = byId.get(c.id)!;
-    if (c.parent && byId.has(c.parent)) {
-      byId.get(c.parent)!.replies.push(node);
-    } else {
-      roots.push(node);
-    }
+    if (!c.parent) roots.push({ ...c, replies: [] });
   });
+
+  flat.forEach((c) => {
+    if (!c.parent) return;
+    const rootId = c.rootId || c.parent;
+    const root = roots.find((r) => r.id === rootId);
+    if (!root) return;
+    const replyToAuthor = c.parent !== rootId ? byId.get(c.parent)?.author : undefined;
+    root.replies.push({ ...c, replies: [], replyToAuthor });
+  });
+
   return roots;
 }
 
-function renderThread(node: CommentNode, lang: string, replyLabel: string): string {
-  const html = renderCommentHTML(node, lang, false, replyLabel);
-  const replies = node.replies.map((r) => renderCommentHTML(r, lang, true, replyLabel)).join('');
+function renderThread(node: CommentNode, lang: string, replyLabel: string, replyToLabel: string, pinnedLabel: string): string {
+  const html = renderCommentHTML(node, lang, false, replyLabel, replyToLabel, pinnedLabel);
+  const replies = node.replies.map((r) => renderCommentHTML(r, lang, true, replyLabel, replyToLabel, pinnedLabel)).join('');
   return `<div class="cs-thread">${html}${replies ? `<div class="cs-replies">${replies}</div>` : ''}</div>`;
 }
 
-function renderCommentList(flat: CommentData[], lang: string, replyLabel: string, emptyMessage: string): string {
-  const tree = buildTree(flat);
-  if (tree.length === 0) return renderEmptyState(true, emptyMessage);
-  return tree.map((n) => renderThread(n, lang, replyLabel)).join('');
+function renderCommentList(flat: CommentData[], lang: string, replyLabel: string, replyToLabel: string, pinnedLabel: string, emptyMessage: string): string {
+  const threads = buildThreads(flat);
+  if (threads.length === 0) return renderEmptyState(true, emptyMessage);
+  return threads.map((n) => renderThread(n, lang, replyLabel, replyToLabel, pinnedLabel)).join('');
+}
+
+/** Native lazy-loading for media injected into comment content (images, iframes). */
+function applyLazyMedia(root: HTMLElement): void {
+  root.querySelectorAll<HTMLImageElement>('.cs-content img').forEach((img) => {
+    if (!img.hasAttribute('loading')) img.loading = 'lazy';
+    if (!img.hasAttribute('decoding')) img.decoding = 'async';
+  });
+  root.querySelectorAll<HTMLIFrameElement>('.cs-content iframe').forEach((iframe) => {
+    if (!iframe.hasAttribute('loading')) iframe.loading = 'lazy';
+  });
 }
 
 // ── Waline REST API ────────────────────────────────────────
@@ -182,16 +226,21 @@ function normalizeBaseUrl(raw: string): string {
 }
 
 function mapWalineComment(c: WalineComment): CommentData {
+  // v3 deletes `insertedAt` and returns `time` (epoch ms); v1 returns `insertedAt` (ISO).
+  const date = typeof c.time === 'number' ? new Date(c.time).toISOString() : c.insertedAt || '';
+  // Waline's `formatCmt` coerces `sticky` to boolean; tolerate raw string/number storage too.
+  const pinned = c.sticky == null ? false : Boolean(Number(c.sticky));
   return {
-    id: c.objectId,
+    id: String(c.objectId),
     author: (c.nick || '').trim() || 'Anonymous',
     email: c.mail || undefined,
     website: c.link || undefined,
     content: c.comment || '',
-    date: c.insertedAt || '',
-    parent: c.pid || null,
-    rootId: c.rid || c.objectId,
+    date,
+    parent: c.pid != null ? String(c.pid) : null,
+    rootId: c.rid != null ? String(c.rid) : String(c.objectId),
     avatarUrl: c.avatar || undefined,
+    pinned,
   };
 }
 
@@ -204,7 +253,10 @@ async function fetchWalineComments(serverUrl: string, path: string): Promise<{ c
   const json = await res.json();
   // v3 envelope: { errno, errmsg, data: { page, totalPages, pageSize, count, data: [...] } }
   const list: WalineComment[] = Array.isArray(json?.data?.data) ? json.data.data : [];
-  const comments = list.map(mapWalineComment);
+  // Waline returns a nested tree (roots with `children`). Flatten into a
+  // parent-referenced list so buildTree() can re-nest by pid/rid.
+  const flat = list.flatMap((root) => [root, ...(root.children || [])]);
+  const comments = flat.map(mapWalineComment);
   const count = typeof json?.data?.count === 'number' ? json.data.count : comments.length;
   return { count, comments };
 }
@@ -333,26 +385,50 @@ function setupWalineForm(
     if (previewing) renderPreview();
   });
 
-  // Image attachment — embed as base64 data URL (Waline's default imageUploader)
+  // Image attachment — images are kept as separate attachments (chips), NOT injected
+  // into the textarea. On submit they're appended after the text body as markdown image
+  // syntax, so Waline renders them as images below the comment text.
   const imageBtn = form.querySelector<HTMLButtonElement>('[data-role="image-btn"]');
   const imageInput = form.querySelector<HTMLInputElement>('[data-role="image-input"]');
+  const attachContainer = form.querySelector<HTMLElement>('[data-role="attachments"]');
+  const attachments: { name: string; dataUrl: string }[] = [];
+
+  const renderAttachments = () => {
+    if (!attachContainer) return;
+    attachContainer.innerHTML = attachments
+      .map(
+        (a, i) =>
+          `<span class="cs-attachment">` +
+          `<img class="cs-attachment-thumb" src="${escapeHtml(a.dataUrl)}" alt="" />` +
+          `<span class="cs-attachment-name">${escapeHtml(a.name)}</span>` +
+          `<button type="button" class="cs-attachment-remove" data-attachment-index="${i}" aria-label="Remove">&times;</button>` +
+          `</span>`,
+      )
+      .join('');
+    attachContainer.hidden = attachments.length === 0;
+  };
+
   imageBtn?.addEventListener('click', () => imageInput?.click());
   imageInput?.addEventListener('change', () => {
     const file = imageInput.files?.[0];
-    if (!file || !contentInput) return;
+    if (!file) return;
     if (!file.type.startsWith('image/')) return;
     const reader = new FileReader();
     reader.onload = () => {
-      const markdown = `![${file.name}](${reader.result})`;
-      const start = contentInput.selectionStart ?? contentInput.value.length;
-      const end = contentInput.selectionEnd ?? contentInput.value.length;
-      contentInput.value =
-        contentInput.value.slice(0, start) + markdown + contentInput.value.slice(end);
-      contentInput.focus();
-      contentInput.dispatchEvent(new Event('input', { bubbles: true }));
+      if (typeof reader.result === 'string') {
+        attachments.push({ name: file.name, dataUrl: reader.result });
+        renderAttachments();
+      }
     };
     reader.readAsDataURL(file);
     imageInput.value = ''; // reset so the same file can be re-selected
+  });
+
+  attachContainer?.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-attachment-index]');
+    if (!btn) return;
+    attachments.splice(Number(btn.getAttribute('data-attachment-index')), 1);
+    renderAttachments();
   });
 
   form.addEventListener('submit', async (e) => {
@@ -361,7 +437,16 @@ function setupWalineForm(
 
     const author = authorInput.value.trim();
     const content = contentInput.value.trim();
-    if (!author || !content) return;
+    const email = emailInput?.value.trim() || '';
+    // Email is required: a null `mail` breaks Waline's avatar renderer (Nunjucks trim(null)).
+    if (!author || !content || !email) return;
+
+    // Attachments are appended after the text body as markdown image syntax.
+    // (Waline has no separate attachment field; the server renders them as images.)
+    const attachmentMarkdown = attachments
+      .map((a) => `![${a.name.replace(/[\[\]]/g, '')}](${a.dataUrl})`)
+      .join('\n');
+    const finalContent = [content, attachmentMarkdown].filter(Boolean).join('\n\n');
 
     submitBtn.disabled = true;
     if (note) note.hidden = true;
@@ -371,11 +456,13 @@ function setupWalineForm(
         author,
         email: emailInput?.value.trim() || undefined,
         website: websiteInput?.value.trim() || undefined,
-        content,
+        content: finalContent,
         parent: parentInput?.value || undefined,
         rootId: rootInput?.value || undefined,
       });
       form.reset();
+      attachments.length = 0;
+      renderAttachments();
       setReplyTo(null, null, '');
       if (note) {
         note.textContent = i18n.submitted || 'Comment submitted.';
@@ -427,8 +514,11 @@ async function hydrateWaline(
         comments,
         lang,
         i18n.reply || 'Reply',
+        i18n.replyTo || 'Reply to',
+        i18n.pinned || 'Pinned',
         i18n.noComments || 'No comments yet.',
       );
+      applyLazyMedia(listEl);
       if (countEl) {
         countEl.textContent = String(count);
         countEl.style.display = count > 0 ? '' : 'none';

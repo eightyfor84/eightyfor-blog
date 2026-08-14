@@ -181,6 +181,8 @@
     "submitted": "Comment submitted, awaiting review.",
     "submitError": "Submission failed. Please try again.",
     "reply": "Reply",
+    "replyTo": "Reply to",
+    "pinned": "Pinned",
     "replyingTo": "Replying to",
     "preview": "Preview",
     "previewNow": "Now",

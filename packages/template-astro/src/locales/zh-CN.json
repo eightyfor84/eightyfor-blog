@@ -181,6 +181,8 @@
     "submitted": "评论已提交，等待审核。",
     "submitError": "提交失败，请重试。",
     "reply": "回复",
+    "replyTo": "回复",
+    "pinned": "置顶",
     "replyingTo": "回复",
     "preview": "预览",
     "previewNow": "刚刚",

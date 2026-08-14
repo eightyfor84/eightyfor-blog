@@ -82,6 +82,21 @@
           }
         }
       }
+    },
+    "$waline_admin": {
+      "type": "null",
+      "x-chronicle-class": "waline-admin-link",
+      "x-group": "backend",
+      "x-order": 2,
+      "x-visible-when": { "field": "comment.backend", "equals": "waline" },
+      "title": {
+        "en": "Open Waline Admin",
+        "zh-CN": "打开 Waline 后台"
+      },
+      "description": {
+        "en": "Jump to the Waline admin dashboard to review, approve, hide, or delete comments. Opens in your default browser at <server>/ui.",
+        "zh-CN": "跳转到 Waline 管理后台，用于审核、批准、隐藏或删除评论。点击后将在默认浏览器打开 <server>/ui。"
+      }
     }
   }
 }

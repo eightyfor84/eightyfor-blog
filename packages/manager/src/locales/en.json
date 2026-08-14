@@ -230,6 +230,7 @@
     "about": "About Page",
     "shortAbout": "About Page",
     "editAboutPage": "Edit About Page",
+    "walineAdminNoUrl": "Set a Waline server URL first, then use this to open the admin dashboard.",
     "aboutHint": "Edit the HTML content of your about page (stored in local config)",
     "appearance": "Appearance",
     "features": "Feature Toggles",

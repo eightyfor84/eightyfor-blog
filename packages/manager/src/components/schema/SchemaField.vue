@@ -48,6 +48,7 @@ import BackgroundEditorField from './fields/BackgroundEditorField.vue'
 import CardListField from './fields/CardListField.vue'
 import CollectionTreeField from './fields/CollectionTreeField.vue'
 import AboutEditorButton from './fields/AboutEditorButton.vue'
+import WalineAdminLink from './fields/WalineAdminLink.vue'
 
 // ── Component registry: x-chronicle-class → generic component ──
 const COMPONENT_MAP: Record<string, any> = {
@@ -68,6 +69,7 @@ const COMPONENT_MAP: Record<string, any> = {
   'card-list':           CardListField,
   'collection-tree':     CollectionTreeField,
   'about-editor':        AboutEditorButton,
+  'waline-admin-link':   WalineAdminLink,
   'passkey-list':        null, // handled by security page directly
 }
 

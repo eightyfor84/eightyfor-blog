@@ -68,9 +68,10 @@ The adapter maps Waline's fields onto Chronicle's comment model:
 | `nick` | `author` |
 | `link` | `website` |
 | `comment` | `content` |
-| `insertedAt` | `date` |
+| `time` / `insertedAt` | `date` |
 | `pid` / `rid` | `parent` / `rootId` |
 | `avatar` | `avatarUrl` |
+| `sticky` | `pinned` (置顶 badge) |
 
 One safety detail: Waline's server renders markdown to HTML and sanitizes it with DOMPurify before storing it, so Chronicle renders the returned `content` directly — the same "sanitize at write, `set:html` at read" rule the rest of the project follows. Each post uses `/post/{id}` as its Waline path, so one comment thread is shared across all locales.
 
@@ -96,9 +97,26 @@ comment:
 
 Set `walineServerUrl` to the server root — **do not append `/api/comment`**; the adapter builds that path itself. Configure it either here in `site.yml` or through **Manager → Settings → Comments**, which writes the same file.
 
+### Moderation & pending review
+
+Whether a new comment is published immediately or held for review is decided **entirely by the Waline server**, through its `COMMENT_AUDIT` environment variable — not by Chronicle. The frontend only submits content; it never sends a status field.
+
+| Setting | Result |
+| --- | --- |
+| `COMMENT_AUDIT=true` (or `1`) | New comments default to **pending review** (`waiting`) — hidden from the public list until approved in the Waline admin. |
+| unset / `false` / `0` | New comments are **approved** immediately and appear right away. |
+
+Set it wherever your Waline server is hosted:
+
+- **Vercel** → Project Settings → Environment Variables → add `COMMENT_AUDIT` = `true`, then redeploy.
+- **Docker** → `docker run ... -e COMMENT_AUDIT=true`.
+- **`.env`** → add a `COMMENT_AUDIT=true` line.
+
+No Chronicle-side change is needed either way: the public `GET /api/comment` endpoint only returns approved comments, so pending ones simply don't appear until you approve them. Approve or reject from `https://<your-server>/ui` (the Waline admin).
+
 ## Notes
 
 - **Changes need a rebuild.** This is a static site — editing `site.yml` only takes effect after `npx astro build` (or a Manager commit/push that triggers CI).
 - **Latest 100 comments.** The Waline list currently fetches the newest 100 comments per post; deeper pagination is not yet wired up.
-- **Moderation and spam settings are server-side.** Email notification, pending review, and IP recording are controlled by the Waline server's environment variables, not by Chronicle. Chronicle only owns presentation.
+- **Moderation and spam settings are server-side.** Pending review is `COMMENT_AUDIT` (see above); email notification, IP recording, and spam filtering are likewise Waline server environment variables. Chronicle only owns presentation.
 - **Static and Waline are mutually exclusive.** One `comment.backend` value applies site-wide; there's no per-post override.

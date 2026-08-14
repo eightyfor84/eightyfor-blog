@@ -236,6 +236,7 @@
     "about": "关于页",
     "shortAbout": "关于页",
     "editAboutPage": "编辑关于页",
+    "walineAdminNoUrl": "请先填写 Waline 服务地址，再使用此按钮打开管理后台。",
     "aboutHint": "编辑关于页自定义 HTML（将保存在本地配置中）",
     "appearance": "外观",
     "features": "功能开关",
