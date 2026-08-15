@@ -119,19 +119,28 @@ try {
   backgroundMeta = frontendBackgroundMeta ? JSON.parse(String(frontendBackgroundMeta)) : null;
 } catch (e) { backgroundMeta = null; }
 
-// ── Background video (optional) — preload=metadata shows its first frame as
-//    a native frozen poster whenever the video isn't playing ──
+// ── Background video (optional) — preload="none" so it never competes with the
+//    page skeleton; the fallback image below shows first, and the video fades in
+//    over it once its first frame is decodable (layout-init.ts) ──
 const backgroundVideoUrl = typeof settings?.frontendBackgroundVideo === 'string'
   ? settings.frontendBackgroundVideo
   : '';
-// Explicit fallback first-frame poster (background_alt.<ext>) when present; the
-// browser-native first frame (preload=metadata) remains the fallback when absent.
+// Explicit fallback first-frame poster (background_alt.<ext>) — shown as the
+// static bg-image while the video loads (no native `poster` attr, to avoid the
+// cached-refresh poster flash).
 const backgroundPosterUrl = typeof settings?.frontendBackgroundPoster === 'string'
   ? settings.frontendBackgroundPoster
   : '';
 const videoAutoplay = backgroundMeta?.videoAutoplay !== false;   // default true
 const videoLoop = backgroundMeta?.videoLoop !== false;           // default true
 const videoPlaybackRate = Number(backgroundMeta?.videoPlaybackRate ?? 1) || 1;
+
+// Fallback static image shown first (below the video). With a video, prefer the
+// poster (first frame); otherwise the main background image. It stays permanently
+// — the graceful fallback when the video errors or is paused.
+const fallbackImageUrl = backgroundVideoUrl
+  ? (backgroundPosterUrl || backgroundImageUrl)
+  : backgroundImageUrl;
 
 const bgMode = backgroundMeta?.mode || 'cover';
 const bgCompression = Number(backgroundMeta?.compressionFactor ?? backgroundMeta?.compression ?? backgroundMeta?.bgCompression ?? backgroundMeta?.scale ?? 1);
@@ -189,12 +198,12 @@ const hasSurfaceDark = Boolean(frontendBackgroundColorDark);
 
 // 遮罩/模糊属于「背景层」而非「图片」——有图或有视频都应生效，否则纯视频背景
 // 会漏掉 background.yml 里配置的 overlay + blur。
-const hasBackgroundMedia = Boolean(backgroundImageUrl || backgroundVideoUrl);
+const hasBackgroundMedia = Boolean(fallbackImageUrl || backgroundVideoUrl);
 
 let backgroundCss = '';
-if (backgroundImageUrl) {
+if (fallbackImageUrl) {
   backgroundCss += '#chronicle-bg-layer .bg-image {\n';
-  backgroundCss += `  background-image: url("${backgroundImageUrl}") !important;\n`;
+  backgroundCss += `  background-image: url("${fallbackImageUrl}") !important;\n`;
   backgroundCss += `  background-size: ${bgImageSize} !important;\n`;
   backgroundCss += `  background-position: ${bgImagePosition} !important;\n`;
   backgroundCss += `  background-repeat: ${bgImageRepeat} !important;\n`;
@@ -409,11 +418,11 @@ try {
       </defs>
     </svg>
     <!-- 背景层 - 使用transition:persist保持跨页面持久化 -->
-    <div id="chronicle-bg-layer" transition:persist="background-layer" class:list={backgroundImageUrl ? 'is-ready' : undefined}>
+    <div id="chronicle-bg-layer" transition:persist="background-layer" data-bg-image={fallbackImageUrl || undefined}>
       <div class="bg-image"></div>
       <div class="bg-surface"></div>
       {backgroundVideoUrl ? (
-        <video class="bg-video" muted loop={videoLoop} playsinline preload="metadata" poster={backgroundPosterUrl || undefined} src={backgroundVideoUrl} data-autoplay={videoAutoplay ? '1' : '0'} data-playback-rate={String(videoPlaybackRate)}></video>
+        <video class="bg-video" muted loop={videoLoop} playsinline preload="none" src={backgroundVideoUrl} data-autoplay={videoAutoplay ? '1' : '0'} data-playback-rate={String(videoPlaybackRate)}></video>
       ) : null}
       <div class="bg-overlay"></div>
     </div>
