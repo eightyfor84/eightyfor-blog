@@ -14,6 +14,7 @@ pre{
 .nav-header {
   background: var(--comp-bg-blur);
   backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-color-blur);
   position: fixed;
   top: 0;
@@ -38,7 +39,7 @@ pre{
   align-items: center;
   padding: 0 2rem;
   height: 100%;
-  max-width: 1200px;
+  max-width: min(calc(1400px + 20%), calc(80% + 100px));
   margin: 0 auto;
 }
 

@@ -5,7 +5,7 @@
    Update in sync with: [lang]/blogs.astro. */
 
 /* ── Blog container ── */
-.blog-container { max-width:900px; margin:0 auto; padding:40px; }
+.blog-container { max-width:1000px; margin:0 auto; padding:40px; }
 
 /* ── Section blocks ── */
 .section-block { margin-bottom:60px; }
