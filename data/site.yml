@@ -11,18 +11,20 @@ frontendAccent: "#51a32e"
 frontendFont: sans
 frontendLocale: follow
 defaultPerformanceMode: auto
-searchSuggestions: false
-relatedPosts: false
+searchSuggestions: true
+globalSearch: true
+fullTextSearch: true
 collectionPage: true
 aboutPage: true
 friendsPage: true
 comments: true
 traffic: true
 rss: true
-sitemap: false
 gaMeasurementId: G-VPZBFWJ7FJ
 frontendBackgroundColorLight: ""
 frontendBackgroundColorDark: ""
+relatedPosts: false
+sitemap: false
 comment:
   backend: waline
   walineServerUrl: https://aurora-comments.eightyfor.top
