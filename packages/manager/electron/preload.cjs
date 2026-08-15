@@ -97,6 +97,7 @@ contextBridge.exposeInMainWorld('chronicleElectron', {
   deleteFile: (relativePath) => ipcRenderer.invoke('fs:deleteFile', relativePath),
   writeBase64: (relativePath, base64) => ipcRenderer.invoke('fs:writeBase64', relativePath, base64),
   copyFile: (sourceAbs, destRel) => ipcRenderer.invoke('fs:copyFile', sourceAbs, destRel),
+  convertBackgroundVideo: (options) => ipcRenderer.invoke('video:convert-background', options),
   compressBackground: (options) => ipcRenderer.invoke('build:compress-background', options),
   // Build trigger
   triggerBuild: (options) => ipcRenderer.invoke('build:astro', options),
@@ -108,7 +109,7 @@ contextBridge.exposeInMainWorld('chronicleElectron', {
       'fs:readDir', 'fs:exists', 'fs:mkdir',
       'fs:readText', 'fs:writeText', 'fs:deleteDir', 'fs:deleteFile',
       'fs:getRepoRoot', 'fs:getDataDir', 'fs:writeBase64', 'fs:copyFile', 'fs:autoCopyBg',
-      'build:astro', 'build:compress-background',
+      'build:astro', 'build:compress-background', 'video:convert-background',
     ]
     if (allowed.includes(channel)) {
       return ipcRenderer.invoke(channel, ...args)

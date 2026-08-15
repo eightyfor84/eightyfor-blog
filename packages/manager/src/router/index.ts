@@ -39,7 +39,6 @@ const FileManager = () => import(/* webpackChunkName: "file-manager" */ '../page
 const Dashboard = () => import(/* webpackChunkName: "dashboard" */ '../pages/Dashboard.vue')
 // Traffic page hidden — self-hosted analytics not meaningful for static Astro sites
 // const Traffic = () => import(/* webpackChunkName: "traffic" */ '../pages/Traffic.vue')
-const CommentManager = () => import(/* webpackChunkName: "comment-manager" */ '../pages/CommentManager.vue')
 const Settings = () => import(/* webpackChunkName: "settings" */ '../pages/Settings.vue')
 const TextEditorLazy = () => import(/* webpackChunkName: "text-editor" */ '../pages/TextEditor.vue')
 const EditorPrintPreview = () => import(/* webpackChunkName: "editor-print-preview" */ '../pages/EditorPrintPreview.vue')
@@ -73,6 +72,7 @@ const routes = [
       { path: 'template-homepage',   name: 'SettingsTemplateHomepage',   component: SchemaSettingsPage, props: { schemaId: 'chronicle:template-settings', tab: 'template-homepage' },   meta: { title: 'settings.home' } },
       { path: 'template-appearance', name: 'SettingsTemplateAppearance', component: SchemaSettingsPage, props: { schemaId: 'chronicle:template-settings', tab: 'template-appearance' }, meta: { title: 'settings.appearance' } },
       { path: 'template-features',   name: 'SettingsTemplateFeatures',   component: SchemaSettingsPage, props: { schemaId: 'chronicle:template-settings', tab: 'template-features' },   meta: { title: 'settings.features' } },
+      { path: 'template-search',     name: 'SettingsTemplateSearch',     component: SchemaSettingsPage, props: { schemaId: 'chronicle:template-settings', tab: 'template-search' },     meta: { title: 'settings.search' } },
       { path: 'template', redirect: '/settings/template-homepage' },
       // System schema tabs (Build & Deploy removed — Aurora is CI/CD-managed)
       { path: 'system-appearance', name: 'SettingsSystemAppearance', component: SystemAppearance, meta: { title: 'settings.appearance' } },
@@ -102,12 +102,6 @@ const routes = [
     name: 'PostManager',
     component: PostManager,
     meta: { layout: 'manager', title: 'post.manageTitle' }
-  },
-  {
-    path: '/manage/comments',
-    name: 'CommentManager',
-    component: CommentManager,
-    meta: { layout: 'manager', title: 'nav.comments' }
   },
   {
     path: '/playground',

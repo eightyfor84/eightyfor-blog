@@ -36,7 +36,6 @@ export type BackgroundImageValue = string | BackgroundImageMeta | null
 
 export interface FeatureFlags {
   searchSuggestions: boolean
-  relatedPosts: boolean
   collectionPage: boolean
   aboutPage: boolean
   friendsPage: boolean

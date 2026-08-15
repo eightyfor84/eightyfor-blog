@@ -5,7 +5,7 @@ import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 import { ShellIcons } from '../utils/shellIcons'
 import { ensureNotoLoaded } from '../utils/fontLoader'
 import { hexToRgbString } from '../utils/colorUtils'
-import { resolveBackgroundCompression, resolveBackgroundUrl, buildApiFallbackUrl } from '../utils/backgroundSettings'
+import { resolveBackgroundCompression, resolveBackgroundUrl, buildApiFallbackUrl, retryVideoConversion } from '../utils/backgroundSettings'
 import { useSchemaNav, type NavGroup } from '../composables/useSchemaNav'
 import { syncSchemas } from '../composables/schemaApi'
 import { syncSettings, settingsStore } from '../composables/settingsApi'
@@ -900,13 +900,6 @@ const { navTree } = useSchemaNav()
 // ── Schema-driven group open/close state ──
 const schemaGroupOpen = ref<Record<string, boolean>>({})
 
-// Content group (Posts / Comments) — free toggle, auto-expand only
-const contentGroupExpanded = ref(true)
-watch(() => route.path, (p) => {
-  // Auto-expand to reveal active child, but never auto-collapse
-  if (p.startsWith('/manage')) contentGroupExpanded.value = true
-})
-
 // Auto-expand group when current route matches one of its items
 watch(() => route.path, (p) => {
   for (const g of navTree.value) {
@@ -955,6 +948,7 @@ const nc = getNotificationCenter()
 const drawerOpen = ref(false)
 function toggleDrawer() { drawerOpen.value = !drawerOpen.value }
 nc.registerAction('retry-build', () => { rebuildFrontend() })
+nc.registerAction('retry-video-convert', () => { retryVideoConversion(t) })
 function onQuickMenuFocusOut(e: FocusEvent) {
   const target = e.relatedTarget as HTMLElement | null
   if (!target || !target.closest('.quick-menu')) {
@@ -1050,27 +1044,8 @@ async function syncNow() {
           <span class="nav-label"><i class="nav-icon" v-html="ShellIcons.columns"></i>{{ $t('nav.dashboard') }}</span></RouterLink>
         <RouterLink to="/files" class="sidebar-items nav-link backend-nav-link" @click="isMenuOpen = false">
           <span class="nav-label"><i class="nav-icon" v-html="ShellIcons.folder"></i>{{ $t('nav.files') }}</span></RouterLink>
-        <!-- Content group (Posts + Comments) -->
-        <div class="backend-tree-group" :class="{ expanded: contentGroupExpanded }">
-          <button type="button" class="sidebar-items nav-link backend-nav-link backend-tree-toggle"
-            @click="contentGroupExpanded = !contentGroupExpanded">
-            <span class="nav-label">
-              <i class="nav-icon" v-html="ShellIcons.edit"></i>
-              {{ $t('nav.content') }}
-            </span>
-            <span class="backend-tree-caret" :class="{ open: contentGroupExpanded }" v-html="ShellIcons.chevron"></span>
-          </button>
-          <div class="backend-tree-children-wrap" :class="{ 'nc-expanded': contentGroupExpanded }">
-            <div class="backend-tree-children">
-              <RouterLink to="/manage" class="sidebar-items nav-link backend-nav-link backend-tree-child" @click="isMenuOpen = false">
-                <span class="nav-label">{{ $t('nav.posts') }}</span>
-              </RouterLink>
-              <RouterLink to="/manage/comments" class="sidebar-items nav-link backend-nav-link backend-tree-child" @click="isMenuOpen = false">
-                <span class="nav-label">{{ $t('nav.comments') }}</span>
-              </RouterLink>
-            </div>
-          </div>
-        </div>
+        <RouterLink to="/manage" class="sidebar-items nav-link backend-nav-link" @click="isMenuOpen = false">
+          <span class="nav-label"><i class="nav-icon" v-html="ShellIcons.edit"></i>{{ $t('nav.posts') }}</span></RouterLink>
 
         <!-- Schema-driven groups -->
         <div

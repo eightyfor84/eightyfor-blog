@@ -2,18 +2,21 @@
   <div class="form-row">
     <label v-if="label">{{ label }}</label>
     <div style="display:flex; gap:8px; align-items:center; margin: 8px 0;">
-      <div v-if="previewUrl" class="bg-preview" :style="{ backgroundImage: `url(${previewUrl})` }"></div>
-      <button class="secondary" @click.prevent="openEditor">{{ previewUrl ? editLabel||t('backgroundEditor.edit') : addLabel||t('backgroundEditor.add') }}</button>
-      <button v-if="previewUrl" class="secondary" @click.prevent="clearBg">{{clearLabel||t('backgroundEditor.delete') }}</button>
+      <video v-if="previewVideoUrl" class="bg-preview bg-preview-video" :src="previewVideoUrl" muted playsinline preload="metadata"></video>
+      <div v-else-if="previewUrl" class="bg-preview" :style="{ backgroundImage: `url(${previewUrl})` }"></div>
+      <button class="secondary" @click.prevent="openEditor">{{ hasMedia ? editLabel||t('backgroundEditor.edit') : addLabel||t('backgroundEditor.add') }}</button>
+      <button v-if="hasMedia" class="secondary" @click.prevent="clearBg">{{clearLabel||t('backgroundEditor.delete') }}</button>
     </div>
   </div>
 
   <BackgroundEditorModal
     v-if="bgEditorOpen"
     :url="backgroundUrl"
+    :video-url="backgroundVideoUrl"
     :initial="backgroundMeta"
     :source-path="backgroundSourcePath"
     :source-name="backgroundSourceName"
+    :allow-video="allowVideo"
     @save="onBgSave"
     @close="bgEditorOpen = false"
   />
@@ -23,7 +26,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import BackgroundEditorModal from '../../BackgroundEditorModal.vue'
 import { useI18n } from 'vue-i18n'
-import { resolveMediaUrl } from '../../../utils/backgroundSettings'
+import { resolveMediaUrl, isVideoFile, triggerVideoConversionTask } from '../../../utils/backgroundSettings'
 import { readYaml, writeText, deleteFile } from '../../../data/dataAccess'
 
 const { t }= useI18n()
@@ -38,6 +41,9 @@ const props = defineProps<{
   addLabel?: string
   editLabel?: string
   clearLabel?: string
+  /** Video backgrounds are a frontend (site) feature only — the CMS's own
+   *  editor background stays image-only. */
+  allowVideo?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -47,6 +53,7 @@ const emit = defineEmits<{
 
 const bgEditorOpen = ref(false)
 const internalUrl = ref(typeof props.modelValue === 'string' ? props.modelValue : props.modelValue?.url || '')
+const internalVideoUrl = ref('')
 const internalMeta = ref(props.meta || null)
 const internalSourcePath = ref(props.sourcePath || '')
 const internalSourceName = ref(props.sourceName || '')
@@ -61,13 +68,17 @@ onMounted(async () => {
       internalMeta.value = bgYml
       emit('update:meta', bgYml)
     }
-    // Auto-discover image
+    // Auto-discover image + video (both live in data/background/)
     const { readDir } = await import('../../../data/dataAccess')
     const files = await readDir('data/background')
-    const imgs = files.filter((f: string) => /\.(jpg|jpeg|png|gif|webp|avif|svg)$/i.test(f) && !f.startsWith('.'))
+    const imgs = files.filter((f: string) => /\.(jpg|jpeg|png|gif|webp|avif|svg)$/i.test(f) && !f.startsWith('.') && !/_alt\.(jpg|jpeg|png|gif|webp|avif|svg)$/i.test(f))
     if (imgs.length > 0 && !internalUrl.value) {
       internalUrl.value = `/data/background/${imgs[0]}`
       emit('update:modelValue', internalUrl.value)
+    }
+    const vids = files.filter((f: string) => isVideoFile(f) && !f.startsWith('.'))
+    if (vids.length > 0 && !internalVideoUrl.value) {
+      internalVideoUrl.value = `/data/background/${vids[0]}`
     }
   } catch {} finally { initialized.value = true }
 })
@@ -86,20 +97,23 @@ watch(() => props.sourcePath, (v) => { if (v) internalSourcePath.value = v })
 watch(() => props.sourceName, (v) => { if (v) internalSourceName.value = v })
 
 const backgroundUrl = computed(() => internalUrl.value)
+const backgroundVideoUrl = computed(() => internalVideoUrl.value)
 const backgroundMeta = computed(() => internalMeta.value)
 const backgroundSourcePath = computed(() => internalSourcePath.value)
 const backgroundSourceName = computed(() => internalSourceName.value)
 const previewUrl = computed(() => resolveMediaUrl(internalUrl.value))
+const previewVideoUrl = computed(() => resolveMediaUrl(internalVideoUrl.value))
+const hasMedia = computed(() => !!(previewUrl.value || previewVideoUrl.value))
+const allowVideo = computed(() => props.allowVideo === true)
 
 function openEditor() { bgEditorOpen.value = true }
 
 async function clearBg() {
-  // Delete the background image file from data/background/
-  if (internalUrl.value) {
-    const filePath = internalUrl.value.replace(/^\//, '')
-    try { await deleteFile(filePath) } catch {}
-  }
+  // Delete ALL background image + video files from data/background/
+  await deleteExistingImages()
+  await deleteExistingVideos()
   internalUrl.value = ''
+  internalVideoUrl.value = ''
   internalMeta.value = {}
   internalSourcePath.value = ''
   internalSourceName.value = ''
@@ -108,9 +122,59 @@ async function clearBg() {
   await persistBg('')
 }
 
+async function copyMediaToBackground(src: string, ext: string): Promise<string> {
+  const dest = 'data/background/background' + ext
+  try {
+    const isElec = typeof window !== 'undefined' && !!(window as any).chronicleElectron?.isElectron
+    if (isElec) {
+      const bridge = (window as any).chronicleElectron
+      const ok = await bridge.copyFile(src.replace(/^\//, ''), dest)
+      return ok ? '/data/background/background' + ext : ''
+    } else {
+      const resp = await fetch('/api/copy-file', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ source: src, dest }),
+      })
+      return resp.ok ? '/data/background/background' + ext : ''
+    }
+  } catch (e) {
+    console.error('[BackgroundEditorField] copyFile failed:', e)
+    return ''
+  }
+}
+
+async function deleteExistingVideos() {
+  await deleteVideosExcept('')
+}
+
+/** Delete background videos except the one at `keepUrl` (empty = delete all). */
+async function deleteVideosExcept(keepUrl: string) {
+  try {
+    const { readDir } = await import('../../../data/dataAccess')
+    const files = await readDir('data/background')
+    const keepName = keepUrl.split('/').pop() || ''
+    const vids = files.filter((f: string) => isVideoFile(f) && !f.startsWith('.') && f !== keepName)
+    for (const v of vids) {
+      try { await deleteFile(`data/background/${v}`) } catch {}
+    }
+  } catch {}
+}
+
+async function deleteExistingImages() {
+  try {
+    const { readDir } = await import('../../../data/dataAccess')
+    const files = await readDir('data/background')
+    const imgs = files.filter((f: string) => /\.(jpg|jpeg|png|gif|webp|avif|svg)$/i.test(f) && !f.startsWith('.') && !/_alt\.(jpg|jpeg|png|gif|webp|avif|svg)$/i.test(f))
+    for (const v of imgs) {
+      try { await deleteFile(`data/background/${v}`) } catch {}
+    }
+  } catch {}
+}
+
 async function onBgSave(m: any) {
   const url = m.url || ''
-  internalUrl.value = url
+  const videoUrl = m.videoUrl || ''
   internalMeta.value = m
   if (m.sourcePath !== undefined) {
     internalSourcePath.value = m.sourcePath
@@ -118,30 +182,47 @@ async function onBgSave(m: any) {
   }
   bgEditorOpen.value = false
 
-  // Auto-copy to data/background/ if image is outside the directory
-  if (url && !url.startsWith('/data/background/')) {
-    const ext = (url.match(/\.\w+$/)?.[0]) || '.jpg'
-    const dest = 'data/background/background' + ext
-    let copied = false
-    try {
-      const isElec = typeof window !== 'undefined' && !!(window as any).chronicleElectron?.isElectron
-      if (isElec) {
-        const bridge = (window as any).chronicleElectron
-        copied = await bridge.copyFile(url.replace(/^\//, ''), dest)
-      } else {
-        const resp = await fetch('/api/copy-file', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ source: url, dest }),
-        })
-        copied = resp.ok
+  // 图片/视频互斥：背景要么是图要么是视频，选其一就清掉另一个（含落盘文件）。
+  // 这样「用视频覆盖背景图片」后，原来那张图会被真正删除，而不是残留。
+  if (videoUrl) {
+    // 选择视频：先原样复制到 canonical background.mp4（快、立刻有可用背景），
+    // 再 fire-and-forget 异步压缩 + 抽首帧（进通知中心，成功静默替换，失败报错 + 重试）。
+    await deleteExistingImages()
+    let finalVideo = videoUrl
+    if (!videoUrl.startsWith('/data/background/background.')) {
+      const copiedUrl = await copyMediaToBackground(videoUrl, '.mp4')
+      if (copiedUrl) finalVideo = copiedUrl
+      else {
+        console.warn('[BackgroundEditorField] copyFile returned false — video NOT copied to data/background/')
+        finalVideo = videoUrl
       }
-    } catch (e) { console.error('[BackgroundEditorField] copyFile failed:', e) }
-    if (copied) {
-      internalUrl.value = '/data/background/background' + ext
-    } else {
-      console.warn('[BackgroundEditorField] copyFile returned false — image NOT copied to data/background/')
     }
+    await deleteVideosExcept(finalVideo)
+    internalVideoUrl.value = finalVideo
+    internalUrl.value = ''
+    triggerVideoConversionTask(finalVideo, t)
+  } else if (url) {
+    // 选择图片 → 清除旧视频；若新图片在目录外，再替换旧图片后复制。
+    await deleteExistingVideos()
+    if (url.startsWith('/data/background/')) {
+      internalUrl.value = url
+    } else {
+      await deleteExistingImages()
+      const ext = (url.match(/\.\w+$/)?.[0]) || '.jpg'
+      const copiedUrl = await copyMediaToBackground(url, ext)
+      if (copiedUrl) internalUrl.value = copiedUrl
+      else {
+        console.warn('[BackgroundEditorField] copyFile returned false — image NOT copied to data/background/')
+        internalUrl.value = url
+      }
+    }
+    internalVideoUrl.value = ''
+  } else {
+    // 两者皆空 → 清空背景。
+    await deleteExistingImages()
+    await deleteExistingVideos()
+    internalUrl.value = ''
+    internalVideoUrl.value = ''
   }
 
   emit('update:modelValue', internalUrl.value)
@@ -152,7 +233,7 @@ async function onBgSave(m: any) {
 async function persistBg(url: string) {
   // Write metadata to data/background/background.yml
   const meta = internalMeta.value || {}
-  const { mode, posX, posY, size, blur, overlayLightColor, overlayLightOpacity, overlayDarkColor, overlayDarkOpacity } = meta
+  const { mode, posX, posY, size, blur, overlayLightColor, overlayLightOpacity, overlayDarkColor, overlayDarkOpacity, videoAutoplay, videoLoop, videoPlaybackRate } = meta
   const yml = [
     '# Chronicle Aurora — Site Background',
     `mode: ${mode || 'cover'}`,
@@ -164,6 +245,9 @@ async function persistBg(url: string) {
     `overlayLightOpacity: ${overlayLightOpacity ?? 0}`,
     `overlayDarkColor: "${overlayDarkColor || '#000000'}"`,
     `overlayDarkOpacity: ${overlayDarkOpacity ?? 0}`,
+    `videoAutoplay: ${videoAutoplay !== false}`,
+    `videoLoop: ${videoLoop !== false}`,
+    `videoPlaybackRate: ${Number(videoPlaybackRate ?? 1) || 1}`,
     '',
   ].join('\n')
   try { await writeText('data/background/background.yml', yml) } catch {}
@@ -178,5 +262,10 @@ async function persistBg(url: string) {
   background-position: center;
   border-radius: 6px;
   border: 1px solid var(--border-color);
+}
+
+.bg-preview-video {
+  object-fit: cover;
+  background: transparent;
 }
 </style>

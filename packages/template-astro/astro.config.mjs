@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join, extname, parse } from 'path';
 
 import icon from 'astro-icon';
+import YAML from 'yaml';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -12,6 +13,14 @@ const pkg = JSON.parse(readFileSync(join(__dirname, 'package.json'), 'utf-8'));
 
 // ── Image formats to compress ─────────────────────────────
 const IMG_RE = /\.(jpg|jpeg|png|gif)$/i;
+
+// ── Background video guardrail ────────────────────────────
+// Videos are copied verbatim (sharp can't decode them), so an oversized source
+// lands on the CDN as-is. Warn (never fail) when a background video exceeds the
+// threshold — the author should compress it with `scripts/convert-video.mjs`.
+// statSync only — no ffmpeg dependency at build time.
+const BG_VIDEO_RE = /\.(mp4|webm|mov|ogg)$/i;
+const BG_VIDEO_MAX_MB = Number(process.env.CHRONICLE_BG_VIDEO_MAX_MB || 10);
 let _sharpMod = null;
 async function loadSharp() {
   if (!_sharpMod) {
@@ -22,6 +31,47 @@ async function loadSharp() {
 }
 
 const DATA_DIR = process.env.CHRONICLE_DATA_DIR || join(__dirname, '..', '..', 'data');
+
+// ── Full-text search index (build-time only) ───────────
+// data/ 是唯一数据源；full_index.json 只在构建时写入 dist，不进 data/。
+function readSiteConfig() {
+  try {
+    const siteYml = join(DATA_DIR, 'site.yml');
+    if (existsSync(siteYml)) return YAML.parse(readFileSync(siteYml, 'utf-8')) || {};
+  } catch {}
+  try {
+    const settingsJson = join(DATA_DIR, 'settings.json');
+    if (existsSync(settingsJson)) return JSON.parse(readFileSync(settingsJson, 'utf-8')) || {};
+  } catch {}
+  return {};
+}
+
+function isFullTextEnabled() {
+  const site = readSiteConfig();
+  // Full-text search is opt-out — on by default (aligned with the schema).
+  return (site.fullTextSearch ?? site.featureFlags?.fullTextSearch) !== false;
+}
+
+// Strip a `---` … `---` YAML frontmatter block; return the remaining body.
+function stripFrontmatter(content) {
+  const m = String(content || '').match(/^﻿?---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
+  return m ? content.slice(m[0].length) : content;
+}
+
+// Coarse markdown → plain text (sufficient for a search index; not a full render).
+function markdownToPlainText(md) {
+  return String(md || '')
+    .replace(/```[\s\S]*?```/g, ' ')          // code fences
+    .replace(/`([^`]+)`/g, '$1')              // inline code
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')    // images
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')  // links → text
+    .replace(/^#{1,6}\s+/gm, '')              // headings
+    .replace(/^\s*[-*+]\s+/gm, '')            // list bullets
+    .replace(/^\s*\d+\.\s+/gm, '')            // ordered list
+    .replace(/[*_~>]{1,3}/g, '')              // emphasis / blockquote markers
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
 export default defineConfig({
   site: process.env.CHRONICLE_SITE_URL || 'http://localhost:4321',
@@ -121,6 +171,28 @@ export default defineConfig({
           try { writeFileSync(cacheFile, JSON.stringify(_cache)); } catch {}
         }
 
+        /**
+         * Warn when a background video in data/background/ exceeds the size
+         * threshold. Reads only file stats — no ffmpeg, no re-reading content.
+         */
+        function warnOversizedBackgroundVideo() {
+          const bgDir = join(DATA_DIR, 'background');
+          if (!existsSync(bgDir)) return;
+          let vids;
+          try { vids = readdirSync(bgDir).filter((f) => BG_VIDEO_RE.test(f) && !f.startsWith('.')); } catch { return; }
+          for (const name of vids) {
+            let size = 0;
+            try { size = statSync(join(bgDir, name)).size; } catch { continue; }
+            const mb = size / (1024 * 1024);
+            if (mb > BG_VIDEO_MAX_MB) {
+              console.warn(
+                `[chronicle-asset-pipeline] ⚠️  background video "${name}" is ${mb.toFixed(1)} MB (limit ${BG_VIDEO_MAX_MB} MB). ` +
+                `Compress it with: node scripts/convert-video.mjs compress data/background/${name}`
+              );
+            }
+          }
+        }
+
         return {
           name: 'chronicle-asset-pipeline',
           enforce: 'post',
@@ -184,10 +256,53 @@ export default defineConfig({
               }
             }
 
+            // ── Search indexes (exposed to client; zero-inline) ──
+            // posts/index.json (lightweight) copied verbatim so the client can
+            // fetch it. full_index.json (body-inclusive) generated only when
+            // fullTextSearch is enabled.
+            const indexSrc = join(postsDir, 'index.json');
+            if (existsSync(indexSrc)) {
+              const indexDest = join(distDir, 'posts', 'index.json');
+              mkdirSync(dirname(indexDest), { recursive: true });
+              copyFileSync(indexSrc, indexDest);
+            }
+
+            if (isFullTextEnabled()) {
+              try {
+                const rawIndex = JSON.parse(readFileSync(indexSrc, 'utf-8'));
+                // index.json is object-keyed ({ "<id>": {...} }); normalise both forms.
+                const entries = Array.isArray(rawIndex)
+                  ? rawIndex
+                  : Object.entries(rawIndex).map(([id, v]) => ({ id, ...v }));
+                const fullIndex = [];
+                for (const entry of entries) {
+                  if (entry.status !== 'published') continue;
+                  const mdPath = join(postsDir, entry.id, 'index.md');
+                  if (!existsSync(mdPath)) continue;
+                  const body = markdownToPlainText(stripFrontmatter(readFileSync(mdPath, 'utf-8')));
+                  fullIndex.push({
+                    id: entry.id,
+                    title: entry.title || '',
+                    date: entry.date || '',
+                    summary: entry.summary || '',
+                    tags: entry.tags || [],
+                    body,
+                  });
+                }
+                const fullDest = join(distDir, 'posts', 'full_index.json');
+                mkdirSync(dirname(fullDest), { recursive: true });
+                writeFileSync(fullDest, JSON.stringify(fullIndex));
+                console.log(`[chronicle-search] full_index.json: ${fullIndex.length} posts`);
+              } catch (e) {
+                console.warn('[chronicle-search] failed to generate full_index.json:', e);
+              }
+            }
+
             // ── About attachments ────────────────────────────
             await syncDir(join(DATA_DIR, '__about__'), join(distDir, 'about'), { aggressive: true, webpQuality: 65, avifQuality: 40 });
 
             // ── Background + Avatar (aggressive, display-size aware) ──
+            warnOversizedBackgroundVideo();
             await syncDir(join(DATA_DIR, 'background'), join(distDir, 'data', 'background'), { aggressive: true, webpQuality: 60, avifQuality: 35 });
             await syncDir(join(DATA_DIR, 'avatar'), join(distDir, 'data', 'avatar'), { aggressive: true, webpQuality: 50, avifQuality: 30 });
 

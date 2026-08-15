@@ -2,8 +2,9 @@
 import { ClientRouter } from 'astro:transitions';
 import NavHeader from '../components/NavHeader.astro';
 import FilePreviewModal from '../components/FilePreviewModal.astro';
+import GlobalSearchOverlay from '../components/GlobalSearchOverlay.astro';
 import { isLocalMode } from '../data/localDataSource';
-import { getLocale } from '../utils/i18n';
+import { getLocale, getTranslation } from '../utils/i18n';
 import { resolveFeatureFlags } from '../utils/featureFlags';
 import criticalBase from '../styles/critical-base.css?raw';
 import criticalHome from '../styles/critical-home.css?raw';
@@ -118,6 +119,20 @@ try {
   backgroundMeta = frontendBackgroundMeta ? JSON.parse(String(frontendBackgroundMeta)) : null;
 } catch (e) { backgroundMeta = null; }
 
+// ── Background video (optional) — preload=metadata shows its first frame as
+//    a native frozen poster whenever the video isn't playing ──
+const backgroundVideoUrl = typeof settings?.frontendBackgroundVideo === 'string'
+  ? settings.frontendBackgroundVideo
+  : '';
+// Explicit fallback first-frame poster (background_alt.<ext>) when present; the
+// browser-native first frame (preload=metadata) remains the fallback when absent.
+const backgroundPosterUrl = typeof settings?.frontendBackgroundPoster === 'string'
+  ? settings.frontendBackgroundPoster
+  : '';
+const videoAutoplay = backgroundMeta?.videoAutoplay !== false;   // default true
+const videoLoop = backgroundMeta?.videoLoop !== false;           // default true
+const videoPlaybackRate = Number(backgroundMeta?.videoPlaybackRate ?? 1) || 1;
+
 const bgMode = backgroundMeta?.mode || 'cover';
 const bgCompression = Number(backgroundMeta?.compressionFactor ?? backgroundMeta?.compression ?? backgroundMeta?.bgCompression ?? backgroundMeta?.scale ?? 1);
 const bgScale = Number(backgroundMeta?.size || 100);
@@ -172,6 +187,10 @@ const bgOverlayDark = overlayRgba(
 const hasSurfaceLight = Boolean(frontendBackgroundColorLight);
 const hasSurfaceDark = Boolean(frontendBackgroundColorDark);
 
+// 遮罩/模糊属于「背景层」而非「图片」——有图或有视频都应生效，否则纯视频背景
+// 会漏掉 background.yml 里配置的 overlay + blur。
+const hasBackgroundMedia = Boolean(backgroundImageUrl || backgroundVideoUrl);
+
 let backgroundCss = '';
 if (backgroundImageUrl) {
   backgroundCss += '#chronicle-bg-layer .bg-image {\n';
@@ -180,6 +199,8 @@ if (backgroundImageUrl) {
   backgroundCss += `  background-position: ${bgImagePosition} !important;\n`;
   backgroundCss += `  background-repeat: ${bgImageRepeat} !important;\n`;
   backgroundCss += '}\n';
+}
+if (hasBackgroundMedia) {
   if (bgBlur > 0) {
     backgroundCss += '#chronicle-bg-layer .bg-overlay {\n';
     backgroundCss += `  backdrop-filter: blur(${bgBlur}px);\n`;
@@ -202,6 +223,8 @@ if (hasSurfaceLight || hasSurfaceDark) {
 // 从Astro.locals获取locale（由middleware设置）
 const locale = propLocale || getLocale(Astro.locals);
 const htmlLang = locale === 'zh-CN' ? 'zh-CN' : 'en';
+const t = (key: string) => getTranslation(locale, key);
+const routePrefix = locale === 'zh-CN' ? '/zh' : '/en';
 const GA_MEASUREMENT_ID = String(process.env.GA_MEASUREMENT_ID || settings?.gaMeasurementId || '').trim();
 
 // SSR-time diagnostics: record whether traffic feature and GA are configured
@@ -389,6 +412,9 @@ try {
     <div id="chronicle-bg-layer" transition:persist="background-layer" class:list={backgroundImageUrl ? 'is-ready' : undefined}>
       <div class="bg-image"></div>
       <div class="bg-surface"></div>
+      {backgroundVideoUrl ? (
+        <video class="bg-video" muted loop={videoLoop} playsinline preload="metadata" poster={backgroundPosterUrl || undefined} src={backgroundVideoUrl} data-autoplay={videoAutoplay ? '1' : '0'} data-playback-rate={String(videoPlaybackRate)}></video>
+      ) : null}
       <div class="bg-overlay"></div>
     </div>
 
@@ -407,6 +433,8 @@ try {
     </div>
 
     <FilePreviewModal />
+
+    {featureFlags.globalSearch === true ? <GlobalSearchOverlay locale={locale} routePrefix={routePrefix} t={t} searchSuggestionsEnabled={featureFlags.searchSuggestions !== false} fullTextSearchEnabled={featureFlags.fullTextSearch === true} /> : null}
 
     <script>
       import { applyTheme } from '../utils/themeUtils';

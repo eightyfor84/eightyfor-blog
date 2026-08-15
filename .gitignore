@@ -13,6 +13,9 @@ node_modules/
 # Agent
 CLAUDE.md
 
+# Local dev docs (not committed)
+docs/
+
 # Astro — track type declarations, ignore dev artifacts
 packages/template-astro/.astro/collections/
 packages/template-astro/.astro/dev.json

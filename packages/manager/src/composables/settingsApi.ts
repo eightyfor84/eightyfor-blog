@@ -8,7 +8,7 @@
 
 import { reactive } from 'vue'
 import { readYaml, readJson } from '../data/dataAccess'
-import { discoverBackendBgUrlAsync, resolveBackgroundUrlAsync, readBackgroundMeta } from '../utils/backgroundSettings'
+import { discoverBackendBgUrlAsync, resolveBackgroundUrlAsync, resolveBackgroundVideoUrlAsync, readBackgroundMeta } from '../utils/backgroundSettings'
 
 export const settingsStore = reactive<Record<string, any>>({})
 
@@ -18,17 +18,19 @@ export const settingsStore = reactive<Record<string, any>>({})
  */
 export async function syncSettings(): Promise<Record<string, any>> {
   try {
-    const [site, ws, backendBgUrl, frontendBgUrl, frontendBgMeta] = await Promise.all([
+    const [site, ws, backendBgUrl, frontendBgUrl, frontendBgVideoUrl, frontendBgMeta] = await Promise.all([
       readYaml<Record<string, any>>('data/site.yml'),
       readJson<Record<string, any>>('.chronicle/workspace.json'),
       discoverBackendBgUrlAsync(),
       resolveBackgroundUrlAsync('frontend'),
+      resolveBackgroundVideoUrlAsync('frontend'),
       readBackgroundMeta('frontend'),
     ])
 
     const merged = { ...(site ?? {}), ...(ws ?? {}) }
     if (backendBgUrl) merged.backendBackground = backendBgUrl
     if (frontendBgUrl) merged.frontendBackground = frontendBgUrl
+    if (frontendBgVideoUrl) merged.frontendBackgroundVideo = frontendBgVideoUrl
     if (frontendBgMeta) merged.frontendBackgroundMeta = typeof frontendBgMeta === 'string' ? frontendBgMeta : JSON.stringify(frontendBgMeta)
 
     Object.keys(settingsStore).forEach(k => delete settingsStore[k])

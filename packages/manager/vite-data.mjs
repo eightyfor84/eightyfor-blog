@@ -2,6 +2,7 @@
 // Serves /data/ and /.chronicle/ static files + CRUD for /api/* routes.
 import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, unlinkSync, statSync, readdirSync, copyFileSync, renameSync, symlinkSync, cpSync } from 'node:fs'
 import { execSync } from 'node:child_process'
+import { createRequire } from 'node:module'
 
 let previewServer = null
 import { join, extname, basename, dirname, resolve } from 'node:path'
@@ -12,6 +13,12 @@ import { extractBodySummary } from '../shared/src/utils/summary.ts'
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 const repoRoot = resolve(__dirname, '..', '..')
 const dataDir = join(repoRoot, 'data')
+
+// Lazy-load the CJS ffmpeg module at request time. Statically importing a .cjs
+// that `require()`s node builtins breaks Vite's config bundler ("Dynamic require
+// of ... is not supported"), so load it via createRequire instead.
+const requireCjs = createRequire(import.meta.url)
+const loadVideoConverter = () => requireCjs(join(__dirname, 'electron', 'video-convert.cjs'))
 
 // ── Post Index Builder ───────────────────────────────────────
 // Canonical implementation lives in packages/gen/src/builder/indexer.mjs.
@@ -543,6 +550,23 @@ export default function chronicleData() {
             } catch (_) {}
             copyFileSync(srcAbs, destAbs)
             return ok(res, { success: true, url: `/${destRel}` })
+          }
+
+          // ── POST /api/convert-video ────────────────────
+          // Background video: run the full compress + poster pipeline (same as
+          // scripts/convert-video.mjs). Falls back to plain copy on the caller.
+          if (method === 'POST' && urlPath === '/api/convert-video') {
+            const body = await readBody(req)
+            if (!body?.source) return notFound(res, 'Missing source')
+            let srcRel = String(body.source).replace(/^\//, '')
+            if (srcRel.startsWith('asset://')) srcRel = join('data', 'assets', srcRel.slice('asset://'.length))
+            const srcAbs = join(repoRoot, srcRel)
+            if (!existsSync(srcAbs)) return notFound(res, 'Source not found')
+            const targetDir = join(repoRoot, 'data', 'background')
+            const { convertBackgroundVideo } = loadVideoConverter()
+            const result = await convertBackgroundVideo(srcAbs, targetDir, { posterExt: body.posterExt, crf: body.crf, maxHeight: body.maxHeight })
+            if (!result) return json(res, { success: false, error: 'ffmpeg unavailable or conversion failed' }, 500)
+            return ok(res, { success: true, ...result })
           }
 
           // ── POST /api/build ────────────────────────────

@@ -9,6 +9,8 @@
  * Meta is pure YAML — no JSON strings, no compression fields.
  */
 
+import { getNotificationCenter } from '../composables/useNotificationCenter'
+
 export type BackgroundScope = 'frontend' | 'backend'
 
 export interface BackgroundMeta {
@@ -21,6 +23,9 @@ export interface BackgroundMeta {
   overlayLightOpacity?: number
   overlayDarkColor?: string
   overlayDarkOpacity?: number
+  videoAutoplay?: boolean
+  videoLoop?: boolean
+  videoPlaybackRate?: number
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -28,6 +33,13 @@ export interface BackgroundMeta {
 // ═══════════════════════════════════════════════════════════════
 
 const IMAGE_EXTS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.avif', '.gif', '.svg'])
+const VIDEO_EXTS = new Set(['.mp4', '.webm', '.mov', '.ogg'])
+
+/** True when a filename is a supported background video. */
+export function isVideoFile(name: string): boolean {
+  const ext = name.split('.').pop()?.toLowerCase() || ''
+  return VIDEO_EXTS.has('.' + ext)
+}
 
 /**
  * Find the first image file in a directory. Returns the filename, or null.
@@ -50,8 +62,34 @@ export async function findFirstImage(relDir: string): Promise<string | null> {
       names = Array.isArray(list) ? list.map((f: any) => f.name) : []
     }
     for (const name of names) {
+      // Skip fallback poster files (background_alt.<ext>) — they belong to the video.
+      if (/_alt\.(jpg|jpeg|png|webp|avif|gif|svg)$/i.test(name)) continue
       const ext = name.split('.').pop()?.toLowerCase() || ''
       if (['jpg', 'jpeg', 'png', 'webp', 'avif', 'gif', 'svg'].includes(ext)) return name
+    }
+    return null
+  } catch { return null }
+}
+
+/**
+ * Async directory scan — finds first video file in a repo-relative path.
+ * Mirrors `findFirstImage`, but for background videos (data/background/).
+ */
+export async function findFirstVideo(relDir: string): Promise<string | null> {
+  try {
+    const isElectron = typeof window !== 'undefined' && (window as any).chronicleElectron?.isElectron
+    let names: string[] = []
+    if (isElectron) {
+      const bridge = (window as any).chronicleElectron
+      names = await bridge.readDir(relDir)
+    } else {
+      const resp = await fetch(`/api/files?path=${encodeURIComponent(relDir)}`)
+      if (!resp.ok) return null
+      const list = await resp.json()
+      names = Array.isArray(list) ? list.map((f: any) => f.name) : []
+    }
+    for (const name of names) {
+      if (isVideoFile(name)) return name
     }
     return null
   } catch { return null }
@@ -70,6 +108,101 @@ export async function resolveBackgroundUrlAsync(_scope: BackgroundScope): Promis
   const url = image ? `/${dir}/${image}` : ''
   _bgUrlCache = url
   return url
+}
+
+/** Async: resolve frontend background VIDEO url by scanning data/background/. */
+export async function resolveBackgroundVideoUrlAsync(_scope: BackgroundScope): Promise<string> {
+  const dir = getBackgroundDir('frontend')
+  const video = await findFirstVideo(dir)
+  return video ? `/${dir}/${video}` : ''
+}
+
+/**
+ * Convert a selected background video through the full compress + poster
+ * pipeline (same as scripts/convert-video.mjs). Runs ffmpeg in the Electron main
+ * process (or the Vite dev server in browser mode). Returns the canonical
+ * { videoUrl, posterUrl } on success, or null when ffmpeg is unavailable /
+ * conversion fails (caller should fall back to a plain copy).
+ */
+export async function convertBackgroundVideo(
+  sourceUrl: string,
+  opts?: { posterExt?: string },
+): Promise<{ videoUrl: string; posterUrl: string } | null> {
+  try {
+    const isElectron = typeof window !== 'undefined' && !!(window as any).chronicleElectron?.isElectron
+    if (isElectron) {
+      const bridge = (window as any).chronicleElectron
+      const res = await bridge.convertBackgroundVideo({ sourceUrl, posterExt: opts?.posterExt })
+      return res && res.success && res.videoUrl ? res : null
+    }
+    const resp = await fetch('/api/convert-video', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ source: sourceUrl, posterExt: opts?.posterExt }),
+    })
+    if (!resp.ok) return null
+    const data = await resp.json()
+    return data && data.success && data.videoUrl ? data : null
+  } catch (e) {
+    console.error('[backgroundSettings] convertBackgroundVideo failed:', e)
+    return null
+  }
+}
+
+// Last background video the conversion task was started for. Retry re-runs the
+// same conversion on the canonical file (which still holds the plain copy until
+// compression succeeds), so the retry handler doesn't need the source re-passed.
+let _lastVideoSource = '/data/background/background.mp4'
+
+/**
+ * Fire-and-forget background video compression as a notification-center task
+ * (mirrors `triggerBuild`). The caller must have ALREADY copied the source into
+ * `data/background/background.mp4` (fast, synchronous — an immediately usable
+ * background); this task compresses it in place and extracts the fallback poster,
+ * then silently replaces the file.
+ *
+ * On success the notification is marked completed/success; on failure it is
+ * marked failed/error with a retry action that re-runs the same conversion.
+ */
+export async function triggerVideoConversionTask(
+  sourceUrl: string,
+  t: (key: string) => string,
+): Promise<void> {
+  _lastVideoSource = sourceUrl || _lastVideoSource
+  const nc = getNotificationCenter()
+  const nid = nc.upsert({
+    kind: 'progress',
+    level: 'progress',
+    title: t('backgroundEditor.videoConverting'),
+    message: sourceUrl.split('/').pop() || sourceUrl,
+    _key: 'video-convert',
+  })
+
+  try {
+    const result = await convertBackgroundVideo(sourceUrl)
+    if (!result?.videoUrl) {
+      throw new Error(t('backgroundEditor.videoConvertFailed'))
+    }
+    nc.update(nid, {
+      state: 'completed',
+      level: 'success',
+      title: t('backgroundEditor.videoConverted'),
+      message: result.videoUrl,
+    })
+  } catch (e: any) {
+    nc.update(nid, {
+      state: 'failed',
+      level: 'error',
+      title: t('backgroundEditor.videoConvertFailed'),
+      message: e?.message || String(e),
+      actions: [{ label: t('backgroundEditor.videoRetry'), handler: 'retry-video-convert' }],
+    })
+  }
+}
+
+/** Retry the last background video conversion (bound to the notification action). */
+export function retryVideoConversion(t: (key: string) => string): Promise<void> {
+  return triggerVideoConversionTask(_lastVideoSource, t)
 }
 
 /** Resolve background URL for any scope. Directory-based auto-discovery. */

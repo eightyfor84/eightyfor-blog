@@ -2,7 +2,8 @@ import buildSettings from '../data/settings.json';
 
 export type FeatureFlagKey =
   | 'searchSuggestions'
-  | 'relatedPosts'
+  | 'globalSearch'
+  | 'fullTextSearch'
   | 'collectionPage'
   | 'aboutPage'
   | 'friendsPage'
@@ -13,7 +14,9 @@ export type FeatureFlags = Record<FeatureFlagKey, boolean>;
 
 const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
   searchSuggestions: true,
-  relatedPosts: true,
+  // Search features are opt-out — on by default (aligned with the schema).
+  globalSearch: true,
+  fullTextSearch: true,
   collectionPage: true,
   aboutPage: true,
   friendsPage: true,
@@ -24,7 +27,8 @@ const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
 export function normalizeFeatureFlags(input: any): FeatureFlags {
   return {
     searchSuggestions: input?.searchSuggestions !== false,
-    relatedPosts: input?.relatedPosts !== false,
+    globalSearch: input?.globalSearch !== false,
+    fullTextSearch: input?.fullTextSearch !== false,
     collectionPage: input?.collectionPage !== false,
     aboutPage: input?.aboutPage !== false,
     friendsPage: input?.friendsPage !== false,
