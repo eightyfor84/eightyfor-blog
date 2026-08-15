@@ -265,12 +265,30 @@ try {
     <!-- Google Analytics (gtag) 注入：仅当 GA ID 存在且流量开关启用时注入 -->
     {(GA_MEASUREMENT_ID && ((featureFlags && (featureFlags as any).traffic) === true)) ? (
       
-        <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}></script>
         <script is:inline define:vars={{ GA_MEASUREMENT_ID }}>
+          // 队列：gtag() 调用先入 dataLayer，gtag.js 真正加载后自动重放，不丢事件。
           window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
+          window.gtag = function () { window.dataLayer.push(arguments); };
           gtag('js', new Date());
           gtag('config', GA_MEASUREMENT_ID, { send_page_view: false });
+
+          // gtag.js 延迟注入：等 window.load 之后再加载，避免 googletagmanager.com
+          // 被墙/超时时阻塞 load 事件（转圈指示器 + 依赖 load 的交互）。被墙时脚本
+          // onerror 静默失败，不影响页面。
+          (function injectGtag() {
+            function load() {
+              var s = document.createElement('script');
+              s.async = true;
+              s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(GA_MEASUREMENT_ID);
+              s.onerror = function () { /* 被墙/超时：静默失败 */ };
+              document.head.appendChild(s);
+            }
+            if (document.readyState === 'complete') {
+              setTimeout(load, 0);
+            } else {
+              window.addEventListener('load', function () { setTimeout(load, 0); }, { once: true });
+            }
+          })();
         </script>
         <script is:inline>
             (function(){
