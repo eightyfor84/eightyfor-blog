@@ -65,6 +65,7 @@
   --bg-offset: #909090;
   --fg-base: #f5f5f5;
   --hl-offset: var(--bg-offset);
+  --overlay: #000;
 
   /* Background hierarchy — color-mix(in srgb, var(--bg-offset) P%, var(--bg-base)) */
   --app-bg-pri: var(--bg-base);
@@ -224,6 +225,7 @@
   --bg-offset: #aaa;
   --fg-base: #111111;
   --hl-offset: var(--accent);
+  --overlay: #fff;
 
   /* Light-mode background overlay should use the light variant when provided */
   --frontend-bg-overlay: var(--frontend-bg-overlay-light);
@@ -301,6 +303,7 @@
     --bg-offset: #aaa;
     --fg-base: #111111;
     --hl-offset: var(--accent);
+    --overlay: #fff;
 
     /* Ensure follow-system light maps overlay to light variant */
     --frontend-bg-overlay: var(--frontend-bg-overlay-light);
