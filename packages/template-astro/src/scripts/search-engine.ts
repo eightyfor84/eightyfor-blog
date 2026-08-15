@@ -467,9 +467,11 @@ export function initSearchExperience(config: SearchEngineConfig) {
     }
 
     if (tags && tags.length > 0) {
-      entries = entries.filter((p) =>
-        tags.every((t) => (p.tags || []).map((x) => String(x).trim()).includes(t))
-      );
+      const wanted = tags.map((t) => String(t).trim().toLowerCase());
+      entries = entries.filter((p) => {
+        const postTags = (p.tags || []).map((x) => String(x).trim().toLowerCase());
+        return wanted.every((t) => postTags.includes(t));
+      });
     }
 
     entries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -562,7 +564,7 @@ export function initSearchExperience(config: SearchEngineConfig) {
               post.tags && post.tags.length > 0
                 ? `<div class="se--post-tags">${sortTagsList(post.tags)
                     .map((tag) => {
-                      const matched = selectedTags.includes(tag);
+                      const matched = selectedTags.some((t) => String(t).toLowerCase() === String(tag).toLowerCase());
                       return `<span class="tag-display${isF(tag) ? " featured" : ""}${matched ? " match" : ""}">#${esc(isF(tag) ? featuredLabel : tag)}</span>`;
                     })
                     .join("")}</div>`
