@@ -360,13 +360,13 @@ onBeforeUnmount(() => {
   border: 1px solid var(--border-color);
   padding: 0 10px;
   background: var(--comp-bg);
-  color: var(--text-pri);
+  color: var(--app-text-pri);
 }
 
 .input-shell.selected .picker-input {
   background: color-mix(in srgb, var(--accent) 16%, var(--comp-bg));
   border-color: color-mix(in srgb, var(--accent) 50%, var(--border-color));
-  color: var(--text-pri);
+  color: var(--app-text-pri);
 }
 
 .icon-btn {
@@ -374,7 +374,7 @@ onBeforeUnmount(() => {
   height: 30px;
   border: none;
   background: transparent;
-  color: var(--text-sec);
+  color: var(--app-text-sec);
   padding: 0;
   display: inline-flex;
   align-items: center;
@@ -384,7 +384,7 @@ onBeforeUnmount(() => {
 }
 
 .icon-btn:hover {
-  color: var(--text-pri);
+  color: var(--app-text-pri);
   background: var(--hover);
 }
 
@@ -407,7 +407,7 @@ onBeforeUnmount(() => {
   padding: 0 10px;
   background: color-mix(in srgb, var(--accent) 16%, transparent);
   border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border-color));
-  color: var(--text-pri);
+  color: var(--app-text-pri);
   max-width: 420px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -460,13 +460,13 @@ onBeforeUnmount(() => {
   border-radius: 6px;
   border: 1px solid var(--border-color);
   padding: 0 10px;
-  background: var(--app-bg);
-  color: var(--text-pri);
+  background: var(--app-bg-pri);
+  color: var(--app-text-pri);
 }
 
 .picker-empty {
   padding: 14px;
-  color: var(--text-sec);
+  color: var(--app-text-sec);
 }
 
 .picker-list {
@@ -484,7 +484,7 @@ onBeforeUnmount(() => {
   border-radius: 8px;
   border: 1px solid transparent;
   background: transparent;
-  color: var(--text-pri);
+  color: var(--app-text-pri);
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -500,13 +500,13 @@ onBeforeUnmount(() => {
   font-size: 1rem;
   font-weight: 500;
   font-variation-settings: 'wght' 500;
-  color: var(--text-pri);
+  color: var(--app-text-pri);
   line-height: 1.3;
 }
 
 .picker-post-id {
   font-size: 12px;
-  color: var(--text-sec);
+  color: var(--app-text-sec);
   line-height: 1.2;
 }
 

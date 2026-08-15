@@ -1051,7 +1051,7 @@ watch(() => props.selectionMode, () => {
     border-radius: 8px;
     padding: 8px 12px;
     background: var(--comp-bg);
-    color: var(--text-pri);
+    color: var(--app-text-pri);
 }
 
 .sort-by-select:focus {
@@ -1237,7 +1237,7 @@ watch(() => props.selectionMode, () => {
 }
 
 .checkbox-indicator.checked svg {
-    color: var(--text-on-accent)
+    color: #fff
 }
 
 .list tr.just-uploaded td {
@@ -1316,7 +1316,7 @@ watch(() => props.selectionMode, () => {
     padding: 0;
     border: none;
     background: transparent;
-    color: var(--text-sec);
+    color: var(--app-text-sec);
     font-size: 14px;
     line-height: 1;
     cursor: pointer;
@@ -1330,7 +1330,7 @@ watch(() => props.selectionMode, () => {
 }
 
 .chip-remove:hover {
-    color: var(--text-pri);
+    color: var(--app-text-pri);
 }
 
 .picker-actions {

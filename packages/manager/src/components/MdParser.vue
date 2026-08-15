@@ -554,7 +554,7 @@ defineExpose({
 .math-tooltip {
   position: fixed;
   z-index: 9999;
-  background-color: var(--bg-pri);
+  background-color: var(--app-bg-pri);
   border: 1px solid var(--border-color);
   border-radius: 8px;
   box-shadow: var(--shadow-elev-2);
@@ -627,7 +627,7 @@ hr {
 .math-tooltip-actions .icon-btn:hover {
   background-color: var(--active);
   border-color: var(--accent);
-  color: var(--text-pri);
+  color: var(--app-text-pri);
 }
 
 /* Edit Mode Styles */
@@ -647,7 +647,7 @@ hr {
   position: relative;
   min-height: 48px;
   max-height: 200px; /* Limit max height */
-  background: var(--comp-bg-pri);
+  background: var(--comp-bg);
   border: 1px solid var(--border-color);
   border-radius: 4px;
   overflow-y: auto;
@@ -695,7 +695,7 @@ hr {
   overflow-wrap: break-word;
   background: transparent;
   color: transparent;
-  caret-color: var(--text-pri);
+  caret-color: var(--app-text-pri);
   resize: none;
   border: none;
   outline: none;
@@ -722,7 +722,7 @@ hr {
   overflow-wrap: break-word;
   background: transparent;
   color: transparent;
-  caret-color: var(--text-pri);
+  caret-color: var(--app-text-pri);
   resize: none;
   border: none;
   outline: none;
@@ -771,7 +771,7 @@ hr {
 .math-tooltip-editor .code-textarea {
   background: transparent;
   color: transparent;
-  caret-color: var(--text-pri);
+  caret-color: var(--app-text-pri);
   resize: none;
   outline: none;
   z-index: 1;
@@ -805,7 +805,7 @@ hr {
 .math-tooltip-actions .text-btn:hover {
   background-color: var(--comp-bg-glass-active);
   border-color: var(--accent);
-  color: var(--text-pri);
+  color: var(--app-text-pri);
 }
 
 
@@ -888,7 +888,7 @@ strong, b {
   min-height: 120px;
   padding: 0 16px;
   box-sizing: border-box;
-  background-color: var(--comp-bg-pri);
+  background-color: var(--comp-bg);
 }
 
 .md-image-wrapper::before {
@@ -969,7 +969,7 @@ strong, b {
   right: 30px;
   background: var(--comp-bg-glass);
   border: none;
-  color: var(--text-pri);
+  color: var(--app-text-pri);
   width: 48px;
   height: 48px;
   min-width: 48px;

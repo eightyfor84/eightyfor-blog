@@ -109,13 +109,13 @@ onBeforeUnmount(() => { document.removeEventListener('click', onClickOutside) })
   background: var(--comp-bg);
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  color: var(--text-sec);
+  color: var(--app-text-sec);
   font-size: .85rem;
   cursor: pointer;
   transition: border-color .12s, color .12s;
 }
 .fd-trigger:hover,
-.fd-trigger.active { border-color: var(--accent); color: var(--text-pri); }
+.fd-trigger.active { border-color: var(--accent); color: var(--app-text-pri); }
 .fd-label { font-weight: 500; }
 .fd-badge {
   background: var(--accent);
@@ -154,7 +154,7 @@ onBeforeUnmount(() => { document.removeEventListener('click', onClickOutside) })
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: .4px;
-  color: var(--text-sec);
+  color: var(--app-text-sec);
   padding: .3rem .5rem .15rem;
 }
 
@@ -166,7 +166,7 @@ onBeforeUnmount(() => { document.removeEventListener('click', onClickOutside) })
   border-radius: 6px;
   cursor: pointer;
   font-size: .85rem;
-  color: var(--text-pri);
+  color: var(--app-text-pri);
   transition: background .1s;
 }
 .fd-option:hover { background: var(--hover); }

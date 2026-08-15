@@ -29,15 +29,9 @@ body { min-height:100vh; }
 .nav-header {
   position:fixed; top:0; left:0; right:0; z-index:9999;
   height:70px; box-sizing:border-box;
-  background:var(--comp-bg-blur); backdrop-filter:blur(16px);
-  -webkit-backdrop-filter:blur(16px);
-  border-bottom:1px solid var(--border-color-blur);
-  /* Force GPU compositing layer so backdrop-filter survives View Transitions
-     without a 1-2 frame flicker during the crossfade. */
-  transform:translateZ(0);
 }
 html.immersive .nav-header {
-  background:transparent; border-bottom:none; backdrop-filter:blur(1px);
+  background:transparent; border-bottom:none;
 }
 .nav-content {
   display:flex; justify-content:space-between; align-items:center;
@@ -48,10 +42,11 @@ html.immersive .nav-header {
   padding-top:70px; height:100vh; box-sizing:border-box;
 }
 .app-title { font-size:1.5rem; font-weight:bold; color:var(--app-text-pri); margin:0; }
-.nav-link { color:var(--app-text-sec); text-decoration:none; padding:0.5rem 1rem; border-radius:4px; }
+.nav-link, .nav-action-link { color:var(--app-text-sec); text-decoration:none;  border-radius:6px; }
+.nav-link { padding:0.5rem 1rem; }
 .nav-links { display:flex; gap:2rem; }
 .nav-actions { margin-left:auto; display:flex; align-items:center; gap:0.75rem; }
-.nav-setting-btn {
+.nav-setting-btn, .nav-action-link {
   background:transparent; border:none; color:var(--app-text-sec); cursor:pointer;
   display:flex; align-items:center; justify-content:center;
   width:40px; height:40px; border-radius:6px;

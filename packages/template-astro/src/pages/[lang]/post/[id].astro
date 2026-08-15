@@ -217,7 +217,7 @@ if (renderedPostContent) {
   } catch (renderErr) {
     // If rendering fails completely, fall back to escaped raw content
     console.error('[Post SSR] Rendering failed:', renderContextLabel, renderErr);
-    renderedPostContent = `<div class="md-placeholder">文章内容渲染失败</div><pre style="margin-top:1rem; padding: 1rem; background: var(--comp-bg-pri); border-radius: 4px; overflow-x: auto; font-size: 12px;">${escapeHtmlText((rawPostHtml || rawPostMarkdown).substring(0, 500))}</pre>`;
+    renderedPostContent = `<div class="md-placeholder">文章内容渲染失败</div><pre style="margin-top:1rem; padding: 1rem; background: var(--comp-bg); border-radius: 4px; overflow-x: auto; font-size: 12px;">${escapeHtmlText((rawPostHtml || rawPostMarkdown).substring(0, 500))}</pre>`;
   }
 }
 

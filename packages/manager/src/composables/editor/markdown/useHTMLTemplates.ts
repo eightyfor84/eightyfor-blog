@@ -29,7 +29,7 @@ export const EXPORT_OVERRIDE = `
 --app-font-stack:-apple-system,BlinkMacSystemFont,'InterVariable','Inter','Segoe UI','PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif;
 --app-font-stack-serif:'Noto Serif SC',serif;
 --app-font-stack-mono:'Consolas','SF Mono','Menlo','Monaco','Courier New',monospace;
---text-pri:#111;--text-sec:#4b5563;--app-text-pri:#111;
+--app-text-pri:#111;--app-text-sec:#4b5563;--app-text-pri:#111;
 --border-color:#e5e7eb;--accent:#2563eb;--accent-dark:#1d4ed8;--accent-contrast:#fff;
 --code-bg:#f5f5f5c0;--code-inline:#f3f4f6;
 --code-keyword:#7c3aed;--code-string:#059669;--code-comment:#6b7280;--code-number:#d97706;
@@ -38,28 +38,28 @@ export const EXPORT_OVERRIDE = `
 --code-quote:#059669;--code-link:#2563eb;--code-boolean:#d97706;--code-preprocessor:#dc2626;
 --code-section:#2563eb;--code-directive:#7c3aed;--code-parameter:#4b5563;--code-cmdlet:#7c3aed;
 --code-katexcommand:#2563eb;
---comp-bg-pri:#fafafa;--comp-bg-blur:rgba(250,250,250,.8);--comp-bg-glass:rgba(245,245,245,.7);
+--comp-bg:#fafafa;--comp-bg-blur:rgba(250,250,250,.8);--comp-bg-glass:rgba(245,245,245,.7);
 --comp-bg-hvr:#f3f4f690;--comp-bg-hl:#e5e7eb90;--comp-bg-active:#d1d5db90;
 --comp-text-pri:#111;--comp-text-sec:#6b7280;
 --status-error:#dc2626;--status-warning:#f59e0b;--featured:#f59e0b;
 --toc-scroll-offset:100px;
 }
-body{max-width:800px;margin:0 auto;padding:40px 48px;font-family:var(--app-font-stack);background:var(--comp-bg-pri);color:var(--text-pri)}
+body{max-width:800px;margin:0 auto;padding:40px 48px;font-family:var(--app-font-stack);background:var(--comp-bg);color:var(--app-text-pri)}
 body[data-font="serif"]{font-family:var(--app-font-stack-serif)}
-.article-title{font-size:2.5rem;line-height:1.25;margin-bottom:2.5rem;font-weight:600;font-variation-settings:'wght' 600;border-bottom:1px solid var(--border-color);padding-bottom:1.5rem;color:var(--text-pri)}
+.article-title{font-size:2.5rem;line-height:1.25;margin-bottom:2.5rem;font-weight:600;font-variation-settings:'wght' 600;border-bottom:1px solid var(--border-color);padding-bottom:1.5rem;color:var(--app-text-pri)}
 .code-chunk-header{padding:0 1rem}
 .code-chunk-lang{font-size:0.85rem;font-family:var(--app-font-stack);color:var(--comp-text-sec)}
 pre{margin-block:0}
 .chronicle-markdown .md-image {width:auto;height:auto;}
 img,.md-image{display:block;max-width:100%;margin-left:auto;margin-right:auto;cursor:default!important;opacity:1!important;filter:none!important;transition:none!important}
-[data-theme="dark"]{--text-pri:#e5e7eb;--text-sec:#9ca3af;--app-text-pri:#e5e7eb;--border-color:#333;--accent:#3b82f6;--accent-dark:#60a5fa;--accent-contrast:#111;--code-bg:#1a1a1ac0;--code-inline:#1f1f1f;--code-keyword:#a78bfa;--code-string:#34d399;--code-comment:#6b7280;--code-number:#fbbf24;--code-type:#60a5fa;--code-tag:#60a5fa;--code-attribute:#a78bfa;--code-property:#34d399;--code-selector:#fbbf24;--code-operator:#9ca3af;--code-variable:#e5e7eb;--code-text:#e5e7eb;--code-quote:#34d399;--code-link:#60a5fa;--code-boolean:#fbbf24;--code-preprocessor:#f87171;--code-section:#60a5fa;--code-directive:#a78bfa;--code-parameter:#9ca3af;--code-cmdlet:#a78bfa;--code-katexcommand:#60a5fa;--comp-bg-pri:#1a1a1a;--comp-bg-blur:rgba(40,40,40,.9);--comp-bg-glass:rgba(60,60,60,.7);--comp-bg-hvr:#fff2;
+[data-theme="dark"]{--app-text-pri:#e5e7eb;--app-text-sec:#9ca3af;--app-text-pri:#e5e7eb;--border-color:#333;--accent:#3b82f6;--accent-dark:#60a5fa;--accent-contrast:#111;--code-bg:#1a1a1ac0;--code-inline:#1f1f1f;--code-keyword:#a78bfa;--code-string:#34d399;--code-comment:#6b7280;--code-number:#fbbf24;--code-type:#60a5fa;--code-tag:#60a5fa;--code-attribute:#a78bfa;--code-property:#34d399;--code-selector:#fbbf24;--code-operator:#9ca3af;--code-variable:#e5e7eb;--code-text:#e5e7eb;--code-quote:#34d399;--code-link:#60a5fa;--code-boolean:#fbbf24;--code-preprocessor:#f87171;--code-section:#60a5fa;--code-directive:#a78bfa;--code-parameter:#9ca3af;--code-cmdlet:#a78bfa;--code-katexcommand:#60a5fa;--comp-bg:#1a1a1a;--comp-bg-blur:rgba(40,40,40,.9);--comp-bg-glass:rgba(60,60,60,.7);--comp-bg-hvr:#fff2;
 --comp-bg-hl:#fff2;--comp-bg-active:#fff3;
 --comp-text-pri:#e5e7eb;--comp-text-sec:#9ca3af}
-.theme-toggle{position:fixed;top:16px;right:16px;width:36px;height:36px;border-radius:50%;border:1px solid var(--border-color);background:var(--comp-bg-pri);color:var(--text-pri);cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:100;transition:background .2s}
+.theme-toggle{position:fixed;top:16px;right:16px;width:36px;height:36px;border-radius:50%;border:1px solid var(--border-color);background:var(--comp-bg);color:var(--app-text-pri);cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:100;transition:background .2s}
 .theme-toggle svg{width:16px;height:16px;display:block}
 .theme-toggle:hover{background:var(--hover)}
 @media print{body{padding:16px;max-width:none}.no-print{display:none!important}img,.md-image{opacity:1!important;filter:none!important;display:block!important;max-width:100%!important}}
-@media (prefers-color-scheme:dark){:root:not([data-theme]){--text-pri:#e5e7eb;--text-sec:#9ca3af;--app-text-pri:#e5e7eb;--border-color:#333;--accent:#3b82f6;--accent-dark:#60a5fa;--code-bg:#1a1a1a;--code-inline:#1f1f1f;--code-keyword:#a78bfa;--code-string:#34d399;--code-comment:#6b7280;--code-number:#fbbf24;--code-type:#60a5fa;--code-tag:#60a5fa;--code-attribute:#a78bfa;--code-property:#34d399;--code-selector:#fbbf24;--code-operator:#9ca3af;--code-variable:#e5e7eb;--code-text:#e5e7eb;--code-quote:#34d399;--code-link:#60a5fa;--code-boolean:#fbbf24;--code-preprocessor:#f87171;--code-section:#60a5fa;--code-directive:#a78bfa;--code-parameter:#9ca3af;--code-cmdlet:#a78bfa;--code-katexcommand:#60a5fa;--comp-bg-pri:#1a1a1a;--comp-bg-blur:rgba(26,26,26,.9);--comp-bg-glass:rgba(30,30,30,.7);--comp-bg-hvr:#222;--comp-bg-hl:#2a2a2a;--comp-bg-active:#333;--comp-text-pri:#e5e7eb;--comp-text-sec:#9ca3af}}
+@media (prefers-color-scheme:dark){:root:not([data-theme]){--app-text-pri:#e5e7eb;--app-text-sec:#9ca3af;--app-text-pri:#e5e7eb;--border-color:#333;--accent:#3b82f6;--accent-dark:#60a5fa;--code-bg:#1a1a1a;--code-inline:#1f1f1f;--code-keyword:#a78bfa;--code-string:#34d399;--code-comment:#6b7280;--code-number:#fbbf24;--code-type:#60a5fa;--code-tag:#60a5fa;--code-attribute:#a78bfa;--code-property:#34d399;--code-selector:#fbbf24;--code-operator:#9ca3af;--code-variable:#e5e7eb;--code-text:#e5e7eb;--code-quote:#34d399;--code-link:#60a5fa;--code-boolean:#fbbf24;--code-preprocessor:#f87171;--code-section:#60a5fa;--code-directive:#a78bfa;--code-parameter:#9ca3af;--code-cmdlet:#a78bfa;--code-katexcommand:#60a5fa;--comp-bg:#1a1a1a;--comp-bg-blur:rgba(26,26,26,.9);--comp-bg-glass:rgba(30,30,30,.7);--comp-bg-hvr:#222;--comp-bg-hl:#2a2a2a;--comp-bg-active:#333;--comp-text-pri:#e5e7eb;--comp-text-sec:#9ca3af}}
 /* KaTeX 离线字体兜底——各系统自带数学字体 */
 .katex,.katex .mord,.katex .mbin,.katex .mrel,.katex .mopen,.katex .mclose,.katex .mpunct,.katex .minner,.katex .mathit,.katex .mathbf,.katex .mainit{font-family:KaTeX_Main,Cambria Math,STIX Two Math,Latin Modern Math,serif}
 .katex .amsrm,.katex .mathbb{font-family:KaTeX_AMS,Cambria Math,STIX Two Math,serif}
@@ -76,7 +76,7 @@ img,.md-image{display:block;max-width:100%;margin-left:auto;margin-right:auto;cu
 .mermaid-prerendered svg .nodeLabel,.mermaid-prerendered svg .label,.mermaid-prerendered svg .messageText,.mermaid-prerendered svg .legend text{fill:var(--comp-text-pri)!important;color:var(--comp-text-pri)!important}
 .mermaid-prerendered svg .node rect,.mermaid-prerendered svg .node circle,.mermaid-prerendered svg .node ellipse,.mermaid-prerendered svg .node polygon,.mermaid-prerendered svg .cluster rect,.mermaid-prerendered svg .node path{fill:none!important;stroke:var(--comp-text-sec)!important}
 .mermaid-prerendered svg .edgePath .path,.mermaid-prerendered svg .flowchart-link{stroke:var(--comp-text-sec)!important}
-.mermaid-prerendered svg .edgeLabel text,.mermaid-prerendered svg .edgeLabel rect,.mermaid-prerendered svg .edgeLabel span{fill:var(--comp-bg-pri)!important}
+.mermaid-prerendered svg .edgeLabel text,.mermaid-prerendered svg .edgeLabel rect,.mermaid-prerendered svg .edgeLabel span{fill:var(--comp-bg)!important}
 .mermaid-prerendered svg marker path{stroke:var(--comp-text-sec)!important;stroke-width:1.5!important}
 .mermaid-prerendered svg .actor,.mermaid-prerendered svg .labelBox{fill:none!important;stroke:var(--comp-text-sec)!important}`
 

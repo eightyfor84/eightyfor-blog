@@ -476,7 +476,7 @@ defineExpose({
 }
 
 .preview-pane {
-  background: var(--bg-pri);
+  background: var(--app-bg-pri);
   padding: 16px 16px 50vh 16px;
   box-sizing: border-box;
 }
@@ -587,8 +587,8 @@ defineExpose({
   padding: 6px 10px;
   border: 1px solid var(--border-color);
   border-radius: 4px;
-  background: var(--bg-pri);
-  color: var(--text-pri);
+  background: var(--app-bg-pri);
+  color: var(--app-text-pri);
   font-size: 13px;
   box-sizing: border-box;
 }
@@ -613,8 +613,8 @@ defineExpose({
   padding: 2px 8px;
   border: 1px solid var(--border-color);
   border-radius: 3px;
-  background: var(--bg-sec);
-  color: var(--text-pri);
+  background: var(--app-bg-sec);
+  color: var(--app-text-pri);
   cursor: pointer;
   font-size: 11px;
 }

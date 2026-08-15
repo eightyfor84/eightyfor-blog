@@ -165,15 +165,15 @@ const themeLabel = computed(() => {
   height: 36px;
   border: none;
   background: none;
-  color: var(--text-sec);
+  color: var(--app-text-sec);
   cursor: pointer;
   border-radius: 9999px;
   padding: 0;
   transition: color .15s, background .15s;
 }
 .sb-btn:hover {
-  color: var(--text-pri);
-  background: color-mix(in srgb, var(--text-sec) 20%, transparent);
+  color: var(--app-text-pri);
+  background: color-mix(in srgb, var(--app-text-sec) 20%, transparent);
 }
 .sb-btn span, .sb-btn :deep(svg) { width: 20px; height: 20px; }
 
@@ -182,7 +182,7 @@ const themeLabel = computed(() => {
   -webkit-appearance: none;
   border: none;
   background: none;
-  color: var(--text-sec);
+  color: var(--app-text-sec);
   font-size: .82rem;
   padding: 4px 28px 4px 12px;
   cursor: pointer;
@@ -191,11 +191,11 @@ const themeLabel = computed(() => {
   transition: background .2s, color .2s;
 }
 .sb-select:hover {
-  background: color-mix(in srgb, var(--text-sec) 20%, transparent);
+  background: color-mix(in srgb, var(--app-text-sec) 20%, transparent);
 }
 .sb-select option {
-  background: var(--bg-sec);
-  color: var(--text-pri);
+  background: var(--app-bg-sec);
+  color: var(--app-text-pri);
 }
 
 .sb-server {
@@ -205,13 +205,13 @@ const themeLabel = computed(() => {
   gap: 8px;
   border-radius: 9999px;
   cursor: pointer;
-  color: var(--text-pri);
+  color: var(--app-text-pri);
   height: 34px;
   padding: 0 12px;
   transition: background .2s;
 }
 .sb-server:hover {
-  background: color-mix(in srgb, var(--text-sec) 20%, transparent);
+  background: color-mix(in srgb, var(--app-text-sec) 20%, transparent);
 }
 
 .sb-popover {
@@ -220,7 +220,7 @@ const themeLabel = computed(() => {
   left: 0;
   margin-top: 6px;
   z-index: 2100;
-  background: var(--bg-sec);
+  background: var(--app-bg-sec);
   border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 10px;
@@ -264,15 +264,15 @@ const themeLabel = computed(() => {
   height: 44px;
   border: none;
   background: none;
-  color: var(--text-sec);
+  color: var(--app-text-sec);
   cursor: pointer;
   border-radius: 9999px;
   padding: 0;
   transition: color .15s, background .15s;
 }
 .ghost-btn:hover {
-  color: var(--text-pri);
-  background: color-mix(in srgb, var(--text-sec) 20%, transparent);
+  color: var(--app-text-pri);
+  background: color-mix(in srgb, var(--app-text-sec) 20%, transparent);
 }
 .ghost-btn span, .ghost-btn :deep(svg) { width: 22px; height: 22px; }
 
@@ -281,7 +281,7 @@ const themeLabel = computed(() => {
   -webkit-appearance: none;
   border: none;
   background: none;
-  color: var(--text-sec);
+  color: var(--app-text-sec);
   font-size: .85rem;
   padding: 4px 32px 4px 16px;
   cursor: pointer;
@@ -291,11 +291,11 @@ const themeLabel = computed(() => {
   transition: background .2s, color .2s;
 }
 .ghost-select:hover {
-  background: color-mix(in srgb, var(--text-sec) 20%, transparent);
+  background: color-mix(in srgb, var(--app-text-sec) 20%, transparent);
 }
 .ghost-select option {
-  background: var(--bg-sec);
-  color: var(--text-pri);
+  background: var(--app-bg-sec);
+  color: var(--app-text-pri);
 }
 
 .server-group {
@@ -305,13 +305,13 @@ const themeLabel = computed(() => {
   gap: 10px;
   border-radius: 9999px;
   cursor: pointer;
-  color: var(--text-pri);
+  color: var(--app-text-pri);
   height: 36px;
   padding: 0 14px;
   transition: background .2s;
 }
 .server-group:hover {
-  background: color-mix(in srgb, var(--text-sec) 20%, transparent);
+  background: color-mix(in srgb, var(--app-text-sec) 20%, transparent);
 }
 
 .config-popover {
@@ -320,7 +320,7 @@ const themeLabel = computed(() => {
   left: 8px;
   margin-top: 8px;
   z-index: 110;
-  background: var(--bg-sec);
+  background: var(--app-bg-sec);
   border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 12px;
@@ -336,7 +336,7 @@ const themeLabel = computed(() => {
 .conn-dot {
   width: 6px; height: 6px;
   border-radius: 50%;
-  background: var(--text-sec);
+  background: var(--app-text-sec);
   flex-shrink: 0;
 }
 .conn-dot.on  { background: var(--status-success); box-shadow: 0 0 6px var(--status-success); }
@@ -344,7 +344,7 @@ const themeLabel = computed(() => {
 
 .conn-label {
   font-size: .75rem;
-  color: var(--text-sec);
+  color: var(--app-text-sec);
   max-width: 240px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -357,9 +357,9 @@ const themeLabel = computed(() => {
   flex: 1;
   min-width: 180px;
   padding: .5rem;
-  background: var(--bg-pri);
+  background: var(--app-bg-pri);
   border: 1px solid var(--border-color);
-  color: var(--text-pri);
+  color: var(--app-text-pri);
   border-radius: 8px;
   font-size: .85em;
 }
@@ -371,8 +371,8 @@ const themeLabel = computed(() => {
   padding: .5rem .9rem;
   border-radius: 8px;
   border: 1px solid var(--border-color);
-  background: var(--bg-pri);
-  color: var(--text-pri);
+  background: var(--app-bg-pri);
+  color: var(--app-text-pri);
   font-size: .85em;
   cursor: pointer;
   white-space: nowrap;
@@ -387,6 +387,6 @@ const themeLabel = computed(() => {
 }
 .btn:disabled { opacity: .5; }
 .err { color: var(--status-error); font-size: .78rem; margin: .2rem 0 0; width: 100%; }
-.err.muted { color: var(--text-sec); }
+.err.muted { color: var(--app-text-sec); }
 .ok  { color: var(--status-success); font-size: .78rem; margin: .2rem 0 0; width: 100%; }
 </style>

@@ -121,7 +121,7 @@ const pct = computed(() => {
   content: '';
   position: absolute; top: 0; bottom: 0;
   width: 30%;
-  background: var(--text-sec, #888);
+  background: var(--app-text-sec, #888);
   border-radius: 3px;
   animation: nc-suspend 5s linear infinite;
 }
@@ -136,6 +136,6 @@ const pct = computed(() => {
   display: block;
   margin-top: 4px;
   font-size: 0.72rem;
-  color: var(--text-sec);
+  color: var(--app-text-sec);
 }
 </style>

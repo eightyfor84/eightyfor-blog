@@ -22,7 +22,11 @@ const searchOnEnter = props.searchOnEnter ?? true;
 const searchBtnAsButton = props.searchBtnAsButton ?? true;
 ---
 
-<div class="search-box-wrapper" data-searchbox-id={instanceId}>
+<div
+  class="search-box-wrapper"
+  data-searchbox-id={instanceId}
+  data-searchbox-config={JSON.stringify({ instanceId, initialTitle, searchOnEnter, searchBtnAsButton, showTagTrigger })}
+>
   <div class="search-box mtl-surface">
     {showTagTrigger && (
       <>
@@ -103,111 +107,8 @@ const searchBtnAsButton = props.searchBtnAsButton ?? true;
   </div>
 </div>
 
-<script
-  define:vars={{ instanceId, initialTitle, searchOnEnter, searchBtnAsButton, showTagTrigger }}
->
-  const __sbInitCache = new WeakSet();
-
-  function initSearchBox() {
-    // Re-query DOM on each init (handles view-transition swaps)
-    const root = document.querySelector(`[data-searchbox-id="${instanceId}"]`);
-    if (!root || __sbInitCache.has(root)) return;
-    __sbInitCache.add(root);
-
-    const input = root.querySelector('#search-input');
-    const searchBtn = root.querySelector('#search-btn');
-    const clearBtn = root.querySelector('#clear-btn');
-    const tagTrigger = root.querySelector('#tag-trigger');
-
-    let selectedTagsCount = 0;
-
-    const submitEventName = 'searchbox:submit';
-    const toggleTagCloudEventName = 'searchbox:toggle-tag-cloud';
-
-    function emit(name, detail) {
-      (root || document).dispatchEvent(new CustomEvent(name, {
-        bubbles: true,
-        detail,
-      }));
-    }
-
-    function updateState() {
-      if (!input || !searchBtn || !clearBtn) return;
-      const hasContent = input.value.trim().length > 0;
-      const isActive = hasContent || selectedTagsCount > 0;
-      searchBtn.classList.toggle('active', isActive);
-      if ('disabled' in searchBtn) {
-        searchBtn.disabled = !isActive;
-      }
-      clearBtn.classList.toggle('active', isActive);
-      clearBtn.style.display = isActive ? 'flex' : 'none';
-    }
-
-    function submitSearch(source) {
-      const hasContent = input ? input.value.trim().length > 0 : false;
-      const isActive = hasContent || selectedTagsCount > 0;
-      if (!isActive) return;
-      emit(submitEventName, {
-        query: input ? input.value.trim() : '',
-        source,
-      });
-    }
-
-    if (input) {
-      input.value = initialTitle || input.value || '';
-      updateState();
-
-      input.addEventListener('input', updateState);
-      if (searchOnEnter) {
-        input.addEventListener('keydown', (event) => {
-          if (event.key === 'Enter') {
-            const hasContent = input.value.trim().length > 0;
-            const isActive = hasContent || selectedTagsCount > 0;
-            if (!isActive) {
-              event.preventDefault();
-              return;
-            }
-            event.preventDefault();
-            submitSearch('enter');
-          }
-        });
-      }
-    }
-
-    if (searchBtnAsButton && searchBtn) {
-      searchBtn.addEventListener('click', () => submitSearch('button'));
-    }
-
-    if (clearBtn) {
-      clearBtn.addEventListener('click', () => {
-        if (input) {
-          input.value = '';
-        }
-        updateState();
-        emit('searchbox:clear', {});
-        input?.focus();
-      });
-    }
-
-    if (showTagTrigger && tagTrigger) {
-      tagTrigger.addEventListener('click', () => {
-        emit(toggleTagCloudEventName, {});
-      });
-    }
-
-    root.addEventListener('searchbox:selection-change', (event) => {
-      const detail = event.detail || {};
-      selectedTagsCount = Number(detail.selectedTagsCount || 0);
-      updateState();
-    });
-  }
-
-  // Init on load
-  initSearchBox();
-  // Re-init after Astro view transitions swap in new DOM.
-  // `astro:page-load` fires after the new page is fully settled,
-  // guaranteeing the DOM is in place for querySelector.
-  document.addEventListener('astro:page-load', initSearchBox);
+<script>
+  import '../scripts/search-bootstrap';
 </script>
 
 <style>
@@ -341,7 +242,7 @@ const searchBtnAsButton = props.searchBtnAsButton ?? true;
     flex: 1;
     background: transparent;
     border: none;
-    color: var(--text-pri);
+    color: var(--app-text-pri);
     font-size: 1rem;
     padding: 6px 0;
     outline: none;

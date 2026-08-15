@@ -264,7 +264,7 @@ onUnmounted(() => {
   padding: 8px;
   background: transparent;
   color: transparent; /* hide real text while keeping caret */
-  caret-color: var(--text-pri);
+  caret-color: var(--app-text-pri);
   border: none;
   outline: none;
   resize: none;

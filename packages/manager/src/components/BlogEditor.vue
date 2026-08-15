@@ -1331,7 +1331,7 @@ onUnmounted(() => {
     height: var(--app-height);
     /* ensure editor fills viewport so internal panes scroll, not the page */
     border: none;
-    background: var(--bg-pri);
+    background: var(--app-bg-pri);
 }
 
 /* ═══ Ribbon Toolbar ═══ */
@@ -1394,11 +1394,11 @@ onUnmounted(() => {
 
 .ribbon-tab:hover {
     border-bottom-color: var(--comp-text-sec);
-    color: var(--text-pri);
+    color: var(--app-text-pri);
 }
 
 .ribbon-tab.active {
-    color: var(--text-pri);
+    color: var(--app-text-pri);
     border-bottom-color: var(--accent);
     font-weight: 600;
 }
@@ -1435,7 +1435,7 @@ onUnmounted(() => {
 .ribbon-title-input {
     background: transparent;
     border: 1px solid transparent;
-    color: var(--text-pri);
+    color: var(--app-text-pri);
     font-size: 13px;
     font-weight: 600;
     padding: 2px 6px;
@@ -1451,7 +1451,7 @@ onUnmounted(() => {
 
 .ribbon-title-input:focus {
     border-color: var(--comp-bg-accent);
-    background: var(--bg-pri);
+    background: var(--app-bg-pri);
 }
 
 .ribbon-title-input[readonly] {
@@ -1480,9 +1480,9 @@ onUnmounted(() => {
 }
 
 .ribbon-status.local {
-    color: var(--text-pri);
+    color: var(--app-text-pri);
     background: transparent;
-    border: 1px solid var(--text-pri);
+    border: 1px solid var(--app-text-pri);
 }
 
 .ribbon-status.draft {
@@ -1524,11 +1524,11 @@ onUnmounted(() => {
 }
 
 .ribbon-save-status.dirty {
-    color: var(--text-pri);
+    color: var(--app-text-pri);
 }
 
 .ribbon-save-status.new {
-    color: color-mix(in srgb, var(--text-pri) 40%, transparent);
+    color: color-mix(in srgb, var(--app-text-pri) 40%, transparent);
 }
 
 .ribbon-save-status {
@@ -1786,7 +1786,7 @@ onUnmounted(() => {
     border: none;
     border-radius: 6px;
     background: transparent;
-    color: var(--text-pri);
+    color: var(--app-text-pri);
     cursor: pointer;
     font-size: 0.8rem;
 }
@@ -1851,8 +1851,8 @@ onUnmounted(() => {
     padding: 4px 8px;
     border: 1px solid var(--border-color);
     border-radius: 6px;
-    background: var(--bg-pri);
-    color: var(--text-pri);
+    background: var(--app-bg-pri);
+    color: var(--app-text-pri);
     font-size: 0.8rem;
     outline: none;
     cursor: pointer;
@@ -1969,7 +1969,7 @@ onUnmounted(() => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: var(--comp-bg-pri);
+    background: var(--comp-bg);
     flex-shrink: 0;
     height: 48px;
 }
@@ -1994,7 +1994,7 @@ onUnmounted(() => {
 
 .close-btn:hover {
     background: transparent;
-    color: var(--text-pri);
+    color: var(--app-text-pri);
 }
 
 .close-btn :deep(svg) {
@@ -2051,7 +2051,7 @@ onUnmounted(() => {
 
 .toolbar-btn.primary-action {
     background: var(--accent);
-    color: var(--text-on-accent);
+    color: #fff;
 }
 
 .toolbar-btn.primary-action:hover {
@@ -2078,7 +2078,7 @@ onUnmounted(() => {
     display: flex;
     flex-direction: column;
     padding: 20px;
-    background: var(--bg-pri);
+    background: var(--app-bg-pri);
     overflow: hidden;
 }
 
@@ -2091,7 +2091,7 @@ onUnmounted(() => {
 
 .primary-btn {
     background: var(--accent);
-    color: var(--text-on-accent);
+    color: #fff;
     border: none;
     padding: 8px 16px;
     cursor: pointer;
@@ -2155,9 +2155,9 @@ onUnmounted(() => {
 }
 
 .status-chip.local {
-    color: var(--text-pri);
+    color: var(--app-text-pri);
     background: transparent;
-    border: 1px solid var(--text-pri);
+    border: 1px solid var(--app-text-pri);
 }
 
 .status-chip.draft {
@@ -2186,7 +2186,7 @@ onUnmounted(() => {
 }
 
 .modal-content {
-    background: var(--bg-sec);
+    background: var(--app-bg-sec);
     border: 1px solid var(--border-color);
     border-radius: 6px;
     box-shadow: var(--shadow-elev-2);
@@ -2214,9 +2214,9 @@ onUnmounted(() => {
     box-sizing: border-box;
     padding: 8px 12px;
     font-size: .95rem;
-    background: var(--bg-sec);
+    background: var(--app-bg-sec);
     border: 1px solid var(--border-color);
-    color: var(--text-pri);
+    color: var(--app-text-pri);
     border-radius: 8px;
     outline: none;
 }
@@ -2270,7 +2270,7 @@ onUnmounted(() => {
     grid-template-columns: repeat(8, 24px);
     gap: 4px;
     padding: 10px;
-    background: var(--bg-sec);
+    background: var(--app-bg-sec);
     border: 1px solid var(--border-color);
     border-radius: 4px;
 }
@@ -2374,7 +2374,7 @@ onUnmounted(() => {
 }
 
 .tag-remove:hover {
-    color: var(--text-pri);
+    color: var(--app-text-pri);
 }
 
 .tag-remove .icon-svg, .tag-remove :deep(svg){
@@ -2422,7 +2422,7 @@ onUnmounted(() => {
 
 .file-menu-sidebar {
     width: 200px;
-    background: var(--bg-sec);
+    background: var(--app-bg-sec);
     margin: .2rem;
     box-shadow: none;
     border: none;
@@ -2445,7 +2445,7 @@ onUnmounted(() => {
 
 .sidebar-btn:hover {
     background: var(--hover);
-    color: var(--text-pri);
+    color: var(--app-text-pri);
 }
 
 .sidebar-btn.active {
@@ -2474,7 +2474,7 @@ onUnmounted(() => {
 
 .header h3 {
     margin: 0;
-    color: var(--text-pri);
+    color: var(--app-text-pri);
     font-size: 18px;
 }
 
@@ -2541,7 +2541,7 @@ onUnmounted(() => {
     font-size: 1rem;
     font-weight: bold;
     font-variation-settings: 'wght' 600;
-    color: var(--text-pri);
+    color: var(--app-text-pri);
     flex: 1;
     margin: 0 10px 0 0;
 }
@@ -2638,7 +2638,7 @@ onUnmounted(() => {
 
 .toast-title {
     font-weight: 600;
-    color: var(--text-pri);
+    color: var(--app-text-pri);
 }
 
 .toast-close {
@@ -2654,7 +2654,7 @@ onUnmounted(() => {
 }
 
 .toast-close:hover {
-    color: var(--text-pri);
+    color: var(--app-text-pri);
 }
 
 .toast-close .icon-svg {
@@ -2697,7 +2697,7 @@ onUnmounted(() => {
 .danger-outline:hover {
     background: var(--status-error);
     border-color: var(--status-error);
-    color: var(--text-on-accent);
+    color: #fff;
 }
 
 .locale-select {
@@ -2708,7 +2708,7 @@ onUnmounted(() => {
 }
 
 .locale-select option {
-    background: var(--bg-sec);
+    background: var(--app-bg-sec);
     color: var(--comp-text-pri);
 }
 

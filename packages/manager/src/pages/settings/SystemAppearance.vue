@@ -378,7 +378,7 @@ function reset() {
 }
 
 .hint {
-  color: var(--text-sec);
+  color: var(--app-text-sec);
   margin-top: -4px;
   margin-bottom: 12px;
 }
@@ -421,7 +421,7 @@ function reset() {
 }
 
 .preview-panel {
-  background: var(--bg-pri);
+  background: var(--app-bg-pri);
   border: 1px solid var(--border-color);
   border-radius: 10px;
   padding: 12px;
@@ -436,7 +436,7 @@ function reset() {
 
 .preview-title {
   font-weight: 600;
-  color: var(--text-pri);
+  color: var(--app-text-pri);
 }
 
 .preview-chip {
@@ -457,7 +457,7 @@ function reset() {
 .preview-tag {
   background: var(--comp-bg-alt);
   border: 1px solid var(--border-color);
-  color: var(--text-sec);
+  color: var(--app-text-sec);
   padding: 3px 8px;
   border-radius: 999px;
   font-size: 0.82rem;
@@ -483,7 +483,7 @@ function reset() {
 
 .preview-card p {
   margin: 0;
-  color: var(--text-sec);
+  color: var(--app-text-sec);
   line-height: 1.55;
 }
 
@@ -496,7 +496,7 @@ function reset() {
 .preview-actions .primary {
   background: var(--preview-accent);
   border-color: var(--preview-accent);
-  color: var(--text-on-accent);
+  color: #fff;
 }
 
 .preview-actions .primary:hover {
@@ -523,7 +523,7 @@ function reset() {
 }
 
 .color-text {
-  color: var(--text-sec);
+  color: var(--app-text-sec);
   font-size: 0.9rem;
 }
 

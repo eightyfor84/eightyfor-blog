@@ -6,8 +6,8 @@
 
 .chronicle-slideshow {
   --slide-ratio: 1.777; /* 16:9 default */
-  --slide-bg: var(--bg-pri, #fff);
-  --slide-fg: var(--text-pri, #111);
+  --slide-bg: var(--app-bg-pri, #fff);
+  --slide-fg: var(--app-text-pri, #111);
   --slide-accent: var(--accent, #2563eb);
 }
 

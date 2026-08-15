@@ -771,7 +771,7 @@ defineExpose({
 .thumbnail-item.active {
   background: var(--comp-bg-accent);
   border-color: var(--accent);
-  color: var(--text-pri);
+  color: var(--app-text-pri);
 }
 
 .thumbnail-item:hover:not(.active) {
@@ -819,7 +819,7 @@ defineExpose({
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: var(--bg-pri);
+  background: var(--app-bg-pri);
 }
 
 .empty-preview {

@@ -34,7 +34,7 @@ function openEditor() {
   border: 1px solid var(--border-color);
   border-radius: 8px;
   background: var(--app-bg-pri);
-  color: var(--comp-text);
+  color: var(--comp-text-pri);
   font-size: 14px;
   cursor: pointer;
   transition: border-color 0.15s;

@@ -168,8 +168,8 @@ async function ensureMermaidLoaded() {
           primaryColor: 'transparent',
           primaryTextColor: 'var(--comp-text-pri)',
           textColor: 'var(--comp-text-pri)',
-          nodeBorder: 'var(--text-pri)',
-          clusterBorder: 'var(--text-pri)',
+          nodeBorder: 'var(--app-text-pri)',
+          clusterBorder: 'var(--app-text-pri)',
           lineColor: '#ececec',
           secondaryColor: '#0b7285',
           fontFamily: 'var(--app-font-stack)'
@@ -704,12 +704,12 @@ function downloadMermaid() {
       const vars = {
         '--comp-bg-glass': cs.getPropertyValue('--comp-bg-glass') || '#ffffff',
         '--border-color': cs.getPropertyValue('--border-color') || '#e6e6e6',
-        '--text-pri': cs.getPropertyValue('--text-pri') || '#111111',
+        '--app-text-pri': cs.getPropertyValue('--app-text-pri') || '#111111',
         '--comp-text-pri': cs.getPropertyValue('--comp-text-pri') || '#111111'
       }
       const styleContent = `
         svg { background: ${vars['--comp-bg-glass']}; }
-        rect { fill: ${vars['--comp-bg-glass']}; stroke: ${vars['--text-pri']}; }
+        rect { fill: ${vars['--comp-bg-glass']}; stroke: ${vars['--app-text-pri']}; }
         path { stroke: ${vars['--comp-text-pri']}; fill: none; }
         text { fill: ${vars['--comp-text-pri']}; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif; }
       `
@@ -813,7 +813,7 @@ watch(() => props.language, (n) => {
   box-shadow: none;
 }
 .transparent-select option {
-  background: var(--comp-bg-pri);
+  background: var(--comp-bg);
   color: var(--comp-text-pri);
 }
 .toolbar {
@@ -867,7 +867,7 @@ watch(() => props.language, (n) => {
   left: 0;
   width: 100%;
   background: transparent;
-  caret-color: var(--text-pri);
+  caret-color: var(--app-text-pri);
   border: none;
   outline: none;
   resize: none;
@@ -889,11 +889,11 @@ watch(() => props.language, (n) => {
   transition: background 0.2s, color 0.2s;
 }
 .icon-btn:hover {
-  color: var(--text-pri);
+  color: var(--app-text-pri);
 }
 .icon-btn.active {
   background: var(--active);
-  color: var(--text-pri);
+  color: var(--app-text-pri);
 }
 .mermaid-preview {
   background: var(--comp-bg-glass);
@@ -911,7 +911,7 @@ watch(() => props.language, (n) => {
 }
 .mermaid-preview svg rect {
   fill: var(--comp-bg-glass) !important;
-  stroke: var(--text-pri) !important;
+  stroke: var(--app-text-pri) !important;
 }
 .mermaid-preview svg path {
   stroke: var(--comp-text-pri) !important;
@@ -1017,7 +1017,7 @@ watch(() => props.language, (n) => {
   padding: 1rem 1rem 1rem 0.5rem;
   background: transparent;
   color: transparent;
-  caret-color: var(--text-pri);
+  caret-color: var(--app-text-pri);
   border: none;
   outline: none;
   resize: none;
