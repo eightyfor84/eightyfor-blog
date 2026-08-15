@@ -1,7 +1,7 @@
 ---
 title: Site Configuration
 date: 2026-08-07T07:39:14.750Z
-updatedAt: 2026-08-07T11:22:15.027Z
+updatedAt: 2026-08-14T22:38:32.600Z
 tags: guide, site
 author: Eightyfor
 aiGenerated: true
@@ -15,7 +15,7 @@ font: sans
 
 The file is read at build time by the Astro SSG. There is no runtime server, no database — changing a value and rebuilding is all it takes. The Manager CMS provides a form UI for every field, but you can also edit the YAML directly.
 
-Settings fall into five groups: identity, homepage layout, appearance, feature toggles, and syndication. All of them are flat keys at the top level — no nesting.
+Settings fall into six groups: identity, homepage layout, appearance, feature toggles, search, and syndication. All of them are flat keys at the top level — no nesting.
 
 ## Fields
 
@@ -154,8 +154,6 @@ The user's choice is saved to `localStorage` and persists across sessions. This 
 | `collectionPage` | Enable the `/collections` overview page and article sidebar nav panel. | boolean | `true` |
 | `aboutPage` | Enable the about page, sourced from `data/__about__/index.md`. | boolean | `true` |
 | `friendsPage` | Enable the `/friends` page, driven by `data/friends.yml`. | boolean | `true` |
-| `searchSuggestions` | Show tag autocomplete and suggestions on the search page. | boolean | `true` |
-| `relatedPosts` | Show related posts at the bottom of each article. | boolean | `true` |
 
 #### `collectionPage`
 
@@ -169,20 +167,33 @@ When enabled, generates the about page from `data/__about__/index.md` using the 
 
 Enables the `/friends` page driven by `data/friends.yml`. When disabled, the route returns a 404 and no nav link appears. The data file can still exist — it's just not rendered.
 
+### Search
+
+| Field | Description | Datatype | Sample |
+| --- | --- | --- | --- |
+| `searchSuggestions` | Suggest matching tags and titles as visitors type in the search box. | boolean | `true` |
+| `globalSearch` | Let visitors open a search overlay from any page with Ctrl/Cmd+K or `/`. | boolean | `true` |
+| `fullTextSearch` | Match queries against the full body of posts, not just titles and summaries. | boolean | `true` |
+
 #### `searchSuggestions`
 
-Adds tag autocomplete and suggestion chips to the search page. Purely a UX enhancement. Disabling it simplifies the search interface to a plain text input.
+Suggests matching tags and post titles as visitors type, so they can find content faster and discover related topics without knowing exact wording. Disabling it leaves a plain search box with no hints. On by default.
 
-#### `relatedPosts`
+#### `globalSearch`
 
-Appends a "related posts" section to the bottom of each article. Uses tag overlap to find similar content. If your posts are sparsely tagged, results may be sparse — this is a discovery aid, not a recommendation engine.
+Adds a site-wide search overlay that visitors can summon from any page with Ctrl/Cmd+K or `/`, so they can search without navigating to the search page first. It returns the same results as the dedicated search page. Turn it off if you prefer search to live only on its own page. On by default.
+
+![Global Search in Post Page](image.png "Global Search in Post Page" =70%x)
+
+#### `fullTextSearch`
+
+Lets visitors search inside the body of your posts, not just titles, summaries, and tags. When a term matches text inside an article, that passage is shown and highlighted in the results, so a query can surface a post even when the keyword doesn't appear in its title. On by default.
 
 ### Syndication & Analytics
 
 | Field | Description | Datatype | Sample |
 | --- | --- | --- | --- |
 | `rss` | Generate `/rss.xml` for feed readers. | boolean | `true` |
-| `sitemap` | Generate `sitemap.xml` for search engine crawlers. | boolean | `true` |
 | `traffic` | Master switch for analytics integration. | boolean | `true` |
 | `gaMeasurementId` | Google Analytics 4 measurement ID. Leave empty to disable GA. | string | `G-XXXXXXXXXX` |
 
@@ -190,16 +201,12 @@ Appends a "related posts" section to the bottom of each article. Uses tag overla
 
 Generates an RSS 2.0 feed at `/rss.xml`. Feed readers, RSS-to-email services, and podcast directories depend on this. Requires a valid `site` URL in `astro.config.mjs` to build absolute feed URLs.
 
-#### `sitemap`
-
-Generates `sitemap.xml` listing all published pages. Helps search engines discover and index your content. Turn it off only if you manage sitemaps externally.
-
 #### `traffic`
 
 Master switch for analytics. When `true` AND `gaMeasurementId` is set, the Google Analytics script is injected into every page. When `gaMeasurementId` is empty, the toggle has no effect — no script is loaded regardless of this setting.
 
 #### `gaMeasurementId`
 
-Your Google Analytics 4 measurement ID in the format `G-XXXXXXXXXX`. The script loads asynchronously via the `astro-google-analytics` integration and does not block page rendering. Leave empty to disable GA entirely.
+Your Google Analytics 4 measurement ID in the format `G-XXXXXXXXXX`. The script loads asynchronously via an inline `gtag` snippet and does not block page rendering. Leave empty to disable GA entirely.
 
 Start with site config. Get the title, description, and appearance right. Then move on to profile, friends, and collections — each builds on what you set here.

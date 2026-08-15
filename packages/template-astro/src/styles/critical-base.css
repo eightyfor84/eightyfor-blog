@@ -76,6 +76,7 @@ a { color:var(--accent); }
 /* ── Mobile (≤768px) ── */
 @media (max-width:768px) {
   .nav-header { height:50px; }
+  .nav-actions { gap:0.5rem; }
   .app-title { font-size:1.2rem; }
   .main-content { padding-top:50px; }
   .nav-content { padding:0 1.5rem; }

@@ -2,8 +2,9 @@
 import { ClientRouter } from 'astro:transitions';
 import NavHeader from '../components/NavHeader.astro';
 import FilePreviewModal from '../components/FilePreviewModal.astro';
+import GlobalSearchOverlay from '../components/GlobalSearchOverlay.astro';
 import { isLocalMode } from '../data/localDataSource';
-import { getLocale } from '../utils/i18n';
+import { getLocale, getTranslation } from '../utils/i18n';
 import { resolveFeatureFlags } from '../utils/featureFlags';
 import criticalBase from '../styles/critical-base.css?raw';
 import criticalHome from '../styles/critical-home.css?raw';
@@ -222,6 +223,8 @@ if (hasSurfaceLight || hasSurfaceDark) {
 // 从Astro.locals获取locale（由middleware设置）
 const locale = propLocale || getLocale(Astro.locals);
 const htmlLang = locale === 'zh-CN' ? 'zh-CN' : 'en';
+const t = (key: string) => getTranslation(locale, key);
+const routePrefix = locale === 'zh-CN' ? '/zh' : '/en';
 const GA_MEASUREMENT_ID = String(process.env.GA_MEASUREMENT_ID || settings?.gaMeasurementId || '').trim();
 
 // SSR-time diagnostics: record whether traffic feature and GA are configured
@@ -430,6 +433,8 @@ try {
     </div>
 
     <FilePreviewModal />
+
+    {featureFlags.globalSearch === true ? <GlobalSearchOverlay locale={locale} routePrefix={routePrefix} t={t} searchSuggestionsEnabled={featureFlags.searchSuggestions !== false} fullTextSearchEnabled={featureFlags.fullTextSearch === true} /> : null}
 
     <script>
       import { applyTheme } from '../utils/themeUtils';

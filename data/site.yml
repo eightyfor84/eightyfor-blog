@@ -11,14 +11,14 @@ frontendFont: sans
 frontendLocale: follow
 defaultPerformanceMode: auto
 searchSuggestions: true
-relatedPosts: true
+globalSearch: true
+fullTextSearch: true
 collectionPage: true
 aboutPage: true
 friendsPage: true
 comments: true
 traffic: true
 rss: true
-sitemap: true
 gaMeasurementId: ""
 frontendBackgroundColorLight: ""
 frontendBackgroundColorDark: ""

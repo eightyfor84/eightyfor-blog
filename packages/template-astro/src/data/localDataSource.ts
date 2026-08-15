@@ -311,9 +311,9 @@ export interface LocalSettings {
     aboutPage?: boolean;
     friendsPage?: boolean;
     rss?: boolean;
-    sitemap?: boolean;
     searchSuggestions?: boolean;
-    relatedPosts?: boolean;
+    globalSearch?: boolean;
+    fullTextSearch?: boolean;
     traffic?: boolean;
     comments?: boolean;
 }
@@ -550,9 +550,9 @@ export function getPublicSettings(): LocalSettings {
         aboutPage: raw.aboutPage ?? raw.featureFlags?.aboutPage ?? true,
         friendsPage: raw.friendsPage ?? raw.featureFlags?.friendsPage ?? raw.friends ?? true,
         rss: raw.rss ?? raw.featureFlags?.rss ?? true,
-        sitemap: raw.sitemap ?? raw.featureFlags?.sitemap ?? false,
-        searchSuggestions: raw.searchSuggestions ?? raw.featureFlags?.searchSuggestions ?? false,
-        relatedPosts: raw.relatedPosts ?? raw.featureFlags?.relatedPosts ?? false,
+        searchSuggestions: raw.searchSuggestions ?? raw.featureFlags?.searchSuggestions ?? true,
+        globalSearch: raw.globalSearch ?? raw.featureFlags?.globalSearch ?? true,
+        fullTextSearch: raw.fullTextSearch ?? raw.featureFlags?.fullTextSearch ?? true,
         traffic: raw.traffic ?? raw.featureFlags?.traffic ?? true,
         comments: raw.comments ?? raw.featureFlags?.comments ?? true,
         // Nested featureFlags mirror — pages read flags via resolveFeatureFlags(settings.featureFlags).
@@ -561,9 +561,9 @@ export function getPublicSettings(): LocalSettings {
             aboutPage: raw.aboutPage ?? raw.featureFlags?.aboutPage ?? true,
             friendsPage: raw.friendsPage ?? raw.featureFlags?.friendsPage ?? raw.friends ?? true,
             rss: raw.rss ?? raw.featureFlags?.rss ?? true,
-            sitemap: raw.sitemap ?? raw.featureFlags?.sitemap ?? false,
-            searchSuggestions: raw.searchSuggestions ?? raw.featureFlags?.searchSuggestions ?? false,
-            relatedPosts: raw.relatedPosts ?? raw.featureFlags?.relatedPosts ?? false,
+            searchSuggestions: raw.searchSuggestions ?? raw.featureFlags?.searchSuggestions ?? true,
+            globalSearch: raw.globalSearch ?? raw.featureFlags?.globalSearch ?? true,
+            fullTextSearch: raw.fullTextSearch ?? raw.featureFlags?.fullTextSearch ?? true,
             traffic: raw.traffic ?? raw.featureFlags?.traffic ?? true,
             comments: raw.comments ?? raw.featureFlags?.comments ?? true,
         },

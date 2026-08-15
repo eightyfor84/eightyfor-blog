@@ -26,23 +26,18 @@
     },
     {
       "fromVersion": "2.0.1",
-      "description": "Move rss/sitemap/friends into featureFlags; drop legacy top-level friends",
+      "description": "Move rss/friends into featureFlags; drop legacy top-level friends",
       "moveInto": [
         {
           "from": "rss",
           "to": "featureFlags.rss"
-        },
-        {
-          "from": "sitemap",
-          "to": "featureFlags.sitemap"
         }
       ],
       "remove": [
         "friends"
       ],
       "setDefaults": [
-        "featureFlags.rss",
-        "featureFlags.sitemap"
+        "featureFlags.rss"
       ],
       "mapValue": [
         {
@@ -487,7 +482,7 @@
     },
     "searchSuggestions": {
       "type": "boolean",
-      "default": false,
+      "default": true,
       "x-widget": "toggle",
       "x-tab": "template-search",
       "x-group": "general",
@@ -503,7 +498,7 @@
     },
     "globalSearch": {
       "type": "boolean",
-      "default": false,
+      "default": true,
       "x-widget": "toggle",
       "x-tab": "template-search",
       "x-group": "general",
@@ -519,7 +514,7 @@
     },
     "fullTextSearch": {
       "type": "boolean",
-      "default": false,
+      "default": true,
       "x-widget": "toggle",
       "x-tab": "template-search",
       "x-group": "general",
@@ -531,22 +526,6 @@
       "description": {
         "en": "Index post body text for full-text search (generates full_index.json at build time).",
         "zh-CN": "构建时生成含正文的 full_index.json 索引，支持全文搜索。"
-      }
-    },
-    "relatedPosts": {
-      "type": "boolean",
-      "default": false,
-      "x-widget": "toggle",
-      "x-tab": "template-features",
-      "x-group": "advanced",
-      "x-order": 11,
-      "title": {
-        "en": "Related Posts",
-        "zh-CN": "相关文章"
-      },
-      "description": {
-        "en": "Display related posts on article pages.",
-        "zh-CN": "在文章页展示相关推荐内容。"
       }
     },
     "collectionPage": {
@@ -643,22 +622,6 @@
       "description": {
         "en": "Enable RSS feed syndication for the blog.",
         "zh-CN": "为博客启用 RSS 订阅输出。"
-      }
-    },
-    "sitemap": {
-      "type": "boolean",
-      "default": false,
-      "x-widget": "toggle",
-      "x-tab": "template-features",
-      "x-group": "syndication",
-      "x-order": 2,
-      "title": {
-        "en": "Sitemap",
-        "zh-CN": "站点地图"
-      },
-      "description": {
-        "en": "Generate a sitemap.xml for search engines.",
-        "zh-CN": "为搜索引擎生成 sitemap.xml。"
       }
     },
     "gaMeasurementId": {

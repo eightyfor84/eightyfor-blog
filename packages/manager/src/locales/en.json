@@ -240,8 +240,6 @@
     "goToPage": "Go To Page",
     "featureSearchSuggestions": "Search Suggestions",
     "featureSearchSuggestionsHint": "Show autocomplete suggestions in the search UI.",
-    "featureRelatedPosts": "Related Posts",
-    "featureRelatedPostsHint": "Show related-content recommendations on post pages.",
     "featureCollection": "Collection",
     "featureCollectionHint": "Enable the collection and related display.",
     "featureAboutPage": "About Page",

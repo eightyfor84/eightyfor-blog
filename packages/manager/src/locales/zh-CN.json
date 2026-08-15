@@ -246,8 +246,6 @@
     "goToPage": "前往页面",
     "featureSearchSuggestions": "搜索建议",
     "featureSearchSuggestionsHint": "在搜索界面显示联想建议。",
-    "featureRelatedPosts": "相关文章",
-    "featureRelatedPostsHint": "在文章页展示相关内容推荐。",
     "featureCollection": "合集",
     "featureCollectionHint": "启用合集与相关展示。",
     "featureAboutPage": "关于页",
@@ -450,7 +448,7 @@
   },
   "search": {
     "selectTags": "选择标签",
-    "placeholder": "按标题搜索...",
+    "placeholder": "搜索文章...",
     "noTags": "未找到标签",
     "done": "完成",
     "loading": "正在加载...",

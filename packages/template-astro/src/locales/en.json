@@ -140,7 +140,7 @@
   },
   "search": {
     "selectTags": "Select Tags",
-    "placeholder": "Search by title...",
+    "placeholder": "Search posts...",
     "noTags": "No tags found",
     "done": "Done",
     "loading": "Loading...",

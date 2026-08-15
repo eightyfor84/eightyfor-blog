@@ -82,14 +82,6 @@ pre{
   font-size: 1.5rem;
 }
 
-.reading-title {
-  color: var(--text-pri);
-  font-size: 1rem;
-  font-weight: 600;
-  font-variation-settings: 'wght' 600;
-  line-height: 1;
-}
-
 .site-header {
   display: flex;
   align-items: center
@@ -110,11 +102,17 @@ pre{
   flex: 1 1 auto;
   min-width: 0;
   /* allow flex children to shrink below content width */
-  max-width: calc(100vw - 220px);
+  max-width: calc(100vw - 240px);
   /* prevent overflow beyond viewport (accounting for back button and padding) */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: var(--text-pri);
+  font-size: 1rem;
+  font-weight: 600;
+  font-variation-settings: 'wght' 600;
+  line-height: 1.1;
+  transform: translateY(0.1rem);
 }
 
 /* Unified header-swap transition: out-in mode ensures leave completes before enter starts.

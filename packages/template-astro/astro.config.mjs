@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join, extname, parse } from 'path';
 
 import icon from 'astro-icon';
+import YAML from 'yaml';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -30,6 +31,47 @@ async function loadSharp() {
 }
 
 const DATA_DIR = process.env.CHRONICLE_DATA_DIR || join(__dirname, '..', '..', 'data');
+
+// ── Full-text search index (build-time only) ───────────
+// data/ 是唯一数据源；full_index.json 只在构建时写入 dist，不进 data/。
+function readSiteConfig() {
+  try {
+    const siteYml = join(DATA_DIR, 'site.yml');
+    if (existsSync(siteYml)) return YAML.parse(readFileSync(siteYml, 'utf-8')) || {};
+  } catch {}
+  try {
+    const settingsJson = join(DATA_DIR, 'settings.json');
+    if (existsSync(settingsJson)) return JSON.parse(readFileSync(settingsJson, 'utf-8')) || {};
+  } catch {}
+  return {};
+}
+
+function isFullTextEnabled() {
+  const site = readSiteConfig();
+  // Full-text search is opt-out — on by default (aligned with the schema).
+  return (site.fullTextSearch ?? site.featureFlags?.fullTextSearch) !== false;
+}
+
+// Strip a `---` … `---` YAML frontmatter block; return the remaining body.
+function stripFrontmatter(content) {
+  const m = String(content || '').match(/^﻿?---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
+  return m ? content.slice(m[0].length) : content;
+}
+
+// Coarse markdown → plain text (sufficient for a search index; not a full render).
+function markdownToPlainText(md) {
+  return String(md || '')
+    .replace(/```[\s\S]*?```/g, ' ')          // code fences
+    .replace(/`([^`]+)`/g, '$1')              // inline code
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')    // images
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')  // links → text
+    .replace(/^#{1,6}\s+/gm, '')              // headings
+    .replace(/^\s*[-*+]\s+/gm, '')            // list bullets
+    .replace(/^\s*\d+\.\s+/gm, '')            // ordered list
+    .replace(/[*_~>]{1,3}/g, '')              // emphasis / blockquote markers
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
 export default defineConfig({
   site: process.env.CHRONICLE_SITE_URL || 'http://localhost:4321',
@@ -211,6 +253,48 @@ export default defineConfig({
                 const d = join(postsDir, slug);
                 if (slug === 'index.json' || !existsSync(d) || !statSync(d).isDirectory()) continue;
                 await syncDir(d, join(distDir, 'post_attachment', slug));
+              }
+            }
+
+            // ── Search indexes (exposed to client; zero-inline) ──
+            // posts/index.json (lightweight) copied verbatim so the client can
+            // fetch it. full_index.json (body-inclusive) generated only when
+            // fullTextSearch is enabled.
+            const indexSrc = join(postsDir, 'index.json');
+            if (existsSync(indexSrc)) {
+              const indexDest = join(distDir, 'posts', 'index.json');
+              mkdirSync(dirname(indexDest), { recursive: true });
+              copyFileSync(indexSrc, indexDest);
+            }
+
+            if (isFullTextEnabled()) {
+              try {
+                const rawIndex = JSON.parse(readFileSync(indexSrc, 'utf-8'));
+                // index.json is object-keyed ({ "<id>": {...} }); normalise both forms.
+                const entries = Array.isArray(rawIndex)
+                  ? rawIndex
+                  : Object.entries(rawIndex).map(([id, v]) => ({ id, ...v }));
+                const fullIndex = [];
+                for (const entry of entries) {
+                  if (entry.status !== 'published') continue;
+                  const mdPath = join(postsDir, entry.id, 'index.md');
+                  if (!existsSync(mdPath)) continue;
+                  const body = markdownToPlainText(stripFrontmatter(readFileSync(mdPath, 'utf-8')));
+                  fullIndex.push({
+                    id: entry.id,
+                    title: entry.title || '',
+                    date: entry.date || '',
+                    summary: entry.summary || '',
+                    tags: entry.tags || [],
+                    body,
+                  });
+                }
+                const fullDest = join(distDir, 'posts', 'full_index.json');
+                mkdirSync(dirname(fullDest), { recursive: true });
+                writeFileSync(fullDest, JSON.stringify(fullIndex));
+                console.log(`[chronicle-search] full_index.json: ${fullIndex.length} posts`);
+              } catch (e) {
+                console.warn('[chronicle-search] failed to generate full_index.json:', e);
               }
             }
 

@@ -12,7 +12,7 @@
   "template.homepage.siteName.desc": "Displayed in browser title bar, RSS feed, and page header.",
 
   "template.homepage.siteUrl": "Site URL",
-  "template.homepage.siteUrl.desc": "Public URL of your blog. Used for SEO, RSS, sitemap, and canonical links.",
+  "template.homepage.siteUrl.desc": "Public URL of your blog. Used for SEO, RSS, and canonical links.",
 
   "template.homepage.layout": "Homepage Layout",
   "template.homepage.layout.desc": "Controls how posts are displayed on the homepage.",
@@ -57,14 +57,11 @@
 
   "template.features.rss": "RSS Feed",
   "template.features.rss.desc": "Generate RSS/Atom feed for readers to subscribe.",
-  "template.features.sitemap": "Sitemap",
-  "template.features.sitemap.desc": "Generate sitemap.xml for search engines.",
   "template.features.friendsPage": "Friends Page",
   "template.features.friendsPage.desc": "Enable the friends/fellow-bloggers page.",
   "template.features.flags": "Feature Toggles",
   "template.features.flags.desc": "Fine-grained control over optional features.",
   "template.features.flag.searchSuggestions": "Search Suggestions",
-  "template.features.flag.relatedPosts": "Related Posts",
   "template.features.flag.collectionPage": "Collection Pages",
   "template.features.flag.aboutPage": "About Page",
   "template.features.flag.friendsPage": "Friends Page",

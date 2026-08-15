@@ -30,6 +30,7 @@ const aboutHref = buildLocalizedPath(locale, "/about");
 const showFriends = featureFlags?.friendsPage !== false;
 const showAbout = featureFlags?.aboutPage !== false;
 const showCollection = featureFlags?.collectionPage !== false;
+const showGlobalSearch = featureFlags?.globalSearch === true;
 
 const navCollapsedIcons = {
   home: `<svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"></path><path d="M5 10.5V20h14v-9.5"></path><path d="M9 20v-6h6v6"></path></svg>`,
@@ -155,16 +156,6 @@ const isActive = (path: string) => {
             </span>
           </a>
         )}
-        <a
-          href={searchHref}
-          class:list={[
-            "nav-link",
-            "nav-link-search",
-            { "router-link-active": isActive("/search") },
-          ]}
-        >
-          {t("nav.search")}
-        </a>
         {showFriends && (
           <a
             href={friendsHref}
@@ -185,8 +176,10 @@ const isActive = (path: string) => {
           "nav-search-btn",
           { "router-link-active": isActive("/search") },
         ]}
+        data-global-search={showGlobalSearch ? 'true' : undefined}
         aria-label={t("nav.search")}
         title={t("nav.search")}
+        style="text-decoration:none;"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -467,6 +460,7 @@ const isActive = (path: string) => {
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    transition: gap 0.2s ease;
   }
 
   .nav-links {
@@ -765,11 +759,11 @@ const isActive = (path: string) => {
   .menu-toggle .menu-icon,
   .menu-toggle .close-icon {
     position: absolute;
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
     transition:
-      opacity 0.2s ease,
-      transform 0.2s ease;
+      opacity 0.15s ease,
+      transform 0.15s ease;
   }
 
   .menu-toggle .close-icon {
@@ -806,8 +800,8 @@ const isActive = (path: string) => {
 
   /* Mobile Styles */
   @media (max-width: 768px) {
-    .nav-search-btn {
-      display: none;
+    .nav-actions {
+      gap: 0.5rem;
     }
 
     .nav-link-search {
