@@ -377,8 +377,15 @@ type ActivityItem = {
   href?: string;
   external?: boolean;
 };
-const staleDays = settings?.recentUpdates?.staleDays ?? 30;
-const aggregateDays = settings?.recentUpdates?.aggregateDays ?? 7;
+// Clamp settings-sourced day counts to safe positive integers — a 0/negative/
+// non-numeric value in site.yml must not silently empty the window or flip the
+// stale flag permanently.
+function sanitizeDays(value: unknown, fallback: number): number {
+  const n = Number(value);
+  return Number.isFinite(n) && n >= 1 ? Math.floor(n) : fallback;
+}
+const staleDays = sanitizeDays(settings?.recentUpdates?.staleDays, 30);
+const aggregateDays = sanitizeDays(settings?.recentUpdates?.aggregateDays, 7);
 // Fixed changelog target for the "App updated" activity item.
 const appChangelogUrl =
   "https://github.com/vanvanhasnophi/chronicle-aurora/commits/main/";
@@ -400,7 +407,7 @@ if (isLocal) {
 const updateTimeLabel = recentUpdates
   ? formatDate(safeDateValue(recentUpdates.latestCommitDate))
   : (t("home.unknownTime") as string);
-const isStale =
+const isStale = 
   !!recentUpdates &&
   Date.now() - safeDateValue(recentUpdates.latestCommitDate).getTime() >
     staleDays * 86400000;
@@ -694,7 +701,7 @@ const yearLabel = new Date().getFullYear();
                 </span>
               </div>
             </div>
-            {isStale ? (
+            {isStale && (
               <div class="activity-item stale">
                 <span
                   class="activity-item__icon"
@@ -705,7 +712,7 @@ const yearLabel = new Date().getFullYear();
                   <strong>{t("home.staleNotice")}</strong>
                 </span>
               </div>
-            ) : (
+            )}
               <div class="taxonomy-block">
                 <h3>{t("home.updateContent")}</h3>
                 <div class="activity-list">
@@ -759,7 +766,7 @@ const yearLabel = new Date().getFullYear();
                   )}
                 </div>
               </div>
-            )}
+            
           </section>
         )
       }
@@ -1382,7 +1389,7 @@ const yearLabel = new Date().getFullYear();
   .activity-item.stale {
     display: flex;
     justify-content: center;
-    margin: 1rem 0 0.5rem;
+    margin: 1rem 0;
   }
 
   .activity-item.stale .activity-item__text {
