@@ -5,14 +5,6 @@ tags: usagi
 aiGenerated: false
 font: sans
 status: published
-summary: 
- 纪念 Chronicle 1.0 上线
-
-!乌萨奇(https://blog.eightyfor.top/server/data/upload/pic/1770891564693_cktp_.png)
-
-有 CDN 过后，图片加载更快了~
-
-
 ---
 
 ## 纪念 Chronicle 1.0 上线
@@ -20,3 +12,5 @@ summary:
 ![乌萨奇](asset://1770891564693_cktp_.png)
 
 有 CDN 过后，图片加载更快了~
+
+*2026-08-15 更新：Chronicle Aurora 3.0，有 CDN 过后，全站都变快了*
