@@ -121,7 +121,7 @@
 
 .chronicle-fb-sort-select option {
     background: var(--comp-bg);
-    color: var(--text-pri);
+    color: var(--app-text-pri);
 }
 
 .chronicle-fb-sort-select:hover,

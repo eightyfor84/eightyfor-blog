@@ -464,7 +464,7 @@ onUnmounted(() => {
   display: flex;
   height: 100%;
   background: transparent;
-  color: var(--text-pri);
+  color: var(--app-text-pri);
 }
 
 /* ── Container ─────────────────────────────────────────────────────── */
@@ -564,13 +564,13 @@ onUnmounted(() => {
 
 .new-post-btn {
   background: var(--accent) !important;
-  color: var(--text-on-accent) !important;
+  color: #fff !important;
   border-radius: 10px !important;
 }
 
 .new-post-btn:hover {
   background: var(--accent-hvr) !important;
-  color: var(--text-on-accent) !important;
+  color: #fff !important;
 }
 
 /* ── Sort overrides ────────────────────────────────────────────────── */
@@ -816,9 +816,9 @@ onUnmounted(() => {
 .rename-input {
   width: 100%;
   box-sizing: border-box;
-  background: var(--bg-pri);
+  background: var(--app-bg-pri);
   border: 1px solid var(--accent);
-  color: var(--text-pri);
+  color: var(--app-text-pri);
   padding: 4px 10px;
   border-radius: 8px;
   font-size: 1.05rem;

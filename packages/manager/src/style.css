@@ -150,17 +150,6 @@
   --select-arrow-color: #bbbbbb;
 
   /* Legacy aliases for existing components */
-  --app-bg: var(--app-bg-pri);
-  --bg-pri: var(--app-bg-pri);
-  --bg-sec: var(--app-bg-sec);
-  --comp-bg-pri: var(--comp-bg);
-  --comp-text: var(--comp-text-pri);
-  --app-text-light: var(--comp-bg);
-  --app-text-dark: var(--app-text-pri);
-  --text-pri: var(--app-text-pri);
-  --text-sec: var(--app-text-sec);
-  --text-inactive: var(--app-text-sec);
-  --text-on-accent: #fff;
   --shadow-elev-1: 0 4px 12px rgba(0, 0, 0, 0.3);
   --shadow-elev-2: 0 4px 12px rgba(0, 0, 0, 0.25);
   --shadow-elev-3: 0 10px 30px rgba(0, 0, 0, 0.5);
@@ -616,7 +605,7 @@ button:focus-visible {
 
 button.primary {
   background: var(--accent);
-  color: var(--text-on-accent);
+  color: #fff;
   transition: all 0.3s ease;
 }
 
@@ -648,7 +637,7 @@ html:not(.is-mobile) button.danger:hover {
   height: 40px;
   border: none;
   background: transparent;
-  color: var(--text-pri);
+  color: var(--app-text-pri);
   cursor: default;
   border-radius: 0;
   padding: 0;
@@ -656,8 +645,8 @@ html:not(.is-mobile) button.danger:hover {
 }
 
 .titlebar-btn:hover {
-  background: color-mix(in srgb, var(--text-pri) 20%, transparent);
-  color: var(--text-pri);
+  background: color-mix(in srgb, var(--app-text-pri) 20%, transparent);
+  color: var(--app-text-pri);
 }
 
 
@@ -811,11 +800,11 @@ html.is-mobile .toc-float {
   border-radius: 8px;
   border: 1px solid var(--border-color);
   background: transparent;
-  color: var(--text-pri);
+  color: var(--app-text-pri);
   font-size: 0.95rem;
   transition: all 0.2s ease;
   background-color: var(--app-bg-pri);
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='var(--text-pri) text' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='var(--app-text-pri) text' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>");
   background-repeat: no-repeat;
   background-position: right 12px center;
   background-size: 20px;
@@ -829,7 +818,7 @@ html.is-mobile .toc-float {
 }
 
 .inline-select:hover option {
-  color: var(--text-pri);
+  color: var(--app-text-pri);
   background: var(--comp-bg);
 }
 
@@ -925,7 +914,7 @@ select:hover option {
   border-radius: 8px;
   padding: 8px 12px;
   background: var(--comp-bg);
-  color: var(--text-pri);
+  color: var(--app-text-pri);
 }
 
 /* Compact variant */
@@ -1314,7 +1303,7 @@ html {
   align-items: center;
   background: transparent;
   border: none;
-  color: var(--text-inactive);
+  color: var(--app-text-sec);
   text-decoration: none;
   transition: all 0.3s ease;
   width: 100%;
@@ -1382,7 +1371,7 @@ html {
   font-size: .95rem;
   background: var(--app-bg-pri);
   border: 1px solid var(--border-color);
-  color: var(--text-pri);
+  color: var(--app-text-pri);
   border-radius: 8px;
   outline: none;
 }
@@ -1404,7 +1393,7 @@ html {
   font-size: .95rem;
   background: var(--app-bg-pri);
   border: 1px solid var(--border-color);
-  color: var(--text-pri);
+  color: var(--app-text-pri);
   border-radius: 8px;
   outline: none;
   resize: vertical;
@@ -1420,7 +1409,7 @@ html {
 
 
 .login-input {
-  background: var(--bg-pri);
+  background: var(--app-bg-pri);
   width: 100%;
   margin: 4px 0 6px 0;
   transition: all .2s ease;

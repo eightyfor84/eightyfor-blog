@@ -54,7 +54,7 @@ defineEmits<{
   width: 90vw;
   max-width: 1100px;
   max-height: 85vh;
-  background: var(--bg-pri);
+  background: var(--app-bg-pri);
   border: 1px solid var(--border-color);
   border-radius: 8px;
   display: flex;
@@ -103,7 +103,7 @@ defineEmits<{
   cursor: pointer;
   overflow: hidden;
   aspect-ratio: 16 / 9;
-  background: var(--bg-pri);
+  background: var(--app-bg-pri);
   transition: border-color 0.15s;
 }
 .overview-card:hover { border-color: var(--comp-bg-accent); }
@@ -116,7 +116,7 @@ defineEmits<{
   z-index: 2;
   font-size: 10px;
   font-weight: 700;
-  background: var(--bg-sec);
+  background: var(--app-bg-sec);
   color: var(--comp-text-sec);
   padding: 1px 5px;
   border-radius: 3px;

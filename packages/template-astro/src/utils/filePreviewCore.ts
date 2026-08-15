@@ -93,7 +93,7 @@ function renderFileBody(bodyEl: HTMLElement, url: string, type: string, title: s
 }
 
 async function renderText(bodyEl: HTMLElement, url: string, encoding: string) {
-  bodyEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-sec,#a9a9a9);">Loading…</div>';
+  bodyEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--app-text-sec,#a9a9a9);">Loading…</div>';
   try {
     const res = await fetch(url);
     if (!res.ok) throw new Error('Fetch failed: ' + res.status);

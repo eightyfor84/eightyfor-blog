@@ -178,10 +178,10 @@ async function stopPreview() {
 
 <style scoped>
 .appearance-page { max-width: 800px; margin: auto; padding: 2rem; }
-.hint { color: var(--text-sec); margin-top: -4px; margin-bottom: 12px; }
+.hint { color: var(--app-text-sec); margin-top: -4px; margin-bottom: 12px; }
 .form-row { margin-bottom: 14px; display: flex; flex-direction: column; gap: 6px; }
 .form-row:last-child { margin-bottom: 0; }
 .settings-card h3 { margin-top: 5px; }
-.desc { font-size: 0.82rem; color: var(--text-sec); }
+.desc { font-size: 0.82rem; color: var(--app-text-sec); }
 button:disabled { opacity: 0.6; cursor: not-allowed; pointer-events: none; }
 </style>

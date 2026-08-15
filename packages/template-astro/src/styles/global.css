@@ -141,17 +141,7 @@
   --select-arrow-color: #bbbbbb;
 
   /* Legacy aliases for existing components */
-  --app-bg: var(--app-bg-pri);
-  --bg-pri: var(--app-bg-pri);
-  --bg-sec: var(--app-bg-sec);
-  --comp-bg-pri: var(--comp-bg);
-  --comp-text: var(--comp-text-pri);
-  --app-text-light: var(--comp-bg);
-  --app-text-dark: var(--app-text-pri);
-  --text-pri: var(--app-text-pri);
-  --text-sec: var(--app-text-sec);
-  --text-inactive: var(--app-text-sec);
-  --text-on-accent: #fff;
+  
   --shadow-elev-1: 0 4px 12px rgba(0, 0, 0, 0.3);
   --shadow-elev-2: 0 4px 12px rgba(0, 0, 0, 0.25);
   --shadow-elev-3: 0 10px 30px rgba(0, 0, 0, 0.5);
@@ -314,7 +304,6 @@
 
     /* Ensure follow-system light maps overlay to light variant */
     --frontend-bg-overlay: var(--frontend-bg-overlay-light);
-    --backend-bg-overlay: var(--backend-bg-overlay-light);
 
     /* Design-different overrides */
     --blur-alpha: 80%;
@@ -572,7 +561,7 @@ button {
 .section-title {
   font-size: 1.8em;
   margin: 0 0 24px;
-  color: var(--text-pri);
+  color: var(--app-text-pri);
   border-bottom: 2px solid transparent;
   padding-bottom: 10px;
 }
@@ -596,7 +585,7 @@ button:focus-visible {
 
 button.primary {
   background: var(--accent-dark);
-  color: var(--text-on-accent);
+  color: #fff;
   transition: all 0.3s ease;
 }
 
@@ -637,10 +626,10 @@ button.secondary {
   border-radius: 8px;
   border: 1px solid var(--border-color);
   background: transparent;
-  color: var(--text-pri);
+  color: var(--app-text-pri);
   font-size: 0.95rem;
   transition: all 0.2s ease;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='var(--text-pri) text' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='var(--app-text-pri) text' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>");
   background-repeat: no-repeat;
   background-position: right 12px center;
   background-size: 20px;
@@ -674,7 +663,7 @@ button.secondary {
   border-radius: 8px;
   padding: 8px 12px;
   background: var(--comp-bg);
-  color: var(--text-pri);
+  color: var(--app-text-pri);
 }
 
 /* Compact variant */
@@ -888,7 +877,7 @@ html {
 
 /* Global select option styling */
 select option {
-  background: var(--comp-bg-pri);
+  background: var(--comp-bg);
   color: var(--comp-text-pri);
 }
 

@@ -435,7 +435,7 @@ const canEditSize = computed(() => meta.mode === 'custom' || meta.mode === 'tile
 .preview-theme-toggle button {
   background: rgba(0, 0, 0, 0.12);
   border: none;
-  color: var(--text-pri);
+  color: var(--app-text-pri);
   padding: 6px 8px;
   border-radius: 6px;
   cursor: pointer
@@ -443,7 +443,7 @@ const canEditSize = computed(() => meta.mode === 'custom' || meta.mode === 'tile
 
 .preview-theme-toggle button.active {
   background: var(--accent);
-  color: var(--text-on-accent)
+  color: #fff
 }
 
 .overlay-controls {
@@ -475,7 +475,7 @@ const canEditSize = computed(() => meta.mode === 'custom' || meta.mode === 'tile
   height: 40px;
   border-radius: 8px;
   cursor: pointer;
-  color: var(--text-pri);
+  color: var(--app-text-pri);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -517,7 +517,7 @@ const canEditSize = computed(() => meta.mode === 'custom' || meta.mode === 'tile
 
 .video-controls__title {
   font-weight: 600;
-  color: var(--text-sec);
+  color: var(--app-text-sec);
   font-size: 0.85rem;
 }
 
@@ -568,7 +568,7 @@ const canEditSize = computed(() => meta.mode === 'custom' || meta.mode === 'tile
   padding: 0 2px;
 
   cursor: pointer;
-  color: var(--text-pri)
+  color: var(--app-text-pri)
 }
 
 .clone-button:hover {
@@ -586,7 +586,7 @@ const canEditSize = computed(() => meta.mode === 'custom' || meta.mode === 'tile
 
 .primary {
   background: var(--accent);
-  color: var(--text-on-accent);
+  color: #fff;
   padding: 8px 12px;
   border-radius: 6px;
   border: none
@@ -660,7 +660,7 @@ label.small {
 
 h5 {
   margin: 0;
-  color: var(--text-pri);
+  color: var(--app-text-pri);
 }
 
 @media (max-width: 768px) {

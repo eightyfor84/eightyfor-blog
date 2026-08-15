@@ -239,12 +239,12 @@ function initMermaidCodeBlocks() {
           const vars: Record<string, string> = {
             '--comp-bg-glass': cs.getPropertyValue('--comp-bg-glass') || '#ffffff',
             '--border-color': cs.getPropertyValue('--border-color') || '#e6e6e6',
-            '--text-pri': cs.getPropertyValue('--text-pri') || '#111111',
+            '--app-text-pri': cs.getPropertyValue('--app-text-pri') || '#111111',
             '--comp-text-pri': cs.getPropertyValue('--comp-text-pri') || '#111111',
           };
           const styleContent = [
             `svg { background: ${vars['--comp-bg-glass']}; }`,
-            `rect { fill: ${vars['--comp-bg-glass']}; stroke: ${vars['--text-pri']}; }`,
+            `rect { fill: ${vars['--comp-bg-glass']}; stroke: ${vars['--app-text-pri']}; }`,
             `path { stroke: ${vars['--comp-text-pri']}; fill: none; }`,
             `text { fill: ${vars['--comp-text-pri']}; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif; }`,
           ].join('\n');
@@ -286,7 +286,7 @@ function initMermaidCodeBlocks() {
     // replaces this placeholder later (IntersectionObserver callback is async,
     // so the initial paint would see an empty 0-height container without this).
     if (container && !lastRenderedSvg) {
-      container.innerHTML = '<div class="mermaid-placeholder" aria-label="Mermaid diagram placeholder" style="min-height:120px;display:flex;align-items:center;justify-content:center;color:var(--text-sec);font-size:0.85rem;opacity:0.5;">Diagram</div>';
+      container.innerHTML = '<div class="mermaid-placeholder" aria-label="Mermaid diagram placeholder" style="min-height:120px;display:flex;align-items:center;justify-content:center;color:var(--app-text-sec);font-size:0.85rem;opacity:0.5;">Diagram</div>';
     }
 
     // Lazy-render mermaid only when the block nears the viewport.

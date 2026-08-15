@@ -146,7 +146,7 @@ function onPickerUpdate(node: any, val: any) {
   border-radius: 8px;
   border: none;
   background: transparent;
-  color: var(--text-pri);
+  color: var(--app-text-pri);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -157,7 +157,7 @@ function onPickerUpdate(node: any, val: any) {
 }
 
 .action-btn:hover {
-  color: var(--text-pri);
+  color: var(--app-text-pri);
   background: var(--hover);
 }
 

@@ -265,7 +265,7 @@ function onToggleMeta(group: GroupDef, v: any) {
   border-radius: 6px;
   border: none;
   background: transparent;
-  color: var(--text-pri);
+  color: var(--app-text-pri);
   cursor: pointer;
   font-size: 0.95rem;
   transition: background 0.15s;
@@ -293,7 +293,7 @@ function onToggleMeta(group: GroupDef, v: any) {
 
 .schema-tab.active {
   background: var(--accent);
-  color: var(--text-on-accent);
+  color: #fff;
 }
 
 .schema-tab-content.hidden {

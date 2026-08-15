@@ -264,15 +264,15 @@ const timeLabel = computed(() => {
   border: none;
   border-radius: 50%;
   background: transparent;
-  color: var(--text-sec);
+  color: var(--app-text-sec);
   cursor: pointer;
   opacity: 0;
   transition: opacity 0.15s;
 }
 .nc-dismiss-btn.show { opacity: 1; }
 .nc-dismiss-btn:hover {
-  background: color-mix(in srgb, var(--text-sec) 25%, transparent);
-  color: var(--text-pri);
+  background: color-mix(in srgb, var(--app-text-sec) 25%, transparent);
+  color: var(--app-text-pri);
 }
 
 .nc-item-header {
@@ -283,7 +283,7 @@ const timeLabel = computed(() => {
   padding: 12px 20px 6px 20px;
   border: none;
   background: transparent;
-  color: var(--text-pri, #e0e0e0);
+  color: var(--app-text-pri, #e0e0e0);
   cursor: pointer;
   text-align: left;
   font: inherit;
@@ -301,8 +301,8 @@ const timeLabel = computed(() => {
 .nc-state-active   { background: var(--accent, #2ea35f); }
 .nc-state-failed   { background: var(--status-error, #d9534f); }
 .nc-state-completed{ background: var(--status-success, #5cb85c); }
-.nc-state-resolved { background: var(--text-sec, #a9a9a9); }
-.nc-state-dismissed{ background: var(--text-sec, #a9a9a9); }
+.nc-state-resolved { background: var(--app-text-sec, #a9a9a9); }
+.nc-state-dismissed{ background: var(--app-text-sec, #a9a9a9); }
 .nc-state-suspended{ background: var(--status-warning, #ffc107); }
 
 /* ── 标题 ── */
@@ -317,7 +317,7 @@ const timeLabel = computed(() => {
 /* ── 时间 ── */
 .nc-time {
   font-size: 0.75rem;
-  color: var(--text-sec, #a9a9a9);
+  color: var(--app-text-sec, #a9a9a9);
   white-space: nowrap;
   opacity: 1;
   transition: opacity 0.15s;
@@ -330,7 +330,7 @@ const timeLabel = computed(() => {
   align-items: center;
   flex-shrink: 0;
   transition: transform 0.18s;
-  color: var(--text-sec, #a9a9a9);
+  color: var(--app-text-sec, #a9a9a9);
 }
 .nc-chevron.open { transform: rotate(180deg); }
 
@@ -344,7 +344,7 @@ const timeLabel = computed(() => {
   display: block;
   margin-top: 4px;
   font-size: 0.72rem;
-  color: var(--text-sec);
+  color: var(--app-text-sec);
 }
 .progress-track {
   margin-bottom: 10px;
@@ -372,7 +372,7 @@ const timeLabel = computed(() => {
 .nc-message {
   margin: 0;
   font-size: 0.8rem;
-  color: var(--text-sec);
+  color: var(--app-text-sec);
   line-height: 1.5;
   padding-bottom: 6px;
 }

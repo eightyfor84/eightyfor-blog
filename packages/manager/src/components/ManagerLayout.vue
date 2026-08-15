@@ -1162,7 +1162,7 @@ body.is-electron .backend-menu-toggle {
   /* hide on desktop, show on small screens via media query */
   background: transparent;
   border: none;
-  color: var(--text-pri);
+  color: var(--app-text-pri);
   cursor: pointer;
   align-items: center;
   justify-content: center;
@@ -1319,7 +1319,7 @@ body.is-electron .main-content.print-preview {
 .backend-close {
   background: transparent;
   border: none;
-  color: var(--text-pri);
+  color: var(--app-text-pri);
   width: 44px;
   height: 44px;
   display: flex;
@@ -1472,7 +1472,7 @@ body.is-electron .main-content.print-preview {
   border-radius: 8px;
   background: transparent;
   border: none;
-  color: var(--text-inactive);
+  color: var(--app-text-sec);
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -1501,7 +1501,7 @@ body.is-electron .main-content.print-preview {
 
 .sidebar-footer-item:disabled:hover {
   background: transparent;
-  color: var(--text-inactive);
+  color: var(--app-text-sec);
 }
 
 :deep(.sidebar-footer-icon-btn.inprogress svg),
@@ -1539,11 +1539,11 @@ body.is-electron .main-content.print-preview {
 .quick-btn {
   display: flex; align-items: center; gap: 10px;
   width: 100%; padding: 0 14px; height: 36px;
-  border: none; background: none; color: var(--text-sec); cursor: pointer;
+  border: none; background: none; color: var(--app-text-sec); cursor: pointer;
   border-radius: 9999px; font-size: .85rem;
   transition: background .15s;
 }
-.quick-btn:hover { background: color-mix(in srgb, var(--text-sec) 18%, transparent); }
+.quick-btn:hover { background: color-mix(in srgb, var(--app-text-sec) 18%, transparent); }
 .quick-chevron { margin-left: auto; width: 16px; height: 16px; display: flex; align-items: center; }
 .quick-chevron.open { transform: rotate(90deg); }
 .quick-popover {
@@ -1557,7 +1557,7 @@ body.is-electron .main-content.print-preview {
 .quick-popover button {
   display: flex; align-items: center; gap: 10px;
   width: 100%; padding: 8px 12px; border: none; background: none;
-  color: var(--text-pri); cursor: pointer; border-radius: 8px;
+  color: var(--app-text-pri); cursor: pointer; border-radius: 8px;
   font-size: .85rem; text-align: left;
   transition: all .15s;
 }

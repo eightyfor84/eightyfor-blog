@@ -177,14 +177,14 @@ body.is-electron .nc-drawer {
   border: 1px solid var(--border-color, rgba(169,169,169,0.2));
   border-radius: var(--radius-sm, 4px);
   background: transparent;
-  color: var(--text-sec, #a9a9a9);
+  color: var(--app-text-sec, #a9a9a9);
   font-size: 0.78rem;
   cursor: pointer;
   transition: all 0.15s;
 }
 .nc-btn-clear:hover {
-  color: var(--text-pri, #e0e0e0);
-  border-color: var(--text-sec, #a9a9a9);
+  color: var(--app-text-pri, #e0e0e0);
+  border-color: var(--app-text-sec, #a9a9a9);
 }
 
 /* ── 列表 ── */
@@ -209,7 +209,7 @@ body.is-electron .nc-drawer {
   align-items: center;
   justify-content: center;
   height: max(40px, 20%);
-  color: var(--text-sec, #a9a9a9);
+  color: var(--app-text-sec, #a9a9a9);
   font-size: 0.9rem;
 }
 </style>

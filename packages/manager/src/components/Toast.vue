@@ -56,7 +56,7 @@ function handleClick(event: MouseEvent) {
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   box-shadow: 0 8px 20px rgba(11,22,40,0.12);
-  color: var(--text-pri, #fff);
+  color: var(--app-text-pri, #fff);
   /* transform controlled by CSS vars so horizontal centering stays while vertical animates */
   --tx: 0;
   --ty: 0;

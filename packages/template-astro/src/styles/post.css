@@ -22,7 +22,7 @@
     }
 
     .error-container h1 {
-      color: var(--text-sec);
+      color: var(--app-text-sec);
       margin-bottom: 1rem;
     }
 
@@ -57,7 +57,7 @@
       font-variation-settings: 'wght' 700;
       line-height: 1.2;
       margin-bottom: 1rem;
-      color: var(--text-pri);
+      color: var(--app-text-pri);
     }
 
     .post-meta {
@@ -71,7 +71,7 @@
       gap: 1rem;
       flex-wrap: wrap;
       font-size: 0.9rem;
-      color: var(--text-sec);
+      color: var(--app-text-sec);
     }
 
     .meta-item {
@@ -102,12 +102,12 @@
 
     .meta-label {
       font-weight: 400;
-      color: var(--text-sec);
+      color: var(--app-text-sec);
     }
 
     .meta-item time,
     .meta-value {
-      color: var(--text-pri);
+      color: var(--app-text-pri);
       font-weight: 400;
     }
 
@@ -143,14 +143,14 @@
 
     .markdown-toc .toc-title {
       font-weight: 600;
-      color: var(--text-pri);
+      color: var(--app-text-pri);
     }
 
     .markdown-toc .toc-toggle-icon {
       width: 16px;
       height: 16px;
       flex: 0 0 auto;
-      color: var(--text-sec);
+      color: var(--app-text-sec);
       transform: rotate(-90deg);
       transition: transform 0.18s ease;
       display: inline-flex;
@@ -247,7 +247,7 @@
 
     .tag {
       background: var(--comp-bg-glass);
-      color: var(--text-sec);
+      color: var(--app-text-sec);
       padding: 0.25rem 0.75rem;
       border-radius: 1rem;
       font-size: 0.8rem;

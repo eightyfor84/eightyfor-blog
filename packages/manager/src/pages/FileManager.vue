@@ -596,7 +596,7 @@ onUnmounted(() => {
     display: flex;
     height: 100%;
     background: transparent;
-    color: var(--text-pri);
+    color: var(--app-text-pri);
     gap: 0;
 }
 

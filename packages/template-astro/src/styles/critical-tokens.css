@@ -70,19 +70,6 @@
 
   /* Overlays */
   --frontend-bg-overlay: var(--frontend-bg-overlay-dark, transparent);
-  --backend-bg-overlay: transparent;
-
-  /* Legacy aliases */
-  --app-bg: var(--app-bg-pri);
-  --bg-pri: var(--app-bg-pri);
-  --bg-sec: var(--app-bg-sec);
-  --comp-bg-pri: var(--comp-bg);
-  --comp-text: var(--comp-text-pri);
-  --app-text-dark: var(--app-text-pri);
-  --text-pri: var(--app-text-pri);
-  --text-sec: var(--app-text-sec);
-  --text-inactive: var(--app-text-sec);
-  --text-on-accent: #fff;
 
   color: var(--app-text-pri);
   background-color: transparent;
@@ -146,11 +133,6 @@
     --shadow-elev-1: 0 4px 12px rgba(0, 0, 0, 0.2);
 
     --frontend-bg-overlay: var(--frontend-bg-overlay-light);
-    --backend-bg-overlay: var(--backend-bg-overlay-light);
-
-    --text-pri: var(--app-text-pri);
-    --text-sec: var(--app-text-sec);
-    --text-inactive: var(--app-text-sec);
 
     color: var(--app-text-pri);
   }

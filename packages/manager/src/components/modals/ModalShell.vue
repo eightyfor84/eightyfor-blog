@@ -51,7 +51,7 @@ const sizeClass = computed(() => {
 }
 
 .modal-content {
-  background: var(--bg-sec);
+  background: var(--app-bg-sec);
   border: 1px solid var(--border-color);
   border-radius: 6px;
   box-shadow: var(--shadow-elev-2);
@@ -68,7 +68,7 @@ const sizeClass = computed(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--comp-bg-pri);
+  background: var(--comp-bg);
   flex-shrink: 0;
   height: 48px;
 }
@@ -93,7 +93,7 @@ const sizeClass = computed(() => {
 
 .close-btn:hover {
   background: transparent;
-  color: var(--text-pri);
+  color: var(--app-text-pri);
 }
 
 .close-btn :deep(svg) {

@@ -42,10 +42,11 @@ html.immersive .nav-header {
   padding-top:70px; height:100vh; box-sizing:border-box;
 }
 .app-title { font-size:1.5rem; font-weight:bold; color:var(--app-text-pri); margin:0; }
-.nav-link { color:var(--app-text-sec); text-decoration:none; padding:0.5rem 1rem; border-radius:4px; }
+.nav-link, .nav-action-link { color:var(--app-text-sec); text-decoration:none;  border-radius:6px; }
+.nav-link { padding:0.5rem 1rem; }
 .nav-links { display:flex; gap:2rem; }
 .nav-actions { margin-left:auto; display:flex; align-items:center; gap:0.75rem; }
-.nav-setting-btn {
+.nav-setting-btn, .nav-action-link {
   background:transparent; border:none; color:var(--app-text-sec); cursor:pointer;
   display:flex; align-items:center; justify-content:center;
   width:40px; height:40px; border-radius:6px;

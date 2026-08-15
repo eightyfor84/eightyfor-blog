@@ -49,7 +49,7 @@ function goConsole() { router.push('/dashboard') }
   height: var(--app-height);
   overflow: hidden;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  background: var(--bg-pri);
+  background: var(--app-bg-pri);
   padding: 1.5rem;
   box-sizing: border-box;
 }
@@ -69,7 +69,7 @@ function goConsole() { router.push('/dashboard') }
 }
 .brand p {
   margin: .5rem 0 0;
-  color: var(--text-sec);
+  color: var(--app-text-sec);
   font-size: .95rem;
 }
 
@@ -84,8 +84,8 @@ function goConsole() { router.push('/dashboard') }
   padding: clamp(2rem, 6vh, 3rem) 1.5rem;
   border-radius: 18px;
   border: 1px solid var(--border-color);
-  background: var(--bg-sec);
-  color: var(--text-pri);
+  background: var(--app-bg-sec);
+  color: var(--app-text-pri);
   cursor: pointer;
   text-align: center;
   transition: all .2s;
@@ -103,7 +103,7 @@ body[data-backend-theme="dark"] .hero-card:hover {
 .card-icon { margin-bottom: 1rem; }
 .card-icon :deep(svg) { width: 40px; height: 40px; color: var(--accent); }
 .hero-card h2 { margin: 0 0 .4rem; font-size: 1.1rem; font-weight: 700; }
-.hero-card p  { margin: 0 0 1rem; font-size: .82rem; color: var(--text-sec); line-height: 1.45; max-width: 200px; }
+.hero-card p  { margin: 0 0 1rem; font-size: .82rem; color: var(--app-text-sec); line-height: 1.45; max-width: 200px; }
 .card-arrow { font-size: .82rem; color: var(--accent); font-weight: 600; }
 
 @media (max-width: 500px) {

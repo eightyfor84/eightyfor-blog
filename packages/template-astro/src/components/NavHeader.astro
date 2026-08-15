@@ -474,7 +474,7 @@ const isActive = (path: string) => {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: var(--text-inactive);
+    color: var(--app-text-sec);
     text-decoration: none;
     padding: 0.5rem 1rem;
     border-radius: 6px;
@@ -576,10 +576,11 @@ const isActive = (path: string) => {
     display: flex;
     align-items: center;
     justify-content: center;
+    text-decoration: none;
     width: 40px;
     height: 40px;
     border-radius: 6px;
-    color: var(--text-inactive);
+    color: var(--app-text-sec);
     transition: all 0.3s ease;
     flex: 0 0 auto;
   }
@@ -597,7 +598,7 @@ const isActive = (path: string) => {
   .nav-setting-btn {
     background: transparent;
     border: none;
-    color: var(--text-inactive);
+    color: var(--app-text-sec);
     padding: 0 8px;
     cursor: pointer;
     transition: color 0.3s ease;
@@ -609,7 +610,7 @@ const isActive = (path: string) => {
   }
 
   .nav-setting-btn:hover {
-    color: var(--text-pri);
+    color: var(--app-text-pri);
   }
 
   /* Settings Menu — JS appends it to <body> once; position is pure CSS. */
@@ -664,7 +665,7 @@ const isActive = (path: string) => {
     padding: 8px 12px;
     background: transparent;
     border: none;
-    color: var(--text-pri);
+    color: var(--app-text-pri);
     cursor: pointer;
     border-radius: 6px;
     width: 100%;
@@ -746,7 +747,7 @@ const isActive = (path: string) => {
     display: none;
     background: transparent;
     border: none;
-    color: var(--text-pri);
+    color: var(--app-text-pri);
     cursor: pointer;
     align-items: center;
     justify-content: center;
@@ -790,7 +791,7 @@ const isActive = (path: string) => {
     right: 12px;
     background: transparent;
     border: none;
-    color: var(--text-pri);
+    color: var(--app-text-pri);
     width: 44px;
     height: 44px;
     align-items: center;
