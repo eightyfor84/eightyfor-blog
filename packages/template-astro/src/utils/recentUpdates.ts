@@ -21,6 +21,12 @@ import {
 const DAY_MS = 86400000;
 const MAX_POSTS = 5;
 
+/** Clamp a settings-sourced day count to a safe positive integer. */
+function sanitizeDays(value: unknown, fallback: number): number {
+  const n = Number(value);
+  return Number.isFinite(n) && n >= 1 ? Math.floor(n) : fallback;
+}
+
 export interface RecentUpdates {
   latestCommitDate: string;
   appUpdated: boolean;
@@ -79,7 +85,8 @@ export async function getRecentUpdates(opts: {
   const latest = getLatestCommit(root);
   if (!latest) return null;
 
-  const sinceIso = new Date(Date.now() - (aggregateDays || 7) * DAY_MS).toISOString();
+  const days = sanitizeDays(aggregateDays, 7);
+  const sinceIso = new Date(Date.now() - days * DAY_MS).toISOString();
   const changed = getChangedFiles(root, { sinceIso, firstParent: true });
   if (changed === null) return null;
 
