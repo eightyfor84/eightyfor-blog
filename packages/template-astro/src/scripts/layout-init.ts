@@ -76,35 +76,72 @@ document.addEventListener('astro:after-swap', () => applyPerfMode(resolvePerfMod
 };
 (window as any).__chronicleGetPerf = resolvePerfMode;
 
-// ── Background video ──────────────────────────────────────
-// The <video> renders with `preload="metadata"` and `src` set at build time, so
-// the browser loads (and displays) the first frame as a native frozen poster.
-// Here we only decide whether to play(): autoplay off or prefers-reduced-motion
-// leaves it paused on that first frame; otherwise play() resumes it.
-function initBackgroundVideo() {
-  const video = document.querySelector<HTMLVideoElement>('#chronicle-bg-layer .bg-video');
-  if (!video) return;
+// ── Background layer: ready-driven cross-fade ─────────────
+// The fallback image (.bg-image) and background video (.bg-video) both start at
+// opacity 0 (critical-base.css). Each fades in only once its pixels are actually
+// decodable — the image after preload+decode, the video after its first frame
+// (loadeddata). The video sits above the image (z-index 3 > 2), so it cross-fades
+// over the fallback; on error it hides, revealing the fallback underneath.
+function initBackgroundLayer() {
+  const layer = document.getElementById('chronicle-bg-layer');
+  if (!layer) return;
 
-  const autoplay = video.dataset.autoplay !== '0';
-  const playbackRate = parseFloat(video.dataset.playbackRate || '1');
+  const imgEl = layer.querySelector<HTMLElement>('.bg-image');
+  const video = layer.querySelector<HTMLVideoElement>('.bg-video');
 
-  let reducedMotion = false;
-  try { reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch {}
+  // ── Fallback image: fade in when decoded ──
+  if (imgEl) {
+    const url = layer.dataset.bgImage || '';
+    const revealImage = () => layer.classList.add('is-ready');
 
-  // 加载失败 / 格式不支持 → 隐藏视频，露出下层（图片 / 底色）。
-  video.addEventListener('error', () => {
-    video.style.display = 'none';
-  }, { once: true });
-
-  if (Number.isFinite(playbackRate) && playbackRate > 0) {
-    video.playbackRate = playbackRate;
+    if (url) {
+      const probe = new Image();
+      probe.onload = () => {
+        const dec = (probe as any).decode ? (probe as any).decode() : Promise.resolve();
+        dec.then(revealImage, revealImage);
+      };
+      probe.onerror = revealImage; // 加载失败也别让图层卡在隐藏态
+      probe.src = url;
+    } else {
+      revealImage();
+    }
   }
 
-  // 不自动播放或减动效 → 不 play()，浏览器停在 preload="metadata" 加载的首帧（原生定格占位图）。
-  if (!autoplay || reducedMotion) return;
+  // ── Background video: fade in over the image once the first frame is ready ──
+  if (video) {
+    const autoplay = video.dataset.autoplay !== '0';
+    const playbackRate = parseFloat(video.dataset.playbackRate || '1');
 
-  // muted + playsinline 自动播放；被拦截时静默忽略。
-  video.play().catch(() => {});
+    let reducedMotion = false;
+    try { reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch {}
+
+    const reveal = () => video.classList.add('is-ready');
+
+    // 加载失败 / 格式不支持 → 隐藏视频，露出下层兜底图 / 底色。
+    video.addEventListener('error', () => {
+      video.style.display = 'none';
+    }, { once: true });
+
+    // 缓存 / 快速刷新：readyState 已 >= 2，loadeddata 早已触发过，直接 reveal。
+    if (video.readyState >= 2) reveal();
+    else video.addEventListener('loadeddata', reveal, { once: true });
+
+    if (Number.isFinite(playbackRate) && playbackRate > 0) {
+      video.playbackRate = playbackRate;
+    }
+
+    // 不自动播放 / 减动效 → 不 play()；懒加载首帧（metadata）作为静态兜底。
+    if (!autoplay || reducedMotion) {
+      if (video.readyState < 2) {
+        video.preload = 'metadata';
+        video.load();
+      }
+      return;
+    }
+
+    // muted + playsinline 自动播放；被拦截时静默忽略。
+    video.play().catch(() => {});
+  }
 }
 
-initBackgroundVideo();
+initBackgroundLayer();

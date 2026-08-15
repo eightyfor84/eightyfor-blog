@@ -827,22 +827,28 @@ html.bg-no-img #chronicle-bg-layer .bg-image {
   display: none;
 }
 
-/* 背景视频：preload="metadata" 让浏览器加载并显示首帧（原生定格占位图）。
-   不自动播放时（减动效 / 禁自动播放）就停在这一帧；自动播放时无缝接上。 */
+/* 背景视频：preload="none"（构建时不抢骨架），首帧就绪（loadeddata）后由
+   layout-init.ts 加 .is-ready 淡入，覆盖在兜底图之上。 */
 #chronicle-bg-layer .bg-video {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  z-index: 2;
+  z-index: 3; /* 高于兜底图（bg-image: 2），低于遮罩（bg-overlay: 4） */
+  opacity: 0;
+  transition: opacity 0.32s ease;
+}
+
+#chronicle-bg-layer .bg-video.is-ready {
+  opacity: 1;
 }
 
 #chronicle-bg-layer .bg-overlay {
   position: absolute;
   inset: 0;
   background: var(--frontend-bg-overlay, transparent);
-  z-index: 3;
+  z-index: 4;
   /* 最上层：遮罩层 + 模糊 */
   transition: backdrop-filter 0.3s ease, -webkit-backdrop-filter 0.3s ease;
   /* Force GPU compositing layer so backdrop-filter survives View Transition
