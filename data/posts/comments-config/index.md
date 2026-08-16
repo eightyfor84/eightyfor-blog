@@ -1,7 +1,7 @@
 ---
 title: Comments Configuration
 date: 2026-08-14
-updatedAt: 2026-08-16T17:30:30.885Z
+updatedAt: 2026-08-17T12:00:00.000Z
 tags: comments, guide
 author: Eightyfor
 aiGenerated: true
@@ -9,30 +9,33 @@ status: published
 font: sans
 ---
 
-`data/site.yml` controls how comments work on your Chronicle site. Chronicle is local-first with no runtime server, so comments are either read from static JSON files on disk, or proxied to a self-hosted Waline backend over its headless REST API. This guide covers both paths and how to switch between them.
+`data/site.yml` controls how comments work on your Chronicle site. Chronicle is local-first with no runtime server, so comments are either read from static JSON files on disk at build time, or proxied to a self-hosted Waline backend over its headless REST API. This guide covers both paths and how to switch between them.
 
-## The two keys
+## Where the settings live
 
-Comments are driven by two separate keys — keep them apart:
+Comments are driven by two separate settings — keep them apart:
 
 | Key | Type | Role |
 | --- | --- | --- |
-| `comments` | boolean | Master feature flag. `false` hides the comment section on every post. |
-| `comment` | object | Backend selection + connection settings. Read only when `comments` is `true`. |
+| `comments` (top level) | boolean | Master switch. `false` hides the comment section on every post. |
+| `post.comments` (inside the `post` block) | object | Backend selection + connection settings. Read only when `comments` is `true`. |
+
+`post.comments` is a subtree of the `post` block in `site.yml` — not a top-level `comment` key:
 
 ```yaml
 # data/site.yml
-comments: true          # master switch
-comment:
-  backend: waline       # "" (static) or "waline"
-  walineServerUrl: https://waline-xxx.vercel.app
+comments: true                # master switch (top level)
+post:
+  comments:
+    backend: waline           # "" (static) or "waline"
+    walineServerUrl: https://waline-xxx.vercel.app
 ```
 
-`comment` is only meaningful when `comments` is enabled. If you just want to turn comments off everywhere, set `comments: false` and ignore the rest.
+`post.comments` is only meaningful when the top-level `comments` flag is enabled. If you just want to turn comments off everywhere, set `comments: false` and ignore the rest.
 
 ## Choosing a backend
 
-`comment.backend` accepts two values:
+`post.comments.backend` accepts two values:
 
 | Value | Behavior |
 | --- | --- |
@@ -53,9 +56,9 @@ data/
     └── hello-world.json
 ```
 
-The file is the state: `comments-pending/` is the moderation queue, `comments/` is what ships. Approve, hide, or delete entries from the **Manager → Comments** panel, and the directory reflects the change. Each record is Staticman-compatible — `parent` for replies, `hidden` for soft-removal, pre-sanitized HTML in `content`.
+The directory is the state: `comments-pending/` is the review queue, `comments/` is what ships. Each record is Staticman-compatible — `parent` for replies, `rootId` for the thread root, `hidden` for soft-removal, pre-sanitized HTML in `content`.
 
-Because there's no server, a static site can't accept new submissions on its own. Use static mode for read-only comment archives, or switch to Waline when you want visitors to post.
+This mode is **build-time and read-only**: the comment list is baked into the static HTML and there is no submission form, so visitors cannot post. Use static mode for read-only comment archives, or switch to Waline when you want visitors to write comments.
 
 ## Waline (headless)
 
@@ -63,48 +66,74 @@ Waline is a self-hosted comment backend (data store + API). Chronicle integrates
 
 The adapter maps Waline's fields onto Chronicle's comment model:
 
-| Waline | Chronicle |
-| --- | --- |
-| `objectId` | `id` |
-| `nick` | `author` |
-| `link` | `website` |
-| `comment` | `content` |
-| `time` / `insertedAt` | `date` |
-| `pid` / `rid` | `parent` / `rootId` |
-| `avatar` | `avatarUrl` |
-| `sticky` | `pinned` (置顶 badge) |
+| Waline | Chronicle | Notes |
+| --- | --- | --- |
+| `objectId` | `id` | |
+| `nick` | `author` | |
+| `mail` | `email` | required on submit |
+| `link` | `website` | |
+| `comment` | `content` | server-rendered, sanitized HTML |
+| `time` / `insertedAt` | `date` | |
+| `pid` / `rid` | `parent` / `rootId` | |
+| `avatar` | `avatarUrl` | |
+| `sticky` | `pinned` | pinned (置顶) badge |
+| `addr` | `location` | geo address, never the raw IP |
 
-One safety detail: Waline's server renders markdown to HTML and sanitizes it with DOMPurify before storing it, so Chronicle renders the returned `content` directly — the same "sanitize at write, `set:html` at read" rule the rest of the project follows. Each post uses `/post/{id}` as its Waline path, so one comment thread is shared across all locales.
+Waline's server renders markdown to HTML and sanitizes it with DOMPurify before storing it, so Chronicle renders the returned `content` directly — the same "sanitize at write, `set:html` at read" rule the rest of the project follows. Each post uses `/post/{id}` as its Waline path, so one comment thread is shared across all locales. The comment section hydrates only when scrolled into view (IntersectionObserver), then fetches live comments from the backend and replaces the static content.
 
 ### Deploying the Waline server
 
 The server is the one thing you host yourself. The quickest route is Vercel + LeanCloud:
 
-1. Create an app on [Vercel](https://vercel.com) and copy its `APP ID`, `APP Key`, and `Master Key` from **Settings → App Keys**.
+1. Create a LeanCloud app and copy its **APP ID**, **APP Key**, and **Master Key** from **Settings → App Keys**.
 2. Deploy the Waline server to Vercel from the [`@waline/vercel`](https://www.npmjs.com/package/@waline/vercel) template.
 3. Set `LEAN_ID`, `LEAN_KEY`, and `LEAN_MASTER_KEY` as Vercel environment variables, then redeploy.
 4. The deployment URL (e.g. `https://waline-xxx.vercel.app`) is your `walineServerUrl`.
 
-After deploying, visit `https://<your-server>/ui/register` once — the first account to register becomes the administrator, who can review and delete comments.
+After deploying, visit `https://<your-server>/ui` once — the first account to register becomes the administrator.
 
 ### Configuring it
 
 ```yaml
+# data/site.yml
 comments: true
-comment:
-  backend: waline
-  walineServerUrl: https://waline-xxx.vercel.app
+post:
+  comments:
+    backend: waline
+    walineServerUrl: https://waline-xxx.vercel.app
 ```
 
-Set `walineServerUrl` to the server root — **do not append `/api/comment`**; the adapter builds that path itself. Configure it either here in `site.yml` or through **Manager → Settings → Comments**, which writes the same file.
+Set `walineServerUrl` to the server root — **do not append `/api/comment`**; the adapter builds that path itself. Configure it either here in `site.yml` or through **Manager → Settings → Post → Comments**, which writes the same file.
+
+### Attitude, location, and images
+
+Three extra switches live under `post.comments` (all Waline-only, hidden when the backend is static):
+
+- **`attitude`** (default `true`) — like/dislike bar for the post, rendered via the Waline reaction API.
+- **`showGeoAddress`** (default `true`) — shows the commenter's geo address (e.g. "中国 北京市") derived from IP. The raw IP is **never** displayed, and the field is omitted when unavailable.
+- **`imageUploadEnabled` / `imageUploadEndpoint` / `imageUploadToken`** (default off) — lets commenters attach images. Uploads go to an **external image host** you configure: the endpoint receives a multipart `file` and returns a JSON `url` field (lsky-pro style: `data.links.url`); the token, when set, is sent as `Authorization: Bearer <token>`.
+
+```yaml
+post:
+  comments:
+    backend: waline
+    walineServerUrl: https://waline-xxx.vercel.app
+    attitude: true
+    showGeoAddress: true
+    imageUploadEnabled: true
+    imageUploadEndpoint: https://img.example.com/api/upload
+    imageUploadToken: your-token
+```
 
 ### Moderation & pending review
 
-Whether a new comment is published immediately or held for review is decided **entirely by the Waline server**, through its `COMMENT_AUDIT` environment variable — not by Chronicle. The frontend only submits content; it never sends a status field.
+Comment moderation is **delegated entirely to the Waline admin dashboard** at `https://<your-server>/ui` — the first registered account is the administrator and approves, hides, or deletes comments there. The local Manager CMS has **no comment-management panel** in 3.1.x; `comments-pending/` exists only for the file-based (static JSON) flow.
+
+Whether a new comment is published immediately or held for review is decided **by the Waline server**, through its `COMMENT_AUDIT` environment variable — not by Chronicle. The frontend only submits content; it never sends a status field.
 
 | Setting | Result |
 | --- | --- |
-| `COMMENT_AUDIT=true` (or `1`) | New comments default to **pending review** (`waiting`) — hidden from the public list until approved in the Waline admin. |
+| `COMMENT_AUDIT=true` (or `1`) | New comments default to **pending review** — hidden from the public list until approved in the Waline admin. |
 | unset / `false` / `0` | New comments are **approved** immediately and appear right away. |
 
 Set it wherever your Waline server is hosted:
@@ -113,11 +142,11 @@ Set it wherever your Waline server is hosted:
 - **Docker** → `docker run ... -e COMMENT_AUDIT=true`.
 - **`.env`** → add a `COMMENT_AUDIT=true` line.
 
-No Chronicle-side change is needed either way: the public `GET /api/comment` endpoint only returns approved comments, so pending ones simply don't appear until you approve them. Approve or reject from `https://<your-server>/ui` (the Waline admin).
+No Chronicle-side change is needed either way: the public `GET /api/comment` endpoint only returns approved comments, so pending ones simply don't appear until you approve them.
 
 ## Notes
 
 - **Changes need a rebuild.** This is a static site — editing `site.yml` only takes effect after `npx astro build` (or a Manager commit/push that triggers CI).
-- **Latest 100 comments.** The Waline list currently fetches the newest 100 comments per post; deeper pagination is not yet wired up.
-- **Moderation and spam settings are server-side.** Pending review is `COMMENT_AUDIT` (see above); email notification, IP recording, and spam filtering are likewise Waline server environment variables. Chronicle only owns presentation.
-- **Static and Waline are mutually exclusive.** One `comment.backend` value applies site-wide; there's no per-post override.
+- **Pagination.** The Waline list loads comments in pages of 20 and shows a "Load more" button; the comment count reflects all comments on the thread.
+- **Static and Waline are mutually exclusive.** One `post.comments.backend` value applies site-wide; there's no per-post override.
+- **Spam, email notification, and IP recording are server-side.** These are Waline server environment variables — Chronicle only owns presentation.

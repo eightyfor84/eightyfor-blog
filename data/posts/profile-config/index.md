@@ -1,7 +1,7 @@
 ---
 title: Profile Configuration
 date: 2026-08-07T07:40:03.556Z
-updatedAt: 2026-08-07T12:10:15.534Z
+updatedAt: 2026-08-17T12:00:00.000Z
 tags: guide, profile
 author: Eightyfor
 aiGenerated: true
@@ -9,67 +9,67 @@ status: published
 font: sans
 ---
 
-`data/profile.yml` defines who you are to your readers. It powers the author card on the homepage, the profile section of the About page, and the fallback author name on every article. Setting it up takes five minutes and makes the site feel lived-in rather than generic.
+`data/profile.yml` defines who owns the site and how you appear to readers. It drives the profile card on the About page and in the sidebar, supplies the site author name that the `$site$` placeholder expands to, and decides when an author card appears at the end of an article. It's a small file — a name, a bio, an optional location, and a few links — but it's what makes a site feel lived-in rather than generic.
 
 ## How the profile is used
 
-Your profile appears in multiple places:
+Your profile feeds three places:
 
-1. **Homepage author card** — a compact card in the sidebar or card stream with your avatar, name, and bio. Controlled by `cardVisibility.author` in `post://site-config`.
-2. **About page profile card** — a larger card at the top of `/about`, with avatar, name, bio, location, and social links. Gated by `aboutPage` in `post://site-config` and the `showProfileCard` toggle.
-3. **Post byline fallback** — the `name` field serves as the default author name for any post that doesn't declare its own `author` in frontmatter. If both are missing, the UI shows a localized "Anonymous" label.
+1. **About page profile card** — avatar, name, bio, location, and links rendered above the About page's Markdown body. Controlled by `showProfileCard`.
+2. **Sidebar author card** — the same profile data rendered as a compact sidebar card. Gated by the same `showProfileCard` flag.
+3. **Article author identity** — `name` is the site author. In post frontmatter, the placeholder `$site$` means "the site owner" and expands to `profile.name`; it also decides whether the end-of-article author card shows.
 
-The profile card and the about page body are separate concerns: the card is driven by `profile.yml`, while the about page body is written in `data/__about__/index.md` using the same Markdown pipeline as blog posts.
+The About page and the profile are two separate concerns: the profile card is driven by `data/profile.yml`, while the About page body is Markdown written in `data/__about__/index.md` and rendered through the same pipeline as blog posts.
 
-## Fields
+## About page
 
-### About Page Controls
+The About page has three moving parts: the page toggle, the Markdown body, and the profile card.
 
-These fields affect the `/about` page rendering.
+### `aboutPage` — enabling the page
 
-| Field | Description | Datatype | Sample |
-| --- | --- | --- | --- |
-| `showProfileCard` | Whether to show the profile card above the about page Markdown body. | boolean | `true` |
-| `$about_edit` | Internal CMS marker for the about-page editor. Stripped at build time — never edit manually. | string | `""` |
+Whether the `/about` route exists at all is controlled by the top-level `aboutPage` switch in `data/site.yml`:
 
-#### `showProfileCard`
+```yaml
+# data/site.yml
+aboutPage: true
+```
 
-When `true`, the profile card (avatar + name + bio + location + links) is rendered at the top of the `/about` page, above the Markdown body. Set to `false` to show only the Markdown content. This only affects the About page — the homepage author card is controlled separately by `cardVisibility.author` in `post://site-config`.
+The About & Profile settings panel in the CMS shows this toggle as if it belonged to the profile form — it is defined in the profile schema with an `x-site-flag` marker, which mirrors its value into the top-level `aboutPage` key of `site.yml`. Flip it in the CMS and the file that changes is `site.yml`; when the page is disabled, the About page and its profile card are not rendered.
 
-#### `$about_edit`
+### Page body — `data/__about__/index.md`
 
-A null-typed internal field used by the Manager CMS to track editor state for the about page. It is stripped entirely at build time and has zero effect on the public site. If you edit `profile.yml` by hand, you can omit this field — the CMS regenerates it on next save.
+The body of the About page is a normal Markdown file: `data/__about__/index.md`. It goes through the same pipeline as blog posts — headings, images, code blocks, and inline HTML all work. There is no YAML field that stores this content; the file on disk IS the content.
+
+### `showProfileCard` — the card above the body
+
+When `true`, the profile card (avatar + name + bio + location + links) is rendered at the top of the About page, above the Markdown body. Set to `false` to show only the Markdown content. This flag lives in `data/profile.yml` and also gates the sidebar author card.
 
 ![About page with profile card shown](image.png "About page with profile card and Markdown body" =70%x)
 
-### Profile Card
+## Profile fields
 
-These fields populate the author card on both the homepage and the About page.
-
-| Field | Description | Datatype | Sample |
+| Field | Description | Type | Sample |
 | --- | --- | --- | --- |
-| `name` | Display name on the author card, about page, and post byline. Required. Max 60 characters. | string | `Eightyfor` |
-| `bio` | Short tagline under the name. Max 300 characters. Also used as fallback meta description for the about page. | string | `Full-stack developer writing about Rust and compilers.` |
-| `location` | Free-text location detail with a pin icon. Hidden by default in CMS (advanced field). Max 100 characters. | string | `Beijing, China` |
-| `links` | Array of social link entries. Each has a `label` (display text) and `url` (full URL). | array | see below |
+| `name` | The site author's display name. Required; max 60 chars. | string | `Eightyfor` |
+| `bio` | Short tagline under the name. Max 300 chars. | string | `Full-stack developer writing about Rust and compilers.` |
+| `location` | Free-text location with a pin icon. Max 100 chars; hidden behind the advanced toggle in the CMS. | string | `Beijing, China` |
+| `links` | Social links as `{label, url}` entries, rendered in order. | array | see below |
 
-#### `name`
+### `name`
 
-Your display name. This is the most important field — it appears on the homepage card, the About page, and as the fallback author for any post that omits its own `author` in frontmatter. Choose the name you want readers to know you by: a real name, handle, or pen name all work. If this field is empty and a post has no `author`, the UI displays a localized "Anonymous" label via `t('inblog.anonymousAuthor')`.
+Your display name and the site author identity. It is the value `$site$` expands to, and it is what makes you "the site owner" for author-card purposes. A real name, a handle, or a pen name all work. If it is empty and a post declares no author either, the UI falls back to a localized "Anonymous" label.
 
-#### `bio`
+### `bio`
 
-One or two sentences rendered under your name on the homepage card and About page. Think tagline, not resume. "Full-stack developer writing about Rust and compilers" reads better than a paragraph. The bio is also used as the `<meta name="description">` for the About page (truncated to 160 characters).
+One or two sentences rendered under your name on the profile card. Think tagline, not résumé: "Full-stack developer writing about Rust and compilers" reads better than a paragraph.
 
-#### `location`
+### `location`
 
-Free-form text displayed with a small pin icon on the About page profile card. A city, a country, "The Internet", or leave it empty. It's a conversation starter, not a privacy concern — no geo-tagging or map integration, just text.
+Free-form text displayed with a small pin icon. A city, a country, "The Internet", or nothing at all — it's a conversation starter, not geo-tracking. No maps, no coordinates, just text.
 
-#### `links`
+### `links`
 
-An array of `{label, url}` objects. Each entry renders as a pill-shaped text button on the About page profile card. The `label` is displayed as plain text — there is no icon matching by label name. Choose short, human-readable labels ("GitHub", "Mastodon", "Homepage") and full URLs including the protocol (`https://`).
-
-Links render in array order. There's no built-in limit, but 3–5 links fit comfortably in the card layout. The link opens in a new tab with `rel="noopener noreferrer"`.
+An array of `{label, url}` objects rendered as pill-shaped buttons on the profile card, in array order. Labels are plain text (max 30 chars); URLs must be full URIs including the protocol (`https://`).
 
 ```yaml
 links:
@@ -81,18 +81,32 @@ links:
     url: https://yoursite.com
 ```
 
-## Avatar
+## Avatar — auto-discovery from `data/avatar/`
 
-There is no `avatar` field in `profile.yml`. The system auto-discovers your avatar from the `data/avatar/` directory. The schema defines an `avatar` field with `x-widget: "image-picker"` purely for the CMS form UI — it is marked `x-persist: false`, meaning it never writes a value to the YAML file. The file on disk IS the data.
+There is no avatar URL stored in YAML. The avatar is auto-discovered: the first image in `data/avatar/` IS the avatar. Drop an image file into the directory and it just works — no config field to point at it, the directory is the data source.
 
-Drop any image file into `data/avatar/` — WebP is preferred for size, PNG and JPG also work. SVG, AVIF, and GIF are supported. Only the first matching image is used; replace it to change your avatar. If the directory is empty, no avatar renders and the card layout adjusts accordingly.
+The profile schema still declares an `avatar` field with an image-picker widget so the CMS settings form can offer a picker UI. It is marked `x-persist: false`, so saving the form never writes an avatar value into `data/profile.yml` — instead the CMS copies the picked image into `data/avatar/`, and the file on disk becomes the data. Replace the file to change your avatar; if the directory is empty, no avatar renders and the card layout adjusts.
 
-The template renders the avatar as a responsive `<picture>` element with AVIF and WebP sources when the original has a standard image extension, falling back to a plain `<img>` for SVGs and other formats.
+## Author identity — `$site$` and the end-of-article author card
+
+Post frontmatter takes an `author` field, single value or comma-separated (`author: Alice, Bob`, same convention as `tags`). The special placeholder `$site$` means "the site owner":
+
+```yaml
+author: $site$
+```
+
+At read time, `$site$` expands to `profile.name`, and the author list is then deduplicated case-insensitively while preserving order. So `author: $site$, Eightyfor` with a profile name of `Eightyfor` collapses to a single author, `Eightyfor`.
+
+The end-of-article author card follows one rule:
+
+- The card shows **only when the post has exactly one author and that author is the site owner** — written as `$site$` or matching `profile.name`.
+- Multi-author posts never show the card.
+- A post with no author falls back to the localized "Anonymous" label and shows no card.
+
+So for guest posts, list the guest's name in `author`: the profile still links back to you as the site owner, but no author card is attached to the article.
 
 ## Practical advice
 
-Fill out your profile before publishing. A site with no author identity feels abandoned. You don't need every social link — a GitHub profile and one other platform is enough to signal that you're real and reachable.
+Fill out the profile before publishing — a site with no author identity feels abandoned. You don't need every social link; a GitHub profile and one other platform is enough to signal that you're real and reachable.
 
-If you collaborate with guest authors, let them set `author` in their post frontmatter. Their name overrides the profile default for that post, while the profile card still links back to you as the site owner.
-
-The profile card on the About page and the author card on the homepage share the same data but render with different layouts. The About page card is full-width with larger avatar; the homepage card is compact. Both pull from the same `profile.yml` fields — you configure once, it renders everywhere.
+Configure once, render everywhere: the About page card, the sidebar card, and the end-of-article author card all pull from the same `profile.yml` data, just in different layouts.

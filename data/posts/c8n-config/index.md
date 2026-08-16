@@ -1,7 +1,7 @@
 ---
 title: Collections Guide
 date: 2026-08-07T07:40:52.022Z
-updatedAt: 2026-08-07T12:07:49.236Z
+updatedAt: 2026-08-17T12:00:00.000Z
 tags: collections, guide
 author: Eightyfor
 aiGenerated: true
@@ -9,7 +9,7 @@ status: published
 font: sans
 ---
 
-`data/collections.yml` lets you group articles into named sequences with a dedicated navigation panel and overview page. It's the closest thing Chronicle has to a table of contents — readers browse a collection like a book, moving from one article to the next in the order you define.
+`data/collections.yml` lets you group articles into named sequences with a dedicated overview page, an article-side navigation panel, and collection-scoped prev/next navigation. It's the closest thing Chronicle has to a table of contents — readers browse a collection like a book, moving from one article to the next in the order you define.
 
 ## Why use collections
 
@@ -21,103 +21,46 @@ Tags are loose and associative; a post can have five tags and still be hard to f
 
 Collections don't replace tags — they complement them. A post can belong to multiple collections and also be tagged. Readers who arrive via search get tag context; readers who arrive via collection get a guided path.
 
-The collection system has two surfaces:
+The collection system has three surfaces:
 
-1. **Overview page** (`/collections`) — a grid of collection cards with cover images, names, and descriptions. Click a card to drill into the tree view.
-2. **Sidebar nav panel** — on article pages that belong to a collection, a fixed sidebar (desktop) or floating overlay (mobile) shows the collection tree with the current article highlighted. Groups expand and collapse on click.
+1. **Overview page** (`/collections`) — a grid of collection cards with cover images, names, and descriptions. Clicking a card drills into the collection's detail tree view.
+2. **Article sidebar panel** — on article pages that belong to a collection, a sidebar (desktop) or floating entry (mobile) shows the collection tree with the current article highlighted and groups expanding and collapsing on click.
+3. **Collection-scoped prev/next** — with the end-of-article navigation scope set to "Within the same collection", readers move between articles in the exact order you defined.
 
-Both are gated by `collectionPage` in `post://site-config`. When disabled, the `/collections` route returns a 404, the sidebar panel is hidden, and the mobile floating button is removed.
+The overview page and the sidebar panel are both gated by the top-level `collectionPage` switch. Collection-scoped prev/next is independent of it.
 
 ## Data structure
 
-`collections.yml` is a **top-level array** of collection objects. Each collection has metadata and a tree of nodes. Nodes come in two types: `post` (leaf — links to an article) and `group` (branch — contains a title and children). Groups nest to any depth.
+`collections.yml` is a **top-level array** of collection objects. Each collection carries metadata plus an ordered tree of nodes. Nodes come in two types: `post` (a leaf that references an article) and `group` (a branch with a title and nested children). Groups nest to any depth.
 
-## Fields
-
-### Collection
-
-Each top-level entry in the array:
+### Collection fields
 
 | Field | Description | Datatype | Sample |
 | --- | --- | --- | --- |
 | `name` | Human-readable collection title. Required. Max 60 characters. | string | `Chronicle Guide` |
-| `slug` | URL-safe identifier. Lowercase letters, numbers, and hyphens only. Required. Pattern: `^[a-z0-9]+(?:-[a-z0-9]+)*$`. Max 60 characters. | string | `chronicle-guide` |
-| `description` | Short summary shown on the `/collections` overview card and detail header. Max 300 characters. | string | `Everything you need to get started.` |
-| `cover` | Image URL for the collection card on the overview page. Also used as a blurred full-page background in the detail view. Supports `asset://` and external URLs. | string | `asset://covers/chronicle-guide.webp` |
-| `nodes` | Ordered tree of post and group nodes. Renders as a collapsible navigation tree in the sidebar and detail view. | array | see below |
+| `slug` | URL-safe identifier. Required. Lowercase letters, digits, and hyphens only — `^[a-z0-9]+(?:-[a-z0-9]+)*$`. Max 60 characters. | string | `chronicle-guide` |
+| `description` | Short summary shown on the overview card and in the detail view header. Max 300 characters. | string | `Everything you need to get started.` |
+| `cover` | Optional image for the overview card; doubles as a blurred full-page background in the detail view. Supports `asset://` and external URLs. | string | `asset://covers/chronicle-guide.webp` |
+| `nodes` | Ordered tree of post and group nodes. **Array order is navigation order.** | array | see below |
 
-#### `name`
-
-The display title rendered in the collection overview card, the sidebar nav header, and the detail view. Keep it concise — long names get truncated with an ellipsis in the sidebar header. If an article belongs to multiple collections, this name appears in the sidebar's dropdown switcher.
-
-#### `slug`
-
-A URL-safe string used as a stable reference. Must match `^[a-z0-9]+(?:-[a-z0-9]+)*$` — lowercase letters (a–z), digits (0–9), and hyphens only, with hyphens only between alphanumeric segments. The slug is a stable identifier; changing it breaks any hard-coded references.
-
-#### `description`
-
-An optional summary displayed on both the `/collections` overview card (2-line clamp) and the detail header. One or two sentences explaining what the collection covers. If omitted, only the name is shown.
-
-#### `cover`
-
-An optional image displayed in two contexts:
-- **Overview card** — rendered as a 140px-height cover image at the top of the collection card on the `/collections` grid.
-- **Detail background** — when viewing a single collection's tree, the cover becomes a full-page blurred background with a dark overlay (60% opacity in dark mode, 50% in light mode).
-
-Both `asset://` protocol URLs and external `https://` URLs are supported. The `asset://` prefix is resolved at build time to `/assets/...`. If no cover is set, the card renders without an image and the detail background stays transparent.
-
-![Collection overview grid with cover images](image.png "Collections page showing cards with cover images, names, and descriptions" =70%x)\
-
-#### `nodes`
-
-The ordered tree of items. Each node has a `type` field discriminating between a post reference and a group branch. Nodes render in array order — the first entry is the first item in the nav tree.
-
-### Post Node
+### Post nodes
 
 | Field | Description | Datatype | Sample |
 | --- | --- | --- | --- |
 | `type` | Discriminator. Always the literal string `"post"`. Set automatically by the CMS. | `"post"` | `post` |
-| `id` | Slug of the target post under `data/posts/`. Must match a published article's directory name. | string | `site-config` |
+| `id` | Slug of the target post — its directory name under `data/posts/`. Must match a published article. | string | `site-config` |
 
-#### `type`
+`type: post` produces a clickable nav link with an article icon (or a slides icon for Marp presentations). The `id` is the post's directory name — no UUIDs, no file paths. Nodes referencing unpublished posts are skipped when navigation sequences are built, so you can draft an article and add it to a collection before publishing.
 
-Must be the literal string `"post"`. This discriminator tells the renderer to produce a clickable nav link with an article icon (or slides icon for Marp presentations). Set automatically by the CMS node-tree editor.
-
-#### `id`
-
-The post slug — the directory name under `data/posts/`. No UUIDs, no file paths. If the slug doesn't match a published post at build time, the node is silently skipped during rendering. This makes it safe to draft posts and add them to collections before publishing.
-
-![Post node in collection sidebar](image-3.png "Post node with article icon and title in the collection sidebar" =70%x)
-
-### Group Node
+### Group nodes
 
 | Field | Description | Datatype | Sample |
 | --- | --- | --- | --- |
 | `type` | Discriminator. Always the literal string `"group"`. Set automatically by the CMS. | `"group"` | `group` |
 | `title` | Group heading displayed in the nav tree. Required. | string | `Configuration` |
-| `children` | Array of nested post and group nodes. Groups nest to any depth. | array | `[{ type: post, id: ... }]` |
+| `children` | Nested array of post and group nodes. Groups nest to any depth. | array | `[{ type: post, id: ... }]` |
 
-#### `type`
-
-Must be the literal string `"group"`. Tells the renderer this is a collapsible section with a folder icon and caret toggle. Groups with empty `children` arrays still render as headers but with nothing to expand.
-
-#### `title`
-
-The label shown in the nav tree. Use descriptive headings — "Configuration" tells the reader what's inside; "Part 2" doesn't. The title is clickable only to expand or collapse the group; it does not navigate.
-
-#### `children`
-
-A nested array of nodes following the same `post | group` structure. Groups can nest to any depth, though beyond two levels the sidebar starts to feel cramped on smaller screens. The order within `children` follows the same rules as top-level `nodes` — array order is render order.
-
-### Internal
-
-| Field | Description | Datatype |
-| --- | --- | --- |
-| `_localId` | Auto-generated stable ID managed by the Manager CMS. Never edit manually — the CMS regenerates it on save. | string |
-
-#### `_localId`
-
-Assigned and maintained automatically by the Manager's collection-tree editor. These IDs survive node renames and reorders within the CMS UI. They have no effect on rendering and are stripped from the public build. If you edit `collections.yml` by hand, you can omit them — the CMS regenerates missing IDs on next save.
+`type: group` renders a collapsible section with a folder icon and a caret toggle. The title only expands or collapses the group — it does not navigate. Use descriptive headings: "Configuration" tells the reader what's inside; "Part 2" doesn't. Groups with an empty `children` array still render as headers, just with nothing to expand. Nesting order follows the same rule as top-level `nodes` — array order is render order.
 
 ## Example
 
@@ -144,25 +87,90 @@ Assigned and maintained automatically by the Manager's collection-tree editor. T
       type: post
 ```
 
-## The navigation experience
+Note the order: this article sits inside the `Configuration` group, so in the sidebar and in collection-scoped prev/next it falls between `profile-config` and `friend-config` — regardless of dates.
 
-### Desktop
+## The overview page
 
-On screens ≥1200px wide, the collection sidebar appears as a fixed panel pinned to the left side of article pages. The current article is highlighted with an active border. Groups expand and collapse with a caret indicator. A pull-tab at the screen edge allows collapsing the entire panel.
+The `/collections` route renders a grid of collection cards. Each card shows the cover image (if set), the collection name, and a two-line description clamp. Cards are laid out in `collections.yml` array order.
 
-Between 768–1199px, the panel hides off-screen and reveals on hover (pointer enter) with a 700ms delay before auto-collapse on pointer leave. A translucent background and backdrop blur distinguish it from page content.
+![Collection overview grid with cover images](image.png "Collections page showing cards with cover images, names, and descriptions" =70%x)\
 
-When an article belongs to more than one collection, a dropdown switcher appears in the sidebar header. The first matching collection is pre-selected. Changing the selection re-renders the tree for that collection.
+### The detail view
 
-### Mobile
+Clicking a card drills into the collection detail view: the same expand/collapse tree as the sidebar, with a "back to list" button returning to the grid. The selected collection is tracked in the URL hash, so a detail view can be shared as a deep link and survives refresh. When the collection has a cover, it becomes a blurred full-page background with a dark overlay behind the tree.
 
-On screens <768px, the collection nav is hidden behind a floating action button in the bottom-right corner. Tapping opens it as an overlay with larger touch targets and generous spacing.
+![Collection detail view](image-2.png "Detail view with blurred cover background and expandable tree" =70%x)\
 
-### Overview page
+## The article sidebar panel
 
-The `/collections` page presents a grid of collection cards. Each card shows the cover image (if set), collection name, and description. Clicking a card navigates to a detail tree view with the same expand/collapse interaction as the sidebar. A "back to list" button returns to the grid. The URL hash tracks the selected collection for shareable deep links.
+Article pages that belong to a collection render a navigation panel alongside the content. On desktop it's a fixed sidebar; below the 768px breakpoint it hides behind a floating button that opens an overlay. The current article is highlighted with an active state, and any group containing it is expanded automatically — sibling groups stay collapsed until clicked.
 
-![Collection detail view](image-2.png "Detail view with blurred cover background and expandable tree" =70%x)
+![Post node in collection sidebar](image-3.png "Post node with article icon and title in the collection sidebar" =70%x)\
+
+When an article belongs to more than one collection, a dropdown switcher appears in the panel header with the first matching collection pre-selected; changing the selection re-renders the tree for the chosen collection.
+
+## Settings
+
+### `collectionPage` — master switch
+
+`collectionPage` is a top-level key in `site.yml`, alongside the other page toggles:
+
+```yaml
+collectionPage: true
+```
+
+When `false`, the `/collections` route is not generated (visiting it returns a 404) and the article sidebar panel — including its mobile floating entry — is hidden. Collection-scoped prev/next keeps working: it reads the collection assignments from the post index, not from the page.
+
+### `post.collectionNav` — sidebar panel settings
+
+The panel is configured under `post` in `site.yml`:
+
+```yaml
+post:
+  collectionNav:
+    enabled: true          # false → panel never renders
+    alwaysCollapsed: false # true → never auto-expand on wide screens
+```
+
+- `enabled` — master switch for the article sidebar panel. When `false`, the panel never renders, even if `collectionPage` is on.
+- `alwaysCollapsed` — when `true`, the panel starts collapsed and never auto-expands on wide screens; the reader opens it explicitly.
+
+### Prev/next — collection scope
+
+The end-of-article navigation is configured under `post.endOfArticle`:
+
+```yaml
+post:
+  endOfArticle:
+    prevNext: true
+    prevNextMode: both         # both | next-only
+    prevNextScope: collection  # global (by date) | collection (node order)
+    prevNextOrder: desc        # global scope only — ignored in collection scope
+```
+
+With `prevNextScope: collection`, prev/next follows the post's collection **node order** in `collections.yml`. Dates and `prevNextOrder` play no part — the settings UI even disables `prevNextOrder` while collection scope is active, because the collection itself defines the sequence.
+
+Collection-scope behavior rules:
+
+- **First article** — there is no prev entry; in `both` mode an "already the first" placeholder keeps the two-column layout stable.
+- **Last article** — there is no next entry; an "already the last" placeholder is rendered instead of the nav disappearing.
+- **No collection** — posts that belong to no collection show no prev/next at all in collection scope.
+- **Slides excluded** — Marp slides posts never participate: a slides page renders no prev/next, and slides posts are filtered out of the sequence for other articles.
+- **next-only mode** — the prev side is removed entirely (link and placeholder); only the next column renders, with the last-post placeholder when there is no next.
+- **Unpublished posts** — nodes referencing drafts are dropped from the sequence, so a gap simply closes.
+
+## The reverse index
+
+At build time the indexer reads `posts/` and `collections.yml` and writes two derived fields into `posts/index.json` for every article that belongs to a collection:
+
+- `collection` — the collection name (an article in multiple collections maps to the **last** collection containing it).
+- `collectionPath` — the breadcrumb-style path through the tree, e.g. `Chronicle Guide / Configuration`.
+
+The template reads these for the sidebar panel, breadcrumbs, and collection-scoped prev/next. `index.json` is program-generated — never hand-edit it; it is rebuilt from the directories before every build.
+
+## CMS entry point
+
+In the Manager, collections are edited under **Settings → Collections** (the `chronicle:collections` schema). The node-tree editor inserts post nodes via a post picker and group nodes with nested children, then writes `collections.yml` back to disk — you rarely need to touch the YAML by hand.
 
 ## Designing good collections
 
@@ -172,7 +180,6 @@ The `/collections` page presents a grid of collection cards. Each card shows the
 
 **Don't mirror your archive.** If every post belongs to exactly one collection, your collections duplicate your blog index. Let some posts float free — collections should be deliberate subsets, not an alternative sitemap.
 
-**Test the order.** The nav panel shows posts in array order. Read through the sequence before publishing. Swap nodes if the narrative flow feels wrong.
+**Test the order.** The sidebar, the detail tree, and collection-scoped prev/next all follow array order. Read through the sequence before publishing and swap nodes if the narrative flow feels wrong.
 
-**Add cover images.** A collection without a cover looks blank on the overview grid. Use a representative image — a screenshot, diagram, or custom illustration. The `asset://` protocol makes it easy to use images from your media library.
-
+**Add cover images.** A collection without a cover looks blank on the overview grid. Use a representative image — a screenshot, diagram, or custom illustration. The `asset://` protocol makes it easy to point at images from your media library.
