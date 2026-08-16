@@ -17,8 +17,12 @@ const pool = scope === 'collection' && post.collectionPath
   ? all.filter((p: any) => p.collectionPath === post.collectionPath)
   : all;
 const sorted = [...pool].sort((a: any, b: any) => (String(a.date) < String(b.date) ? -1 : 1));
+// First index strictly NEWER than the current post (pool excludes self).
 const myPos = sorted.findIndex((p: any) => String(p.date) > String(post.date));
-const prev = myPos > 0 ? sorted[myPos - 1] : null;
+// myPos === -1 → current is the newest → prev = the newest other post.
+const prev = myPos === -1
+  ? (sorted.length ? sorted[sorted.length - 1] : null)
+  : (myPos > 0 ? sorted[myPos - 1] : null);
 const next = myPos >= 0 ? sorted[myPos] : null;
 const showPrev = mode === 'next-only' ? null : prev;
 const showNext = mode === 'next-only' ? next : next;
@@ -26,29 +30,36 @@ const showNext = mode === 'next-only' ? next : next;
 
 {(showPrev || showNext) && (
   <nav class="prevnext-nav">
-    {showPrev && (
-      <a class="pn-card pn-prev" href={`/${lang}/post/${encodeURIComponent(showPrev.id)}`}>
+    {showPrev ? (
+      <a class="pn-card mtl-surface interactive glowable pn-prev" href={`/${lang}/post/${encodeURIComponent(showPrev.id)}`}>
         <span class="pn-label">{t('postPage.prevPost')}</span>
         <span class="pn-title">{showPrev.title}</span>
       </a>
+    ) : (
+      // 缺失侧用占位符填充，保持网格布局稳定
+      <span class="pn-card pn-placeholder" aria-hidden="true"></span>
     )}
-    {showNext && (
-      <a class="pn-card pn-next" href={`/${lang}/post/${encodeURIComponent(showNext.id)}`}>
+    {showNext ? (
+      <a class="pn-card mtl-surface interactive glowable pn-next" href={`/${lang}/post/${encodeURIComponent(showNext.id)}`}>
         <span class="pn-label">{t('postPage.nextPost')}</span>
         <span class="pn-title">{showNext.title}</span>
       </a>
+    ) : (
+      <span class="pn-card pn-placeholder" aria-hidden="true"></span>
     )}
   </nav>
 )}
 
 <style>
   .prevnext-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.25rem; }
-  .pn-card { display: flex; flex-direction: column; gap: 0.25rem; padding: 0.85rem 1rem; border-radius: 10px;
-    border: 1px solid var(--border-color); background: var(--comp-bg-blur); color: var(--app-text-pri); text-decoration: none;
-    transition: border-color 0.15s ease; }
-  .pn-card:hover { border-color: var(--accent); }
+  .pn-card { display: flex; flex-direction: column; gap: 0.25rem; padding: 0.85rem 1rem; border-radius: 10px; text-decoration: none; color: var(--comp-text-pri);
+    transition: border-color 0.15s ease, transform 0.15s ease, background-color 0.15s ease, color 0.15s ease; }
+  .pn-card.pn-prev:hover { transform: translateX(-2%); }
+  .pn-card.pn-next:hover { transform: translateX(2%); }
   .pn-next { text-align: right; }
   .pn-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.55; }
   .pn-title { font-size: 0.9rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* 占位符：仅保持占位与高度，不渲染内容 */
+  .pn-placeholder { min-height: 1.5rem; visibility: hidden; }
   @media (max-width: 560px) { .prevnext-nav { grid-template-columns: 1fr; } .pn-next { text-align: left; } }
 </style>
