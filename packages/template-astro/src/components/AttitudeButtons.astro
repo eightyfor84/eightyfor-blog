@@ -10,7 +10,7 @@ const { postId, walineServerUrl, locale } = Astro.props as Props;
 const t = (key: string) => getTranslation(locale, key);
 ---
 
-<div class="attitude" data-waline-server={walineServerUrl} data-post-id={postId}>
+<div class="attitude" data-waline-server={walineServerUrl} data-post-id={postId} data-lang={locale}>
   <p class="attitude-prompt">{t('postPage.attitudePrompt')}</p>
   <div class="attitude-btns">
     <button type="button" class="attitude-btn" data-reaction="0" disabled aria-label={t('postPage.attitudeLike')}>
@@ -27,13 +27,14 @@ const t = (key: string) => getTranslation(locale, key);
 <script is:inline>
   // Waline reaction (article reaction counts). Waline stores up to 9 emoji
   // reaction counts per path; here reaction0 = like, reaction1 = dislike.
-  // Server API: GET /api/reaction?path=… and POST /api/reaction {path, reaction}.
+  // Server API: Waline 计数端点 GET/POST /api/article（type: reaction0/reaction1, action: inc/desc）。
   // Degrades gracefully when the API shape differs or the server is unreachable.
   (() => {
     const root = document.querySelector('.attitude') as HTMLElement | null;
     if (!root) return;
     const server = (root.dataset.walineServer || '').replace(/\/$/, '');
     if (!server) { root.remove(); return; }
+    const lang = root.dataset.lang || 'zh-CN';
     const path = location.pathname;
     const storageKey = 'chronicle-attitude:' + path;
     const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>('.attitude-btn'));
@@ -48,11 +49,12 @@ const t = (key: string) => getTranslation(locale, key);
     }
 
     function init() {
-    // 1. Load counts
-    fetch(server + '/api/reaction?path=' + encodeURIComponent(path), { headers: { Accept: 'application/json' } })
+    // 1. Load counts — Waline 计数 API：GET /api/article?path=&type=reaction0,reaction1&lang=
+    fetch(server + '/api/article?path=' + encodeURIComponent(path) + '&type=reaction0,reaction1&lang=' + encodeURIComponent(lang), { headers: { Accept: 'application/json' } })
       .then((r) => (r.ok ? r.json() : null))
       .then((json: any) => {
-        const d = json?.data ?? json;
+        // Waline 计数返回 { errno: 0, data: [{reaction0, reaction1}] }（数组按 path 顺序）
+        const d = Array.isArray(json?.data) ? (json.data[0] ?? {}) : (json?.data ?? json);
         const c0 = Number(d?.reaction0 ?? 0);
         const c1 = Number(d?.reaction1 ?? 0);
         setCount(0, c0); setCount(1, c1);
@@ -74,10 +76,10 @@ const t = (key: string) => getTranslation(locale, key);
       if (!btn || btn.disabled) return;
       const i = Number(btn.dataset.reaction);
       btn.disabled = true;
-      fetch(server + '/api/reaction', {
+      fetch(server + '/api/article?lang=' + encodeURIComponent(lang), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ path, reaction: i }),
+        body: JSON.stringify({ path, type: 'reaction' + i, action: 'inc' }),
       })
         .then((r) => (r.ok ? r.json() : null))
         .then(() => {
