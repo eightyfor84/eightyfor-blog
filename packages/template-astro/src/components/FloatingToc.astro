@@ -123,18 +123,31 @@ const {
         if (max > 0) nav.scrollTo({ top: pct * max, behavior: 'instant' });
       }
 
-      // 常展开态（data-always-expanded）：面板保持展开、不随 hover 折叠，
-      // 并给正文让出右侧空间（reserve-toc-right，桌面端）。
-      // 注意：data-force-expanded（默认展开但 hover 可折叠）不预留空间——
-      // 轻量级 hover 动作不动正文容器。
+      // 模式由 JS 直接管理 collapsed 类（简化）：
+      //  - data-force-expanded（默认展开）：>900px 默认展开、hover 引擎照常；
+      //    ≤900px 回退为原有可折叠态（rail + 标准 hover/光标离开计时）。
+      //  - data-always-expanded（始终展开）：>900px 永不折叠；≤900px 同样回退
+      //    可折叠态。正文右侧让位（reserve-toc-right）仅 >900px 的始终展开模式。
+      const forceExpanded = nav.dataset.forceExpanded === 'true';
       const alwaysExpanded = nav.dataset.alwaysExpanded === 'true';
       const container = document.querySelector('.post-detail-container') as HTMLElement | null;
-      function syncTocPadding() {
-        if (!container) return;
-        container.classList.toggle('reserve-toc-right', alwaysExpanded && window.innerWidth > 900);
+
+      function applyModeByWidth() {
+        const narrow = window.innerWidth <= 900;
+        if (narrow) {
+          // 回退为原有可折叠态：收起成 rail，hover 引擎接管展开/收起
+          nav.classList.add('collapsed');
+          nav.classList.remove('expanded');
+        } else if (forceExpanded || alwaysExpanded) {
+          nav.classList.remove('collapsed');
+          nav.classList.add('expanded');
+        }
+        if (container) {
+          container.classList.toggle('reserve-toc-right', alwaysExpanded && !narrow);
+        }
       }
-      syncTocPadding();
-      window.addEventListener('resize', syncTocPadding);
+      applyModeByWidth();
+      window.addEventListener('resize', applyModeByWidth);
 
       // Mouse collapse — sync scroll position by percentage so expanded
       // and collapsed views stay aligned despite different item heights.
@@ -147,7 +160,8 @@ const {
       });
       nav.addEventListener('mouseleave', () => {
         if (_floatTimer) clearTimeout(_floatTimer);
-        if (alwaysExpanded) return; // 始终展开：永不折叠
+        // 始终展开且非窄视口：永不折叠；其余（含窄视口回退态）走标准引擎
+        if (alwaysExpanded && window.innerWidth > 900) return;
         _floatTimer = window.setTimeout(() => {
           const pct = tocScrollPercent(nav);
           nav.classList.add('collapsed');
@@ -241,29 +255,6 @@ const {
     border: none !important;
   }
 
-  /* 3.1.x — expanded modes (data-force-expanded / data-always-expanded): when the
-     window narrows below the threshold (<900px), BOTH revert to the collapsible
-     rail look purely via CSS. Hover still expands (engine untouched);
-     reserve-toc-right right-padding is dropped below the threshold too. */
-  @media (max-width: 900px) {
-    .toc-float[data-force-expanded="true"]:not(:hover),
-    .toc-float[data-always-expanded="true"]:not(:hover) {
-      width: 38px; padding: 4px 8px; border: none; background-color: transparent;
-      border-radius: 10px; overflow-y: auto; scrollbar-width: none;
-    }
-    .toc-float[data-force-expanded="true"]:not(:hover) ul,
-    .toc-float[data-always-expanded="true"]:not(:hover) ul { padding: 0; }
-    .toc-float[data-force-expanded="true"]:not(:hover) li,
-    .toc-float[data-always-expanded="true"]:not(:hover) li {
-      justify-content: center; margin: 0; min-height: 18px;
-    }
-    .toc-float[data-force-expanded="true"]:not(:hover) .toc-text,
-    .toc-float[data-always-expanded="true"]:not(:hover) .toc-text {
-      opacity: 0; transform: translateX(10px); position: absolute; pointer-events: none;
-    }
-    .toc-float[data-force-expanded="true"]:not(:hover) .toc-line,
-    .toc-float[data-always-expanded="true"]:not(:hover) .toc-line {
-      opacity: 1; transform: translateX(0); position: relative; margin: 0;
-    }
-  }
+  /* 3.1.x — <900px 回退可折叠态由 JS（applyModeByWidth）直接切 collapsed 类完成，
+     标准 .collapsed 样式 + hover/光标离开引擎原样工作，无需 CSS :not(:hover)。 */
 </style>
