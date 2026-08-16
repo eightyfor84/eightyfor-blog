@@ -11,6 +11,8 @@ import DesktopFloatingToc from '../../../components/FloatingToc.astro';
 import CornerActions from '../../../components/CornerActions.astro';
 import CollectionNav from '../../../components/CollectionNav.astro';
 import CommentSection from '../../../components/CommentSection.astro';
+import EndOfArticle from '../../../components/EndOfArticle.astro';
+import AttitudeButtons from '../../../components/AttitudeButtons.astro';
 import Slideshow from '../../../components/Slideshow.astro';
 import 'katex/dist/katex.min.css';
 import '../../../styles/post.css';
@@ -73,18 +75,38 @@ if (localPost) {
 }
 settings = getPublicSettings() as Record<string, any>;
 
+// ── Post page config (3.1.x — nested `post:` block from site.yml) ──
+const postCfg = ((settings as Record<string, any>).post || {}) as any;
+const metaCfg = postCfg.meta || {};
+const tocCfg = postCfg.toc || {};
+const collectionNavCfg = postCfg.collectionNav || {};
+const endOfArticleCfg = postCfg.endOfArticle || {};
+const commentsCfg = postCfg.comments || (settings as Record<string, any>).comment || {};
+
 // ── Comment config ────────────────────────────────────
-const commentCfg = (settings as Record<string, any>).comment || {};
-const commentBackend = String(commentCfg.backend || '');
-const commentWalineServerUrl = String(commentCfg.walineServerUrl || '');
+const commentBackend = String(commentsCfg.backend || '');
+const commentWalineServerUrl = String(commentsCfg.walineServerUrl || '');
+// Attitude (like/dislike) is a Waline reaction feature — only with the waline backend.
+const attitudeEnabled = commentBackend === 'waline' && commentsCfg.attitude !== false;
+// D2: show geo address (never the raw IP) on comments — waline location when present.
+const showGeoAddress = commentsCfg.showGeoAddress !== false;
 
 // ── Comments feature flag ────────────────────────────────
 const commentsEnabled = (settings as Record<string, any>).comments !== false;
 
 // ── Collection feature flag (distinct from data result — see getCollections) ──
 const collectionEnabled = (settings as Record<string, any>).collectionPage !== false;
+const collectionNavEnabled = collectionNavCfg.collectionNavEnabled !== false;
 // Single source of truth for "render the collection nav + reserve its sidebar space".
-const hasCollectionNav = collectionEnabled && !!post?.collection;
+const hasCollectionNav = collectionEnabled && collectionNavEnabled && !!post?.collection;
+const collectionNavCollapsed = collectionNavCfg.alwaysCollapsed === true;
+
+// ── TOC toggles (3.1.x) ────────────────────────────────
+const tocEnabled = tocCfg.tocEnabled !== false;
+const inlineTocEnabled = tocEnabled && tocCfg.inlineToc !== false;
+const tocFloatEnabled = tocEnabled && tocCfg.tocFloat !== false;
+const tocFloatCollapsed = tocCfg.tocFloatCollapsed !== false;
+const mobileTocControlEnabled = tocEnabled && tocCfg.mobileTocControl !== false;
 
 // ── Collections + post titles for CollectionNav ──────────
 let embeddedCollections: any[] = [];
@@ -245,6 +267,7 @@ const metaDescription = buildMetaDescription(post, locale);
         </a>
       </div>
     ) : post ? (
+      <>
       <article class={`post-content font-${post.font || 'sans'}`} data-page-locale={locale} data-mermaid-ui={JSON.stringify(mermaidUiText)}>
         <nav class="post-nav">
           <a href={backToBlogs} class="nav-back" aria-label={t('inblog.backToBlogs')}>
@@ -259,16 +282,20 @@ const metaDescription = buildMetaDescription(post, locale);
           <div class="post-meta">
             <!-- 第一行：作者和创建修改时间 -->
             <div class="meta-row">
+              {metaCfg.metaAuthor !== false && (
               <span class="meta-item" title={`Author: ${authorName}`} aria-label={`Author: ${authorName}`}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                 <span class="meta-value">{authorName}</span>
               </span>
+              )}
+              {metaCfg.metaCreated !== false && (
               <span class="meta-item" title={createdAtText} aria-label={`Created ${createdAtText}`}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                 <span class="meta-label">{t('inblog.created')}</span>
                 <time datetime={new Date(post.date).toISOString()}>{createdAtText}</time>
               </span>
-              {updatedAtText && (
+              )}
+              {updatedAtText && metaCfg.metaUpdated !== false && (
                 <span class="meta-item" title={updatedAtText} aria-label={`Updated ${updatedAtText}`}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
                   <span class="meta-label">{t('inblog.updated')}</span>
@@ -279,14 +306,14 @@ const metaDescription = buildMetaDescription(post, locale);
 
             <!-- 第二行：字数和阅读时间 -->
             <div class="meta-row">
-              {wordCount > 0 && (
+              {wordCount > 0 && metaCfg.metaWords !== false && (
                 <span class="meta-item" title={`${wordCount} words`} aria-label={`${wordCount} words`}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14,2 14,8 20,8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10,9 9,9 8,9"></polyline></svg>
                   <span class="meta-label">{t('inblog.words')}</span>
                   <span class="meta-value">{wordCount.toLocaleString()}</span>
                 </span>
               )}
-              {readingTime > 0 && (
+              {readingTime > 0 && metaCfg.metaReadingTime !== false && (
                 <span class="meta-item" title={`${readingTime} minutes read`} aria-label={`${readingTime} minutes read`}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12,6 12,12 16,14"></polyline></svg>
                   <span class="meta-label">{t('inblog.readingTime')}</span>
@@ -296,7 +323,7 @@ const metaDescription = buildMetaDescription(post, locale);
             </div>
 
             <!-- 第三行：AI生成标记（如果有） -->
-            {isAI && (
+            {isAI && metaCfg.metaAiBadge !== false && (
               <div class="meta-row">
                 <span class="meta-item warning" title="AI Generated Content" aria-label="AI Generated Content">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
@@ -305,7 +332,7 @@ const metaDescription = buildMetaDescription(post, locale);
               </div>
             )}
 
-            {post.tags && post.tags.length > 0 && (
+            {post.tags && post.tags.length > 0 && metaCfg.showTags !== false && (
               <div class="post-tags">
                 {post.tags.map((tag: string) => (
                 <a href={searchForTags + encodeURIComponent(tag)} class="tag-link" aria-label={`Search for tag ${tag}`}>
@@ -319,7 +346,7 @@ const metaDescription = buildMetaDescription(post, locale);
           </div>
         </header>
 
-        {tocItems.length > 0 && (
+        {tocItems.length > 0 && inlineTocEnabled && (
           <div class="markdown-toc" id="inline-toc">
             <button class="toc-summary" aria-label={t('inblog.toc-title')} aria-expanded="false">
               <span class="toc-title">{t('inblog.toc-title')}</span>
@@ -373,7 +400,16 @@ const metaDescription = buildMetaDescription(post, locale);
         <link rel="stylesheet" href={chronicleMarkdownCssUrl} media="print" onload="this.media='all'" />
         <noscript><link rel="stylesheet" href={chronicleMarkdownCssUrl} /></noscript>
       </article>
+
+      {post && (
+        <EndOfArticle post={post} locale={locale} lang={routeLang} cfg={endOfArticleCfg} />
+      )}
+      </>
     ) : null}
+
+    {post && attitudeEnabled && (
+      <AttitudeButtons postId={post?.id || id} walineServerUrl={commentWalineServerUrl} />
+    )}
 
     {post && commentsEnabled && (
       <CommentSection
@@ -381,26 +417,29 @@ const metaDescription = buildMetaDescription(post, locale);
         locale={locale}
         backend={commentBackend}
         walineServerUrl={commentWalineServerUrl}
+        attitudeEnabled={attitudeEnabled}
+        showGeoAddress={showGeoAddress}
       />
     )}
   </div>
   <div class="scroll-blank"/>
 
-  {tocItems.length > 0 && (
+  {tocItems.length > 0 && tocFloatEnabled && (
     <>
       <script id="chronicle-toc-data" type="application/json" set:html={JSON.stringify(tocItems)}></script>
       <DesktopFloatingToc
         toc={tocItems}
         navLabel={t('inblog.toc-title')}
         mountToBody={true}
+        collapsed={tocFloatCollapsed}
       />
     </>
   )}
 
-  <CornerActions toc={tocItems} postId={post?.id || id} collections={embeddedCollections} postTitles={embeddedPostTitles} postTypes={embeddedPostTypes} commentsEnabled={commentsEnabled} collectionEnabled={collectionEnabled} />
+  <CornerActions toc={tocItems} postId={post?.id || id} collections={embeddedCollections} postTitles={embeddedPostTitles} postTypes={embeddedPostTypes} commentsEnabled={commentsEnabled} collectionEnabled={collectionEnabled} mobileToc={mobileTocControlEnabled} />
 
   {hasCollectionNav && (
-    <CollectionNav postId={post?.id || id} collections={embeddedCollections} postTitles={embeddedPostTitles} postTypes={embeddedPostTypes} />
+    <CollectionNav postId={post?.id || id} collections={embeddedCollections} postTitles={embeddedPostTitles} postTypes={embeddedPostTypes} defaultCollapsed={collectionNavCollapsed} />
   )}
 
   <style is:global>

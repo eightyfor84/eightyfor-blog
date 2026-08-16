@@ -144,6 +144,12 @@ function renderCommentHTML(comment: CommentNode, lang: string, isReply: boolean,
     ? `<span class="cs-pinned-badge" aria-label="${escapeHtml(pinnedLabel)}">${escapeHtml(pinnedLabel)}</span>`
     : '';
 
+  // 3.1.x — geo badge: show the geo address (never the raw IP) when present and enabled.
+  const showGeo = (document.querySelector('.comment-section') as HTMLElement | null)?.dataset.showGeo !== 'false';
+  const geoBadge = comment.location && showGeo
+    ? `<span class="cs-location">${escapeHtml(comment.location)}</span>`
+    : '';
+
   return `
     <div class="cs-comment${isReply ? ' cs-comment--reply' : ''}" id="comment-${escapeHtml(comment.id)}">
       <div class="cs-avatar">${renderAvatar(comment, isReply)}</div>
@@ -153,6 +159,7 @@ function renderCommentHTML(comment: CommentNode, lang: string, isReply: boolean,
           ${pinnedBadge}
           ${replyTo}
           <span class="cs-date" data-date="${escapeHtml(comment.date)}">${escapeHtml(formatRelativeDate(comment.date, lang))}</span>
+          ${geoBadge}
         </div>
         <div class="cs-content">${comment.content}</div>
         <button type="button" class="cs-reply-btn" data-reply-to="${escapeHtml(comment.id)}" data-reply-root="${escapeHtml(comment.rootId || comment.id)}">${escapeHtml(replyLabel)}</button>

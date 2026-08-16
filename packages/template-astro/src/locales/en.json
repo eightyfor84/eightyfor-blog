@@ -15,6 +15,11 @@
     "about": "About",
     "menu": "Menu"
   },
+  "postPage": {
+    "relatedPosts": "Related Posts",
+    "prevPost": "Previous",
+    "nextPost": "Next"
+  },
   "inblog": {
     "toc-title": "Table of Contents",
     "backToBlogs": "Back to Posts",

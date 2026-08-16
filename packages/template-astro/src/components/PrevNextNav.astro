@@ -1,0 +1,54 @@
+---
+import { getPublishedPosts } from '../data/localDataSource';
+import { getTranslation } from '../utils/i18n';
+
+interface Props {
+  post: any;
+  locale: string;
+  lang: string;
+  mode?: 'both' | 'next-only';
+  scope?: 'global' | 'collection';
+}
+const { post, locale, lang, mode = 'both', scope = 'global' } = Astro.props as Props;
+const t = (key: string) => getTranslation(locale, key);
+
+const all = (getPublishedPosts() as any[]).filter((p: any) => String(p.id) !== String(post.id));
+const pool = scope === 'collection' && post.collectionPath
+  ? all.filter((p: any) => p.collectionPath === post.collectionPath)
+  : all;
+const sorted = [...pool].sort((a: any, b: any) => (String(a.date) < String(b.date) ? -1 : 1));
+const myPos = sorted.findIndex((p: any) => String(p.date) > String(post.date));
+const prev = myPos > 0 ? sorted[myPos - 1] : null;
+const next = myPos >= 0 ? sorted[myPos] : null;
+const showPrev = mode === 'next-only' ? null : prev;
+const showNext = mode === 'next-only' ? next : next;
+---
+
+{(showPrev || showNext) && (
+  <nav class="prevnext-nav">
+    {showPrev && (
+      <a class="pn-card pn-prev" href={`/${lang}/post/${encodeURIComponent(showPrev.id)}`}>
+        <span class="pn-label">{t('postPage.prevPost')}</span>
+        <span class="pn-title">{showPrev.title}</span>
+      </a>
+    )}
+    {showNext && (
+      <a class="pn-card pn-next" href={`/${lang}/post/${encodeURIComponent(showNext.id)}`}>
+        <span class="pn-label">{t('postPage.nextPost')}</span>
+        <span class="pn-title">{showNext.title}</span>
+      </a>
+    )}
+  </nav>
+)}
+
+<style>
+  .prevnext-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.25rem; }
+  .pn-card { display: flex; flex-direction: column; gap: 0.25rem; padding: 0.85rem 1rem; border-radius: 10px;
+    border: 1px solid var(--border-color); background: var(--comp-bg-blur); color: var(--app-text-pri); text-decoration: none;
+    transition: border-color 0.15s ease; }
+  .pn-card:hover { border-color: var(--accent); }
+  .pn-next { text-align: right; }
+  .pn-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.55; }
+  .pn-title { font-size: 0.9rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  @media (max-width: 560px) { .prevnext-nav { grid-template-columns: 1fr; } .pn-next { text-align: left; } }
+</style>

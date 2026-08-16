@@ -15,6 +15,11 @@
     "about": "关于",
     "menu": "菜单"
   },
+  "postPage": {
+    "relatedPosts": "相关文章",
+    "prevPost": "上一篇",
+    "nextPost": "下一篇"
+  },
   "inblog": {
     "toc-title": "目录",
     "backToBlogs": "返回博客列表",

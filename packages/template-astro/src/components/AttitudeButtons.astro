@@ -1,0 +1,95 @@
+---
+interface Props {
+  postId: string;
+  walineServerUrl: string;
+}
+const { postId, walineServerUrl } = Astro.props as Props;
+---
+
+<div class="attitude" data-waline-server={walineServerUrl} data-post-id={postId}>
+  <button type="button" class="attitude-btn" data-reaction="0" disabled aria-label="Like">
+    <span class="attitude-icon">👍</span>
+    <span class="attitude-count" data-count-for="0">0</span>
+  </button>
+  <button type="button" class="attitude-btn" data-reaction="1" disabled aria-label="Dislike">
+    <span class="attitude-icon">👎</span>
+    <span class="attitude-count" data-count-for="1">0</span>
+  </button>
+</div>
+
+<script is:inline>
+  // Waline reaction (article reaction counts). Waline stores up to 9 emoji
+  // reaction counts per path; here reaction0 = like, reaction1 = dislike.
+  // Server API: GET /api/reaction?path=… and POST /api/reaction {path, reaction}.
+  // Degrades gracefully when the API shape differs or the server is unreachable.
+  (() => {
+    const root = document.querySelector('.attitude') as HTMLElement | null;
+    if (!root) return;
+    const server = (root.dataset.walineServer || '').replace(/\/$/, '');
+    if (!server) { root.remove(); return; }
+    const path = location.pathname;
+    const storageKey = 'chronicle-attitude:' + path;
+    const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>('.attitude-btn'));
+    const countEls = Array.from(root.querySelectorAll<HTMLElement>('[data-count-for]'));
+
+    function setCount(i: number, n: number) {
+      countEls.forEach((el) => { if (el.dataset.countFor === String(i)) el.textContent = String(n); });
+    }
+    function lockVote(i: number) {
+      buttons.forEach((b, idx) => { b.classList.toggle('voted', idx === i); b.disabled = true; });
+      try { localStorage.setItem(storageKey, String(i)); } catch {}
+    }
+
+    // 1. Load counts
+    fetch(server + '/api/reaction?path=' + encodeURIComponent(path), { headers: { Accept: 'application/json' } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((json: any) => {
+        const d = json?.data ?? json;
+        const c0 = Number(d?.reaction0 ?? 0);
+        const c1 = Number(d?.reaction1 ?? 0);
+        setCount(0, c0); setCount(1, c1);
+        buttons.forEach((b) => { b.disabled = false; });
+        // Re-apply a previous vote for this path (local-only).
+        try {
+          const v = localStorage.getItem(storageKey);
+          if (v !== null) lockVote(Number(v));
+        } catch {}
+      })
+      .catch(() => {
+        // Server unreachable / shape mismatch — keep the widget but non-interactive.
+        buttons.forEach((b) => { b.disabled = true; });
+      });
+
+    // 2. Submit vote
+    root.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest?.('.attitude-btn') as HTMLButtonElement | null;
+      if (!btn || btn.disabled) return;
+      const i = Number(btn.dataset.reaction);
+      btn.disabled = true;
+      fetch(server + '/api/reaction', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path, reaction: i }),
+      })
+        .then((r) => (r.ok ? r.json() : null))
+        .then(() => {
+          const cur = Number(countEls[i]?.textContent || 0);
+          setCount(i, cur + 1);
+          lockVote(i);
+        })
+        .catch(() => { btn.disabled = false; });
+    });
+  })();
+</script>
+
+<style>
+  .attitude { display: inline-flex; gap: 0.6rem; margin: 0.25rem 0 0.5rem; }
+  .attitude-btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.9rem; border-radius: 999px;
+    border: 1px solid var(--border-color); background: var(--comp-bg-blur); color: var(--app-text-pri);
+    font-size: 0.85rem; cursor: pointer; transition: border-color 0.15s ease; }
+  .attitude-btn:hover:not(:disabled) { border-color: var(--accent); }
+  .attitude-btn.voted { border-color: var(--accent); color: var(--accent); }
+  .attitude-btn:disabled { opacity: 0.55; cursor: default; }
+  .attitude-icon { line-height: 1; }
+  .attitude-count { font-variant-numeric: tabular-nums; }
+</style>

@@ -8,6 +8,8 @@ interface Props {
   postTitles?: Record<string, string>;
   postTypes?: Record<string, string>;
   variant?: "sidebar" | "inline";
+  /** 3.1.x — always collapsed: never auto-expand on wide screens. */
+  defaultCollapsed?: boolean;
 }
 const {
   postId = "",
@@ -16,6 +18,7 @@ const {
   postTitles = {},
   postTypes = {},
   variant = "sidebar",
+  defaultCollapsed = false,
 } = Astro.props as Props;
 
 function esc(s: string) {
@@ -108,6 +111,7 @@ const rootId = isSidebar ? "collection-nav-root" : "collection-nav-inline";
   data-cn-variant={variant}
   data-mount-to-body={isSidebar ? String(mountToBody) : "false"}
   data-post-id={postId}
+  data-always-collapsed={defaultCollapsed ? "true" : undefined}
 >
   <div class="cn-header">
     <div class="cn-header-title">
@@ -169,7 +173,13 @@ const rootId = isSidebar ? "collection-nav-root" : "collection-nav-inline";
           const NAV = 260;
           let pushed = false,
             opl: string | null = null;
+          const alwaysCollapsed = r.dataset.alwaysCollapsed === "true";
           function P() {
+            if (alwaysCollapsed) {
+              r.classList.add("collapsed");
+              r.classList.remove("expanded");
+              return;
+            }
             const w = window.innerWidth;
             const ct = document.querySelector(".post-detail-container") as HTMLElement;
             if (w >= 1200) {
@@ -192,6 +202,7 @@ const rootId = isSidebar ? "collection-nav-root" : "collection-nav-inline";
           }
           let ct2: number | undefined;
           r.addEventListener("pointerenter", () => {
+            if (alwaysCollapsed) return;
             if (ct2) {
               clearTimeout(ct2);
               ct2 = undefined;

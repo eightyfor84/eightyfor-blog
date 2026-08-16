@@ -251,6 +251,38 @@ export interface CommentConfig {
   walineServerUrl?: string;
 }
 
+
+// ── Post page config (3.1.x) — mirrors the `post:` block of site.yml ──
+export interface PostPageConfig {
+  meta?: { metaAuthor?: boolean; metaCreated?: boolean; metaUpdated?: boolean; metaWords?: boolean; metaReadingTime?: boolean; metaAiBadge?: boolean; showTags?: boolean };
+  toc?: { tocEnabled?: boolean; inlineToc?: boolean; tocFloat?: boolean; tocFloatCollapsed?: boolean; mobileTocControl?: boolean };
+  collectionNav?: { collectionNavEnabled?: boolean; alwaysCollapsed?: boolean };
+  endOfArticle?: { relatedPosts?: boolean; prevNext?: boolean; prevNextMode?: 'both' | 'next-only'; prevNextScope?: 'global' | 'collection'; authorCard?: boolean; share?: boolean; shareChannels?: string[] };
+  comments?: { backend?: string; walineServerUrl?: string; attitude?: boolean; showGeoAddress?: boolean };
+}
+
+const POST_PAGE_DEFAULTS: Required<PostPageConfig> = {
+  meta: { metaAuthor: true, metaCreated: true, metaUpdated: true, metaWords: true, metaReadingTime: true, metaAiBadge: true, showTags: true },
+  toc: { tocEnabled: true, inlineToc: true, tocFloat: true, tocFloatCollapsed: true, mobileTocControl: true },
+  collectionNav: { collectionNavEnabled: true, alwaysCollapsed: false },
+  endOfArticle: { relatedPosts: true, prevNext: true, prevNextMode: 'both', prevNextScope: 'global', authorCard: true, share: true, shareChannels: ['twitter', 'weibo', 'copy-link'] },
+  comments: { backend: '', walineServerUrl: '', attitude: true, showGeoAddress: true },
+}
+
+function normalizePostConfig(raw: unknown): PostPageConfig {
+  const src = raw && typeof raw === 'object' ? (raw as Record<string, any>) : {};
+  const out: Record<string, any> = {};
+  for (const key of Object.keys(POST_PAGE_DEFAULTS)) {
+    const def = (POST_PAGE_DEFAULTS as Record<string, any>)[key];
+    const val = src[key];
+    if (val && typeof val === 'object' && !Array.isArray(val) && def && typeof def === 'object') {
+      out[key] = { ...def, ...val };
+    } else {
+      out[key] = val !== undefined ? val : def;
+    }
+  }
+  return out as PostPageConfig;
+}
 export interface LocalSettings {
     siteName?: string;
     siteDescription?: string;
@@ -275,6 +307,8 @@ export interface LocalSettings {
     icpNumber?: string;
     defaultPerformanceMode?: string;
     comment?: CommentConfig;
+    /** 3.1.x — nested post-page config (data/site.yml post: block). */
+    post?: PostPageConfig;
     // Feature toggles
     collectionPage?: boolean;
     aboutPage?: boolean;
@@ -538,6 +572,7 @@ export function getPublicSettings(): LocalSettings {
         icpNumber: raw.icpNumber || '',
         defaultPerformanceMode: raw.defaultPerformanceMode || 'auto',
         comment: raw.comment || {},
+        post: normalizePostConfig(raw.post),
     };
 }
 

@@ -28,6 +28,8 @@ interface Props {
   locale?: string;
   backend?: string;
   walineServerUrl?: string;
+  /** 3.1.x — show commenter geo address (never the raw IP) when available. */
+  showGeoAddress?: boolean;
 }
 
 const {
@@ -36,6 +38,7 @@ const {
   locale = 'en',
   backend = '',
   walineServerUrl = '',
+  showGeoAddress = true,
 } = Astro.props as Props;
 
 const t = (key: string) => getTranslation(locale as 'en' | 'zh-CN', key);
@@ -90,6 +93,7 @@ const clientI18n = {
   data-post-id={postId || ''}
   data-comment-backend={backend}
   data-waline-server-url={walineServerUrl}
+  data-show-geo={showGeoAddress ? 'true' : 'false'}
   data-locale={locale}
 >
   <script type="application/json" data-role="comment-i18n" set:html={JSON.stringify(clientI18n)}></script>
@@ -179,6 +183,9 @@ const clientI18n = {
                 <span class="cs-date" data-date={comment.date}>
                   {formatDate(comment.date)}
                 </span>
+                {showGeoAddress && comment.location && (
+                  <span class="cs-location">{comment.location}</span>
+                )}
               </div>
               <div class="cs-content" set:html={comment.content} />
             </div>
@@ -208,6 +215,9 @@ const clientI18n = {
                       <span class="cs-date" data-date={reply.date}>
                         {formatDate(reply.date)}
                       </span>
+                      {showGeoAddress && reply.location && (
+                        <span class="cs-location">{reply.location}</span>
+                      )}
                     </div>
                     <div class="cs-content" set:html={reply.content} />
                   </div>
@@ -425,6 +435,15 @@ const clientI18n = {
     padding: 0.1em 0.55em;
     border-radius: 0.5em;
     line-height: 1.4;
+    white-space: nowrap;
+  }
+
+  .cs-location {
+    font-size: 0.72rem;
+    color: var(--comp-text-sec, var(--app-text-sec));
+    background: var(--comp-bg, rgba(128,128,128,0.08));
+    padding: 0.1em 0.55em;
+    border-radius: 999px;
     white-space: nowrap;
   }
 

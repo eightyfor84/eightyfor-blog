@@ -8,6 +8,8 @@ interface Props {
   inlineSelector?: string;
   baselineOffset?: number;
   mountToBody?: boolean;
+  /** 3.1.x — collapse-by-default. When false the panel starts expanded (CSS-only). */
+  collapsed?: boolean;
 }
 
 const {
@@ -17,14 +19,16 @@ const {
   inlineSelector = '.markdown-toc',
   baselineOffset = 85,
   mountToBody = false,
+  collapsed = true,
 } = Astro.props as Props;
 ---
 
 <div id="floating-toc-root" data-mount-to-body={String(mountToBody)}>
   {toc.length > 0 && (
     <nav
-      class="toc-float collapsed"
-      class:list={{ visible: false }}
+      class="toc-float"
+      class:list={{ collapsed, visible: false }}
+      data-force-expanded={collapsed ? undefined : 'true'}
       aria-label={navLabel}
       data-container-selector={containerSelector}
       data-inline-selector={inlineSelector}
@@ -206,4 +210,24 @@ const {
   .toc-float:not(.collapsed) li.active .toc-text { background: var(--highlight); color: var(--comp-text-pri-hl); font-weight: 500; font-variation-settings: 'wght' 500; }
   .toc-float.visible {  opacity: 1; pointer-events: auto; }
   .toc-float:not(.visible) { transform: translateX(20px); opacity: 0; pointer-events: none; }
+
+  /* 3.1.x — expanded-by-default mode (data-force-expanded): when the window
+     narrows below the threshold, revert to the collapsed look purely via CSS.
+     The hover-to-expand engine (mouseenter/mouseleave) is untouched. */
+  @media (max-width: 900px) {
+    .toc-float[data-force-expanded="true"]:not(:hover) {
+      width: 38px; padding: 4px 8px; border: none; background-color: transparent;
+      border-radius: 10px; overflow-y: auto; scrollbar-width: none;
+    }
+    .toc-float[data-force-expanded="true"]:not(:hover) ul { padding: 0; }
+    .toc-float[data-force-expanded="true"]:not(:hover) li {
+      justify-content: center; margin: 0; min-height: 18px;
+    }
+    .toc-float[data-force-expanded="true"]:not(:hover) .toc-text {
+      opacity: 0; transform: translateX(10px); position: absolute; pointer-events: none;
+    }
+    .toc-float[data-force-expanded="true"]:not(:hover) .toc-line {
+      opacity: 1; transform: translateX(0); position: relative; margin: 0;
+    }
+  }
 </style>
