@@ -257,7 +257,7 @@ const metaDescription = buildMetaDescription(post, locale);
 </Layout>
 ) : (
 <Layout title={pageTitle} settings={settings} locale={locale} navTitle={post?.title} navBackHref={backToBlogs} navBackLabel={t('inblog.backToBlogs')} meta={{ description: metaDescription, type: 'article' }}>
-  <div class="post-detail-container" class:list={[{ "has-collection-nav": hasCollectionNav }, { "always-collapsed": collectionNavCollapsed }]} id="post-top">
+  <div class="post-detail-container" class:list={[{ "has-collection-nav": hasCollectionNav }, { "always-collapsed": collectionNavCollapsed }, { "reserve-toc-right": tocFloatAlwaysExpanded && tocFloatEnabled }]} id="post-top">
     {error ? (
       <div class="error-container">
         <h1>Post not found</h1>

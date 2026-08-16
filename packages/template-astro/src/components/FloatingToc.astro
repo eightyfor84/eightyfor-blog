@@ -29,9 +29,9 @@ const {
 <div id="floating-toc-root" data-mount-to-body={String(mountToBody)}>
   {toc.length > 0 && (
     <nav
-      class="toc-float"
-      class:list={{ collapsed, visible: false }}
-      data-force-expanded={!alwaysExpanded && !collapsed ? 'true' : undefined}
+      class="toc-float collapsed"
+      class:list={{ visible: false }}
+      data-default-expanded={collapsed ? undefined : 'true'}
       data-always-expanded={alwaysExpanded ? 'true' : undefined}
       aria-label={navLabel}
       data-container-selector={containerSelector}
@@ -123,32 +123,8 @@ const {
         if (max > 0) nav.scrollTo({ top: pct * max, behavior: 'instant' });
       }
 
-      // 模式由 JS 直接管理 collapsed 类（简化）：
-      //  - data-force-expanded（默认展开）：>900px 默认展开、hover 引擎照常；
-      //    ≤900px 回退为原有可折叠态（rail + 标准 hover/光标离开计时）。
-      //  - data-always-expanded（始终展开）：>900px 永不折叠；≤900px 同样回退
-      //    可折叠态。正文右侧让位（reserve-toc-right）仅 >900px 的始终展开模式。
-      const forceExpanded = nav.dataset.forceExpanded === 'true';
-      const alwaysExpanded = nav.dataset.alwaysExpanded === 'true';
-      const container = document.querySelector('.post-detail-container') as HTMLElement | null;
-
-      function applyModeByWidth() {
-        const narrow = window.innerWidth <= 900;
-        if (narrow) {
-          // 回退为原有可折叠态：收起成 rail，hover 引擎接管展开/收起
-          nav.classList.add('collapsed');
-          nav.classList.remove('expanded');
-        } else if (forceExpanded || alwaysExpanded) {
-          nav.classList.remove('collapsed');
-          nav.classList.add('expanded');
-        }
-        if (container) {
-          container.classList.toggle('reserve-toc-right', alwaysExpanded && !narrow);
-        }
-      }
-      applyModeByWidth();
-      window.addEventListener('resize', applyModeByWidth);
-
+      // 模式外观全部由 CSS 处理（@media(min-width:900px) + data-default-expanded /
+      // data-always-expanded）；JS 只保留必须用 JS 的延迟折叠（光标离开计时）。
       // Mouse collapse — sync scroll position by percentage so expanded
       // and collapsed views stay aligned despite different item heights.
       nav.addEventListener('mouseenter', () => {
@@ -160,8 +136,6 @@ const {
       });
       nav.addEventListener('mouseleave', () => {
         if (_floatTimer) clearTimeout(_floatTimer);
-        // 始终展开且非窄视口：永不折叠；其余（含窄视口回退态）走标准引擎
-        if (alwaysExpanded && window.innerWidth > 900) return;
         _floatTimer = window.setTimeout(() => {
           const pct = tocScrollPercent(nav);
           nav.classList.add('collapsed');
@@ -245,14 +219,52 @@ const {
   .toc-float.visible {  opacity: 1; pointer-events: auto; }
   .toc-float:not(.visible) { transform: translateX(20px); opacity: 0; pointer-events: none; }
 
-  /* 始终展开态（data-always-expanded）：与 collectionNav 展开态类似 —— 无背景、
-     无模糊、无阴影边框；条目保持完整文字，不折叠为线状。 */
-  .toc-float[data-always-expanded="true"]:not(.collapsed) {
-    background-color: transparent !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    box-shadow: none !important;
-    border: none !important;
+  /* 展开外观（data-default-expanded 基态 = 默认展开/始终展开）：>900px 生效，
+     覆盖 SSR 的 .collapsed 外观；≤900px 无此规则 → 保持可折叠 rail。
+     data-always-expanded 是修饰符（无背景/无模糊，正文让位由容器类处理）。 */
+  @media (min-width: 900px) {
+    .toc-float[data-default-expanded="true"],
+    .toc-float[data-always-expanded="true"] {
+      overflow-y: auto;
+      width: 220px;
+      padding: 4px 8px;
+      background-color: var(--comp-bg-blur);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      scrollbar-width: auto;
+    }
+    .toc-float[data-default-expanded="true"] ul,
+    .toc-float[data-always-expanded="true"] ul { padding: 4px; }
+    .toc-float[data-default-expanded="true"] li,
+    .toc-float[data-always-expanded="true"] li { justify-content: flex-start; margin: 1px 0; min-height: 20px; }
+    /* 展开：文字完整显示、不折叠成线状 */
+    .toc-float[data-default-expanded="true"] .toc-text,
+    .toc-float[data-always-expanded="true"] .toc-text {
+      opacity: 1 !important;
+      transform: translateX(0) !important;
+      position: static !important;
+      pointer-events: auto !important;
+    }
+    .toc-float[data-default-expanded="true"] .toc-line,
+    .toc-float[data-always-expanded="true"] .toc-line {
+      opacity: 0 !important;
+      transform: translateX(10px) !important;
+      pointer-events: none !important;
+    }
+  }
+
+  /* data-always-expanded 修饰符：无背景、无模糊、无阴影边框（>900px，与展开外观叠加） */
+  @media (min-width: 900px) {
+    .toc-float[data-always-expanded="true"] {
+      background-color: transparent !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      box-shadow: none !important;
+      border: none !important;
+    }
   }
 
   /* 3.1.x — <900px 回退可折叠态由 JS（applyModeByWidth）直接切 collapsed 类完成，
