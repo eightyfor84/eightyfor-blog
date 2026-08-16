@@ -3,7 +3,6 @@ import { ClientRouter } from 'astro:transitions';
 import NavHeader from '../components/NavHeader.astro';
 import FilePreviewModal from '../components/FilePreviewModal.astro';
 import GlobalSearchOverlay from '../components/GlobalSearchOverlay.astro';
-import { isLocalMode } from '../data/localDataSource';
 import { getLocale, getTranslation } from '../utils/i18n';
 import { resolveFeatureFlags } from '../utils/featureFlags';
 import criticalBase from '../styles/critical-base.css?raw';
@@ -689,12 +688,6 @@ const ANALYTICS_GA_ID = String(process.env.GA_MEASUREMENT_ID || analyticsCfg.gaM
           }
         });
       })();
-    </script>
-    <!-- Data source debug info (dev only) — is:inline scripts can't use import.meta; gate on isLocalMode instead -->
-    <script define:vars={{ isLocalMode }} is:inline>
-      if (isLocalMode) {
-        console.info('%c📦 Chronicle %c数据源: %c本地文件系统 (localDataSource)', 'font-weight:bold', '', 'color:#2ea35f;font-weight:bold');
-      }
     </script>
 
     <!-- tocController is lazily loaded by FloatingToc.astro (article pages) and
