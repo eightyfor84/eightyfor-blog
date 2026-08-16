@@ -149,17 +149,22 @@ export async function readYaml<T = unknown>(relativePath: string): Promise<T | n
  * toString 写回。未触碰的键（含注释、自定义键）原样保留；文件不存在时全量序列化。
  */
 export async function writeYaml(relativePath: string, data: unknown): Promise<boolean> {
-  const existing = await readText(relativePath)
-  if (existing) {
+  try {
+    const existing = await readText(relativePath)
+    if (existing) {
+      const YAML = await import('yaml')
+      const doc = YAML.parseDocument(existing, { keepSourceTokens: true })
+      applyPayload(doc, data as Record<string, any>)
+      return writeText(relativePath, doc.toString())
+    }
+    if (isElectron) return getBridge()!.writeYaml(relativePath, data)
     const YAML = await import('yaml')
-    const doc = YAML.parseDocument(existing, { keepSourceTokens: true })
-    applyPayload(doc, data as Record<string, any>)
-    return writeText(relativePath, doc.toString())
+    const yml = YAML.stringify(data, { lineWidth: -1 })
+    return writeText(relativePath, yml)
+  } catch (e) {
+    console.error('[dataAccess.writeYaml] failed:', relativePath, e)
+    return false
   }
-  if (isElectron) return getBridge()!.writeYaml(relativePath, data)
-  const YAML = await import('yaml')
-  const yml = YAML.stringify(data, { lineWidth: -1 })
-  return writeText(relativePath, yml)
 }
 
 /** 递归把 payload 的每个路径 setIn 到 YAML Document（对象递归、标量/数组/空对象直接 set）。 */

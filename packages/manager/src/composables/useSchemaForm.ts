@@ -177,8 +177,8 @@ export function useSchemaForm(schemaId: string) {
         // 按 schema 树路径合并（appearance.baseColorLight），而非顶层散键。
         const xFileGroups = collectXFileFields(sch)
         console.log('[load] xFileGroups:', JSON.stringify(xFileGroups))
-        for (const [relPath, fields] of Object.entries(xFileGroups)) {
-          const ext = await readYaml<Record<string, any>>(relPath)
+        for (const [file, fields] of Object.entries(xFileGroups)) {
+          const ext = await readYaml<Record<string, any>>(resolveXFilePath(file))
           if (ext && typeof ext === 'object') {
             for (const { path, key } of fields) {
               if (ext[key] !== undefined) setAtPath(merged, path, ext[key])
@@ -213,8 +213,18 @@ export function useSchemaForm(schemaId: string) {
  * Recursively remove UI-virtual keys ($/_ prefixed — e.g. _localId, $about_edit,
  * $waline_admin) from a payload so they never leak into content files (P2-5).
  */
-/** 递归在 schema properties（含嵌套 fieldset）中按字段名查找定义。 */
+/** 递归在 schema properties（含嵌套 fieldset）中按字段名或点路径查找定义（appearance.background）。 */
 function findNestedProp(schemaProps: Record<string, any>, key: string): Record<string, any> | undefined {
+  if (key.includes('.')) {
+    let node: any = schemaProps
+    for (const p of key.split('.')) {
+      if (!node || typeof node !== 'object') return undefined
+      const next = node[p]
+      if (next === undefined && node.properties) node = node.properties[p] || undefined
+      else node = next
+    }
+    return node
+  }
   for (const [k, v] of Object.entries(schemaProps)) {
     if (k === key) return v
     if (v?.['x-widget'] === 'fieldset' && v.properties) {
@@ -223,6 +233,12 @@ function findNestedProp(schemaProps: Record<string, any>, key: string): Record<s
     }
   }
   return undefined
+}
+
+/** 解析 x-file 目标路径：兼容逻辑名（background → data/background/background.yml）与完整路径。 */
+function resolveXFilePath(file: string): string {
+  const ALIASES: Record<string, string> = { background: 'data/background/background.yml' }
+  return ALIASES[file] || file
 }
 
 /** Set a value at a nested path on a plain object (creates intermediate objects). */
@@ -338,7 +354,10 @@ function stripVirtualKeys(value: any): any {
             const metaKey = `${key}Meta`
             // 递归查找（字段可能在嵌套块内，如 appearance.background）——x-persist 不注入
             const prop = findNestedProp(schema.value?.properties || {}, key)
-            if (prop?.['x-persist'] === false) continue // skip self-persisting fields
+            // background 的 meta 由组件 persistBg 写 background.yml：x-persist false 或
+            // backgroundMeta（hidden 虚拟字段）一律不注入 site.yml（否则 Document API 崩）
+            if (prop?.['x-persist'] === false) continue
+            if (prop?.['x-widget'] === 'hidden') continue
             payload[metaKey] = typeof meta === 'string' ? meta : JSON.stringify(meta)
           }
         }
@@ -352,12 +371,16 @@ function stripVirtualKeys(value: any): any {
       }
 
       // Write cross-file fields (x-file) — Document API preserves hand-written comments.
+      console.log('[save] before x-file writes, ok =', ok)
       if (ok) {
-        for (const [relPath, xf] of Object.entries(xFilePayloads)) {
-          ok = await writeYaml(relPath, xf)
+        for (const [file, xf] of Object.entries(xFilePayloads)) {
+          console.log('[save] writing x-file:', resolveXFilePath(file), JSON.stringify(xf))
+          ok = await writeYaml(resolveXFilePath(file), xf)
+          console.log('[save] x-file write result:', ok)
           if (!ok) break
         }
       }
+      console.log('[save] final ok =', ok)
 
       // Persist the master-switch flag to site.yml when it lives outside this
       // page's data file (friends → friends.yml, collections → collections.yml).
