@@ -18,11 +18,8 @@ export interface EditorMediaOptions {
   editorBodyRef: Ref<any>
   activeModal: Ref<string>
   isCloudEditing: Ref<boolean>
-  isCloudAuthenticated: () => boolean
-  refreshCloudAuthState: () => boolean
   showToast: (msg: string, opts?: any) => void
   t: (key: string) => string
-  fetchWithAuth: any
   CDN_BASE_URL: string
   API_BASE_URL: string
   isElectron: boolean
@@ -32,8 +29,8 @@ export interface EditorMediaOptions {
 
 export function useEditorMedia(options: EditorMediaOptions) {
   const {
-    editorBodyRef, activeModal, isCloudEditing, isCloudAuthenticated,
-    refreshCloudAuthState, showToast, t, fetchWithAuth,
+    editorBodyRef, activeModal, isCloudEditing,
+    showToast, t,
     CDN_BASE_URL, API_BASE_URL, isElectron,
     postSlug, postId,
   } = options
@@ -124,12 +121,10 @@ export function useEditorMedia(options: EditorMediaOptions) {
 
   /** 从服务器获取媒体文件列表 → cloud/useCloudUpload */
   async function fetchServerImages() {
-    if (!isCloudAuthenticated()) { uploadedImages.value = []; return }
-    uploadedImages.value = await fetchServerFiles(fetchWithAuth, selectedCategory.value)
+    uploadedImages.value = await fetchServerFiles(selectedCategory.value)
   }
 
   function openMediaModal() {
-    refreshCloudAuthState()
     activeModal.value = 'media'
   }
 
@@ -176,13 +171,12 @@ export function useEditorMedia(options: EditorMediaOptions) {
   }
 
   function triggerFileUpload() {
-    refreshCloudAuthState()
     fileInputRef.value?.click()
   }
 
   /** 上传单个文件到服务器 → cloud/useCloudUpload */
   async function uploadMediaFile(file: File) {
-    return uploadFile(fetchWithAuth, file, API_BASE_URL)
+    return uploadFile(file, API_BASE_URL)
   }
 
   // ══════════════════════════════════════════════════════

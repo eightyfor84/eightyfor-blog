@@ -253,12 +253,7 @@
 
                             <div class="uploaded-section" style="margin-top:16px;">
                                 <h4>{{ t('editor.file.workspace') }}</h4>
-                                <div v-if="!isCloudAuthenticated()" class="login-placeholder">
-                                    <p>{{ t('editor.file.loginRequired') }}</p>
-                                    <button class="primary-btn" @click="goToLogin('open-cloud-posts')">{{
-                                        t('editor.file.login') }}</button>
-                                </div>
-                                <div v-else-if="fileLoading" class="loading">{{ t('post.loadingPosts') }}</div>
+                                <div v-if="fileLoading" class="loading">{{ t('post.loadingPosts') }}</div>
                                 <div v-else class="post-list">
                                     <div v-for="post in filePosts" :key="post.id" class="post-item"
                                         @click="handlePostOpen(post.id)">
@@ -275,7 +270,7 @@
                         <div v-if="fileTab === 'import'" class="tab-pane">
                             <p>{{ t('editor.file.importInstruction') }}</p>
                             <FilePicker @select="onFilePickerSelect" selectionMode="single"
-                                :allowUpload="isCloudAuthenticated()" />
+                                :allowUpload="true" />
                             <div style="margin-top:.75rem;">
                                 <button class="primary-btn" :disabled="!selectedImportFile && !selectedImportUrl"
                                     @click="executeFileAction">{{ t('editor.file.import') }}</button>
@@ -313,7 +308,7 @@
                 <!-- Media Body -->
                 <div v-if="activeModal === 'media'" class="modal-body media-manager-layout">
                     <FilePicker selectionMode="multiple" :allowLocalPick="!isCloudEditing"
-                        :allowUpload="isCloudAuthenticated()"
+                        :allowUpload="true"
                         :source="isCloudEditing ? 'post' : 'assets'"
                         :postId="postSlug || postId || undefined"
                         :initialFiles="displayedFiles.map(f => ({ name: f.name, uploadedUrl: f.url, preview: f.thumb || f.url }))"
@@ -652,10 +647,6 @@ import { ref, computed, watch, onMounted, onUnmounted, nextTick, reactive, provi
 import { useRoute, useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
-// Aurora: cloud relay uses dataAccess directly — no fetchWithAuth needed.
-// Retained as null to satisfy composable parameter contracts.
-const fetchWithAuth: any = null
-
 // Slug validation — format + min length. Conflicts get -2/-3 suffix server-side.
 const slugError = ref(false)
 const slugRe = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
@@ -711,8 +702,6 @@ const { t, locale } = useI18n()
 const { show: showToast } = useToast()
 const editorBasePath = '/editor'
 const nc = getNotificationCenter()
-const CDN_BASE_URL = import.meta.env.VITE_CDN_BASE_URL || ''
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 const isElectron = !!(typeof window !== 'undefined' && (window as any).chronicleElectron?.isElectron)
 
 // ═══ Props / Emit ═══
@@ -792,14 +781,6 @@ const skeletonTimer: { current: ReturnType<typeof setTimeout> | null } = { curre
 provide('skeletonStatus', skeletonStatus)
 provide('skeletonShowDirectEntry', skeletonShowDirectEntry)
 
-// Aurora: always authenticated (local-first, no cloud auth)
-const cloudAuthSession = ref({ token: 'local', expiry: Date.now() + 365 * 24 * 60 * 60 * 1000 })
-function refreshCloudAuthState() { return true }
-function isCloudAuthenticated() { return true }
-function goToLogin(nextUrl: string) {
-  router.push({ path: '/login', query: { next: nextUrl || route.fullPath || '/editor/article', source: 'editor' } as any })
-}
-
 // ══════════════════════════════════════════════════════
 // Layer 1: useEditorFrontmatter (flat destructure)
 // ══════════════════════════════════════════════════════
@@ -862,9 +843,8 @@ const {
 } = useEditorMedia({
   editorBodyRef: editorBodyRef as Ref<any>,
   activeModal, isCloudEditing,
-  isCloudAuthenticated, refreshCloudAuthState,
-  showToast, t, fetchWithAuth,
-  CDN_BASE_URL, API_BASE_URL, isElectron,
+  showToast, t,
+  isElectron,
   postSlug, postId,
 })
 
@@ -959,9 +939,8 @@ const {
   postDate, postUpdated, postTags, postSlug, postFont, postAuthor, postAIGenerated,
   slideshowConfig,
   isCloudEditing, isAboutMode,
-  isCloudAuthenticated, refreshCloudAuthState, goToLogin,
   buildSavedFm, normalizeBody,
-  activeModal, showToast, t, fetchWithAuth,
+  activeModal, showToast, t,
   currentFileHandle, currentFilePath,
   savedContent, savedFm,
   route, router, locale, assetMap,
@@ -991,7 +970,6 @@ const {
   resolveVersionConflict, clearVersionConflictState,
 } = useEditorSession({
   editorType, editorQueryId, editorBasePath, route, router, t, showToast,
-  isCloudAuthenticated, refreshCloudAuthState, goToLogin, fetchWithAuth,
   postId, postTitle, isDefaultTitle,
   postStatus: postStatus as any, postDate, postUpdated,
   postTags, postSlug, postFont, postAuthor, postAIGenerated, slideshowConfig,
@@ -1006,10 +984,7 @@ const {
       queryId,
       editorType,
       editorBasePath,
-      isCloudAuthenticated,
-      goToLogin,
       router,
-      fetchWithAuth,
       skeletonStatus,
       showToast,
       t,
@@ -1042,7 +1017,7 @@ const {
   resetCurrentFile, handlePostOpen,
 } = useFileMenu({
   editorType, editorBasePath, activeModal, isCloudEditing,
-  isCloudAuthenticated, refreshCloudAuthState, goToLogin, isDirty, t, fetchWithAuth,
+  isDirty, t,
   router, route,
   postId, postTitle, isDefaultTitle,
   postStatus, postDate, postUpdated,

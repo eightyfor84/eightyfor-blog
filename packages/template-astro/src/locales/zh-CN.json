@@ -140,7 +140,7 @@
   },
   "search": {
     "selectTags": "选择标签",
-    "placeholder": "按标题搜索...",
+    "placeholder": "搜索文章...",
     "noTags": "未找到标签",
     "done": "完成",
     "loading": "正在加载...",

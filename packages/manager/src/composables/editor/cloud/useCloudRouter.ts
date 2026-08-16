@@ -5,7 +5,7 @@
  * 返回 true  = cloud 已处理路由（不再走 core 兜底）
  * 返回 false = 无法处理，core 兜底（去 query + 本地空白）
  *
- * 所有 ID 验证全权归 POST /api/post/validate-id。
+ * ID 校验在本地路由解析中完成（无服务端）。
  * 前端只判断字符串前缀："new" | "new-" | "__about__" | 其它。
  */
 
@@ -36,10 +36,7 @@ export interface CloudRouteContext {
   queryId: string | undefined
   editorType: Ref<'article' | 'slides'>
   editorBasePath: string
-  isCloudAuthenticated: () => boolean
-  goToLogin: (url: string) => void
   router: any
-  fetchWithAuth: any
   skeletonStatus: Ref<string>
   showToast: (msg: string) => void
   t: (key: string) => string
@@ -54,7 +51,7 @@ function editorPath(base: string, type?: 'article' | 'slides') {
 }
 
 /**
- * validate-id 结果 → 实际动作。全由服务端返回驱动。
+ * 路由解析结果 → 实际动作（open/create/new）。
  */
 // ══════════════════════════════════════════════════════
 

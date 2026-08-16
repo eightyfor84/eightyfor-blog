@@ -140,37 +140,8 @@ function createChildWindow(url) {
     ? `${DEV_URL}/${routePath}`
     : `file:///${getDistIndex().replace(/\\/g, '/')}#/${routePath}`;
 
-  // Electron BrowserWindows don't reliably share localStorage for file:// origins.
-  // Read the auth token from the main window and pass it to the child via URL,
-  // then the preload script extracts it into localStorage before Vue boots.
-  loadChildWithAuth(newWin, winUrl);
+  newWin.loadURL(winUrl);
   return newWin;
-}
-
-async function loadChildWithAuth(newWin, winUrl) {
-  try {
-    const token = await (mainWindow?.webContents?.executeJavaScript(
-      'localStorage.getItem("chronicle_auth")',
-    ));
-    if (token) {
-      // Insert _auth query param BEFORE the hash fragment.
-      // winUrl = "file:///.../index.html#/editor"
-      // Must become: "file:///.../index.html?_auth=<token>#/editor"
-      const hashIdx = winUrl.indexOf('#');
-      if (hashIdx !== -1) {
-        const beforeHash = winUrl.slice(0, hashIdx);
-        const hash = winUrl.slice(hashIdx);
-        newWin.loadURL(`${beforeHash}?_auth=${encodeURIComponent(token)}${hash}`);
-      } else {
-        const sep = winUrl.includes('?') ? '&' : '?';
-        newWin.loadURL(`${winUrl}${sep}_auth=${encodeURIComponent(token)}`);
-      }
-    } else {
-      newWin.loadURL(winUrl);
-    }
-  } catch (_) {
-    newWin.loadURL(winUrl);
-  }
 }
 
 // ── Main window ──────────────────────────────────────────────
@@ -287,21 +258,9 @@ function setupMaximizeListener(win) {
   });
 }
 
-// ── Auth callback via custom protocol ────────────────────────
-// Browser login completes → chronicle://auth?token=xxx → Electron receives token
-
-if (process.defaultApp) {
-  if (process.argv.length >= 2) {
-    app.setAsDefaultProtocolClient('chronicle', process.execPath, [path.resolve(process.argv[1])]);
-  }
-} else {
-  app.setAsDefaultProtocolClient('chronicle');
-}
-
 // Handle protocol URL on macOS (open-url event)
 app.on('open-url', (event, url) => {
   event.preventDefault();
-  handleAuthCallback(url);
 });
 
 // Handle protocol URL on Windows/Linux (second-instance or argv)
@@ -314,46 +273,8 @@ if (!gotTheLock) {
       if (mainWindow.isMinimized()) mainWindow.restore();
       mainWindow.focus();
     }
-    // Check for chronicle:// URL in argv
-    const url = argv.find(a => a.startsWith('chronicle://'));
-    if (url) handleAuthCallback(url);
   });
 }
-
-function handleAuthCallback(url) {
-  try {
-    const parsed = new URL(url);
-    // Only accept chronicle://auth (ignore other schemes / hosts)
-    if (parsed.protocol !== 'chronicle:' || parsed.hostname !== 'auth') return;
-    const token = parsed.searchParams.get('token');
-    // Token must be a non-empty hex string (expected session token format)
-    if (token && /^[a-fA-F0-9]{16,}$/.test(token) && mainWindow) {
-      mainWindow.webContents.send('login-callback', token);
-    }
-  } catch (e) { /* ignore malformed URLs */ }
-}
-
-// IPC: open browser for Passkey login
-ipcMain.handle('open-external-login', async (event, url) => {
-  // Only allow https:// (production) or http://localhost (dev)
-  const ok = typeof url === 'string' && (
-    url.startsWith('https://') ||
-    (isDev && url.startsWith('http://localhost'))
-  );
-  if (!ok) return;
-  try {
-    await shell.openExternal(url);
-  } catch (e) {
-    if (mainWindow) {
-      dialog.showMessageBox(mainWindow, {
-        type: 'info',
-        title: 'Open in browser',
-        message: `Please open this URL in your browser:\n\n${url}`,
-        buttons: ['OK']
-      });
-    }
-  }
-});
 
 // IPC: write print HTML to temp file and open in system browser
 ipcMain.handle('open-print-in-browser', async (event, html, title) => {

@@ -6,35 +6,6 @@
         <button v-if="showBack" class="sb-btn" @click="goHome" title="Back to home">
           <span v-html="Icons.arrowUp" style="display:block;transform:rotate(270deg)"></span>
         </button>
-        <span v-if="showConfigBtn" class="sb-server" @click="showConfig = !showConfig">
-          <span class="conn-dot" :class="{ on: serverReady || isLoggedIn, error: hasError && !isLoggedIn }"></span>
-          <span class="conn-label" :class="connLabelClass" :title="serverLabel">{{ statusText }}</span>
-          <span v-if="showConfig" class="sb-popover" @click.stop>
-            <!-- Logged-in: read-only, reconnect + logout -->
-            <template v-if="isLoggedIn">
-              <p class="ok" style="margin:0 0 8px">Connected &amp; logged in</p>
-              <input type="url" :value="serverUrl" disabled class="url-input"
-                :placeholder="t('login.serverUrlPlaceholder')" />
-              <button class="btn" @click="handleReconnect" :disabled="checking">
-                {{ checking ? '...' : 'Reconnect' }}
-              </button>
-              <button class="btn" @click="handleLogout" style="margin-left:4px">Logout</button>
-              <span v-if="successMsg" class="ok">{{ successMsg }}</span>
-              <span v-if="error" class="err">{{ error }}</span>
-            </template>
-            <!-- Not logged in: editable -->
-            <template v-else>
-              <input type="url" v-model="serverUrl" @keyup.enter="handleConnect" @input="clearMessages"
-                :placeholder="t('login.serverUrlPlaceholder')" class="url-input" />
-              <button class="btn act" @click="handleConnect" :disabled="!serverUrl.trim() || checking">
-                {{ checking ? '...' : t('login.connect') }}
-              </button>
-              <span v-if="successMsg" class="ok">{{ successMsg }}</span>
-              <span v-if="error" class="err">{{ error }}</span>
-              <span v-if="hasError && !checking && !error && !successMsg" class="err muted">Previously unreachable — check the address and retry</span>
-            </template>
-          </span>
-        </span>
       </span>
     </SafeTeleport>
 
@@ -59,10 +30,6 @@
       <button v-if="showBack" class="ghost-btn" @click="goHome" title="Back to home">
         <span v-html="Icons.arrowUp" style="transform:rotate(270deg)"></span>
       </button>
-      <div v-if="showConfigBtn" class="server-group" @click="showConfig = !showConfig">
-        <span class="conn-dot" :class="{ on: serverReady || isLoggedIn, error: hasError && !isLoggedIn }"></span>
-        <span class="conn-label" :class="connLabelClass" :title="serverLabel">{{ statusText }}</span>
-      </div>
     </div>
 
     <div class="action-group">
@@ -75,33 +42,6 @@
         <span v-else-if="theme === 'light'" v-html="Icons.themeLight"></span>
         <span v-else v-html="Icons.themeDark"></span>
       </button>
-    </div>
-
-    <!-- Server config popover (anchored below server-group) -->
-    <div v-if="showConfig" class="config-popover">
-      <!-- Logged-in: read-only, reconnect + logout -->
-      <template v-if="isLoggedIn">
-        <p class="ok" style="margin:0 0 8px">Connected &amp; logged in</p>
-        <input type="url" :value="serverUrl" disabled class="url-input"
-          :placeholder="t('login.serverUrlPlaceholder')" />
-        <button class="btn" @click="handleReconnect" :disabled="checking">
-          {{ checking ? '...' : 'Reconnect' }}
-        </button>
-        <button class="btn" @click="handleLogout" style="margin-left:4px">Logout</button>
-        <p v-if="successMsg" class="ok">{{ successMsg }}</p>
-        <p v-if="error" class="err">{{ error }}</p>
-      </template>
-      <!-- Not logged in: editable -->
-      <template v-else>
-        <input type="url" v-model="serverUrl" @keyup.enter="handleConnect" @input="clearMessages"
-          :placeholder="t('login.serverUrlPlaceholder')" class="url-input" />
-        <button class="btn act" @click="handleConnect" :disabled="!serverUrl.trim() || checking">
-          {{ checking ? '...' : t('login.connect') }}
-        </button>
-        <p v-if="successMsg" class="ok">{{ successMsg }}</p>
-        <p v-if="error" class="err">{{ error }}</p>
-        <p v-if="hasError && !checking && !error && !successMsg" class="err muted">Previously unreachable — check the address and retry</p>
-      </template>
     </div>
   </div>
 </template>
@@ -122,15 +62,6 @@ const { t, locale: i18nLocale } = useI18n()
 const { locale, theme, cycleTheme } = usePreferences()
 
 function goHome() { router.push('/') }
-
-// Aurora: no server URL config needed — always local
-const isLoggedIn = ref(true)
-const authVerified = ref(true)
-const showConfigBtn = false
-// Aurora: no auth verification needed
-onMounted(() => {
-  // Local mode — always authenticated. No server ping needed.
-})
 
 function onLocaleChange(e: Event) {
   const v = (e.target as HTMLSelectElement).value

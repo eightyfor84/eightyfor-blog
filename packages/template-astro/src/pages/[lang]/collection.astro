@@ -649,47 +649,9 @@ try {
         }
 
         async function load() {
-          // Use embedded build-time data if available (local/static mode)
-          if (hasEmbedded) {
-            renderCollectionCards();
-            handleHash();
-            return;
-          }
-
-          try {
-            const [collectionRes, postsRes] = await Promise.all([
-              fetch("/api/collections?t=" + Date.now(), { cache: "no-store" }),
-              fetch("/api/posts?t=" + Date.now(), { cache: "no-store" }),
-            ]);
-            if (!collectionRes.ok) throw new Error("fetch collections failed");
-            const data = await collectionRes.json();
-            // Unwrap { code, data, message } API response format
-            const collData = (data && data.data) ?? data;
-            collections = Array.isArray(collData.collections)
-              ? collData.collections
-              : [];
-
-            postTitleById = new Map();
-            if (postsRes.ok) {
-              const postsData = await postsRes.json();
-              const postsUnwrapped = (postsData && postsData.data) ?? postsData;
-              const posts = Array.isArray(postsUnwrapped)
-                ? postsUnwrapped
-                : Array.isArray(postsUnwrapped?.posts)
-                  ? postsUnwrapped.posts
-                  : [];
-              posts.forEach((post) => {
-                const id = String(post?.id || "");
-                const title = String(post?.title || "").trim();
-                if (id) postTitleById.set(id, title || id);
-              });
-            }
-
-            renderCollectionCards();
-            handleHash();
-          } catch (e) {
-            console.error("Failed to load collections", e);
-          }
+          // SSG 静态构建：合集数据在构建时注入（chronicle-embedded-data），无远程 API 回退
+          renderCollectionCards();
+          handleHash();
         }
 
         if (!gridEl.dataset.bound) {

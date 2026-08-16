@@ -2,8 +2,6 @@
  * usePreferences — client-side preferences (theme + locale).
  *
  * Reads from localStorage, falls back to system/browser defaults.
- * Used by the login page and anywhere that needs preferences before
- * the full CMS settings are loaded.
  */
 
 import { ref, watch } from 'vue'

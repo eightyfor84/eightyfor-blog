@@ -8,25 +8,6 @@
 
 const { contextBridge, ipcRenderer, webUtils } = require('electron');
 
-// ── Auth token injection for child windows ──────────────────
-// Electron BrowserWindows don't reliably share localStorage for
-// file:// origins. The main process passes the auth token as a
-// _auth query param; we extract it before Vue boots and clean
-// the URL so no application code ever sees it.
-(function injectAuthFromUrl() {
-  try {
-    const qs = new URLSearchParams(window.location.search);
-    const token = qs.get('_auth');
-    if (token) {
-      localStorage.setItem('chronicle_auth', token);
-      // Clean the URL — remove _auth from query without reload
-      const url = new URL(window.location.href);
-      url.searchParams.delete('_auth');
-      window.history.replaceState(null, '', url.toString());
-    }
-  } catch (_) {}
-})();
-
 contextBridge.exposeInMainWorld('chronicleElectron', {
   // Platform info
   platform: process.platform,
@@ -65,17 +46,13 @@ contextBridge.exposeInMainWorld('chronicleElectron', {
   },
 
   // Browser login for Passkey 2FA (WebAuthn not available in Electron)
-  openExternalLogin: (baseUrl) => ipcRenderer.invoke('open-external-login', baseUrl),
-  onLoginCallback: (callback) => {
-    ipcRenderer.on('login-callback', (_event, token) => callback(token));
-  },
+  // (removed — local-first Aurora has no login)
 
   // Print: write standalone HTML to a temp file and open in system browser
   openPrintInBrowser: (html, title) => ipcRenderer.invoke('open-print-in-browser', html, title),
 
   // Safe subset of process.env
   env: {
-    VITE_API_BASE_URL: process.env.VITE_API_BASE_URL || '',
   },
 
   // ═══════════════════════════════════════════════════════════

@@ -1,9 +1,8 @@
 /**
- * Unified profile loader — abstracts local filesystem vs remote API.
+ * Unified profile loader — reads directly from the local data/ filesystem.
  */
 
-import { isLocalMode, getProfile as getLocalProfile } from '../data/localDataSource';
-import { getApiUrl } from '../core/site';
+import { getProfile } from '../data/localDataSource';
 
 export interface SiteProfile {
   name: string;
@@ -14,21 +13,10 @@ export interface SiteProfile {
   links: Array<{ label: string; url: string }>;
 }
 
-export async function loadSiteProfile(): Promise<SiteProfile> {
-  if (isLocalMode) {
-    try {
-      return getLocalProfile() as SiteProfile;
-    } catch {
-      return { name: '', avatar: '', bio: '', location: '', links: [] };
-    }
-  }
-
-  // Remote API mode — fetch at build time (SSG) or runtime (CSR)
+export function loadSiteProfile(): SiteProfile {
   try {
-    const isSSR = typeof window === 'undefined';
-    const res = await fetch(getApiUrl('/api/public/profile', isSSR));
-    if (res.ok) return await res.json();
-  } catch { /* fall through */ }
-
-  return { name: '', avatar: '', bio: '', location: '', links: [] };
+    return getProfile() as unknown as SiteProfile;
+  } catch {
+    return { name: '', avatar: '', bio: '', location: '', links: [] };
+  }
 }

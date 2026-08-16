@@ -59,9 +59,6 @@ export interface EditorFileOptions {
   isCloudEditing: ComputedRef<boolean>
   isAboutMode: ComputedRef<boolean>
   // ── 认证 ──
-  isCloudAuthenticated: () => boolean
-  refreshCloudAuthState: () => boolean
-  goToLogin: (nextUrl: string) => void
   // ── Frontmatter 工具函数 ──
   buildSavedFm: () => SavedFm
   normalizeBody: (raw: string) => string
@@ -72,7 +69,6 @@ export interface EditorFileOptions {
   // ── 通知 / i18n / 网络 ──
   showToast: (msg: string, opts?: any) => void
   t: (key: string) => string
-  fetchWithAuth: any
   // ── 文件句柄 ──
   currentFileHandle: Ref<any>
   currentFilePath: Ref<string | null>
@@ -100,9 +96,7 @@ export function useEditorFile(options: EditorFileOptions) {
     editorType, editorBasePath, localValue, postTitle, isDefaultTitle, postId, postStatus,
     postDate, postUpdated, postTags, postSlug, postFont, postAuthor, postAIGenerated,
     slideshowConfig, isCloudEditing, isAboutMode,
-    isCloudAuthenticated, refreshCloudAuthState, goToLogin,
-    buildSavedFm, normalizeBody, activeModal, showToast, t,
-    fetchWithAuth, currentFileHandle, currentFilePath, savedContent, savedFm,
+    buildSavedFm, normalizeBody, activeModal, showToast, t, currentFileHandle, currentFilePath, savedContent, savedFm,
     route, router, locale, assetMap,
     escapeHtml, CHRONICLE_FM_KEYS, stringifyFrontmatter,
     pushRecentProject,
@@ -371,13 +365,8 @@ export function useEditorFile(options: EditorFileOptions) {
   // 认证工具
   // ══════════════════════════════════════════════════════
 
-  /** 要求云端认证，未登录则跳转登录页 */
-  const requireCloudAuth = (nextUrl?: string) => {
-    refreshCloudAuthState()
-    if (isCloudAuthenticated()) return true
-    goToLogin(nextUrl || route.fullPath || editorBasePath + '/article')
-    return false
-  }
+  /** 本地优先 — 无认证门槛 */
+  const requireCloudAuth = (): boolean => true
 
   // ══════════════════════════════════════════════════════
   // Astro 构建
@@ -460,7 +449,7 @@ export function useEditorFile(options: EditorFileOptions) {
       isSaving.value = true
       try {
         const content = buildFileContent()
-        const ok = await saveAbout(fetchWithAuth, content)
+        const ok = await saveAbout(content)
         console.log('[doSave] saveAbout returned:', ok)
         if (!ok) throw new Error('Save failed')
         savedContent.value = editorType.value === 'slides' ? localValue.value : normalizeBody(localValue.value)
@@ -506,7 +495,6 @@ export function useEditorFile(options: EditorFileOptions) {
           savePost: (fwa, payload) => savePost(fwa, payload),
           saveDraft: (id, content, meta) => _saveDraft(id, content, meta),
           clearDraft: (id) => _clearDraft(id),
-          fetchWithAuth,
         })
 
         isSaving.value = true

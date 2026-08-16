@@ -64,7 +64,7 @@ function deriveSlug(content: string): string {
 // ═══════════════════════════════════════════════════════════════
 
 /** Read a post by id (=slug) from posts/<id>/index.md. */
-export async function fetchPost(_fa: any, id: string): Promise<Record<string, any> | null> {
+export async function fetchPost(id: string): Promise<Record<string, any> | null> {
   try {
     const content = await readText(`data/posts/${id}/index.md`)
     if (!content) return null
@@ -74,7 +74,7 @@ export async function fetchPost(_fa: any, id: string): Promise<Record<string, an
 }
 
 /** List all posts from index.json. */
-export async function fetchPostList(_fa?: any): Promise<Record<string, any>[]> {
+export async function fetchPostList(): Promise<Record<string, any>[]> {
   try {
     const idx = await getIndex()
     return Object.entries(idx).map(([id, e]: [string, any]) => ({ id, ...e }))
@@ -86,13 +86,8 @@ export async function fetchPostList(_fa?: any): Promise<Record<string, any>[]> {
  * id = slug. If no id, derive from content.
  */
 export async function savePost(
-  _fa: any,
   payload: { id?: string; content: string; status: string },
 ): Promise<Record<string, any> | null> {
-  console.log('[savePost] ═══════════════════════════════════════')
-  console.log('[savePost] start: id=', payload.id, 'status=', payload.status)
-  console.log('[savePost] content length:', payload.content?.length ?? 0)
-  console.log('[savePost] content first 200 chars:', payload.content?.slice(0, 200))
   let id = payload.id
   try {
     if (!id) {
@@ -138,7 +133,7 @@ export async function savePost(
 // About / Drafts / Media (unchanged)
 // ═══════════════════════════════════════════════════════════════
 
-export async function fetchAbout(_fa?: any): Promise<{ content: string; lastModified: string } | null> {
+export async function fetchAbout(): Promise<{ content: string; lastModified: string } | null> {
   try {
     let content = await readText('data/__about__/index.md')
     // Vite returns SPA index.html as fallback for missing files — detect it
@@ -152,7 +147,7 @@ export async function fetchAbout(_fa?: any): Promise<{ content: string; lastModi
   } catch { return null }
 }
 
-export async function saveAbout(_fa: any, content: string): Promise<boolean> {
+export async function saveAbout(content: string): Promise<boolean> {
   console.log('[saveAbout] writing to data/__about__/index.md, length:', content?.length ?? 0)
   try {
     await mkdir('data/__about__')
@@ -178,7 +173,6 @@ export function clearDraft(id: string): void { try { localStorage.removeItem(dk(
 export function saveHistory(id: string, h: Record<string, any>): void { try { sessionStorage.setItem(hk(id), JSON.stringify(h)) } catch {} }
 export function getHistory(id: string): Record<string, any> | null { try { const r = sessionStorage.getItem(hk(id)); return r ? JSON.parse(r) : null } catch { return null } }
 export function clearHistory(id: string): void { try { sessionStorage.removeItem(hk(id)) } catch {} }
-export function getAuthToken(): string { return '' }
 /** Copy a file to a post directory — private asset. Returns the relative URL. */
 export async function copyToPost(slug: string, file: File): Promise<string | null> {
   const rawName = (file as any).name || 'untitled'
@@ -219,7 +213,7 @@ export async function copyToPost(slug: string, file: File): Promise<string | nul
   } catch { return null }
 }
 
-export async function uploadFile(_fa: any, file: File): Promise<string | null> {
+export async function uploadFile(file: File): Promise<string | null> {
   try {
     const isElec = typeof window !== 'undefined' && !!(window as any).chronicleElectron?.isElectron
     const safeName = file.name.replace(/[^\w.\-一-鿿]/g, '_')
@@ -239,7 +233,7 @@ export async function uploadFile(_fa: any, file: File): Promise<string | null> {
     return `/data/assets/${encodeURIComponent(safeName)}`
   } catch { return null }
 }
-export async function fetchServerFiles(_fa: any, _p: string): Promise<ServerFile[]> {
+export async function fetchServerFiles(): Promise<ServerFile[]> {
   try {
     const f = await readDir('data/assets')
     return f.map(n => ({ name: n, url: `/data/assets/${encodeURIComponent(n)}`, path: `/data/assets/${encodeURIComponent(n)}`, thumb: `/data/assets/${encodeURIComponent(n)}` }))

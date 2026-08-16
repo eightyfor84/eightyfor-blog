@@ -29,14 +29,10 @@ export interface FileMenuOptions {
   activeModal: Ref<string>
   isCloudEditing: ComputedRef<boolean>
   // 认证
-  isCloudAuthenticated: () => boolean
-  refreshCloudAuthState: () => boolean
-  goToLogin: (nextUrl: string) => void   // 接受目标 URL，由编排器显式传入
   // 脏检测
   isDirty: ComputedRef<boolean>
   // i18n / 网络
   t: (key: string) => string
-  fetchWithAuth: any
   router: any
   route: any
   // Frontmatter state（可写引用）
@@ -73,8 +69,8 @@ export interface FileMenuOptions {
 
 export function useFileMenu(options: FileMenuOptions) {
   const {
-    editorType, editorBasePath, activeModal, isCloudEditing, isCloudAuthenticated,
-    refreshCloudAuthState, goToLogin, isDirty, t, fetchWithAuth,
+    editorType, editorBasePath, activeModal, isCloudEditing,
+    isDirty, t,
     router, route,
     postId, postTitle, isDefaultTitle, postStatus, postDate, postUpdated,
     postTags, postSlug, postFont, postAuthor, postAIGenerated,
@@ -169,23 +165,18 @@ export function useFileMenu(options: FileMenuOptions) {
   // ══════════════════════════════════════════════════════
 
   function openFileMenu() {
-    refreshCloudAuthState()
     activeModal.value = 'file'
     fileTab.value = 'new'
   }
 
   /** 切换标签页——打开 (open) 时加载云端文章列表 */
   async function handleFileTabChange(tab: string) {
-    refreshCloudAuthState()
     fileTab.value = tab
     if (tab === 'open') loadRecentProjects()
     if (tab === 'open') {
-      if (!isCloudAuthenticated()) {
-        filePosts.value = []; fileLoading.value = false; return
-      }
       fileLoading.value = true
       try {
-        filePosts.value = await fetchPostList(fetchWithAuth)
+        filePosts.value = await fetchPostList()
       } finally { fileLoading.value = false }
     }
   }
@@ -324,8 +315,6 @@ export function useFileMenu(options: FileMenuOptions) {
   // ══════════════════════════════════════════════════════
 
   async function handlePostOpen(id: string) {
-    const targetUrl = `${editorBasePath}/article?id=${id}`
-    if (!isCloudAuthenticated()) { goToLogin(targetUrl); return }
     const doOpen = () => {
       router.push({ path: ep(), query: { id } })
       activeModal.value = 'none'
