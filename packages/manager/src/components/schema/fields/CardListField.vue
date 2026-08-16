@@ -9,7 +9,33 @@
       - schema.x-card-subtitle-key → which property to show as subtitle (default: "intro")
   -->
   <div class="form-row">
+    <!-- Simple mode: items are plain strings (e.g. share channels) — compact
+         list with reorder / remove / add, no modal. Enabled automatically when
+         schema.items.type === 'string'. -->
+    <div v-if="isSimpleList" class="simple-list">
+      <div v-if="title" class="field-label">{{ title }}</div>
+      <div v-if="hint" class="field-hint">{{ hint }}</div>
+      <ul v-if="simpleItems.length" class="simple-list__items">
+        <li v-for="(ch, i) in simpleItems" :key="ch + i" class="simple-list__item">
+          <span class="simple-list__drag">≡</span>
+          <span class="simple-list__name">{{ itemLabel(ch) }}</span>
+          <span class="simple-list__spacer"></span>
+          <button type="button" class="simple-list__btn" :disabled="i === 0" @click="simpleMove(i, -1)" title="Move up">↑</button>
+          <button type="button" class="simple-list__btn" :disabled="i === simpleItems.length - 1" @click="simpleMove(i, 1)" title="Move down">↓</button>
+          <button type="button" class="simple-list__btn simple-list__remove" @click="simpleRemove(i)" title="Remove">×</button>
+        </li>
+      </ul>
+      <p v-else class="simple-list__empty">{{ emptyText || 'No items' }}</p>
+      <div v-if="simpleAvailable.length" class="simple-list__add">
+        <select :value="''" class="simple-list__select" @change="simpleAdd($event)">
+          <option value="" disabled>+ {{ addLabel || 'Add…' }}</option>
+          <option v-for="ch in simpleAvailable" :key="ch" :value="ch">{{ itemLabel(ch) }}</option>
+        </select>
+      </div>
+    </div>
+
     <CardListEditor
+      v-else
       :cards="displayCards"
       :show-image="!!imageKey"
       :title="title"
@@ -72,6 +98,7 @@ import { useI18n } from 'vue-i18n'
 import { Icons } from '../../../utils/icons'
 import CardListEditor from '../../ui/CardListEditor.vue'
 import SchemaField from '../SchemaField.vue'
+import { resolveLocale } from '../../../utils/resolveLocale'
 
 const props = defineProps<{
   modelValue: any
@@ -92,6 +119,43 @@ const { t } = useI18n()
 // ── Derive display config from schema ──
 const cardItemSchema = computed(() => props.schema.items || {})
 const cardPropSchemas = computed(() => cardItemSchema.value.properties || {})
+
+// ── Simple mode (items are plain strings — e.g. share channels) ──
+const isSimpleList = computed(() => cardItemSchema.value.type === 'string')
+const simpleItems = ref<string[]>([])
+const simplePool = computed<string[]>(() => {
+  const pool = props.schema.items?.enum as string[] | undefined
+  return Array.isArray(pool) && pool.length ? pool : []
+})
+const simpleAvailable = computed(() => simplePool.value.filter(ch => !simpleItems.value.includes(ch)))
+const itemLabels = computed<Record<string, any>>(() => props.schema['x-item-labels'] || {})
+
+function itemLabel(value: string): string {
+  const meta = itemLabels.value[value]
+  if (meta) return resolveLocale(meta, value)
+  return value
+}
+function simpleMove(i: number, delta: number) {
+  const next = [...simpleItems.value]
+  const j = i + delta
+  if (j < 0 || j >= next.length) return
+  ;[next[i], next[j]] = [next[j], next[i]]
+  simpleItems.value = next
+  emitUpdate()
+}
+function simpleRemove(i: number) {
+  const next = [...simpleItems.value]
+  next.splice(i, 1)
+  simpleItems.value = next
+  emitUpdate()
+}
+function simpleAdd(e: Event) {
+  const v = (e.target as HTMLSelectElement).value
+  if (!v) return
+  simpleItems.value = [...simpleItems.value, v]
+  ;(e.target as HTMLSelectElement).value = ''
+  emitUpdate()
+}
 
 const titleKey = computed(() => props.schema['x-card-title-key'] || 'name')
 const imageKey = computed(() => props.schema['x-card-image-key'] || 'avatar')
@@ -133,6 +197,10 @@ const displayCards = computed(() => cards.value.map(c => ({
 
 // ── Data binding ──
 watch(() => props.modelValue, (v) => {
+  if (isSimpleList.value) {
+    simpleItems.value = Array.isArray(v) ? v.map(String) : []
+    return
+  }
   const source = v?.cards || (Array.isArray(v) ? v : [])
   cards.value = source.map((item: any) => {
     const card: Record<string, any> = { _localId: item._localId || `c_${Math.random().toString(36).slice(2, 7)}` }
@@ -144,6 +212,10 @@ watch(() => props.modelValue, (v) => {
 }, { immediate: true, deep: true })
 
 function emitUpdate() {
+  if (isSimpleList.value) {
+    emit('update:modelValue', simpleItems.value)
+    return
+  }
   // Keep _localId — it flows to the server and back, giving the watch a stable key
   const stripped = cards.value.map(c => {
     const out: Record<string, any> = { _localId: c._localId }
@@ -224,6 +296,21 @@ function moveCard(from: number, to: number) {
 .card-modal__preview-text { min-width: 0; }
 .card-modal__preview-text strong { display: block; }
 .card-modal__preview-text p { margin: .25rem 0 0; color: var(--comp-text-sec); font-size: .9rem; }
+
+/* Simple mode — compact string list (share channels etc.) */
+.simple-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.field-label { font-size: 0.9rem; font-weight: 600; }
+.field-hint { font-size: 0.8rem; opacity: 0.7; }
+.simple-list__items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.35rem; }
+.simple-list__item { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.6rem; border-radius: 6px; background: var(--comp-bg-sec, rgba(128,128,128,0.06)); border: 1px solid var(--border-color, rgba(128,128,128,0.15)); }
+.simple-list__drag { cursor: grab; opacity: 0.5; }
+.simple-list__name { font-size: 0.85rem; }
+.simple-list__spacer { flex: 1; }
+.simple-list__btn { background: transparent; border: 1px solid var(--border-color, rgba(128,128,128,0.2)); border-radius: 4px; width: 22px; height: 22px; line-height: 1; cursor: pointer; font-size: 0.8rem; }
+.simple-list__btn:disabled { opacity: 0.35; cursor: default; }
+.simple-list__remove { color: var(--danger, #e06c75); }
+.simple-list__empty { font-size: 0.8rem; opacity: 0.6; margin: 0; }
+.simple-list__select { padding: 0.3rem 0.5rem; border-radius: 6px; border: 1px solid var(--border-color, rgba(128,128,128,0.2)); background: transparent; color: var(--app-text-pri); font-size: 0.85rem; }
 .card-modal__fields { display: flex; flex-direction: column; gap: .75rem; }
 .card-modal__actions { display: flex; justify-content: flex-end; gap: .5rem; }
 .close-btn { background: none; border: none; color: var(--comp-text-sec); cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; border-radius: 4px; }

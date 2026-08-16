@@ -370,7 +370,12 @@
               "copy-link"
             ]
           },
-          "x-widget": "channel-list",
+          "x-widget": "card-list",
+          "x-item-labels": {
+            "twitter": { "en": "Twitter / X", "zh-CN": "Twitter / X" },
+            "weibo": { "en": "Weibo", "zh-CN": "微博" },
+            "copy-link": { "en": "Copy Link", "zh-CN": "复制链接" }
+          },
           "x-order": 7,
           "title": {
             "en": "Share Channels",
