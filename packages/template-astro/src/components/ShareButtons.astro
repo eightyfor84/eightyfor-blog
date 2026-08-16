@@ -51,9 +51,11 @@ const COPY_ICON = '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" s
 <script is:inline>
   (() => {
     const base = location.origin;
+    // 复制成功后图标变对钩，1.5s 后恢复
+    const DONE_ICON = '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>';
     const done = (btn: HTMLElement) => {
       const old = btn.innerHTML;
-      btn.textContent = '已复制 ✓';
+      btn.innerHTML = DONE_ICON;
       setTimeout(() => { btn.innerHTML = old; }, 1500);
     };
     document.addEventListener('click', (e) => {
