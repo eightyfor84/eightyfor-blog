@@ -158,7 +158,8 @@
     "resultDescription": "{searchDescription} 的搜索结果",
     "items": "{count} 条",
     "tagsCount": "等{count}个标签",
-    "allPosts": "所有内容"
+    "allPosts": "所有内容",
+    "suggestionEmpty": "无匹配建议"
   },
   "tag": {
     "featured": "精选"

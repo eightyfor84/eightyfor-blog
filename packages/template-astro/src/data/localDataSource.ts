@@ -422,10 +422,10 @@ export function getAllPosts(): PostMeta[] {
     if (fs.existsSync(INDEX_FILE)) {
         try {
             const raw = fs.readFileSync(INDEX_FILE, 'utf-8');
-            const parsed = JSON.parse(raw || '[]');
+            const parsed = JSON.parse(raw || '{}');
+            // index.json is object-format keyed by id (P2-4 — array shape retired with convert.mjs).
             let posts: any[] = [];
-            if (Array.isArray(parsed) && parsed.length > 0) { posts = parsed; }
-            else if (typeof parsed === "object" && Object.keys(parsed).length > 0) {
+            if (typeof parsed === "object" && Object.keys(parsed).length > 0) {
               posts = Object.entries(parsed).map(([slug, entry]: [string, any]) => ({ id: slug, ...entry }));
             }
             if (posts.length > 0) {

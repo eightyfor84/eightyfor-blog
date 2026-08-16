@@ -2,6 +2,7 @@ export { ALLOWED_TAGS, ALLOWED_ATTR, SANITIZE_CONFIG } from "./sanitize.js"
 export { parseSlides } from "./marpParser.js"
 export type { ParsedSlide, SlideMeta } from "./marpParser.js"
 export { extractBodySummary } from "./summary.js"
+export { formatRelativeTime } from "./relativeTime.js"
 /**
  * Chronicle Shared Utilities
  *

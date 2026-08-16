@@ -1,5 +1,20 @@
-# Vue 3 + TypeScript + Vite
+# Chronicle Manager
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+The desktop CMS for [Chronicle Aurora](https://github.com/vanvanhasnophi/chronicle-aurora) — a local-first, git-backed Jamstack blog.
 
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+An Electron shell around a Vue 3 + Vite SPA. Reads and writes `data/` directly (no API server),
+and syncs to the cloud via git (`git commit` / `git push`).
+
+## Develop
+
+```bash
+npm install
+npm run dev            # browser dev (Vite) — uses the vite-data plugin
+npm run electron:dev   # Electron + Vite dev
+npm run build          # build the renderer
+```
+
+## Notes
+
+- Settings pages are schema-driven — edit a JSON Schema in `packages/template-astro/schemas/` and register it in `SCHEMA_REGISTRY`.
+- Content lives in the repository `data/` directory; the editor workspace (theme, window state) lives in `.chronicle/`.

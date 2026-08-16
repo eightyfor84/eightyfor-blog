@@ -157,7 +157,8 @@
     "resultsCount": "{count} items",
     "resultDescription": "Search results for {searchDescription}",
     "items": "{count} item(s)",
-    "tagsCount": " and {count - 1} more tag(s)",
+    "tagsCount": " and {count} more tag(s)",
+    "suggestionEmpty": "No suggestions",
     "allPosts": "All content"
   },
   "tag": {

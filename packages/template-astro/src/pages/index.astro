@@ -2,11 +2,29 @@
 // Redirect / → /{lang}/
 ---
 <html lang="en">
-  <head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1.0" /><title>Redirecting…</title></head>
+  <head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1.0" /><title>Redirecting…</title>
+    <noscript><meta http-equiv="refresh" content="0; url=/zh/" /></noscript></head>
   <body>
     <script>
-      const l=window.location.pathname.includes('/zh')?'/zh':'/en';
-      window.location.replace(l+'/'+window.location.search+window.location.hash);
+      (function () {
+        var path = window.location.pathname.replace(/\/+$/,'').replace(/^\//,'');
+        var zh = false;
+        try {
+          var pref = localStorage.getItem('locale') || '';
+          if (pref === 'zh-CN' || pref === 'zh') zh = true;
+          else if (pref === 'en') zh = false;
+          else {
+            var m = document.cookie.match(/(?:^|; )locale=([^;]+)/);
+            var cp = m ? m[1] : '';
+            if (cp === 'zh-CN' || cp === 'zh') zh = true;
+            else if (cp === 'en') zh = false;
+            else zh = (navigator.language || '').toLowerCase().indexOf('zh') === 0;
+          }
+        } catch (e) {
+          zh = (navigator.language || '').toLowerCase().indexOf('zh') === 0;
+        }
+        window.location.replace((zh ? '/zh/' : '/en/') + path + window.location.search + window.location.hash);
+      })();
     </script>
   </body>
 </html>

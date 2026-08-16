@@ -17,6 +17,7 @@
 
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
+import { formatRelativeTime } from '@chronicle/shared/src/utils';
 
 // ── i18n helpers ───────────────────────────────────────────
 
@@ -43,21 +44,7 @@ function readI18n(container: HTMLElement): Record<string, string> {
 // ── Relative date formatting ───────────────────────────────
 
 function formatRelativeDate(dateStr: string, lang: string): string {
-  const date = new Date(dateStr);
-  if (Number.isNaN(date.getTime())) return '';
-  const now = new Date();
-  const diffSec = Math.floor((now.getTime() - date.getTime()) / 1000);
-  const diffMin = Math.floor(diffSec / 60);
-  const diffHour = Math.floor(diffMin / 60);
-  const diffDay = Math.floor(diffHour / 24);
-
-  if (diffSec < 60) return lang === 'zh' ? '刚刚' : 'just now';
-  if (diffMin < 60) return lang === 'zh' ? `${diffMin}分钟前` : `${diffMin}m ago`;
-  if (diffHour < 24) return lang === 'zh' ? `${diffHour}小时前` : `${diffHour}h ago`;
-  if (diffDay === 1) return lang === 'zh' ? '昨天' : 'yesterday';
-  if (diffDay === 2) return lang === 'zh' ? '前天' : '2d ago';
-  if (diffDay < 30) return lang === 'zh' ? `${diffDay}天前` : `${diffDay}d ago`;
-  return date.toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US');
+  return formatRelativeTime(dateStr, lang === 'zh' ? 'zh' : 'en');
 }
 
 // ── Types ──────────────────────────────────────────────────

@@ -193,6 +193,23 @@ export function useSchemaForm(schemaId: string) {
     }
   }
 
+
+/**
+ * Recursively remove UI-virtual keys ($/_ prefixed — e.g. _localId, $about_edit,
+ * $waline_admin) from a payload so they never leak into content files (P2-5).
+ */
+function stripVirtualKeys(value: any): any {
+  if (Array.isArray(value)) return value.map(stripVirtualKeys)
+  if (value && typeof value === 'object') {
+    const out: Record<string, any> = {}
+    for (const [k, v] of Object.entries(value)) {
+      if (k.startsWith('$') || k.startsWith('_')) continue
+      out[k] = stripVirtualKeys(v)
+    }
+    return out
+  }
+  return value
+}
   // ── Save data to filesystem ──────────────────────────────
   async function save(): Promise<boolean> {
     saving.value = true
@@ -220,6 +237,9 @@ export function useSchemaForm(schemaId: string) {
           }
         }
       }
+
+      // Strip UI-virtual keys ($/_ prefixed) — never persisted (P2-5).
+      payload = stripVirtualKeys(payload)
 
       // Inject meta refs into payload (e.g. backgroundMeta ← metaRefs.background)
       if (!isArraySchema) {

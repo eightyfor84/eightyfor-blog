@@ -294,22 +294,6 @@
       }
     }
   },
-  "allOf": [
-    {
-      "if": {
-        "properties": {
-          "scheduledBuildEnabled": {
-            "const": true
-          }
-        }
-      },
-      "then": {
-        "required": [
-          "scheduledBuildMode"
-        ]
-      }
-    }
-  ],
   "x-groups": {
     "paths": {
       "label": {

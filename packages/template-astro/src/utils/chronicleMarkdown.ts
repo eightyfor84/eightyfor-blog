@@ -34,8 +34,9 @@ const md = new MarkdownIt({
   breaks: false,
 });
 
-// Allow file:/// URLs and custom protocols: asset://, post://
-md.validateLink = (url: string) => /^(https?:|file:|mailto:|\/|#|asset:|post:|[a-zA-Z][a-zA-Z0-9+.-]*:)/i.test(String(url));
+// Explicit protocol whitelist (P3-6): the old trailing [a-zA-Z][a-zA-Z0-9+.-]*:
+// branch accepted ANY protocol (e.g. javascript:). Now only known-safe ones pass.
+md.validateLink = (url: string) => /^(https?:|file:|mailto:|tel:|sms:|\/|#|asset:|post:)/i.test(String(url));
 
 // ── Custom protocol resolution ─────────────────────────
 // Hook into normalizeLink — EVERY link/image URL passes through here.

@@ -67,8 +67,12 @@ function buildAbsoluteUrl(baseUrl: string, path: string) {
   return new URL(path.startsWith('/') ? path : `/${path}`, baseUrl).href;
 }
 
+// Single RSS feed — canonical locale is zh (project default). Localized links
+// point to the zh route so the feed is consistent for all readers.
+const FEED_LOCALE = 'zh';
+
 function buildPostUrl(baseUrl: string, postId: string) {
-  const localizedPath = buildLocalizedPath('zh', `/post/${encodeURIComponent(postId)}`);
+  const localizedPath = buildLocalizedPath(FEED_LOCALE, `/post/${encodeURIComponent(postId)}`);
   return buildAbsoluteUrl(baseUrl, localizedPath);
 }
 

@@ -9,6 +9,16 @@
  */
 // @ts-nocheck
 
+/** Post index item (from posts/index.json) — P3-5 typed. */
+export interface SearchIndexItem {
+  id: string;
+  title: string;
+  date?: string;
+  tags?: string[];
+  summary?: string;
+  status?: string;
+}
+
 export interface SearchEngineConfig {
   instanceId: string;
   mode: 'page' | 'overlay';
@@ -194,34 +204,15 @@ export function initSearchExperience(config: SearchEngineConfig) {
   const searchBoxRoot = root.querySelector(`[data-searchbox-id="${instanceId}"]`);
   const input = searchBoxRoot?.querySelector('#search-input');
 
-  const isChinese = locale === 'zh-CN';
-
-  const t = (key, params = {}) => {
-    const translations = {
-      "search.tagsCount": (p) => {
-        if (p && p.count > 1) {
-          return isChinese ? `等${p.count}个标签` : ` and ${p.count} more tags`;
-        }
-        return '';
-      },
-      "search.resultDescription": (p) => {
-        return isChinese ? `${p.searchDescription} 的搜索结果` : `Search results for ${p.searchDescription}`;
-      },
-      "search.allPosts": () => isChinese ? "所有内容" : "All content",
-      "search.items": (p) => {
-        return isChinese ? `${p.count} 条` : `${p.count} items`;
-      },
-      "search.resultsTitle": () => isChinese ? "搜索结果" : "Search results",
-      "search.resultsCount": (p) => {
-        return isChinese ? `${p.count} 条` : `${p.count} items`;
-      },
-      "search.suggestionEmpty": () => isChinese ? "无匹配建议" : "No suggestions"
-    };
-
-    if (translations[key]) {
-      return typeof translations[key] === 'function' ? translations[key](params) : translations[key];
-    }
-    return key;
+  // i18n: read the SSR-injected search.* translations (single source = locales
+  // JSON, injected by SearchExperience as [data-role="search-i18n"]).
+  const i18nScript = root.querySelector('[data-role="search-i18n"]');
+  const i18nMap: Record<string, string> = i18nScript
+    ? (JSON.parse(i18nScript.textContent || '{}') as Record<string, string>)
+    : {};
+  const t = (key: string, params: Record<string, string | number> = {}) => {
+    const template = i18nMap[key] ?? key;
+    return String(template).replace(/\{(\w+)\}/g, (_, k: string) => String(params[k] ?? ''));
   };
 
   const parsedInitialTags = [...initialTags];
@@ -531,7 +522,8 @@ export function initSearchExperience(config: SearchEngineConfig) {
             if (selectedTags.length === 1) {
               searchDescription += `"${selectedTags[0]}"`;
             } else {
-              searchDescription += `"${selectedTags[0]}"${t("search.tagsCount", { count: selectedTags.length })}`;
+              const extraCount = selectedTags.length - 1;
+  searchDescription += `"${selectedTags[0]}"${extraCount > 0 ? t("search.tagsCount", { count: extraCount }) : ""}`;
             }
           }
 

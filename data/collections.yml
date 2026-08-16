@@ -1,37 +1,27 @@
 - name: Chronicle Guide
-  description: Everything you need to get started with Chronicle — from first principles to advanced features.
+  description: Everything you need to get started with Chronicle — from first principles
+    to advanced features.
   slug: chronicle-guide
   nodes:
-    - id: welcome-to-chronicle
+  - id: welcome-to-chronicle
+    type: post
+  - id: getting-started
+    type: post
+  - id: ''
+    type: group
+    title: Configuration
+    children:
+    - id: site-config
       type: post
-      _localId: n_dvm33ry
-    - id: getting-started
+    - id: profile-config
       type: post
-      _localId: n_9g04vjc
-    - id: ""
-      type: group
-      _localId: n_uc1itvi
-      title: Configuration
-      children:
-        - _localId: n_lpk6d3u
-          id: site-config
-          type: post
-        - _localId: n_r2jt9v5
-          id: profile-config
-          type: post
-        - _localId: n_ckghkqk
-          id: c8n-config
-          type: post
-        - _localId: n_51jn9vc
-          id: friend-config
-          type: post
-        - _localId: n_cmtcfg1
-          id: comments-config
-          type: post
-    - id: slides-demo
+    - id: c8n-config
       type: post
-      _localId: n_z878bd7
-    - _localId: n_bua1llj
-      id: markdown-showcase
+    - id: friend-config
       type: post
-  _localId: n_2mpdg27
+    - id: comments-config
+      type: post
+  - id: slides-demo
+    type: post
+  - id: markdown-showcase
+    type: post
