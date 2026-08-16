@@ -506,7 +506,8 @@
             "zh-CN": "背景图"
           },
           "x-persist": false,
-          "x-tab": "template-appearance"
+          "x-tab": "template-appearance",
+          "x-allow-video": true
         },
         "backgroundMeta": {
           "type": "string",
