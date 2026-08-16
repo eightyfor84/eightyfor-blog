@@ -396,7 +396,29 @@ function setupWalineForm(
   const imageBtn = form.querySelector<HTMLButtonElement>('[data-role="image-btn"]');
   const imageInput = form.querySelector<HTMLInputElement>('[data-role="image-input"]');
   const attachContainer = form.querySelector<HTMLElement>('[data-role="attachments"]');
+  // 图片上传配置：开关 + 图床（endpoint/token）。未启用或无图床时整个上传链路不激活（按钮 SSR 已隐藏）。
+  const imageUpload = container.dataset.imageUpload === 'true';
+  const imageEndpoint = String(container.dataset.imageEndpoint || '').trim();
+  const imageToken = String(container.dataset.imageToken || '').trim();
   const attachments: { name: string; dataUrl: string }[] = [];
+
+  /** 上传一张图片到图床（multipart file），返回 URL。lsky-pro 风格响应：{ data: { links: { url } } }。 */
+  async function uploadImage(dataUrl: string): Promise<string> {
+    if (!imageEndpoint) throw new Error('image host not configured');
+    const blob = await (await fetch(dataUrl)).blob();
+    const fd = new FormData();
+    fd.append('file', blob, 'image.png');
+    const res = await fetch(imageEndpoint, {
+      method: 'POST',
+      headers: imageToken ? { Authorization: 'Bearer ' + imageToken } : {},
+      body: fd,
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json().catch(() => ({}));
+    const url = json?.data?.links?.url || json?.data?.url || json?.url;
+    if (!url) throw new Error('no url in response');
+    return String(url);
+  }
 
   const renderAttachments = () => {
     if (!attachContainer) return;
@@ -446,12 +468,25 @@ function setupWalineForm(
     // Email is required: a null `mail` breaks Waline's avatar renderer (Nunjucks trim(null)).
     if (!author || !content || !email) return;
 
-    // Attachments are appended after the text body as markdown image syntax.
-    // (Waline has no separate attachment field; the server renders them as images.)
-    const attachmentMarkdown = attachments
-      .map((a) => `![${a.name.replace(/[\[\]]/g, '')}](${a.dataUrl})`)
-      .join('\n');
-    const finalContent = [content, attachmentMarkdown].filter(Boolean).join('\n\n');
+    // Attachments are uploaded to the image host (URL), then appended after the
+    // text body as markdown image syntax. (Waline has no separate attachment
+    // field; the server renders them as images. Never inline base64.)
+    let finalContent = content;
+    if (attachments.length > 0 && !imageUpload) {
+      if (note) { note.textContent = i18n.imageDisabled || 'Images are disabled.'; note.hidden = false; }
+      return;
+    }
+    try {
+      const urls = await Promise.all(attachments.map((a) => uploadImage(a.dataUrl)));
+      const attachmentMarkdown = urls
+        .map((u, i) => `![${attachments[i].name.replace(/[\[\]]/g, '')}](${u})`)
+        .join('\n');
+      finalContent = [content, attachmentMarkdown].filter(Boolean).join('\n\n');
+    } catch (err) {
+      if (note) { note.textContent = i18n.imageUploadError || 'Image upload failed.'; note.hidden = false; }
+      submitBtn.disabled = false;
+      return;
+    }
 
     submitBtn.disabled = true;
     if (note) note.hidden = true;

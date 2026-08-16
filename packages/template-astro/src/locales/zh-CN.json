@@ -202,7 +202,9 @@
     "replyingTo": "回复",
     "preview": "预览",
     "previewNow": "刚刚",
-    "imageUpload": "添加图片"
+    "imageUpload": "添加图片",
+    "imageDisabled": "评论不允许带图片。",
+    "imageUploadError": "图片上传失败，请重试。"
   },
   "date": {
     "justNow": "刚刚",

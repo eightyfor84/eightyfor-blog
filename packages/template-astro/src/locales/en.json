@@ -201,7 +201,9 @@
     "replyingTo": "Replying to",
     "preview": "Preview",
     "previewNow": "Now",
-    "imageUpload": "Attach image"
+    "imageUpload": "Attach image",
+    "imageDisabled": "Images are disabled in comments.",
+    "imageUploadError": "Image upload failed. Please try again."
   },
   "date": {
     "justNow": "just now",

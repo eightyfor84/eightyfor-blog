@@ -417,6 +417,9 @@ const metaDescription = buildMetaDescription(post, locale);
         backend={commentBackend}
         walineServerUrl={commentWalineServerUrl}
         showGeoAddress={showGeoAddress}
+        imageUploadEnabled={commentsCfg.imageUploadEnabled === true}
+        imageUploadEndpoint={String(commentsCfg.imageUploadEndpoint || '')}
+        imageUploadToken={String(commentsCfg.imageUploadToken || '')}
       />
     )}
   </div>

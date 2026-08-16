@@ -495,6 +495,56 @@
             "en": "Comment moderation is delegated to the Waline admin dashboard at <server>/ui.",
             "zh-CN": "评论管理已委托 Waline 管理后台（<server>/ui）。"
           }
+        },
+        "imageUploadEnabled": {
+          "type": "boolean",
+          "default": false,
+          "x-widget": "toggle",
+          "x-order": 6,
+          "title": {
+            "en": "Allow Images in Comments",
+            "zh-CN": "允许评论带图片"
+          },
+          "description": {
+            "en": "Upload images to the image host configured below. Off: comments cannot include images.",
+            "zh-CN": "上传图片到下方配置的图床；关闭则评论不可带图。"
+          }
+        },
+        "imageUploadEndpoint": {
+          "type": "string",
+          "default": "",
+          "x-widget": "input",
+          "x-order": 7,
+          "x-visible-when": {
+            "field": "imageUploadEnabled",
+            "equals": true
+          },
+          "title": {
+            "en": "Image Host Upload URL",
+            "zh-CN": "图床上传地址"
+          },
+          "description": {
+            "en": "POST multipart file; response JSON url field (lsky-pro style: data.links.url).",
+            "zh-CN": "POST multipart file，响应 JSON 取 url（lsky-pro 风格：data.links.url）。"
+          }
+        },
+        "imageUploadToken": {
+          "type": "string",
+          "default": "",
+          "x-widget": "input",
+          "x-order": 8,
+          "x-visible-when": {
+            "field": "imageUploadEnabled",
+            "equals": true
+          },
+          "title": {
+            "en": "Image Host Token",
+            "zh-CN": "图床令牌"
+          },
+          "description": {
+            "en": "Sent as Authorization: Bearer <token>.",
+            "zh-CN": "以 Authorization: Bearer <token> 发送。"
+          }
         }
       }
     }
