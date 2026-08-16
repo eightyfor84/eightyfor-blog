@@ -355,7 +355,6 @@
             ]
           },
           "x-widget": "card-list",
-          "x-card-editable": false,
           "x-card-intro": false,
           "x-item-labels": {
             "twitter": {
