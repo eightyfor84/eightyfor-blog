@@ -170,26 +170,21 @@ const rootId = isSidebar ? "collection-nav-root" : "collection-nav-inline";
         )
           document.body.appendChild(r);
         if (r.dataset.cnVariant === "sidebar") {
-          const NAV = 260;
-          // 始终折叠 = 始终保持"可折叠态"（默认收起、hover 可展开），
-          // 不是删除交互。展开态给正文让出左侧空间，折叠态回收。
+          // 可折叠态（rail）由 @media (max-width:1199px) 定义；"始终折叠"开关
+          // 把 ≥1200px 也切进这个模式：默认收起成 rail、hover 探头、离开收回。
+          // 正文容器左间距只由可折叠态决定（CSS），hover 探头不动容器。
           const alwaysCollapsed = r.dataset.alwaysCollapsed === "true";
-          function setContentPadding(v: string) {
-            const ct = document.querySelector(".post-detail-container") as HTMLElement | null;
-            if (ct) ct.style.paddingLeft = v;
-          }
           function expand() {
             r.classList.remove("collapsed");
             r.classList.add("expanded");
-            setContentPadding(NAV + 20 + "px");
           }
           function collapse() {
             r.classList.add("collapsed");
             r.classList.remove("expanded");
-            setContentPadding("0px");
           }
           function P() {
             const w = window.innerWidth;
+            // 非可折叠态（≥1200px 且未开始终折叠）常展开；其余为可折叠态默认收起
             if (w >= 1200 && !alwaysCollapsed) expand();
             else collapse();
           }
