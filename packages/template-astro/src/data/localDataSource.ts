@@ -271,7 +271,7 @@ export interface PostPageConfig {
   postCollectionNavEnabled?: boolean;
   postCollectionNav?: { alwaysCollapsed?: boolean };
   postEndOfArticle?: { relatedPosts?: boolean; prevNext?: boolean; prevNextMode?: 'both' | 'next-only'; prevNextScope?: 'global' | 'collection'; prevNextOrder?: 'asc' | 'desc'; authorCard?: boolean; share?: boolean; shareChannels?: string[] };
-  postComments?: { backend?: string; walineServerUrl?: string; attitude?: boolean; showGeoAddress?: boolean };
+  postComments?: { backend?: string; walineServerUrl?: string; attitude?: boolean; showGeoAddress?: boolean; imageUploadEnabled?: boolean; imageUploadEndpoint?: string; imageUploadToken?: string };
 }
 
 const POST_PAGE_DEFAULTS: Required<PostPageConfig> = {
@@ -281,7 +281,7 @@ const POST_PAGE_DEFAULTS: Required<PostPageConfig> = {
   postCollectionNavEnabled: true,
   postCollectionNav: { alwaysCollapsed: false },
   postEndOfArticle: { relatedPosts: true, prevNext: true, prevNextMode: 'both', prevNextScope: 'global', prevNextOrder: 'desc', authorCard: true, share: true, shareChannels: ['twitter', 'weibo', 'linkedin'] },
-  postComments: { backend: '', walineServerUrl: '', attitude: true, showGeoAddress: true },
+  postComments: { backend: '', walineServerUrl: '', attitude: true, showGeoAddress: true, imageUploadEnabled: false, imageUploadEndpoint: '', imageUploadToken: '' },
 }
 
 /**
