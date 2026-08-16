@@ -101,7 +101,7 @@ const metaDescription = profile?.bio
 
       {
         aboutHtml ? (
-          <div class="chronicle-markdown" set:html={aboutHtml} />
+          <div class="chr-md" set:html={aboutHtml} />
         ) : (
           <div class="about-empty">
             <p>{locale === 'zh-CN' ? '暂无内容。' : 'Nothing here yet.'}</p>

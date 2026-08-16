@@ -6,7 +6,7 @@
  * identical HTML, so a single stylesheet guarantees visual parity.
  *
  * Convention:
- *   Wrap rendered HTML in a container with class "chronicle-markdown".
+ *   Wrap rendered HTML in a container with class "chr-md".
  *   All selectors are scoped under .chr-md to avoid leakage.
  *
  * CSS variables (required — defined in global.css):

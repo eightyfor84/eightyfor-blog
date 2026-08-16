@@ -104,7 +104,7 @@ async function renderText(bodyEl: HTMLElement, url: string, encoding: string) {
     const maxLen = 50000;
     const display = decoded.length > maxLen ? decoded.slice(0, maxLen) + '\n\n… (truncated)' : decoded;
     const escaped = display.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    bodyEl.innerHTML = '<div class="chronicle-markdown"><pre class="fp-text">' + escaped + '</pre></div>';
+    bodyEl.innerHTML = '<div class="chr-md"><pre class="fp-text">' + escaped + '</pre></div>';
   } catch (e: any) {
     bodyEl.innerHTML = '<div class="fp-file" style="flex-direction:column"><p>' + (e?.message || 'Failed to load') + '</p></div>';
   }

@@ -131,7 +131,7 @@ ${katexTag}
 <body${font ? ` data-font="${font}"` : ''}>
 <button class="theme-toggle no-print" id="theme-toggle" title="Toggle light/dark" aria-label="Toggle theme"><svg class="theme-icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></button>
 ${title ? `<h1 class="article-title">${escapeHtml(title)}</h1>` : ''}
-<div class="chronicle-markdown">${bodyHtml}</div>
+<div class="chr-md">${bodyHtml}</div>
 <script>
 (function(){var h=document.documentElement;var b=document.getElementById('theme-toggle');var sun='<svg class="theme-icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>';var moon='<svg class="theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>';var s=localStorage.getItem('chronicle-export-theme');if(s==='dark'){h.dataset.theme='dark';b.innerHTML=moon}else if(s==='light'){h.dataset.theme='light';b.innerHTML=sun}b.addEventListener('click',function(){var c=h.dataset.theme==='dark'?'light':'dark';h.dataset.theme=c;b.innerHTML=c==='dark'?moon:sun;localStorage.setItem('chronicle-export-theme',c)})})()
 <\/script>
@@ -202,7 +202,7 @@ ${katexTag}
 </head>
 <body${font ? ` data-font="${font}"` : ''}>
 ${title ? `<h1 class="article-title">${escapeHtml(title)}</h1>` : ''}
-<div class="chronicle-markdown">${renderedHtml}</div>
+<div class="chr-md">${renderedHtml}</div>
 </body>
 </html>`
 }
