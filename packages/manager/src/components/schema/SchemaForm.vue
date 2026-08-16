@@ -335,7 +335,9 @@ function isDisabled(field: FieldDef): boolean {
 }
 
 function disabledText(field: FieldDef): string {
-  return field.schema['x-disabled-text'] || ''
+  // x-disabled-text 是 i18n 对象（{en, zh-CN}）——resolveLocale 成当前语言，
+  // 否则组件收到 JSON 对象直接渲染出原文
+  return resolveLocale(field.schema['x-disabled-text'], '') || ''
 }
 
 /** A group with a toggle is disabled when its toggle field resolves to a falsy value. */

@@ -8,7 +8,7 @@
     :hint="resolvedHint"
     :placeholder="resolvedPlaceholder"
     :disabled="disabled"
-    :disabled-text="disabledText"
+    :disabled-text="resolvedDisabledText"
     :title="listTitle"
     :add-label="listAddLabel"
     :empty-text="listEmptyText"
@@ -133,6 +133,12 @@ const resolvedLabel = computed(() => {
 
 const resolvedHint = computed(() => {
   return resolveLocale(props.fieldSchema.description || props.fieldSchema['x-hint'], '')
+})
+
+// x-disabled-text 是 i18n 对象（{en, zh-CN}）——必须 resolveLocale 成当前语言字符串，
+// 否则原样传给组件会把 JSON 对象渲染出来
+const resolvedDisabledText = computed(() => {
+  return resolveLocale(props.fieldSchema['x-disabled-text'], '')
 })
 
 const resolvedPlaceholder = computed(() => props.fieldSchema['x-placeholder'] || '')
