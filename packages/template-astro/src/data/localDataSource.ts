@@ -270,7 +270,7 @@ export interface PostPageConfig {
   postToc?: { inlineToc?: boolean; tocFloat?: boolean; tocFloatAlwaysExpanded?: boolean; mobileTocControl?: boolean };
   postCollectionNavEnabled?: boolean;
   postCollectionNav?: { alwaysCollapsed?: boolean };
-  postEndOfArticle?: { relatedPosts?: boolean; prevNext?: boolean; prevNextMode?: 'both' | 'next-only'; prevNextScope?: 'global' | 'collection'; authorCard?: boolean; share?: boolean; shareChannels?: string[] };
+  postEndOfArticle?: { relatedPosts?: boolean; prevNext?: boolean; prevNextMode?: 'both' | 'next-only'; prevNextScope?: 'global' | 'collection'; prevNextOrder?: 'asc' | 'desc'; authorCard?: boolean; share?: boolean; shareChannels?: string[] };
   postComments?: { backend?: string; walineServerUrl?: string; attitude?: boolean; showGeoAddress?: boolean };
 }
 
@@ -280,7 +280,7 @@ const POST_PAGE_DEFAULTS: Required<PostPageConfig> = {
   postToc: { inlineToc: true, tocFloat: true, tocFloatAlwaysExpanded: false, mobileTocControl: true },
   postCollectionNavEnabled: true,
   postCollectionNav: { alwaysCollapsed: false },
-  postEndOfArticle: { relatedPosts: true, prevNext: true, prevNextMode: 'both', prevNextScope: 'global', authorCard: true, share: true, shareChannels: ['twitter', 'weibo', 'linkedin'] },
+  postEndOfArticle: { relatedPosts: true, prevNext: true, prevNextMode: 'both', prevNextScope: 'global', prevNextOrder: 'desc', authorCard: true, share: true, shareChannels: ['twitter', 'weibo', 'linkedin'] },
   postComments: { backend: '', walineServerUrl: '', attitude: true, showGeoAddress: true },
 }
 
@@ -670,6 +670,28 @@ export function getCollections(): Record<string, unknown> {
       return { collections: resolved }
     }
     return { collections: [] }
+}
+
+/**
+ * Collection 内导航顺序：按 collections.yml nodes 树深度优先展平某 collection 的帖子 id
+ * （保留人工定义的阅读顺序——collection 自带顺序，不按日期、不受 prevNextOrder 影响）。
+ */
+export function getCollectionPostIds(collectionName: string): string[] {
+    const data = getCollections();
+    const cols = Array.isArray(data?.collections) ? (data.collections as Record<string, any>[]) : [];
+    const col = cols.find((c: any) => String(c.name || c.slug || '') === collectionName)
+    if (!col) return []
+    const ids: string[] = []
+    const walk = (nodes: unknown[]) => {
+      for (const node of nodes || []) {
+        if (!node || typeof node !== 'object') continue
+        const n = node as Record<string, any>
+        if (n.type === 'post' && n.id) ids.push(String(n.id))
+        if (n.type === 'group' && Array.isArray(n.children)) walk(n.children)
+      }
+    }
+    walk(Array.isArray(col.nodes) ? col.nodes : [])
+    return ids
 }
 
 // ── Collection Reverse Index ──────────────────────────────

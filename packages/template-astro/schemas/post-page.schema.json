@@ -322,11 +322,45 @@
                 "equals": true
               }
             },
+            "prevNextOrder": {
+              "type": "string",
+              "default": "desc",
+              "x-widget": "radio-group",
+              "x-order": 5,
+              "x-options": [
+                {
+                  "value": "desc",
+                  "label": {
+                    "en": "Newest first (first = latest)",
+                    "zh-CN": "最新在前（第一篇 = 最新）"
+                  }
+                },
+                {
+                  "value": "asc",
+                  "label": {
+                    "en": "Oldest first (first = earliest)",
+                    "zh-CN": "最老在前（第一篇 = 最老）"
+                  }
+                }
+              ],
+              "title": {
+                "en": "Navigation Order",
+                "zh-CN": "导航排序"
+              },
+              "description": {
+                "en": "Direction for all-posts ordering (scope: All posts). Collection order is defined by collections.yml and unaffected.",
+                "zh-CN": "全部拉通（范围：全部文章）时的排序方向。合集内顺序由 collections.yml 定义，不受此设置影响。"
+              },
+              "x-visible-when": {
+                "field": "prevNext",
+                "equals": true
+              }
+            },
             "authorCard": {
               "type": "boolean",
               "default": true,
               "x-widget": "toggle",
-              "x-order": 5,
+              "x-order": 6,
               "title": {
                 "en": "Author Card",
                 "zh-CN": "作者卡片"
@@ -336,7 +370,7 @@
               "type": "boolean",
               "default": true,
               "x-widget": "toggle",
-              "x-order": 6,
+              "x-order": 7,
               "title": {
                 "en": "Share Article",
                 "zh-CN": "分享文章"
@@ -359,6 +393,7 @@
               },
               "x-widget": "card-list",
               "x-card-intro": false,
+              "x-order": 8,
               "x-item-labels": {
                 "twitter": {
                   "en": "Twitter / X",
@@ -373,7 +408,6 @@
                   "zh-CN": "领英"
                 }
               },
-              "x-order": 7,
               "title": {
                 "en": "Share Channels",
                 "zh-CN": "分享渠道"
