@@ -1,5 +1,5 @@
 <template>
-  <section ref="rootEl" class="card-list-editor card">
+  <section ref="rootEl" class="card-list-editor card" :class="{ 'card-list-editor--compact': props.compact }">
     <div class="card-list-editor__toolbar">
       <div class="card-list-editor__text">
         <strong>{{ toolbarTitle }}</strong>
@@ -91,6 +91,8 @@ type CardListItem = {
 const props = withDefaults(defineProps<{
   cards: CardListItem[]
   showImage?: boolean
+  /** Compact layout — same drag/edit/remove/add functionality, tighter spacing. */
+  compact?: boolean
   primaryRequired?: boolean
   secondaryOptional?: boolean
   title?: string
@@ -102,6 +104,7 @@ const props = withDefaults(defineProps<{
   removeTitle?: string
 }>(), {
   showImage: true,
+  compact: false,
   primaryRequired: false,
   secondaryOptional: true,
   title: undefined,
@@ -589,4 +592,15 @@ onBeforeUnmount(() => {
     justify-content: flex-start;
   }
 }
+/* Compact variant — same functionality, tighter spacing (share channels etc.) */
+.card-list-editor--compact { padding: 0.6rem 0.75rem; }
+.card-list-editor--compact .card-list-editor__toolbar { margin-bottom: 0.5rem; }
+.card-list-editor--compact .card-list-editor__toolbar strong { font-size: 0.9rem; }
+.card-list-editor--compact .card-list-editor__toolbar p { font-size: 0.75rem; margin: 0.15rem 0 0; }
+.card-list-editor--compact .card-list-editor__toolbar .primary { padding: 0.3rem 0.7rem; font-size: 0.8rem; }
+.card-list-editor--compact .card-list__item { padding: 0.3rem 0.4rem; }
+.card-list-editor--compact .card-list__item-content { gap: 0.5rem; }
+.card-list-editor--compact .card-list__heading strong { font-size: 0.85rem; }
+.card-list-editor--compact .card-list__intro { font-size: 0.75rem; margin: 0.1rem 0 0; }
+.card-list-editor--compact .card-list__actions .icon-btn { width: 24px; height: 24px; }
 </style>

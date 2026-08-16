@@ -9,34 +9,12 @@
       - schema.x-card-subtitle-key → which property to show as subtitle (default: "intro")
   -->
   <div class="form-row">
-    <!-- Simple mode: items are plain strings (e.g. share channels) — compact
-         list with reorder / remove / add, no modal. Enabled automatically when
-         schema.items.type === 'string'. -->
-    <div v-if="isSimpleList" class="simple-list">
-      <div v-if="title" class="field-label">{{ title }}</div>
-      <div v-if="hint" class="field-hint">{{ hint }}</div>
-      <ul v-if="simpleItems.length" class="simple-list__items">
-        <li v-for="(ch, i) in simpleItems" :key="ch + i" class="simple-list__item">
-          <span class="simple-list__drag">≡</span>
-          <span class="simple-list__name">{{ itemLabel(ch) }}</span>
-          <span class="simple-list__spacer"></span>
-          <button type="button" class="simple-list__btn" :disabled="i === 0" @click="simpleMove(i, -1)" title="Move up">↑</button>
-          <button type="button" class="simple-list__btn" :disabled="i === simpleItems.length - 1" @click="simpleMove(i, 1)" title="Move down">↓</button>
-          <button type="button" class="simple-list__btn simple-list__remove" @click="simpleRemove(i)" title="Remove">×</button>
-        </li>
-      </ul>
-      <p v-else class="simple-list__empty">{{ emptyText || 'No items' }}</p>
-      <div v-if="simpleAvailable.length" class="simple-list__add">
-        <select :value="''" class="simple-list__select" @change="simpleAdd($event)">
-          <option value="" disabled>+ {{ addLabel || 'Add…' }}</option>
-          <option v-for="ch in simpleAvailable" :key="ch" :value="ch">{{ itemLabel(ch) }}</option>
-        </select>
-      </div>
-    </div>
-
+    <!-- Simple mode (items are plain strings, e.g. share channels): the SAME
+         CardListEditor with full drag/edit/remove/add functionality, just the
+         compact layout. Editing a string item = picking a value from the pool. -->
     <CardListEditor
-      v-else
-      :cards="displayCards"
+      :cards="isSimpleList ? simpleDisplayCards : displayCards"
+      :compact="isSimpleList"
       :show-image="!!imageKey"
       :title="title"
       :hint="hint"
@@ -59,8 +37,8 @@
         </div>
 
         <div class="card-modal__body">
-          <!-- Preview: image + key text fields -->
-          <div v-if="imageKey || titleKey || subtitleKey" class="card-modal__preview">
+          <!-- Preview: image + key text fields (skipped in simple/string mode) -->
+          <div v-if="!isSimpleList && (imageKey || titleKey || subtitleKey)" class="card-modal__preview">
             <div v-if="imageKey && draftCard[imageKey]" class="card-modal__preview-media">
               <img :src="resolveUrl(draftCard[imageKey])" :alt="draftCard[titleKey] || ''" />
             </div>
@@ -121,13 +99,14 @@ const cardItemSchema = computed(() => props.schema.items || {})
 const cardPropSchemas = computed(() => cardItemSchema.value.properties || {})
 
 // ── Simple mode (items are plain strings — e.g. share channels) ──
+// Full CardListEditor functionality (drag/edit/remove/add) via the compact
+// layout; editing a string item = picking a value from the pool in the modal.
 const isSimpleList = computed(() => cardItemSchema.value.type === 'string')
 const simpleItems = ref<string[]>([])
 const simplePool = computed<string[]>(() => {
   const pool = props.schema.items?.enum as string[] | undefined
   return Array.isArray(pool) && pool.length ? pool : []
 })
-const simpleAvailable = computed(() => simplePool.value.filter(ch => !simpleItems.value.includes(ch)))
 const itemLabels = computed<Record<string, any>>(() => props.schema['x-item-labels'] || {})
 
 function itemLabel(value: string): string {
@@ -135,27 +114,22 @@ function itemLabel(value: string): string {
   if (meta) return resolveLocale(meta, value)
   return value
 }
-function simpleMove(i: number, delta: number) {
-  const next = [...simpleItems.value]
-  const j = i + delta
-  if (j < 0 || j >= next.length) return
-  ;[next[i], next[j]] = [next[j], next[i]]
-  simpleItems.value = next
-  emitUpdate()
-}
-function simpleRemove(i: number) {
-  const next = [...simpleItems.value]
-  next.splice(i, 1)
-  simpleItems.value = next
-  emitUpdate()
-}
-function simpleAdd(e: Event) {
-  const v = (e.target as HTMLSelectElement).value
-  if (!v) return
-  simpleItems.value = [...simpleItems.value, v]
-  ;(e.target as HTMLSelectElement).value = ''
-  emitUpdate()
-}
+
+/** Display cards for CardListEditor in simple mode (name = localized label). */
+const simpleDisplayCards = computed(() => simpleItems.value.map((v, i) => ({
+  _localId: `s_${i}_${v}`, name: itemLabel(v), value: v,
+})))
+
+/** The single editable field shown in the modal for string items. */
+const simpleValueField = computed(() => ({
+  key: 'value',
+  schema: {
+    type: 'string',
+    'x-widget': 'select',
+    'x-options': simplePool.value.map(v => ({ value: v, label: itemLabel(v) })),
+    title: props.schema.title || { en: 'Value', 'zh-CN': '值' },
+  },
+}))
 
 const titleKey = computed(() => props.schema['x-card-title-key'] || 'name')
 const imageKey = computed(() => props.schema['x-card-image-key'] || 'avatar')
@@ -169,6 +143,7 @@ function resolveUrl(url: string): string {
 
 // Build ordered field list from schema properties
 const cardFields = computed(() => {
+  if (isSimpleList.value) return [simpleValueField.value]
   const propsMap = cardPropSchemas.value
   return Object.keys(propsMap)
     .filter(k => (propsMap[k]['x-widget'] || 'input') !== 'hidden')
@@ -242,12 +217,21 @@ function makeCard(): Record<string, any> {
 
 function openCreate() {
   editingIndex.value = null
-  draftCard.value = makeCard()
+  draftCard.value = isSimpleList.value ? { value: '' } : makeCard()
   modalTitle.value = t('settings.friendCardDialogTitleNew')
   isModalOpen.value = true
 }
 
 function openEdit(index: number) {
+  if (isSimpleList.value) {
+    const target = simpleItems.value[index]
+    if (target === undefined) return
+    editingIndex.value = index
+    draftCard.value = { value: target }
+    modalTitle.value = t('settings.friendCardDialogTitleEdit')
+    isModalOpen.value = true
+    return
+  }
   const target = cards.value[index]
   if (!target) return
   editingIndex.value = index
@@ -260,6 +244,20 @@ function closeModal() { isModalOpen.value = false; draftCard.value = null }
 
 function saveDraft() {
   if (!draftCard.value) return
+  if (isSimpleList.value) {
+    const v = String(draftCard.value.value || '')
+    if (!v) { closeModal(); return }
+    if (editingIndex.value === null) {
+      simpleItems.value = [...simpleItems.value, v]
+    } else {
+      const next = [...simpleItems.value]
+      next.splice(editingIndex.value, 1, v)
+      simpleItems.value = next
+    }
+    closeModal()
+    emitUpdate()
+    return
+  }
   const saved = { ...draftCard.value }
   if (editingIndex.value === null) {
     cards.value.push(saved)
@@ -297,20 +295,7 @@ function moveCard(from: number, to: number) {
 .card-modal__preview-text strong { display: block; }
 .card-modal__preview-text p { margin: .25rem 0 0; color: var(--comp-text-sec); font-size: .9rem; }
 
-/* Simple mode — compact string list (share channels etc.) */
-.simple-list { display: flex; flex-direction: column; gap: 0.5rem; }
-.field-label { font-size: 0.9rem; font-weight: 600; }
-.field-hint { font-size: 0.8rem; opacity: 0.7; }
-.simple-list__items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.35rem; }
-.simple-list__item { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.6rem; border-radius: 6px; background: var(--comp-bg-sec, rgba(128,128,128,0.06)); border: 1px solid var(--border-color, rgba(128,128,128,0.15)); }
-.simple-list__drag { cursor: grab; opacity: 0.5; }
-.simple-list__name { font-size: 0.85rem; }
-.simple-list__spacer { flex: 1; }
-.simple-list__btn { background: transparent; border: 1px solid var(--border-color, rgba(128,128,128,0.2)); border-radius: 4px; width: 22px; height: 22px; line-height: 1; cursor: pointer; font-size: 0.8rem; }
-.simple-list__btn:disabled { opacity: 0.35; cursor: default; }
-.simple-list__remove { color: var(--danger, #e06c75); }
-.simple-list__empty { font-size: 0.8rem; opacity: 0.6; margin: 0; }
-.simple-list__select { padding: 0.3rem 0.5rem; border-radius: 6px; border: 1px solid var(--border-color, rgba(128,128,128,0.2)); background: transparent; color: var(--app-text-pri); font-size: 0.85rem; }
+/* (Simple/string mode uses CardListEditor's compact variant — see CardListEditor.vue) */
 .card-modal__fields { display: flex; flex-direction: column; gap: .75rem; }
 .card-modal__actions { display: flex; justify-content: flex-end; gap: .5rem; }
 .close-btn { background: none; border: none; color: var(--comp-text-sec); cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; border-radius: 4px; }
