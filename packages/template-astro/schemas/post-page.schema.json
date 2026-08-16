@@ -344,20 +344,14 @@
           "default": [
             "twitter",
             "weibo",
-            "wechat",
-            "moments",
-            "linkedin",
-            "copy-link"
+            "linkedin"
           ],
           "items": {
             "type": "string",
             "enum": [
               "twitter",
               "weibo",
-              "wechat",
-              "moments",
-              "linkedin",
-              "copy-link"
+              "linkedin"
             ]
           },
           "x-widget": "card-list",
@@ -371,18 +365,6 @@
             "weibo": {
               "en": "Weibo",
               "zh-CN": "微博"
-            },
-            "copy-link": {
-              "en": "Copy Link",
-              "zh-CN": "复制链接"
-            },
-            "wechat": {
-              "en": "WeChat",
-              "zh-CN": "微信"
-            },
-            "moments": {
-              "en": "Moments",
-              "zh-CN": "朋友圈"
             },
             "linkedin": {
               "en": "LinkedIn",
