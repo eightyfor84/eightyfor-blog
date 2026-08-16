@@ -36,7 +36,7 @@
   /* Backend font stack (admin/editor). Defaults to same as frontend stack unless overridden */
   --backend-font-stack: var(--app-font-stack-inter);
 
-  --app-font-stack-serif: "Noto Serif SC", serif;
+  --app-font-stack-serif: ui-serif, 'Noto Serif SC', serif;
   --app-font-stack-mono: 'Consolas', 'SF Mono', 'Menlo', 'Monaco', 'Ubuntu Mono', 'Courier New', monospace, var(--app-font-stack-inter);
 
   font-family: var(--app-font-stack);

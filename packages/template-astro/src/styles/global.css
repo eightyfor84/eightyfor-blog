@@ -14,7 +14,7 @@
   --backend-font-stack: var(--app-font-stack-inter);
 
   --app-font-stack-serif:
-  /*Default*/ 'Noto Serif SC',
+  /*Default*/ ui-serif, 'Noto Serif SC',
   /*Apple FB*/ 'STSongti-SC', 'STSong', 'Songti SC',
   /*Windows FB*/ 'SimSun',
   /*FB*/serif;
