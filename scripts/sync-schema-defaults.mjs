@@ -45,7 +45,7 @@ const EMPTY_OVERRIDES = {
   // 必填占位文本（无个人信息）
   'homepage.siteName': 'Chronicle Aurora',
   'homepage.siteDescription': 'Chronicle Aurora — a local-first, git-backed Jamstack blog.',
-  'name': 'Chronicle Aurora',
+  'name': 'Author Name',
   // 内容性空值
   'bio': '',
   'location': '',

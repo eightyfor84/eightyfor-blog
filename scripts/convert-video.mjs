@@ -23,6 +23,10 @@
  *   <name>.mp4            (compressed H.264 — the file the template serves)
  *   background_alt.<ext>  (first-frame fallback poster, e.g. background_alt.jpg)
  *
+ * Non-ASCII input names (e.g. Chinese 背景.mov) are sanitized to an ASCII-safe
+ * basename before naming the output — the raw CJK would otherwise break URL
+ * percent-encoding on the CDN. A name of only CJK/emoji falls back to `background`.
+ *
  * `all` (the default) generates BOTH at once — the compressed video AND the
  * fallback first frame. Pass --out <dir> to write elsewhere. Remove/move the
  * raw source afterward so the build picks up the compressed file instead.
@@ -96,6 +100,22 @@ function compressVideo(input, output, { crf, maxHeight }) {
 
 function fmtMB(bytes) { return (bytes / (1024 * 1024)).toFixed(1) + ' MB'; }
 
+// Derive an ASCII-safe output basename from the input filename. Non-ASCII input
+// (e.g. a Chinese filename like 背景.mov) can't go into the URL the template
+// serves — the raw CJK would break percent-encoding on the CDN / in git. So we
+// strip diacritics (é → e), keep only [A-Za-z0-9], collapse runs of non-ASCII
+// to `-`, and fall back to `background` when nothing readable remains (mirrors
+// slugify's "no readable chars → fallback" rule in packages/shared).
+function safeName(name) {
+  const ascii = String(name ?? '')
+    .normalize('NFKD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^A-Za-z0-9]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return ascii || 'background';
+}
+
 // ── arg parsing ────────────────────────────────────────────
 const args = process.argv.slice(2);
 if (args.length === 0 || args[0] === 'help' || args[0] === '--help' || args[0] === '-h') {
@@ -139,7 +159,7 @@ if (!has('ffprobe')) {
 }
 
 const dir = opts.outDir ? resolve(opts.outDir) : join(REPO_ROOT, 'data', 'background');
-const base = basename(input, extname(input));
+const base = safeName(basename(input, extname(input)));
 // Fallback first-frame poster — fixed canonical name `background_alt.<ext>` so the
 // template discovers it as the video's poster (never as a separate background image).
 const outPoster = join(dir, `background_alt.${opts.posterExt}`);
