@@ -64,6 +64,12 @@ if (!propComments && postId) {
   comments = getComments(postId);
 }
 
+/** 评论内容图懒加载（静态渲染路径——客户端动态拉取已由 applyMediaLazyLoad 处理） */
+function lazyCommentImages(content: string): string {
+  return content.replace(/<img(?![^>]*\bloading=)/gi, '<img loading="lazy" decoding="async"');
+}
+comments = comments.map((c) => ({ ...c, content: lazyCommentImages(c.content || '') }));
+
 // Build tree from flat parent references, filter hidden
 const commentTree = buildCommentTree(comments).filter(c => !c.hidden);
 
@@ -265,7 +271,7 @@ const clientI18n = {
      ═══════════════════════════════════════════════════════════ */
 
   .comment-section {
-    padding: 0 1rem 40vh 1rem;
+    padding: 0 max(20px,min((6vw - 10px),60px)) 40vh;
   }
 
   /* The `hidden` attribute is neutralized when a class also sets `display`
