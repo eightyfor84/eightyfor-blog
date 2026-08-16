@@ -344,6 +344,9 @@
           "default": [
             "twitter",
             "weibo",
+            "wechat",
+            "moments",
+            "linkedin",
             "copy-link"
           ],
           "items": {
@@ -351,6 +354,9 @@
             "enum": [
               "twitter",
               "weibo",
+              "wechat",
+              "moments",
+              "linkedin",
               "copy-link"
             ]
           },
@@ -358,9 +364,30 @@
           "x-card-editable": false,
           "x-card-intro": false,
           "x-item-labels": {
-            "twitter": { "en": "Twitter / X", "zh-CN": "Twitter / X" },
-            "weibo": { "en": "Weibo", "zh-CN": "微博" },
-            "copy-link": { "en": "Copy Link", "zh-CN": "复制链接" }
+            "twitter": {
+              "en": "Twitter / X",
+              "zh-CN": "Twitter / X"
+            },
+            "weibo": {
+              "en": "Weibo",
+              "zh-CN": "微博"
+            },
+            "copy-link": {
+              "en": "Copy Link",
+              "zh-CN": "复制链接"
+            },
+            "wechat": {
+              "en": "WeChat",
+              "zh-CN": "微信"
+            },
+            "moments": {
+              "en": "Moments",
+              "zh-CN": "朋友圈"
+            },
+            "linkedin": {
+              "en": "LinkedIn",
+              "zh-CN": "领英"
+            }
           },
           "x-order": 7,
           "title": {

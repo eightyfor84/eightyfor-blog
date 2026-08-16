@@ -271,7 +271,7 @@ const POST_PAGE_DEFAULTS: Required<PostPageConfig> = {
   postToc: { inlineToc: true, tocFloat: true, tocFloatCollapsed: true, tocFloatAlwaysExpanded: false, mobileTocControl: true },
   postCollectionNavEnabled: true,
   postCollectionNav: { alwaysCollapsed: false },
-  postEndOfArticle: { relatedPosts: true, prevNext: true, prevNextMode: 'both', prevNextScope: 'global', authorCard: true, share: true, shareChannels: ['twitter', 'weibo', 'copy-link'] },
+  postEndOfArticle: { relatedPosts: true, prevNext: true, prevNextMode: 'both', prevNextScope: 'global', authorCard: true, share: true, shareChannels: ['twitter', 'weibo', 'wechat', 'moments', 'linkedin', 'copy-link'] },
   postComments: { backend: '', walineServerUrl: '', attitude: true, showGeoAddress: true },
 }
 

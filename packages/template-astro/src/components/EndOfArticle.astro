@@ -24,7 +24,7 @@ const showAuthor = cfg.authorCard !== false;
   {showPrevNext && <PrevNextNav post={post} locale={locale} lang={lang} mode={cfg.prevNextMode || 'both'} scope={cfg.prevNextScope || 'global'} />}
   {showRelated && <RelatedPosts post={post} locale={locale} lang={lang} />}
   {showAuthor && <AuthorCard locale={locale} post={post} />}
-  {showShare && <ShareButtons post={post} locale={locale} lang={lang} channels={cfg.shareChannels || ['twitter', 'weibo', 'copy-link']} />}
+  {showShare && <ShareButtons post={post} locale={locale} lang={lang} channels={cfg.shareChannels} />}
 </div>
 
 <style>
