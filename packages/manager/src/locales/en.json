@@ -219,6 +219,7 @@
     "friendCardStoryHint": "Choose a published post and the frontend will show “View Story” linking to it.",
     "friendCardDialogTitleNew": "Add Friend Card",
     "friendCardDialogTitleEdit": "Edit Friend Card",
+    "friendCardAllTypesUsed": "All types already used",
     "friendCardUnnamed": "Some Friend",
     "friendCardNoIntro": "No introduction",
     "friendCardNoHome": "No home page",

@@ -20,7 +20,9 @@
       :hint="hint"
       :add-label="addLabel"
       :empty-text="emptyText"
-      @add="openCreate"
+      :add-types="addTypes"
+      :type-field="typeField"
+      @add="onAdd"
       @edit="openEdit"
       @remove="removeCard"
       @move="moveCard"
@@ -98,6 +100,10 @@ const { t } = useI18n()
 const cardItemSchema = computed(() => props.schema.items || {})
 const cardPropSchemas = computed(() => cardItemSchema.value.properties || {})
 
+const titleKey = computed(() => props.schema['x-card-title-key'] || 'name')
+const imageKey = computed(() => props.schema['x-card-image-key'] || 'avatar')
+const subtitleKey = computed(() => props.schema['x-card-subtitle-key'] || 'intro')
+
 // ── Simple mode (items are plain strings — e.g. share channels) ──
 // Full CardListEditor functionality (drag/edit/remove/add) via the compact
 // layout; editing a string item = picking a value from the pool in the modal.
@@ -119,24 +125,44 @@ function itemLabel(value: string): string {
 const simpleDisplayCards = computed(() => simpleItems.value.map((v, i) => ({
   _localId: `s_${i}_${v}`, name: itemLabel(v), value: v,
 })))
+/** The single editable field shown in the modal for string items.
+ * Uses a select when an enum pool exists, otherwise a plain input. */
+const simpleValueField = computed(() => {
+  const hasPool = simplePool.value.length > 0
+  return {
+    key: 'value',
+    schema: {
+      type: 'string',
+      'x-widget': hasPool ? 'select' : 'input',
+      ...(hasPool ? { 'x-options': simplePool.value.map(v => ({ value: v, label: itemLabel(v) })) } : {}),
+      title: props.schema.title || { en: 'Value', 'zh-CN': '值' },
+    },
+  }
+})
 
-/** The single editable field shown in the modal for string items. */
-const simpleValueField = computed(() => ({
-  key: 'value',
-  schema: {
-    type: 'string',
-    'x-widget': 'select',
-    'x-options': simplePool.value.map(v => ({ value: v, label: itemLabel(v) })),
-    title: props.schema.title || { en: 'Value', 'zh-CN': '值' },
-  },
-}))
+/**
+ * Preset types for the + popup (CardList parameter). In simple/string mode the
+ * enum pool IS the type list; otherwise from schema.x-card-types. When empty,
+ * + creates directly (no popup).
+ */
+const addTypes = computed<{ value: string; label: string }[]>(() => {
+  if (isSimpleList.value) {
+    return simplePool.value.map(v => ({ value: v, label: itemLabel(v) }))
+  }
+  const types = props.schema['x-card-types'] as
+    | Array<{ value: string; label: Record<string, string> | string }>
+    | undefined
+  if (!Array.isArray(types)) return []
+  return types.map(t => ({
+    value: String(t.value),
+    label: typeof t.label === 'string' ? t.label : resolveLocale(t.label, t.value),
+  }))
+})
 
-const titleKey = computed(() => props.schema['x-card-title-key'] || 'name')
-const imageKey = computed(() => props.schema['x-card-image-key'] || 'avatar')
-const subtitleKey = computed(() => props.schema['x-card-subtitle-key'] || 'intro')
+/** Which card property receives the type value (schema.x-card-type-field). */
+const typeField = computed(() => String(props.schema['x-card-type-field'] || 'style'))
 
 function resolveUrl(url: string): string {
-  if (!url) return ''
   if (url.startsWith('asset://')) return '/data/assets/' + url.slice(8)
   return url
 }
@@ -215,9 +241,29 @@ function makeCard(): Record<string, any> {
   return card
 }
 
-function openCreate() {
+/**
+ * Add entry point. With a type chosen from the + popup:
+ *   - simple/string mode → the type IS the value → add it directly (no modal);
+ *   - object cards → open the modal pre-filled with the type.
+ * Without a preset type → create directly (modal).
+ */
+function onAdd(typeValue?: string) {
+  if (isSimpleList.value) {
+    if (typeValue) {
+      simpleItems.value = [...simpleItems.value, typeValue]
+      emitUpdate()
+      return
+    }
+    openCreate()
+    return
+  }
+  openCreate(typeValue)
+}
+
+function openCreate(typeValue?: string) {
   editingIndex.value = null
   draftCard.value = isSimpleList.value ? { value: '' } : makeCard()
+  if (typeValue && !isSimpleList.value) draftCard.value[typeField.value] = typeValue
   modalTitle.value = t('settings.friendCardDialogTitleNew')
   isModalOpen.value = true
 }
