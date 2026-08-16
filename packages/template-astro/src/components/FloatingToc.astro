@@ -119,6 +119,17 @@ const {
         if (max > 0) nav.scrollTo({ top: pct * max, behavior: 'instant' });
       }
 
+      // 常展开态（tocFloatCollapsed = false）：面板保持展开、不随 hover 折叠，
+      // 并给正文让出右侧空间（reserve-toc-right，桌面端）。
+      const forceExpanded = nav.dataset.forceExpanded === 'true';
+      const container = document.querySelector('.post-detail-container') as HTMLElement | null;
+      function syncTocPadding() {
+        if (!container) return;
+        container.classList.toggle('reserve-toc-right', forceExpanded && window.innerWidth > 900);
+      }
+      syncTocPadding();
+      window.addEventListener('resize', syncTocPadding);
+
       // Mouse collapse — sync scroll position by percentage so expanded
       // and collapsed views stay aligned despite different item heights.
       nav.addEventListener('mouseenter', () => {
@@ -130,6 +141,7 @@ const {
       });
       nav.addEventListener('mouseleave', () => {
         if (_floatTimer) clearTimeout(_floatTimer);
+        if (forceExpanded) return; // 常展开：不折叠
         _floatTimer = window.setTimeout(() => {
           const pct = tocScrollPercent(nav);
           nav.classList.add('collapsed');
@@ -156,6 +168,8 @@ const {
   document.addEventListener('astro:before-swap', () => {
     if (_floatTimer) clearTimeout(_floatTimer);
     if (_unsub) { _unsub(); _unsub = null; }
+    const c = document.querySelector('.post-detail-container');
+    if (c) c.classList.remove('reserve-toc-right');
     import('../utils/tocController').then(({ destroyController }) => destroyController());
     const root = document.getElementById('floating-toc-root');
     if (root?.parentElement) root.parentElement.removeChild(root);
@@ -210,6 +224,16 @@ const {
   .toc-float:not(.collapsed) li.active .toc-text { background: var(--highlight); color: var(--comp-text-pri-hl); font-weight: 500; font-variation-settings: 'wght' 500; }
   .toc-float.visible {  opacity: 1; pointer-events: auto; }
   .toc-float:not(.visible) { transform: translateX(20px); opacity: 0; pointer-events: none; }
+
+  /* 常展开态（data-force-expanded）：与 collectionNav 展开态类似 —— 无背景、
+     无模糊、无阴影边框；条目保持完整文字，不折叠为线状。 */
+  .toc-float[data-force-expanded="true"]:not(.collapsed) {
+    background-color: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
 
   /* 3.1.x — expanded-by-default mode (data-force-expanded): when the window
      narrows below the threshold, revert to the collapsed look purely via CSS.

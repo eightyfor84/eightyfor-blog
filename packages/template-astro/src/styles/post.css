@@ -16,6 +16,11 @@
       transition: padding 0.2s ease;
     }
 
+    /* 常展开 floating TOC：正文右侧让位（仅桌面端；移动端 TOC 收纳进 CornerActions） */
+    @media (min-width: 901px) {
+      .post-detail-container.reserve-toc-right { padding-right: 240px; }
+    }
+
     .error-container {
       text-align: center;
       padding: 4rem 1rem;
