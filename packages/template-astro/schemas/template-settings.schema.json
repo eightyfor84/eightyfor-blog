@@ -521,7 +521,7 @@
           "x-persist": false,
           "x-tab": "template-appearance"
         },
-        "backgroundColorLight": {
+        "baseColorLight": {
           "type": "string",
           "x-widget": "color",
           "x-group": "background",
@@ -536,7 +536,7 @@
           "x-tab": "template-appearance",
           "x-file": "background"
         },
-        "backgroundColorDark": {
+        "baseColorDark": {
           "type": "string",
           "x-widget": "color",
           "x-group": "background",

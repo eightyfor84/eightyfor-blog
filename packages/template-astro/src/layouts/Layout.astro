@@ -99,8 +99,8 @@ const theme = settings?.theme || 'follow';
 const accent = settings?.accent || '#2ea35f';
 const background = normalizeLayoutBackground(settings?.background || '');
 const backgroundMetaRaw = settings?.backgroundMeta || null;
-const backgroundColorLight = settings?.backgroundColorLight || '';
-const backgroundColorDark = settings?.backgroundColorDark || '';
+const backgroundColorLight = settings?.baseColorLight || settings?.backgroundColorLight || '';
+const backgroundColorDark = settings?.baseColorDark || settings?.backgroundColorDark || '';
 const font = settings?.font || 'sans';
 const defaultPerformanceMode = settings?.defaultPerformanceMode || 'auto';
 

@@ -174,12 +174,13 @@ export function useSchemaForm(schemaId: string) {
 
         // Fields marked x-file live in another file (e.g. background → background.yml).
         // Cross-file persistence: UI stays with this schema, data lands in the target file.
+        // 按 schema 树路径合并（appearance.baseColorLight），而非顶层散键。
         const xFileGroups = collectXFileFields(sch)
-        for (const [relPath, keys] of Object.entries(xFileGroups)) {
+        for (const [relPath, fields] of Object.entries(xFileGroups)) {
           const ext = await readYaml<Record<string, any>>(relPath)
           if (ext && typeof ext === 'object') {
-            for (const key of keys) {
-              if (ext[key] !== undefined) merged[key] = ext[key]
+            for (const { path, key } of fields) {
+              if (ext[key] !== undefined) setAtPath(merged, path, ext[key])
             }
           }
         }
@@ -222,18 +223,30 @@ function findNestedProp(schemaProps: Record<string, any>, key: string): Record<s
   return undefined
 }
 
+/** Set a value at a nested path on a plain object (creates intermediate objects). */
+function setAtPath(node: Record<string, any>, path: string[], val: any): void {
+  let cur = node
+  for (let i = 0; i < path.length - 1; i++) {
+    const p = path[i]
+    if (!cur[p] || typeof cur[p] !== 'object') cur[p] = {}
+    cur = cur[p]
+  }
+  cur[path[path.length - 1]] = val
+}
+
 /** Collect schema fields marked x-file (cross-file persistence), grouped by target path.
- *  递归遍历嵌套块（如 appearance）内的字段——load 时据此合并外部文件值。 */
-function collectXFileFields(schema: Record<string, any>): Record<string, string[]> {
-  const groups: Record<string, string[]> = {}
-  const walk = (props: Record<string, any>): void => {
+ *  递归遍历嵌套块（如 appearance）内的字段；返回字段在 schema 树中的完整路径，
+ *  load 时据此把外部文件值合并到正确层级（appearance.baseColorLight 等）。 */
+function collectXFileFields(schema: Record<string, any>): Record<string, { path: string[]; key: string }[]> {
+  const groups: Record<string, { path: string[]; key: string }[]> = {}
+  const walk = (props: Record<string, any>, prefix: string[]): void => {
     for (const [key, prop] of Object.entries(props)) {
       const file = prop['x-file']
-      if (file) (groups[file] = groups[file] || []).push(key)
-      if (prop['x-widget'] === 'fieldset' && prop.properties) walk(prop.properties)
+      if (file) (groups[file] = groups[file] || []).push({ path: [...prefix, key], key })
+      if (prop['x-widget'] === 'fieldset' && prop.properties) walk(prop.properties, [...prefix, key])
     }
   }
-  walk(schema.properties || {})
+  walk(schema.properties || {}, [])
   return groups
 }
 

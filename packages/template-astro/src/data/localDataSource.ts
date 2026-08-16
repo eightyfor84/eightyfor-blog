@@ -324,6 +324,9 @@ export interface LocalSettings {
     backgroundVideo?: string;
     backgroundPoster?: string;
     backgroundMeta?: string;
+    baseColorLight?: string;
+    baseColorDark?: string;
+    /** @deprecated 旧名——兼容读取 */
     backgroundColorLight?: string;
     backgroundColorDark?: string;
     font?: string;
@@ -598,11 +601,11 @@ export function getPublicSettings(): LocalSettings {
         backgroundVideo: readBackgroundVideo(),
         backgroundPoster: readBackgroundPoster(),
         backgroundMeta: readBackgroundMeta(),
-        // 背景色持久化在 background.yml（3.1.x）；兼容旧 site.yml 顶层值与旧 background.yml 键
-        backgroundColorLight: raw.backgroundColorLight ?? raw.frontendBackgroundColorLight
-          ?? parseBackgroundColor('backgroundColorLight') ?? parseBackgroundColor('frontendBackgroundColorLight') ?? '',
-        backgroundColorDark: raw.backgroundColorDark ?? raw.frontendBackgroundColorDark
-          ?? parseBackgroundColor('backgroundColorDark') ?? parseBackgroundColor('frontendBackgroundColorDark') ?? '',
+        // 背景色持久化在 background.yml（3.1.x）；兼容旧键（baseColor* / backgroundColor* / frontend*）
+        baseColorLight: raw.baseColorLight ?? raw.backgroundColorLight ?? raw.frontendBackgroundColorLight
+          ?? parseBackgroundColor('baseColorLight') ?? parseBackgroundColor('backgroundColorLight') ?? '',
+        baseColorDark: raw.baseColorDark ?? raw.backgroundColorDark ?? raw.frontendBackgroundColorDark
+          ?? parseBackgroundColor('baseColorDark') ?? parseBackgroundColor('backgroundColorDark') ?? '',
         font: raw.font ?? raw.frontendFont,
         locale: raw.locale ?? raw.frontendLocale,
         collectionPage: raw.collectionPage ?? raw.featureFlags?.collectionPage ?? true,

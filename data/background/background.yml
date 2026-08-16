@@ -10,5 +10,5 @@ overlayDarkOpacity: 75
 videoAutoplay: true
 videoLoop: true
 videoPlaybackRate: 1
-backgroundColorLight: '#ffffff'
-backgroundColorDark: '#000000'
+baseColorLight: '#ffffff'
+baseColorDark: '#000000'
