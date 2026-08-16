@@ -47,6 +47,7 @@ const Playground = () => import(/* webpackChunkName: "playground" */ '../pages/P
 const SchemaSettingsPage = () => import(/* webpackChunkName: "schema-settings" */ '../pages/SchemaSettingsPage.vue')
 const SystemAppearance = () => import(/* webpackChunkName: "system-appearance" */ '../pages/settings/SystemAppearance.vue')
 const SystemGit = () => import(/* webpackChunkName: "system-git" */ '../pages/settings/SystemGit.vue')
+const SystemReset = () => import(/* webpackChunkName: "system-reset" */ '../pages/settings/SystemReset.vue')
 // SystemBuild removed — build/deploy is CI/CD's concern, not CMS
 // SystemSecurity removed — auth not applicable in Aurora (local-first)
 
@@ -77,6 +78,7 @@ const routes = [
       // System schema tabs (Build & Deploy removed — Aurora is CI/CD-managed)
       { path: 'system-appearance', name: 'SettingsSystemAppearance', component: SystemAppearance, meta: { title: 'settings.appearance' } },
       { path: 'system-git', name: 'SettingsSystemGit', component: SystemGit, meta: { title: 'settings.git' } },
+      { path: 'system-reset', name: 'SettingsSystemReset', component: SystemReset, meta: { title: 'settings.reset' } },
       { path: 'system', redirect: '/settings/system-appearance' },
       // Standalone schemas (no tabs)
       { path: 'collections', name: 'SettingsCollections', component: SchemaSettingsPage, props: { schemaId: 'chronicle:collections' }, meta: { title: 'settings.collections' } },

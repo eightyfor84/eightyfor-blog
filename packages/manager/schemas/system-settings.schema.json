@@ -29,6 +29,14 @@
           "en": "Git & Preview",
           "zh": "Git 与预览"
         }
+      },
+      "system-reset": {
+        "icon": "trash",
+        "order": 3,
+        "label": {
+          "en": "Reset",
+          "zh": "重置"
+        }
       }
     }
   },
