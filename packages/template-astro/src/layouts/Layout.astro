@@ -243,6 +243,7 @@ const ANALYTICS_GA_ID = String(process.env.GA_MEASUREMENT_ID || analyticsCfg.gaM
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    {settings?.post?.postComments?.walineServerUrl ? <link rel="preconnect" href={String(settings.post.postComments.walineServerUrl).replace(/\/+$/, '')} crossorigin /> : null}
     <meta name="description" content={metaDescription} />
     {metaKeywords ? <meta name="keywords" content={metaKeywords} /> : null}
     {metaRobots ? <meta name="robots" content={metaRobots} /> : null}

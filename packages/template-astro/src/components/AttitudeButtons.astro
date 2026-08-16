@@ -94,9 +94,10 @@ const t = (key: string) => getTranslation(locale, key);
 
     // 进视口才初始化（Waline 请求按需触发，避免页面加载即拉取）
     if ('IntersectionObserver' in window) {
+      // rootMargin 下方提前 300px：用户滚向态度区时预取计数，滚到时数据已就绪
       const io = new IntersectionObserver((entries, obs) => {
         if (entries.some((e) => e.isIntersecting)) { obs.disconnect(); init(); }
-      });
+      }, { rootMargin: '0px 0px 300px 0px' });
       io.observe(root);
     } else {
       init();
@@ -106,16 +107,16 @@ const t = (key: string) => getTranslation(locale, key);
 
 <style>
   /* share-btn 同款：大 SVG 图标在上、较淡小字计数在下、透明背景 hover 高亮 */
-  .attitude { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; margin: 1rem 0; }
-  .attitude-prompt { margin: 0; font-size: 0.85rem; opacity: 0.72; }
-  .attitude-btns { display: flex; gap: 0.6rem; }
-  .attitude-btn { display: inline-flex; flex-direction: column; align-items: center; gap: 0.2rem;
+  .attitude { display: flex; flex-direction: column; align-items: center; gap: 1rem; margin: 2rem 0; }
+  .attitude-prompt { margin: 0; font-size: 1rem; opacity: 0.72; }
+  .attitude-btns { display: flex; gap: 1.5rem; }
+  .attitude-btn { display: inline-flex; flex-direction: column; align-items: center; gap: 0.5rem;
     padding: 0.5rem 0.9rem; border-radius: 8px; border: none; background: transparent;
     color: var(--app-text-sec); cursor: pointer; transition: background 0.15s ease, color 0.15s ease; }
   .attitude-btn:hover:not(:disabled) { background: var(--hover); color: var(--app-text-pri); }
-  .attitude-btn.voted { color: var(--accent); }
+  .attitude-btn.voted { color: var(--accent); opacity: 1 !important; }
   .attitude-btn.voted .attitude-icon { fill: currentColor; }
   .attitude-btn:disabled { opacity: 0.55; cursor: default; }
-  .attitude-icon { width: 22px; height: 22px; }
-  .attitude-count { font-size: 0.72rem; opacity: 0.6; font-variant-numeric: tabular-nums; }
+  .attitude-icon { width: 36px; height: 36px; }
+  .attitude-count { font-size: 0.85rem; opacity: 0.6; font-variant-numeric: tabular-nums; }
 </style>
