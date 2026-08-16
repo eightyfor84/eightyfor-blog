@@ -155,7 +155,9 @@ export async function writeYaml(relativePath: string, data: unknown): Promise<bo
       const YAML = await import('yaml')
       const doc = YAML.parseDocument(existing, { keepSourceTokens: true })
       applyPayload(doc, data as Record<string, any>)
-      return writeText(relativePath, doc.toString())
+      // lineWidth: -1 → 长标量不折叠（否则 siteDescription 等长文本会被 YAML 折行续写，
+      // 破坏手写单行、也让「重读文件」的人以为值被中途换行）
+      return writeText(relativePath, doc.toString({ lineWidth: -1 }))
     }
     if (isElectron) return getBridge()!.writeYaml(relativePath, data)
     const YAML = await import('yaml')

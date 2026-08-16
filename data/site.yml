@@ -3,7 +3,8 @@
 # Homepage settings (Template settings → Homepage)
 homepage:
   siteName: Chronicle Demo
-  siteDescription: A local-first, git-backed Jamstack blogging platform. Write in Markdown, sync with Git, deploy anywhere.
+  siteDescription: A local-first, git-backed Jamstack blogging platform. Write in
+    Markdown, sync with Git, deploy anywhere.
   icpNumber: ''
   homepageMode: split
   singleColumnHomepage: false
@@ -69,6 +70,7 @@ post:
       - weibo
     prevNextMode: next-only
     prevNextScope: collection
+    prevNext: true
   comments:
     backend: ''
     walineServerUrl: https://aurora-comments.eightyfor.top

@@ -235,6 +235,11 @@ const visibleTabs = computed(() => tabs.value)
 /** Resolve a field's schema default by dot path (e.g. "postEndOfArticle.share" → share.default). */
 function resolveFieldDefault(propsMap: Record<string, any> | undefined, field: string): unknown {
   if (!propsMap) return undefined
+  // 平铺形态（expandedRoot）：键即完整点路径（如 post.endOfArticle.prevNext）——
+  // 嵌套路径逐层下钻会取 propsMap['post'] 为 undefined，导致默认值回退失败、条件字段被隐藏
+  const flat = propsMap[field]
+  if (flat && typeof flat === 'object' && 'default' in flat) return flat.default
+  // 嵌套形态（未展开的 schema.properties）：按路径逐层下钻
   const parts = field.split('.')
   let node: any = propsMap
   for (let i = 0; i < parts.length; i++) {

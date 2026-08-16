@@ -12,34 +12,52 @@ interface Props {
 const { post, locale, lang, mode = 'both', scope = 'global' } = Astro.props as Props;
 const t = (key: string) => getTranslation(locale, key);
 
-const all = (getPublishedPosts() as any[]).filter((p: any) => String(p.id) !== String(post.id));
-const pool = scope === 'collection' && post.collectionPath
+// ── 规则 1：导航忽略 slides——当前页是 slides 或候选是 slides 都不参与 prev/next ──
+if (post?.type === 'slides') return;
+const all = (getPublishedPosts() as any[]).filter(
+  (p: any) => String(p.id) !== String(post.id) && p.type !== 'slides',
+);
+
+// ── 规则 2：collection 内导航开启时，不属于任何 collection 的文章不显示 prev/next ──
+if (scope === 'collection' && !post.collectionPath) return;
+
+const pool = scope === 'collection'
   ? all.filter((p: any) => p.collectionPath === post.collectionPath)
   : all;
+// 候选池为空（如该 collection 只有这一篇）→ 无导航对象，不渲染
+if (pool.length === 0) return;
+
 const sorted = [...pool].sort((a: any, b: any) => (String(a.date) < String(b.date) ? -1 : 1));
-// First index strictly NEWER than the current post (pool excludes self).
+// 第一个 date 严格新于当前篇的位置 = 下一篇；-1 → 当前即最新
 const myPos = sorted.findIndex((p: any) => String(p.date) > String(post.date));
-// myPos === -1 → current is the newest → prev = the newest other post.
 const prev = myPos === -1
   ? (sorted.length ? sorted[sorted.length - 1] : null)
   : (myPos > 0 ? sorted[myPos - 1] : null);
 const next = myPos >= 0 ? sorted[myPos] : null;
-const showPrev = mode === 'next-only' ? null : prev;
-const showNext = mode === 'next-only' ? next : next;
+
+// ── 规则 3：next-only 模式完全去掉 prev 侧（链接与占位都不渲染）──
+const nextOnly = mode === 'next-only';
+const showPrev = nextOnly ? null : prev;
+const showNext = next ? next : null;
+// ── 规则 4：最后一篇（无 next）仍显示「已是最后一篇」占位，nav 不整块消失 ──
+// next-only：恒渲染单列 next 侧（有 next → 链接，无 → 占位）；both：任一侧有内容才渲染
+const renderNav = nextOnly ? true : (!!showPrev || !!showNext);
 ---
 
-{(showPrev || showNext) && (
-  <nav class="prevnext-nav">
-    {showPrev ? (
-      <a class="pn-card mtl-surface interactive glowable pn-prev" href={`/${lang}/post/${encodeURIComponent(showPrev.id)}`}>
-        <span class="pn-label">{t('postPage.prevPost')}</span>
-        <span class="pn-title">{showPrev.title}</span>
-      </a>
-    ) : (
-      // 缺失侧占位符：说明性文字（已经是第一篇），保持网格布局稳定
-      <span class="pn-card pn-placeholder pn-placeholder--prev">
-        <span class="pn-placeholder-label">{t('postPage.noPrev')}</span>
-      </span>
+{renderNav && (
+  <nav class:list={['prevnext-nav', nextOnly ? 'prevnext-nav--next-only' : '']}>
+    {!nextOnly && (
+      showPrev ? (
+        <a class="pn-card mtl-surface interactive glowable pn-prev" href={`/${lang}/post/${encodeURIComponent(showPrev.id)}`}>
+          <span class="pn-label">{t('postPage.prevPost')}</span>
+          <span class="pn-title">{showPrev.title}</span>
+        </a>
+      ) : (
+        // 缺失侧占位符：说明性文字（已经是第一篇），保持网格布局稳定
+        <span class="pn-card pn-placeholder pn-placeholder--prev">
+          <span class="pn-placeholder-label">{t('postPage.noPrev')}</span>
+        </span>
+      )
     )}
     {showNext ? (
       <a class="pn-card mtl-surface interactive glowable pn-next" href={`/${lang}/post/${encodeURIComponent(showNext.id)}`}>
@@ -57,6 +75,8 @@ const showNext = mode === 'next-only' ? next : next;
 
 <style>
   .prevnext-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.25rem; }
+  /* next-only：单列，只渲染 next 侧 */
+  .prevnext-nav--next-only { grid-template-columns: 1fr; }
   .pn-card { display: flex; flex-direction: column; gap: 0.25rem; padding: 0.85rem 1rem; border-radius: 10px; text-decoration: none; color: var(--comp-text-pri);
     transition: border-color 0.15s ease, transform 0.15s ease, background-color 0.15s ease, color 0.15s ease; }
   .pn-next { text-align: right; }
