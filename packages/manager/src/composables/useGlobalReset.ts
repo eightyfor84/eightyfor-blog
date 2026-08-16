@@ -24,9 +24,9 @@ const SCHEMAS: Record<string, any> = {
 
 /** 背景渲染 meta 默认值（与 BackgroundEditorModal.defaultMeta 对齐） */
 const BACKGROUND_META_DEFAULTS: Record<string, any> = {
-  mode: 'cover', posX: 50, posY: 50, size: 100, blur: 0,
-  overlayLightColor: '#000000', overlayLightOpacity: 0,
-  overlayDarkColor: '#000000', overlayDarkOpacity: 0,
+  mode: 'cover', posX: 50, posY: 50, size: 100, blur: 20,
+  overlayLightColor: '#fefbfb', overlayLightOpacity: 75,
+  overlayDarkColor: '#000000', overlayDarkOpacity: 80,
   videoAutoplay: true, videoLoop: true, videoPlaybackRate: 1,
   baseColorLight: '', baseColorDark: '',
 }

@@ -95,7 +95,7 @@
       "properties": {
         "siteName": {
           "type": "string",
-          "default": "Chronicle",
+          "default": "Chronicle Aurora",
           "minLength": 1,
           "maxLength": 100,
           "x-widget": "input",
@@ -110,7 +110,7 @@
         },
         "siteDescription": {
           "type": "string",
-          "default": "",
+          "default": "Chronicle Aurora — a local-first, git-backed Jamstack blog.",
           "x-widget": "textarea",
           "x-tab": "template-homepage",
           "x-group": "general",
@@ -329,7 +329,7 @@
         },
         "accent": {
           "type": "string",
-          "default": "#2ea35f",
+          "default": "#36a32e",
           "pattern": "^#[0-9a-fA-F]{6}$",
           "x-widget": "color",
           "x-tab": "template-appearance",

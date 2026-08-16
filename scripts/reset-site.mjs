@@ -108,13 +108,19 @@ async function main() {
   // ── 2. profile / friends / collections（同样剔除虚拟键）──
   for (const s of SITE_SCHEMAS.filter(x => x.file !== 'data/site.yml')) {
     const sch = readSchema(s.schemaPath)
-    const defaults = stripVirtual(buildSchemaDefaults(sch), sch)
     const existing = readText(s.file)
     const doc = existing ? YAML.parseDocument(existing, { keepSourceTokens: true }) : new YAML.Document()
-    // array schema（collections）→ 整体替换为默认数组
+    // array schema（collections）→ 整体替换为默认数组（stripVirtual 会把 [] 变 {}，直接取 schema default）
     if (sch.type === 'array') {
-      doc.contents = YAML.parseDocument(YAML.stringify(defaults, { lineWidth: -1 })).contents
+      const defaults = sch.default ?? []
+      const fresh = YAML.stringify(defaults, { lineWidth: -1 })
+      const headComments = (existing || '').split('\n').filter(l => l.startsWith('#')).join('\n')
+      const body = headComments ? headComments + '\n' + fresh : fresh
+      if (!DRY_RUN) writeText(s.file, body)
+      log(s.file + ' 已重置（保留头部注释）' + (DRY_RUN ? '（dry-run）' : ''))
+      continue
     } else {
+      const defaults = stripVirtual(buildSchemaDefaults(sch), sch)
       applyPayload(doc, defaults)
     }
     if (!DRY_RUN) writeText(s.file, doc.toString({ lineWidth: -1 }))

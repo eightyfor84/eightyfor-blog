@@ -2,8 +2,8 @@
 
 # Homepage settings (Template settings → Homepage)
 homepage:
-  siteName: Chronicle Demo
-  siteDescription: A local-first, git-backed Jamstack blogging platform. Write in Markdown, sync with Git, deploy anywhere.
+  siteName: Chronicle Aurora
+  siteDescription: Chronicle Aurora — a local-first, git-backed Jamstack blog.
   icpNumber: ''
   homepageMode: split
   singleColumnHomepage: false
@@ -54,10 +54,13 @@ analytics:
 
 # Post page settings (Post page tab: header/meta, TOC, collection nav, end-of-article, comments)
 post:
-  meta: {}
+  meta: { metaUpdated: true, metaStats: true, metaAiBadge: true, showTags: true }
   toc:
     enabled: true
     tocFloatAlwaysExpanded: false
+    inlineToc: true
+    tocFloat: true
+    mobileTocControl: true
   collectionNav:
     enabled: true
     alwaysCollapsed: false
@@ -67,12 +70,17 @@ post:
       - twitter
       - linkedin
       - weibo
-    prevNextMode: next-only
+    prevNextMode: both
     prevNextScope: collection
     prevNext: true
     relatedPosts: true
     authorCard: false
+    prevNextOrder: desc
   comments:
     backend: ''
-    walineServerUrl: https://aurora-comments.eightyfor.top
+    walineServerUrl: ""
     imageUploadEnabled: false
+    attitude: true
+    showGeoAddress: true
+    imageUploadEndpoint: ""
+    imageUploadToken: ""
