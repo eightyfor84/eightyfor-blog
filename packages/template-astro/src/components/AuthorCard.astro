@@ -1,8 +1,8 @@
 ---
 import { getProfile } from '../data/localDataSource';
-import { getTranslation } from '../utils/i18n';
+import { getTranslation, type Locale } from '../utils/i18n';
 
-interface Props { locale: string }
+interface Props { locale: Locale }
 const { locale } = Astro.props as Props;
 const t = (key: string) => getTranslation(locale, key);
 const profile = getProfile() as Record<string, any>;

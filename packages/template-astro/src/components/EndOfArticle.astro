@@ -3,11 +3,12 @@ import RelatedPosts from './RelatedPosts.astro';
 import PrevNextNav from './PrevNextNav.astro';
 import AuthorCard from './AuthorCard.astro';
 import ShareButtons from './ShareButtons.astro';
+import type { Locale } from '../utils/i18n';
 
 interface Props {
   post: any;
   /** Display locale ('zh-CN' | 'en') — dates/i18n. */
-  locale: string;
+  locale: Locale;
   /** Route prefix ('zh' | 'en') — URL building. */
   lang: string;
   cfg?: any;
@@ -27,5 +28,5 @@ const showAuthor = cfg.authorCard !== false;
 </div>
 
 <style>
-  .end-of-article { display: flex; flex-direction: column; gap: 1.5rem; margin-top: 2rem; }
+  .end-of-article { display: flex; flex-direction: column; gap: 1.5rem; margin-top: 2rem; padding: 0 max(20px,min((6vw - 10px),60px)); }
 </style>
