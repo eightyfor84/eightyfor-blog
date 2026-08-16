@@ -492,7 +492,7 @@ export function useEditorFile(options: EditorFileOptions) {
         }
         console.log('[doSave] creating cloud save with postId:', cloudCtx.postId)
         const cloud = createCloudSave({
-          savePost: (fwa, payload) => savePost(fwa, payload),
+          savePost: (payload) => savePost(payload),
           saveDraft: (id, content, meta) => _saveDraft(id, content, meta),
           clearDraft: (id) => _clearDraft(id),
         })

@@ -27,9 +27,9 @@ export const EXPORT_OVERRIDE = `
 @import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap');
 :root{
 --app-font-stack:-apple-system,BlinkMacSystemFont,'InterVariable','Inter','Segoe UI','PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif;
---app-font-stack-serif:'Noto Serif SC',serif;
+--app-font-stack-serif:ui-serif,'Noto Serif SC',serif;
 --app-font-stack-mono:'Consolas','SF Mono','Menlo','Monaco','Courier New',monospace;
---app-text-pri:#111;--app-text-sec:#4b5563;--app-text-pri:#111;
+--app-text-pri:#111;--app-text-sec:#4b5563;
 --border-color:#e5e7eb;--accent:#2563eb;--accent-dark:#1d4ed8;--accent-contrast:#fff;
 --code-bg:#f5f5f5c0;--code-inline:#f3f4f6;
 --code-keyword:#7c3aed;--code-string:#059669;--code-comment:#6b7280;--code-number:#d97706;

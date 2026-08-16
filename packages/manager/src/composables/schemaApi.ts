@@ -15,7 +15,7 @@ import templateSettings from '../../../template-astro/schemas/template-settings.
 import profile from '../../../template-astro/schemas/profile.schema.json'
 import collections from '../../../template-astro/schemas/collections.schema.json'
 import friends from '../../../template-astro/schemas/friends.schema.json'
-import commentsConfig from '../../../template-astro/schemas/comments-config.schema.json'
+import postPage from '../../../template-astro/schemas/post-page.schema.json'
 import slideshow from '../../../template-astro/schemas/slideshow.schema.json'
 
 // Reactive schema store — populated with bundled schemas on first access
@@ -25,7 +25,7 @@ export const schemaStore = reactive<Record<string, any>>({
   'chronicle:profile': profile,
   'chronicle:collections': collections,
   'chronicle:friends': friends,
-  'chronicle:comments-config': commentsConfig,
+  'chronicle:post-page': postPage,
   'chronicle:slideshow': slideshow,
 })
 

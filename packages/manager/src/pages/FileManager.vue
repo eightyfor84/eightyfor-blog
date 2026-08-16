@@ -230,7 +230,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { readDir, deleteFile as delFile } from '../data/dataAccess'
+import { readDir, deleteFile as delFile, uploadFile as writeFileData, safeFileName } from '../data/dataAccess'
 import { usePreview } from '../composables/usePreview'
 import useToast from '../composables/useToast'
 import PostIdPicker from '../components/PostIdPicker.vue'
@@ -440,24 +440,12 @@ function triggerUploadInput() {
 
 async function uploadFileToServer(file: File): Promise<string | null> {
     try {
-        const isElec = typeof window !== 'undefined' && !!(window as any).chronicleElectron?.isElectron
-        const safeName = file.name.replace(/[^\w.\-一-鿿]/g, '_')
+        const safeName = safeFileName(file.name)
         const isPost = fileSource.value === 'post' && selectedPostId.value
         const destDir = isPost ? `data/posts/${selectedPostId.value}` : 'data/assets'
         const urlBase = isPost ? `/data/posts/${selectedPostId.value}` : '/data/assets'
-        if (isElec) {
-            const buf = await file.arrayBuffer()
-            const base64 = btoa(String.fromCharCode(...new Uint8Array(buf)))
-            await (window as any).chronicleElectron.writeBase64(`${destDir}/${safeName}`, base64)
-        } else {
-            const buf = await file.arrayBuffer()
-            const resp = await fetch('/api/import', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/octet-stream', 'x-filename': encodeURIComponent(safeName), 'x-dest': encodeURIComponent(destDir) },
-                body: new Blob([new Uint8Array(buf)]),
-            })
-            if (!resp.ok) return null
-        }
+        const ok = await writeFileData(`${destDir}/${safeName}`, file)
+        if (!ok) return null
         return `${urlBase}/${encodeURIComponent(safeName)}`
     } catch (e) {
         console.error('upload failed', e)

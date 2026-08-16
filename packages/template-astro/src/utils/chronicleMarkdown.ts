@@ -16,6 +16,7 @@ import { Icons } from './icons';
 import DOMPurify from 'dompurify';
 import { JSDOM } from 'jsdom';
 import { SANITIZE_CONFIG } from '@chronicle/shared/src/utils';
+import { buildTocFromHtml, type TocItem } from './toc';
 
 // DOMPurify needs a DOM window at build time (SSG runs in Node.js).
 const purifyWindow = new JSDOM('').window as unknown as Window & typeof globalThis;
@@ -33,8 +34,9 @@ const md = new MarkdownIt({
   breaks: false,
 });
 
-// Allow file:/// URLs and custom protocols: asset://, post://
-md.validateLink = (url: string) => /^(https?:|file:|mailto:|\/|#|asset:|post:|[a-zA-Z][a-zA-Z0-9+.-]*:)/i.test(String(url));
+// Explicit protocol whitelist (P3-6): the old trailing [a-zA-Z][a-zA-Z0-9+.-]*:
+// branch accepted ANY protocol (e.g. javascript:). Now only known-safe ones pass.
+md.validateLink = (url: string) => /^(https?:|file:|mailto:|tel:|sms:|\/|#|asset:|post:)/i.test(String(url));
 
 // ── Custom protocol resolution ─────────────────────────
 // Hook into normalizeLink — EVERY link/image URL passes through here.
@@ -712,6 +714,18 @@ export function renderChronicleMarkdown(content: string, locale?: string): strin
   html = postProcessHtml(html);
 
   return html;
+}
+
+/**
+ * Single-pipeline TOC extraction (P2-3): renders markdown with the SAME md
+ * instance used for post bodies, then extracts headings from the resulting
+ * HTML. Verified identical to the old regex-over-rendered-HTML path on the
+ * full data/posts corpus (scripts/toc-compare.ts, 2026-08) — the regex
+ * markdownParser TOC path in toc.ts was retired.
+ */
+export function extractHeadings(content: string): TocItem[] {
+  if (!content) return [];
+  return buildTocFromHtml(md.render(content));
 }
 
 /**

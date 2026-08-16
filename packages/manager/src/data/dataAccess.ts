@@ -41,6 +41,7 @@ export interface ChronicleFileBridge {
   deleteDir: (relativePath: string) => Promise<boolean>
   deleteFile: (relativePath: string) => Promise<boolean>
   copyFile: (sourceAbs: string, destRel: string) => Promise<boolean>
+  writeBase64: (relativePath: string, base64: string) => Promise<boolean>
   invoke: (channel: string, ...args: any[]) => Promise<any>
 }
 
@@ -142,14 +143,43 @@ export async function readYaml<T = unknown>(relativePath: string): Promise<T | n
   return browserReadYaml(relativePath) as Promise<T | null>
 }
 
+/**
+ * Write YAML — Document API 增量合并写，**尊重手写注释**：
+ * 读原文件 → parseDocument（保留注释/键序）→ setIn 只改 payload 涉及的路径 →
+ * toString 写回。未触碰的键（含注释、自定义键）原样保留；文件不存在时全量序列化。
+ */
 export async function writeYaml(relativePath: string, data: unknown): Promise<boolean> {
-  if (isElectron) return getBridge()!.writeYaml(relativePath, data)
-  // Serialize to YAML string and write as text.
-  // Options must stay in sync with electron/main.cjs fs:writeYaml (yaml.dump).
-  // Note: yaml 2.9 stringify() has no 'noRefs' option — lineWidth: -1 disables wrapping.
-  const YAML = await import('yaml')
-  const yml = YAML.stringify(data, { lineWidth: -1 })
-  return writeText(relativePath, yml)
+  try {
+    const existing = await readText(relativePath)
+    if (existing) {
+      const YAML = await import('yaml')
+      const doc = YAML.parseDocument(existing, { keepSourceTokens: true })
+      applyPayload(doc, data as Record<string, any>)
+      // lineWidth: -1 → 长标量不折叠（否则 siteDescription 等长文本会被 YAML 折行续写，
+      // 破坏手写单行、也让「重读文件」的人以为值被中途换行）
+      return writeText(relativePath, doc.toString({ lineWidth: -1 }))
+    }
+    if (isElectron) return getBridge()!.writeYaml(relativePath, data)
+    const YAML = await import('yaml')
+    const yml = YAML.stringify(data, { lineWidth: -1 })
+    return writeText(relativePath, yml)
+  } catch (e) {
+    console.error('[dataAccess.writeYaml] failed:', relativePath, e)
+    return false
+  }
+}
+
+/** 递归把 payload 的每个路径 setIn 到 YAML Document（对象递归、标量/数组/空对象直接 set）。 */
+function applyPayload(doc: any, payload: Record<string, any>, prefix: string[] = []): void {
+  for (const [k, v] of Object.entries(payload || {})) {
+    const path = [...prefix, k]
+    if (v && typeof v === 'object' && !Array.isArray(v)) {
+      if (doc.getIn(path) === undefined || doc.getIn(path) === null) doc.setIn(path, {})
+      applyPayload(doc, v, path)
+    } else {
+      doc.setIn(path, v)
+    }
+  }
 }
 
 export async function readJson<T = unknown>(relativePath: string): Promise<T | null> {
@@ -189,6 +219,20 @@ export async function exists(relativePath: string): Promise<boolean> {
 export async function mkdir(_relativePath: string): Promise<boolean> {
   if (isElectron) return getBridge()!.mkdir(_relativePath)
   return true // no-op in browser mode
+}
+
+/** Rebuild posts/index.json — IPC in Electron, /api/reindex in browser dev. */
+export async function reindexPosts(): Promise<boolean> {
+  if (isElectron) {
+    const result = await getBridge()!.invoke('posts:reindex')
+    return result?.ok === true
+  }
+  try {
+    const resp = await fetch('/api/reindex', { method: 'POST' })
+    return resp.ok
+  } catch {
+    return false
+  }
 }
 
 export async function readText(relativePath: string): Promise<string | null> {
@@ -280,4 +324,42 @@ export async function getRepoRoot(): Promise<string> {
 export async function getDataDir(): Promise<string> {
   if (isElectron) return getBridge()!.getDataDir()
   return 'data'
+}
+
+// ═══════════════════════════════════════════════════════════════
+// File upload — single entry for renderer-side uploads
+//   Electron → fs:writeBase64 IPC (main mkdirs recursively)
+//   Browser  → POST /api/import (x-filename + x-dest headers)
+// ═══════════════════════════════════════════════════════════════
+
+/** Sanitize a filename for storage — CJK-safe, keeps dots/dashes/underscores. */
+export function safeFileName(name: string): string {
+  return String(name || 'untitled').replace(/[^\w.\-一-鿿]/g, '_')
+}
+
+/** Write a File to a repo-relative path. Returns true on success. */
+export async function uploadFile(relPath: string, file: File): Promise<boolean> {
+  try {
+    const buf = await file.arrayBuffer()
+    if (isElectron) {
+      const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)))
+      return await getBridge()!.writeBase64(relPath, b64)
+    }
+    const slash = relPath.lastIndexOf('/')
+    const dest = slash > 0 ? relPath.slice(0, slash) : ''
+    const name = slash >= 0 ? relPath.slice(slash + 1) : relPath
+    const resp = await fetch('/api/import', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/octet-stream',
+        'x-filename': encodeURIComponent(name),
+        ...(dest ? { 'x-dest': encodeURIComponent(dest) } : {}),
+      },
+      body: new Blob([new Uint8Array(buf)]),
+    })
+    return resp.ok
+  } catch (e) {
+    console.error('[dataAccess.uploadFile] failed:', relPath, e)
+    return false
+  }
 }

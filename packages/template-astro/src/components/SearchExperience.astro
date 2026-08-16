@@ -33,6 +33,18 @@ const instanceId = mode === 'overlay' ? 'search-overlay-searchbox' : 'search-pag
 const resultsTitleText = t('search.resultsTitle');
 const resultsCountText = t('search.resultsCount').replace('{count}', '0');
 
+// SSR-injected client i18n (single source = locales JSON). search-engine.ts
+// reads this — no builtin translation table in client code.
+const searchI18n: Record<string, string> = {
+  'search.tagsCount': t('search.tagsCount'),
+  'search.resultDescription': t('search.resultDescription'),
+  'search.allPosts': t('search.allPosts'),
+  'search.items': t('search.items'),
+  'search.resultsTitle': t('search.resultsTitle'),
+  'search.resultsCount': t('search.resultsCount'),
+  'search.suggestionEmpty': t('search.suggestionEmpty'),
+};
+
 // Serialized to the DOM so the lazy-loaded search engine can read it without
 // inlining the heavy engine into every page's HTML.
 const searchConfig = {
@@ -59,6 +71,7 @@ const searchConfig = {
   data-mode={mode}
   data-search-config={JSON.stringify(searchConfig)}
 >
+  <script type="application/json" data-role="search-i18n" set:html={JSON.stringify(searchI18n)}></script>
   <SearchBox
     instanceId={instanceId}
     searchSuggestionsEnabled={searchSuggestionsEnabled}

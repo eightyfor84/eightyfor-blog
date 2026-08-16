@@ -25,7 +25,7 @@
   "properties": {
     "globalStyle": {
       "type": "string",
-      "default": "left-lg",
+      "default": "left-sm",
       "enum": [
         "left-sm",
         "left-lg",
@@ -132,7 +132,8 @@
       "title": {
         "en": "Friend Cards",
         "zh-CN": "友链卡片"
-      }
+      },
+      "default": []
     }
   }
 }

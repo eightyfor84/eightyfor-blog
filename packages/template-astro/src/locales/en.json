@@ -15,10 +15,21 @@
     "about": "About",
     "menu": "Menu"
   },
+  "postPage": {
+    "relatedPosts": "Related Posts",
+    "prevPost": "Previous",
+    "nextPost": "Next",
+    "noPrev": "This is the first post",
+    "noNext": "This is the last post",
+    "attitudePrompt": "What do you think of this article?",
+    "attitudeLike": "Like",
+    "attitudeDislike": "Dislike"
+  },
   "inblog": {
     "toc-title": "Table of Contents",
     "backToBlogs": "Back to Posts",
     "anonymousAuthor": "Anonymous",
+    "moreAuthors": " +{count}",
     "wordSing": "{count} word",
     "wordPlural": "{count} words",
     "min": "min",
@@ -26,7 +37,8 @@
     "updated": "Updated",
     "words": "Words",
     "readingTime": "Read",
-    "aiGeneratedTip": "The post contains AI Generated Content"
+    "aiGeneratedTip": "The post contains AI Generated Content",
+    "aboutMe": "About Me"
   },
   "collection": {
     "title": "Collections",
@@ -150,7 +162,8 @@
     "resultsCount": "{count} items",
     "resultDescription": "Search results for {searchDescription}",
     "items": "{count} item(s)",
-    "tagsCount": " and {count - 1} more tag(s)",
+    "tagsCount": " and {count} more tag(s)",
+    "suggestionEmpty": "No suggestions",
     "allPosts": "All content"
   },
   "tag": {
@@ -179,6 +192,7 @@
     "staticPlaceholder": "Comments are displayed in read-only mode, new comment submission is not available now.",
     "loading": "Loading comments...",
     "loadError": "Could not load latest comments.",
+    "loadMore": "Load more comments",
     "submitted": "Comment submitted, awaiting review.",
     "submitError": "Submission failed. Please try again.",
     "reply": "Reply",
@@ -187,7 +201,9 @@
     "replyingTo": "Replying to",
     "preview": "Preview",
     "previewNow": "Now",
-    "imageUpload": "Attach image"
+    "imageUpload": "Attach image",
+    "imageDisabled": "Images are disabled in comments.",
+    "imageUploadError": "Image upload failed. Please try again."
   },
   "date": {
     "justNow": "just now",

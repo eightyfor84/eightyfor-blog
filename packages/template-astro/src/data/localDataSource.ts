@@ -28,6 +28,7 @@ import path from 'node:path';
 import YAML from 'yaml';
 import crypto from 'node:crypto';
 import { renderChronicleMarkdown, setRenderPostId } from '../utils/chronicleMarkdown';
+import { normalizeAuthors } from '@chronicle/shared/src/utils';
 
 /** Resolve asset:// protocol to /assets/ (public URL) */
 function resolveAssetUrl(url: string): string {
@@ -108,6 +109,15 @@ function readBackgroundVideo(): string {
 function readBackgroundMeta(): string {
   const bgMeta = readDataFile(path.join(DATA_DIR, 'background', 'background.yml'))
   return bgMeta ? JSON.stringify(bgMeta) : ''
+}
+
+/** Read a single key from data/background/background.yml (e.g. backgroundColorLight). */
+function parseBackgroundColor(key: string): string {
+  try {
+    const meta = readDataFile(path.join(DATA_DIR, 'background', 'background.yml'))
+    if (meta && typeof meta === 'object') return String((meta as Record<string, any>)[key] || '')
+  } catch { /* ignore */ }
+  return ''
 }
 
 /** Strip YAML frontmatter, returning the body */
@@ -233,6 +243,7 @@ export interface PostMeta {
     collection?: string;
     collectionPath?: string;
     author?: string;
+    authors?: string[];
     aiGenerated?: boolean;
     dir: string;
     toc: { id: string; text: string; level: number }[];
@@ -251,19 +262,75 @@ export interface CommentConfig {
   walineServerUrl?: string;
 }
 
+
+// ── Post page config (3.1.x) — flat top-level groups from site.yml ──
+export interface PostPageConfig {
+  postMeta?: { metaUpdated?: boolean; metaStats?: boolean; metaAiBadge?: boolean; showTags?: boolean };
+  postTocEnabled?: boolean;
+  postToc?: { inlineToc?: boolean; tocFloat?: boolean; tocFloatAlwaysExpanded?: boolean; mobileTocControl?: boolean };
+  postCollectionNavEnabled?: boolean;
+  postCollectionNav?: { alwaysCollapsed?: boolean };
+  postEndOfArticle?: { relatedPosts?: boolean; prevNext?: boolean; prevNextMode?: 'both' | 'next-only'; prevNextScope?: 'global' | 'collection'; prevNextOrder?: 'asc' | 'desc'; authorCard?: boolean; share?: boolean; shareChannels?: string[] };
+  postComments?: { backend?: string; walineServerUrl?: string; attitude?: boolean; showGeoAddress?: boolean; imageUploadEnabled?: boolean; imageUploadEndpoint?: string; imageUploadToken?: string };
+}
+
+const POST_PAGE_DEFAULTS: Required<PostPageConfig> = {
+  postMeta: { metaUpdated: true, metaStats: true, metaAiBadge: true, showTags: true },
+  postTocEnabled: true,
+  postToc: { inlineToc: true, tocFloat: true, tocFloatAlwaysExpanded: false, mobileTocControl: true },
+  postCollectionNavEnabled: true,
+  postCollectionNav: { alwaysCollapsed: false },
+  postEndOfArticle: { relatedPosts: true, prevNext: true, prevNextMode: 'both', prevNextScope: 'global', prevNextOrder: 'desc', authorCard: true, share: true, shareChannels: ['twitter', 'weibo', 'linkedin'] },
+  postComments: { backend: '', walineServerUrl: '', attitude: true, showGeoAddress: true, imageUploadEnabled: false, imageUploadEndpoint: '', imageUploadToken: '' },
+}
+
+/**
+ * Merge raw site.yml values over defaults. Accepts both the flat 3.1.x keys
+ * (postMeta / postToc / …) and the legacy nested `post:` block (pre-review).
+ */
+function normalizePostConfig(raw: unknown): PostPageConfig {
+  const src = raw && typeof raw === 'object' ? (raw as Record<string, any>) : {};
+  const legacy = src.post && typeof src.post === 'object' ? (src.post as Record<string, any>) : {};
+  const out: Record<string, any> = {};
+  for (const key of Object.keys(POST_PAGE_DEFAULTS)) {
+    const def = (POST_PAGE_DEFAULTS as Record<string, any>)[key];
+    // Legacy/tree key mapping: post.meta → postMeta, post.toc → postToc,
+    // post.toc.enabled → postTocEnabled, …（树结构与旧扁平 site.yml 双兼容）
+    const legacyKey = { postMeta: 'meta', postToc: 'toc', postCollectionNav: 'collectionNav', postEndOfArticle: 'endOfArticle', postComments: 'comments', postTocEnabled: 'toc.enabled', postCollectionNavEnabled: 'collectionNav.enabled' }[key];
+    let legacyVal: unknown
+    if (legacyKey) {
+      // 支持点路径（toc.enabled）
+      legacyVal = legacy
+      for (const p of String(legacyKey).split('.')) {
+        if (legacyVal == null || typeof legacyVal !== 'object') { legacyVal = undefined; break }
+        legacyVal = (legacyVal as Record<string, any>)[p]
+      }
+    }
+    const val = src[key] ?? legacyVal;
+    if (val && typeof val === 'object' && !Array.isArray(val) && def && typeof def === 'object') {
+      out[key] = { ...def, ...val };
+    } else {
+      out[key] = val !== undefined ? val : def;
+    }
+  }
+  return out as PostPageConfig;
+}
 export interface LocalSettings {
     siteName?: string;
     siteDescription?: string;
-    frontendTheme?: string;
-    frontendAccent?: string;
-    frontendBackground?: unknown;
-    frontendBackgroundVideo?: string;
-    frontendBackgroundPoster?: string;
-    frontendBackgroundMeta?: string;
-    frontendBackgroundColorLight?: string;
-    frontendBackgroundColorDark?: string;
-    frontendFont?: string;
-    frontendLocale?: string;
+    theme?: string;
+    accent?: string;
+    background?: unknown;
+    backgroundVideo?: string;
+    backgroundPoster?: string;
+    backgroundMeta?: string;
+    baseColorLight?: string;
+    baseColorDark?: string;
+    /** @deprecated 旧名——兼容读取 */
+    backgroundColorLight?: string;
+    backgroundColorDark?: string;
+    font?: string;
+    locale?: string;
     featureFlags?: Record<string, boolean>;
     friendsCards?: unknown;
     friendsGlobalStyle?: unknown;
@@ -272,9 +339,13 @@ export interface LocalSettings {
     cardVisibility?: { author?: boolean; taxonomy?: boolean; activity?: boolean };
     recentUpdates?: { staleDays?: number; aggregateDays?: number };
     gaMeasurementId?: string;
+    /** 3.1.x — analytics backend config (site.yml analytics: block). */
+    analytics?: Record<string, any>;
     icpNumber?: string;
     defaultPerformanceMode?: string;
     comment?: CommentConfig;
+    /** 3.1.x — nested post-page config (data/site.yml post: block). */
+    post?: PostPageConfig;
     // Feature toggles
     collectionPage?: boolean;
     aboutPage?: boolean;
@@ -341,6 +412,15 @@ function scanPostsFromDisk(): PostMeta[] {
 
         // Parse frontmatter
         const attrs = parseFrontmatterYaml(raw);
+        // 多作者：author 支持 YAML 列表或逗号分隔；author 保留首个、authors 存完整列表
+        // 归一化：$site$ → 网站作者名，撞车去重（如 [$site$, Eightyfor] + name=Eightyfor → [Eightyfor]）
+        const rawAuthors = Array.isArray(attrs.author)
+            ? attrs.author.map((a: any) => String(a)).filter(Boolean)
+            : (typeof attrs.author === 'string' && attrs.author.trim())
+                ? attrs.author.split(',').map((s: string) => s.trim()).filter(Boolean)
+                : [];
+        const profileName = (getProfile() as Record<string, any>)?.name as string | undefined;
+        const authorList = normalizeAuthors(rawAuthors, profileName);
 
         posts.push({
             id,
@@ -354,7 +434,8 @@ function scanPostsFromDisk(): PostMeta[] {
             font: attrs.font ? String(attrs.font) : undefined,
             collection: attrs.collection ? String(attrs.collection) : undefined,
             collectionPath: attrs.collectionPath ? String(attrs.collectionPath) : undefined,
-            author: attrs.author ? String(attrs.author) : undefined,
+            author: authorList[0] || undefined,
+            authors: authorList.length ? authorList : undefined,
             aiGenerated: !!attrs.aiGenerated,
             type: (attrs.type === 'slides' || !!attrs.marp) ? 'slides' : (String(attrs.type || '') || undefined),
             slideshow: attrs.slideshow || undefined,
@@ -375,11 +456,18 @@ export function getAllPosts(): PostMeta[] {
     if (fs.existsSync(INDEX_FILE)) {
         try {
             const raw = fs.readFileSync(INDEX_FILE, 'utf-8');
-            const parsed = JSON.parse(raw || '[]');
+            const parsed = JSON.parse(raw || '{}');
+            // index.json is object-format keyed by id (P2-4 — array shape retired with convert.mjs).
             let posts: any[] = [];
-            if (Array.isArray(parsed) && parsed.length > 0) { posts = parsed; }
-            else if (typeof parsed === "object" && Object.keys(parsed).length > 0) {
-              posts = Object.entries(parsed).map(([slug, entry]: [string, any]) => ({ id: slug, ...entry }));
+            if (typeof parsed === "object" && Object.keys(parsed).length > 0) {
+              const profileName = (getProfile() as Record<string, any>)?.name as string | undefined;
+              // 作者归一化：$site$ → 网站作者名，撞车去重（如 [$site$, Eightyfor] + name=Eightyfor → [Eightyfor]）
+              posts = Object.entries(parsed).map(([slug, entry]: [string, any]) => {
+                const e = { id: slug, ...entry };
+                const rawAuthors = Array.isArray(e.authors) ? e.authors : (e.author ? [e.author] : []);
+                const authors = normalizeAuthors(rawAuthors, profileName);
+                return { ...e, author: authors[0] || undefined, authors: authors.length ? authors : undefined };
+              });
             }
             if (posts.length > 0) {
                 _postCache = posts;
@@ -494,19 +582,32 @@ export function getPublicSettings(): LocalSettings {
     // Aurora: read from data/site.yml (single source of truth)
     const siteYml = path.join(DATA_DIR, 'site.yml');
     let raw = readDataFile(siteYml) || {}
+    // 树结构兼容：homepage/appearance/search 顶层块（对应 template-settings 的 x-tab 分块）
+    // 摊平到顶层，顶层显式键优先；features 相关（comments/pages/rss/analytics）本就留顶层
+    const BLOCKS = ['homepage', 'appearance', 'search']
+    const flat: Record<string, any> = {}
+    for (const b of BLOCKS) {
+      const block = raw[b]
+      if (block && typeof block === 'object') Object.assign(flat, block)
+    }
+    if (Object.keys(flat).length > 0) raw = { ...flat, ...raw }
     return {
         siteName: raw.siteName || raw.sitename || raw.site_name,
         siteDescription: raw.siteDescription || '',
-        frontendTheme: raw.frontendTheme,
-        frontendAccent: raw.frontendAccent,
-        frontendBackground: readBackgroundUrl(),
-        frontendBackgroundVideo: readBackgroundVideo(),
-        frontendBackgroundPoster: readBackgroundPoster(),
-        frontendBackgroundMeta: readBackgroundMeta(),
-        frontendBackgroundColorLight: raw.frontendBackgroundColorLight || '',
-        frontendBackgroundColorDark: raw.frontendBackgroundColorDark || '',
-        frontendFont: raw.frontendFont,
-        frontendLocale: raw.frontendLocale,
+        // 3.1.x 去 frontend 前缀（site 设置无 backend 对应物）；兼容旧键 frontendTheme 等
+        theme: raw.theme ?? raw.frontendTheme,
+        accent: raw.accent ?? raw.frontendAccent,
+        background: readBackgroundUrl(),
+        backgroundVideo: readBackgroundVideo(),
+        backgroundPoster: readBackgroundPoster(),
+        backgroundMeta: readBackgroundMeta(),
+        // 背景色持久化在 background.yml（3.1.x）；兼容旧键（baseColor* / backgroundColor* / frontend*）
+        baseColorLight: raw.baseColorLight ?? raw.backgroundColorLight ?? raw.frontendBackgroundColorLight
+          ?? parseBackgroundColor('baseColorLight') ?? parseBackgroundColor('backgroundColorLight') ?? '',
+        baseColorDark: raw.baseColorDark ?? raw.backgroundColorDark ?? raw.frontendBackgroundColorDark
+          ?? parseBackgroundColor('baseColorDark') ?? parseBackgroundColor('backgroundColorDark') ?? '',
+        font: raw.font ?? raw.frontendFont,
+        locale: raw.locale ?? raw.frontendLocale,
         collectionPage: raw.collectionPage ?? raw.featureFlags?.collectionPage ?? true,
         aboutPage: raw.aboutPage ?? raw.featureFlags?.aboutPage ?? true,
         friendsPage: raw.friendsPage ?? raw.featureFlags?.friendsPage ?? raw.friends ?? true,
@@ -514,7 +615,7 @@ export function getPublicSettings(): LocalSettings {
         searchSuggestions: raw.searchSuggestions ?? raw.featureFlags?.searchSuggestions ?? true,
         globalSearch: raw.globalSearch ?? raw.featureFlags?.globalSearch ?? true,
         fullTextSearch: raw.fullTextSearch ?? raw.featureFlags?.fullTextSearch ?? true,
-        traffic: raw.traffic ?? raw.featureFlags?.traffic ?? true,
+        traffic: raw.traffic ?? raw.featureFlags?.traffic ?? raw.analytics?.enabled ?? false,
         comments: raw.comments ?? raw.featureFlags?.comments ?? true,
         // Nested featureFlags mirror — pages read flags via resolveFeatureFlags(settings.featureFlags).
         featureFlags: {
@@ -525,7 +626,7 @@ export function getPublicSettings(): LocalSettings {
             searchSuggestions: raw.searchSuggestions ?? raw.featureFlags?.searchSuggestions ?? true,
             globalSearch: raw.globalSearch ?? raw.featureFlags?.globalSearch ?? true,
             fullTextSearch: raw.fullTextSearch ?? raw.featureFlags?.fullTextSearch ?? true,
-            traffic: raw.traffic ?? raw.featureFlags?.traffic ?? true,
+            traffic: raw.traffic ?? raw.featureFlags?.traffic ?? raw.analytics?.enabled ?? false,
             comments: raw.comments ?? raw.featureFlags?.comments ?? true,
         },
         friendsCards: readFriendsCards(),
@@ -534,10 +635,12 @@ export function getPublicSettings(): LocalSettings {
         singleColumnHomepage: raw.singleColumnHomepage,
         cardVisibility: raw.cardVisibility || {},
         recentUpdates: raw.recentUpdates || {},
-        gaMeasurementId: raw.gaMeasurementId,
+        gaMeasurementId: raw.analytics?.gaMeasurementId ?? raw.gaMeasurementId,
+        analytics: raw.analytics || {},
         icpNumber: raw.icpNumber || '',
         defaultPerformanceMode: raw.defaultPerformanceMode || 'auto',
         comment: raw.comment || {},
+        post: normalizePostConfig(raw),
     };
 }
 
@@ -567,6 +670,28 @@ export function getCollections(): Record<string, unknown> {
       return { collections: resolved }
     }
     return { collections: [] }
+}
+
+/**
+ * Collection 内导航顺序：按 collections.yml nodes 树深度优先展平某 collection 的帖子 id
+ * （保留人工定义的阅读顺序——collection 自带顺序，不按日期、不受 prevNextOrder 影响）。
+ */
+export function getCollectionPostIds(collectionName: string): string[] {
+    const data = getCollections();
+    const cols = Array.isArray(data?.collections) ? (data.collections as Record<string, any>[]) : [];
+    const col = cols.find((c: any) => String(c.name || c.slug || '') === collectionName)
+    if (!col) return []
+    const ids: string[] = []
+    const walk = (nodes: unknown[]) => {
+      for (const node of nodes || []) {
+        if (!node || typeof node !== 'object') continue
+        const n = node as Record<string, any>
+        if (n.type === 'post' && n.id) ids.push(String(n.id))
+        if (n.type === 'group' && Array.isArray(n.children)) walk(n.children)
+      }
+    }
+    walk(Array.isArray(col.nodes) ? col.nodes : [])
+    return ids
 }
 
 // ── Collection Reverse Index ──────────────────────────────
@@ -636,6 +761,8 @@ export interface ChronicleComment {
   rootId?: string;
   /** Only on approved comments — hide from public display. Default false. */
   hidden?: boolean;
+  /** 3.1.x — commenter geo address (country/province), never the raw IP. */
+  location?: string;
 }
 
 /** Read comments for a post from data/comments/{postId}.json */

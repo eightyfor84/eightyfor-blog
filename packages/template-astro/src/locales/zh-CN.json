@@ -15,10 +15,21 @@
     "about": "关于",
     "menu": "菜单"
   },
+  "postPage": {
+    "relatedPosts": "相关文章",
+    "prevPost": "上一篇",
+    "nextPost": "下一篇",
+    "noPrev": "已经是第一篇",
+    "noNext": "已经是最后一篇",
+    "attitudePrompt": "觉得这篇文章怎么样？",
+    "attitudeLike": "喜欢",
+    "attitudeDislike": "不喜欢"
+  },
   "inblog": {
     "toc-title": "目录",
     "backToBlogs": "返回博客列表",
     "anonymousAuthor": "匿名",
+    "moreAuthors": " 及{count}人",
     "wordSing": "{count} 字",
     "wordPlural": "{count} 字",
     "min": "分钟",
@@ -26,7 +37,9 @@
     "updated": "更新于",
     "words": "字数",
     "readingTime": "阅读时间",
-    "aiGeneratedTip": "文章含 AI 生成内容"
+    "aiGeneratedTip": "文章含 AI 生成内容",
+    "aboutMe": "关于我",
+    "aboutMe": "关于我"
   },
   "collection": {
     "title": "合集",
@@ -151,7 +164,8 @@
     "resultDescription": "{searchDescription} 的搜索结果",
     "items": "{count} 条",
     "tagsCount": "等{count}个标签",
-    "allPosts": "所有内容"
+    "allPosts": "所有内容",
+    "suggestionEmpty": "无匹配建议"
   },
   "tag": {
     "featured": "精选"
@@ -179,6 +193,7 @@
     "staticPlaceholder": "评论以只读模式展示。发布新评论入口暂不开放。",
     "loading": "正在加载评论...",
     "loadError": "无法加载最新评论。",
+    "loadMore": "加载更多评论",
     "submitted": "评论已提交，等待审核。",
     "submitError": "提交失败，请重试。",
     "reply": "回复",
@@ -187,7 +202,9 @@
     "replyingTo": "回复",
     "preview": "预览",
     "previewNow": "刚刚",
-    "imageUpload": "添加图片"
+    "imageUpload": "添加图片",
+    "imageDisabled": "评论不允许带图片。",
+    "imageUploadError": "图片上传失败，请重试。"
   },
   "date": {
     "justNow": "刚刚",

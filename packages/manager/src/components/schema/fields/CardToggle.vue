@@ -17,8 +17,10 @@
         :key="option.value"
         type="button"
         class="style-option"
-        :class="{ active: modelValue === option.value }"
-        @click="emit('update:modelValue', option.value)"
+        :class="{ active: modelValue === option.value, 'is-disabled': disabled }"
+        :disabled="disabled"
+        :title="disabled ? disabledText : undefined"
+        @click="!disabled && emit('update:modelValue', option.value)"
       >
         <!-- Preview thumbnail -->
         <span v-if="previewType !== 'none'" class="style-option__thumb">
@@ -57,6 +59,7 @@
         <small v-if="option.description" class="option-desc">{{ option.description }}</small>
       </button>
     </div>
+    <p v-if="disabled && disabledText" class="small muted is-disabled-hint">{{ disabledText }}</p>
   </div>
 </template>
 
@@ -68,6 +71,8 @@ const props = defineProps<{
   modelValue: string
   schema: Record<string, any>
   label?: string
+  disabled?: boolean
+  disabledText?: string
 }>()
 
 const emit = defineEmits<{
@@ -123,6 +128,14 @@ const previewType = computed(() => props.schema['x-preview-type'] || 'none')
   border-color: var(--accent);
   box-shadow: 0 0 0 1px var(--accent);
 }
+
+.style-option.is-disabled {
+  opacity: 0.5;
+  filter: grayscale(0.4);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.is-disabled-hint { margin-top: 0.4rem; }
 
 .style-option strong { font-size: .95rem; }
 .option-desc { display: block; color: var(--comp-text-sec); font-size: .82rem; }

@@ -8,6 +8,8 @@ interface Props {
   postTitles?: Record<string, string>;
   postTypes?: Record<string, string>;
   variant?: "sidebar" | "inline";
+  /** 3.1.x — always collapsed: never auto-expand on wide screens. */
+  defaultCollapsed?: boolean;
 }
 const {
   postId = "",
@@ -16,6 +18,7 @@ const {
   postTitles = {},
   postTypes = {},
   variant = "sidebar",
+  defaultCollapsed = false,
 } = Astro.props as Props;
 
 function esc(s: string) {
@@ -108,6 +111,7 @@ const rootId = isSidebar ? "collection-nav-root" : "collection-nav-inline";
   data-cn-variant={variant}
   data-mount-to-body={isSidebar ? String(mountToBody) : "false"}
   data-post-id={postId}
+  data-always-collapsed={defaultCollapsed ? "true" : undefined}
 >
   <div class="cn-header">
     <div class="cn-header-title">
@@ -166,44 +170,33 @@ const rootId = isSidebar ? "collection-nav-root" : "collection-nav-inline";
         )
           document.body.appendChild(r);
         if (r.dataset.cnVariant === "sidebar") {
-          const NAV = 260;
-          let pushed = false,
-            opl: string | null = null;
+          // 可折叠态（rail）由 @media (max-width:1199px) 定义；"始终折叠"开关
+          // 把 ≥1200px 也切进这个模式：默认收起成 rail、hover 探头、离开收回。
+          // 正文容器左间距只由可折叠态决定（CSS），hover 探头不动容器。
+          const alwaysCollapsed = r.dataset.alwaysCollapsed === "true";
+          function expand() {
+            r.classList.remove("collapsed");
+            r.classList.add("expanded");
+          }
+          function collapse() {
+            r.classList.add("collapsed");
+            r.classList.remove("expanded");
+          }
           function P() {
             const w = window.innerWidth;
-            const ct = document.querySelector(".post-detail-container") as HTMLElement;
-            if (w >= 1200) {
-              r.classList.remove("collapsed");
-              r.classList.add("expanded");
-              if (ct && !pushed) {
-                opl = ct.style.paddingLeft || "";
-                ct.style.paddingLeft = NAV + 20 + "px";
-                pushed = true;
-              }
-            } else {
-              r.classList.add("collapsed");
-              r.classList.remove("expanded");
-              if (ct && pushed) {
-                ct.style.paddingLeft = opl || "";
-                pushed = false;
-                opl = null;
-              }
-            }
+            // 非可折叠态（≥1200px 且未开始终折叠）常展开；其余为可折叠态默认收起
+            if (w >= 1200 && !alwaysCollapsed) expand();
+            else collapse();
           }
           let ct2: number | undefined;
           r.addEventListener("pointerenter", () => {
-            if (ct2) {
-              clearTimeout(ct2);
-              ct2 = undefined;
-            }
-            r.classList.remove("collapsed");
-            r.classList.add("expanded");
+            if (ct2) { clearTimeout(ct2); ct2 = undefined; }
+            expand();
           });
           r.addEventListener("pointerleave", () => {
-            if (window.innerWidth < 1200)
+            if (window.innerWidth < 1200 || alwaysCollapsed)
               ct2 = window.setTimeout(() => {
-                r.classList.add("collapsed");
-                r.classList.remove("expanded");
+                collapse();
               }, 700);
           });
           window.addEventListener("resize", P);
@@ -415,6 +408,18 @@ const rootId = isSidebar ? "collection-nav-root" : "collection-nav-inline";
     max-height: 66vh;
   }
   @media (min-width: 1200px) {
+    .cn-panel[data-always-collapsed="true"][data-cn-variant="sidebar"] {
+      position: fixed;
+      top: 90px;
+      left: 20px;
+      background: var(--comp-bg-blur);
+      border: 1px solid var(--border-color-blur);
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow-elev-3);
+      transition:
+        transform 280ms ease,
+        opacity 280ms ease;
+    }
     .cn-panel[data-cn-variant="sidebar"] {
       position: fixed;
       top: 120px;

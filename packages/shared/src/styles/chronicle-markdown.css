@@ -1134,9 +1134,11 @@
 }
 
 .post-meta {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(4, auto);
   gap: 1rem;
+  justify-content: start;
+  align-items: center;
 }
 
 .meta-row {

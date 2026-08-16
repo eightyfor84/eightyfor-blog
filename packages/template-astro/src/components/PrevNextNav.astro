@@ -1,0 +1,114 @@
+---
+import { getPublishedPosts, getCollectionPostIds } from '../data/localDataSource';
+import { getTranslation, type Locale } from '../utils/i18n';
+
+interface Props {
+  post: any;
+  locale: Locale;
+  lang: string;
+  mode?: 'both' | 'next-only';
+  scope?: 'global' | 'collection';
+  /** 全部拉通（global）时的日期排序方向：desc=第一篇最新（默认），asc=第一篇最老。 */
+  order?: 'asc' | 'desc';
+}
+const { post, locale, lang, mode = 'both', scope = 'global', order = 'desc' } = Astro.props as Props;
+const t = (key: string) => getTranslation(locale, key);
+
+// ── 规则 1：导航忽略 slides——当前页是 slides 或候选是 slides 都不参与 prev/next ──
+if (post?.type === 'slides') return;
+const published = (getPublishedPosts() as any[]).filter((p: any) => p.type !== 'slides');
+
+// ── 规则 2：collection 内导航开启时，不属于任何 collection 的文章不显示 prev/next ──
+if (scope === 'collection' && !post.collection) return;
+
+// ── collection scope：按 collections.yml nodes 顺序导航（collection 自带顺序，不受 order 影响）──
+let prev: any = null;
+let next: any = null;
+if (scope === 'collection') {
+  const seq = getCollectionPostIds(String(post.collection || ''))
+    .map((id) => published.find((p: any) => String(p.id) === id))
+    .filter(Boolean);
+  if (seq.length === 0) return;
+  const pos = seq.findIndex((p: any) => String(p.id) === String(post.id));
+  if (pos === -1) return;
+  prev = pos > 0 ? seq[pos - 1] : null;
+  next = pos < seq.length - 1 ? seq[pos + 1] : null;
+} else {
+  // ── global scope：全部拉通，按日期 + prevNextOrder 方向排序 ──
+  const pool = published.filter((p: any) => String(p.id) !== String(post.id));
+  if (pool.length === 0) return;
+  const desc = order !== 'asc';
+  const sorted = [...pool].sort((a: any, b: any) => {
+    const cmp = String(a.date) < String(b.date) ? -1 : 1;
+    return desc ? -cmp : cmp;
+  });
+  // desc：第一个日期比当前早的 = 下一篇；asc：第一个日期比当前晚的 = 下一篇；-1 → 当前即末尾
+  const myPos = sorted.findIndex((p: any) =>
+    desc ? String(p.date) < String(post.date) : String(p.date) > String(post.date),
+  );
+  prev = myPos === -1
+    ? (sorted.length ? sorted[sorted.length - 1] : null)
+    : (myPos > 0 ? sorted[myPos - 1] : null);
+  next = myPos >= 0 ? sorted[myPos] : null;
+}
+
+// ── 规则 3：next-only 模式完全去掉 prev 侧（链接与占位都不渲染）──
+const nextOnly = mode === 'next-only';
+const showPrev = nextOnly ? null : prev;
+const showNext = next ? next : null;
+// ── 规则 4：最后一篇（无 next）仍显示「已是最后一篇」占位，nav 不整块消失 ──
+// next-only：恒渲染单列 next 侧（有 next → 链接，无 → 占位）；both：任一侧有内容才渲染
+const renderNav = nextOnly ? true : (!!showPrev || !!showNext);
+---
+
+{renderNav && (
+  <nav class:list={['prevnext-nav', nextOnly ? 'prevnext-nav--next-only' : '']}>
+    {!nextOnly && (
+      showPrev ? (
+        <a class="pn-card mtl-surface interactive glowable pn-prev" href={`/${lang}/post/${encodeURIComponent(showPrev.id)}`}>
+          <span class="pn-label">{t('postPage.prevPost')}</span>
+          <span class="pn-title">{showPrev.title}</span>
+        </a>
+      ) : (
+        // 缺失侧占位符：说明性文字（已经是第一篇），保持网格布局稳定
+        <span class="pn-card pn-placeholder pn-placeholder--prev">
+          <span class="pn-placeholder-label">{t('postPage.noPrev')}</span>
+        </span>
+      )
+    )}
+    {showNext ? (
+      <a class="pn-card mtl-surface interactive glowable pn-next" href={`/${lang}/post/${encodeURIComponent(showNext.id)}`}>
+        <span class="pn-label">{t('postPage.nextPost')}</span>
+        <span class="pn-title">{showNext.title}</span>
+      </a>
+    ) : (
+      // 缺失侧占位符：说明性文字（已经是最后一篇）
+      <span class="pn-card pn-placeholder pn-placeholder--next">
+        <span class="pn-placeholder-label">{t('postPage.noNext')}</span>
+      </span>
+    )}
+  </nav>
+)}
+
+<style>
+  .prevnext-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.25rem; }
+  /* next-only：单列，只渲染 next 侧 */
+  .prevnext-nav--next-only { grid-template-columns: 1fr; }
+  .pn-card { display: flex; flex-direction: column; gap: 0.25rem; padding: 0.85rem 1rem; border-radius: 10px; text-decoration: none; color: var(--comp-text-pri);
+    transition: border-color 0.15s ease, transform 0.15s ease, background-color 0.15s ease, color 0.15s ease; }
+  .pn-next { text-align: right; }
+  .pn-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.55; }
+  .pn-title { font-size: 0.9rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* 占位符：说明性文字（已经是第一篇 / 已经是最后一篇） */
+  .pn-placeholder {
+    display: flex; align-items: center; justify-content:center; min-height: 1.5rem;
+    border: 1px dashed var(--border-color-blur, rgba(128,128,128,0.25));
+    border-radius: 10px; color: var(--comp-text-sec-disabled, var(--comp-text-sec));
+    opacity: 0.75;
+  }
+  .pn-placeholder-label { font-size: 0.8rem; opacity: 0.7; }
+  @media (max-width: 560px) { .prevnext-nav { grid-template-columns: 1fr; } .pn-next { text-align: left; } }
+  @media (min-width: 769px) {
+    .pn-card.pn-prev:hover { transform: translateX(-2%); }
+    .pn-card.pn-next:hover { transform: translateX(2%); }}
+</style>

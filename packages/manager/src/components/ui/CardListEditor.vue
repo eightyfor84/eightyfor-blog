@@ -1,14 +1,36 @@
 <template>
-  <section ref="rootEl" class="card-list-editor card">
+  <section ref="rootEl" class="card-list-editor card" :class="{ 'card-list-editor--compact': props.compact }">
     <div class="card-list-editor__toolbar">
       <div class="card-list-editor__text">
         <strong>{{ toolbarTitle }}</strong>
         <p>{{ toolbarHint }}</p>
       </div>
 
-      <button class="primary" type="button" style="flex-shrink: 0;" @click="emit('add')">
-        {{ addButtonLabel }}
-      </button>
+      <div class="card-list-editor__add" ref="addWrapEl">
+        <!-- Ghost icon-only add button (plus) — no text, no border, non-primary. -->
+        <button type="button" class="icon-btn add-ghost" :title="addButtonLabel" :aria-label="addButtonLabel"
+          @click="onAddClick">
+          <svg class="add-ghost__icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </button>
+
+        <!-- Type picker popup — only when preset types are configured. Used types
+             are disabled (each type may appear at most once). -->
+        <transition name="card-pop">
+          <div v-if="showTypeMenu && addTypes.length" class="add-type-menu">
+            <button v-for="t in addTypes" :key="t.value" type="button" class="add-type-menu__item"
+              :disabled="isTypeUsed(t.value)" @click="pickType(t.value)">
+              {{ t.label }}
+            </button>
+            <div v-if="addTypes.every(t => isTypeUsed(t.value))" class="add-type-menu__empty">
+              {{ allTypesUsedLabel }}
+            </div>
+          </div>
+        </transition>
+      </div>
     </div>
 
     <div v-if="cards.length === 0" class="empty-state">
@@ -43,7 +65,7 @@
               <div class="card-list__heading">
                 <strong>{{ row.card.name || t('settings.friendCardUnnamed') }}</strong>
               </div>
-              <p class="card-list__intro">
+              <p v-if="props.secondaryOptional" class="card-list__intro">
                 <a v-if="row.card.homeUrl" :href="row.card.homeUrl" target="_blank" rel="noopener noreferrer">{{ row.card.homeUrl
                   }}</a>
                 <span v-else>{{ row.card.intro || t('settings.friendCardNoIntro') }}</span>
@@ -55,7 +77,7 @@
           </div>
 
           <div class="card-list__actions">
-            <button type="button" class="icon-btn edit-btn" @click="emit('edit', row.index)"
+            <button v-if="props.editable" type="button" class="icon-btn edit-btn" @click="emit('edit', row.index)"
               :title="editButtonTitle" :aria-label="editButtonTitle" v-html="Icons.edit">
 
             </button>
@@ -71,7 +93,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icons } from '../../utils/icons'
 
@@ -91,6 +113,8 @@ type CardListItem = {
 const props = withDefaults(defineProps<{
   cards: CardListItem[]
   showImage?: boolean
+  /** Compact layout — same drag/edit/remove/add functionality, tighter spacing. */
+  compact?: boolean
   primaryRequired?: boolean
   secondaryOptional?: boolean
   title?: string
@@ -100,8 +124,18 @@ const props = withDefaults(defineProps<{
   dragTitle?: string
   editTitle?: string
   removeTitle?: string
+  allTypesUsedText?: string
+  /** Preset types for the add popup — when set, + opens a type menu; used
+   *  types are disabled (each type appears at most once). When empty, +
+   *  creates directly (no popup). */
+  addTypes?: { value: string; label: string }[]
+  /** Which card property holds the type value (default "style"). */
+  typeField?: string
+  /** Whether rows can be edited (edit button). Share-link lists have no edit. */
+  editable?: boolean
 }>(), {
   showImage: true,
+  compact: false,
   primaryRequired: false,
   secondaryOptional: true,
   title: undefined,
@@ -111,10 +145,13 @@ const props = withDefaults(defineProps<{
   dragTitle: undefined,
   editTitle: undefined,
   removeTitle: undefined,
+  addTypes: () => [],
+  typeField: 'style',
+  editable: true,
 })
 
 const emit = defineEmits<{
-  (e: 'add'): void
+  (e: 'add', type?: string): void
   (e: 'edit', index: number): void
   (e: 'remove', index: number): void
   (e: 'move', from: number, to: number): void
@@ -124,6 +161,45 @@ const { t } = useI18n()
 const rootEl = ref<HTMLElement | null>(null)
 const dragIndex = ref<number | null>(null)
 const dragKey = ref<string | null>(null)
+
+// ── Add popup (preset types) ──
+const showTypeMenu = ref(false)
+const addWrapEl = ref<HTMLElement | null>(null)
+
+function isTypeUsed(value: string): boolean {
+  return props.cards.some(c => String(c[props.typeField] || '') === value)
+}
+
+function onAddClick() {
+  if (props.addTypes.length) {
+    showTypeMenu.value = !showTypeMenu.value
+  } else {
+    emit('add')
+  }
+}
+
+function pickType(value: string) {
+  showTypeMenu.value = false
+  emit('add', value)
+}
+
+function onDocClick(e: MouseEvent) {
+  if (addWrapEl.value && !addWrapEl.value.contains(e.target as Node)) {
+    showTypeMenu.value = false
+  }
+}
+function onDocKey(e: KeyboardEvent) {
+  if (e.key === 'Escape') showTypeMenu.value = false
+}
+
+onMounted(() => {
+  document.addEventListener('click', onDocClick)
+  document.addEventListener('keydown', onDocKey)
+})
+onBeforeUnmount(() => {
+  document.removeEventListener('click', onDocClick)
+  document.removeEventListener('keydown', onDocKey)
+})
 const overIndex = ref<number | null>(null)
 const isDragging = ref(false)
 const pointerId = ref<number | null>(null)
@@ -140,6 +216,7 @@ const emptyLabel = computed(() => props.emptyText || t('settings.friendCardEmpty
 const dragButtonTitle = computed(() => props.dragTitle || t('settings.friendCardDragHint'))
 const editButtonTitle = computed(() => props.editTitle || t('settings.friendCardEdit'))
 const removeButtonTitle = computed(() => props.removeTitle || t('settings.friendCardRemove'))
+const allTypesUsedLabel = computed(() => props.allTypesUsedText || t('settings.friendCardAllTypesUsed', 'All types used'))
 
 function resolveUrl(url: string): string {
   if (!url) return ''
@@ -528,6 +605,15 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
 }
 
+.card-list-editor--compact .drag-handle svg {
+  width: 20px;
+  height: 20px;
+}
+
+.card-list-editor--compact .icon-btn {
+  padding: 0.2rem;
+}
+
 .danger-btn {
   border: none;
   background: transparent;
@@ -589,4 +675,52 @@ onBeforeUnmount(() => {
     justify-content: flex-start;
   }
 }
+/* ── Add ghost button + type popup ── */
+.card-list-editor__add { position: relative; flex-shrink: 0; }
+.add-ghost {
+  width: 36px; height: 36px; border-radius: 8px; border: none;
+  color: var(--comp-text-sec);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.add-ghost .add-ghost__icon{ width: 22px; height: 22px; }
+.add-ghost__icon { display: block; }
+.add-type-menu {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 60;
+  min-width: 170px; padding: 0.35rem; border-radius: 10px;
+  background: var(--comp-bg-solid, var(--comp-bg));
+  border: 1px solid var(--border-color, rgba(128,128,128,0.2));
+  box-shadow: var(--shadow-elev-2, 0 6px 20px rgba(0,0,0,0.25));
+  display: flex; flex-direction: column; gap: 2px;
+}
+.add-type-menu__item {
+  display: block; width: 100%; text-align: left; padding: 0.45rem 0.7rem;
+  border: none; background: transparent; border-radius: 6px;
+  color: var(--app-text-pri, inherit); font-size: 0.85rem; cursor: pointer;
+}
+.add-type-menu__item:hover:not(:disabled) { background: var(--hover, rgba(128,128,128,0.12)); color: var(--comp-text-pri); }
+.add-type-menu__item:disabled { opacity: 0.4; cursor: default; }
+.add-type-menu__empty { padding: 0.45rem 0.7rem; font-size: 0.8rem; opacity: 0.6; }
+.card-pop-enter-active, .card-pop-leave-active { transition: opacity 0.12s ease, transform 0.12s ease; }
+.card-pop-enter-from, .card-pop-leave-to { opacity: 0; transform: translateY(-4px); }
+
+/* Compact variant — same functionality and FONT SIZES, but: smaller media,
+   single-line text (heading + intro collapse onto one ellipsized line) and
+   tighter spacing. Image visibility is independent of size — it follows the
+   showImage prop (the share-channels use case passes showImage=false). */
+.card-list-editor--compact { padding: 0.6rem 0.75rem; }
+.card-list-editor--compact .card-list-editor__toolbar { margin-bottom: 0.5rem; }
+.card-list-editor--compact .card-list-editor__toolbar .primary { padding: 0.3rem 0.7rem; }
+.card-list-editor--compact .card-list__item { padding: 0.3rem 0.4rem; }
+.card-list-editor--compact .card-list__item-content { gap: 0.5rem; }
+.card-list-editor--compact .card-list__preview { gap: 0.4rem; }
+/* 图片等元素变小（字号不变） */
+.card-list-editor--compact .card-list__media { border-radius: 8px; }
+.card-list-editor--compact .card-list__preview .card-list__media { width: 32px; }
+.card-list-editor--compact .card-list__media-placeholder { border-radius: 8px; }
+/* 文字两行变一行：heading + intro 单行、各自省略 */
+.card-list-editor--compact .card-list__content { display: flex; align-items: center; gap: 0.5rem; min-width: 0; }
+.card-list-editor--compact .card-list__heading { min-width: 0; flex-shrink: 1; }
+.card-list-editor--compact .card-list__heading strong { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card-list-editor--compact .card-list__intro { margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 2; min-width: 0; }
+.card-list-editor--compact .card-list__actions .icon-btn { width: 24px; height: 24px; }
 </style>

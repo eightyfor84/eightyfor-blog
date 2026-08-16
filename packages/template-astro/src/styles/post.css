@@ -16,6 +16,11 @@
       transition: padding 0.2s ease;
     }
 
+    /* 常展开 floating TOC：正文右侧让位（仅桌面端；移动端 TOC 收纳进 CornerActions） */
+    @media (min-width: 900px) {
+      .post-detail-container.reserve-toc-right { padding-right: 240px; }
+    }
+
     .error-container {
       text-align: center;
       padding: 4rem 1rem;
@@ -61,16 +66,11 @@
     }
 
     .post-meta {
-      display: flex;
-      flex-direction: column;
+      display: grid;
+      grid-template-columns: repeat(4, auto);
       gap: 1rem;
-    }
-
-    .meta-row {
-      display: flex;
-      gap: 1rem;
-      flex-wrap: wrap;
-      font-size: 0.9rem;
+      justify-content: start;
+      align-items: center;
       color: var(--app-text-sec);
     }
 
@@ -89,6 +89,8 @@
       color: var(--warning);
       background: transparent;
       opacity: 0.7;
+      /* AI 标记独占一行，不参与 meta grid 流式排布 */
+      grid-column: 1 / -1;
     }
 
     .meta-item.warning .meta-label {
@@ -115,6 +117,7 @@
       display: flex;
       gap: 0.5rem;
       flex-wrap: wrap;
+      grid-column: 1 / -1;
     }
 
     .markdown-toc {
@@ -321,6 +324,15 @@
     }
     
     .cb__btn.cb--open { --max-open-width: 600px !important;}
+
+    @media (max-width: 768px) {
+      .meta-item:not(.warning) .meta-label{
+        display: none;
+      }
+      .post-meta {
+        grid-template-columns: repeat(3, auto);
+      }
+    }
 
     /* Image preview styles moved to FilePreviewModal.astro
        so they are available on every page, not just post pages. */

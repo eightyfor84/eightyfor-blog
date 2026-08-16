@@ -17,6 +17,7 @@
 
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
+import { formatRelativeTime } from '@chronicle/shared/src/utils';
 
 // ── i18n helpers ───────────────────────────────────────────
 
@@ -43,21 +44,7 @@ function readI18n(container: HTMLElement): Record<string, string> {
 // ── Relative date formatting ───────────────────────────────
 
 function formatRelativeDate(dateStr: string, lang: string): string {
-  const date = new Date(dateStr);
-  if (Number.isNaN(date.getTime())) return '';
-  const now = new Date();
-  const diffSec = Math.floor((now.getTime() - date.getTime()) / 1000);
-  const diffMin = Math.floor(diffSec / 60);
-  const diffHour = Math.floor(diffMin / 60);
-  const diffDay = Math.floor(diffHour / 24);
-
-  if (diffSec < 60) return lang === 'zh' ? '刚刚' : 'just now';
-  if (diffMin < 60) return lang === 'zh' ? `${diffMin}分钟前` : `${diffMin}m ago`;
-  if (diffHour < 24) return lang === 'zh' ? `${diffHour}小时前` : `${diffHour}h ago`;
-  if (diffDay === 1) return lang === 'zh' ? '昨天' : 'yesterday';
-  if (diffDay === 2) return lang === 'zh' ? '前天' : '2d ago';
-  if (diffDay < 30) return lang === 'zh' ? `${diffDay}天前` : `${diffDay}d ago`;
-  return date.toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US');
+  return formatRelativeTime(dateStr, lang === 'zh' ? 'zh' : 'en');
 }
 
 // ── Types ──────────────────────────────────────────────────
@@ -74,6 +61,8 @@ export interface CommentData {
   avatarUrl?: string;
   /** Pinned (置顶) comment — Waline `sticky` flag. */
   pinned?: boolean;
+  /** 3.1.x — commenter geo address (country/province), never the raw IP. */
+  location?: string;
 }
 
 interface WalineComment {
@@ -90,6 +79,8 @@ interface WalineComment {
   rid?: string | number | null;
   /** Waline pinned flag — boolean after `formatCmt`, but tolerate raw string/number storage. */
   sticky?: boolean | number | string;
+  /** IP geo-location string (e.g. "中国 江苏省 南京市") — Waline's `addr` field. */
+  addr?: string;
   children?: WalineComment[];
 }
 
@@ -144,6 +135,12 @@ function renderCommentHTML(comment: CommentNode, lang: string, isReply: boolean,
     ? `<span class="cs-pinned-badge" aria-label="${escapeHtml(pinnedLabel)}">${escapeHtml(pinnedLabel)}</span>`
     : '';
 
+  // 3.1.x — geo badge: show the geo address (never the raw IP) when present and enabled.
+  const showGeo = (document.querySelector('.comment-section') as HTMLElement | null)?.dataset.showGeo !== 'false';
+  const geoBadge = comment.location && showGeo
+    ? `<span class="cs-location">${escapeHtml(comment.location)}</span>`
+    : '';
+
   return `
     <div class="cs-comment${isReply ? ' cs-comment--reply' : ''}" id="comment-${escapeHtml(comment.id)}">
       <div class="cs-avatar">${renderAvatar(comment, isReply)}</div>
@@ -153,6 +150,7 @@ function renderCommentHTML(comment: CommentNode, lang: string, isReply: boolean,
           ${pinnedBadge}
           ${replyTo}
           <span class="cs-date" data-date="${escapeHtml(comment.date)}">${escapeHtml(formatRelativeDate(comment.date, lang))}</span>
+          ${geoBadge}
         </div>
         <div class="cs-content">${comment.content}</div>
         <button type="button" class="cs-reply-btn" data-reply-to="${escapeHtml(comment.id)}" data-reply-root="${escapeHtml(comment.rootId || comment.id)}">${escapeHtml(replyLabel)}</button>
@@ -241,13 +239,19 @@ function mapWalineComment(c: WalineComment): CommentData {
     rootId: c.rid != null ? String(c.rid) : String(c.objectId),
     avatarUrl: c.avatar || undefined,
     pinned,
+    location: c.addr || undefined,
   };
 }
 
-async function fetchWalineComments(serverUrl: string, path: string): Promise<{ count: number; comments: CommentData[] }> {
+async function fetchWalineComments(
+  serverUrl: string,
+  path: string,
+  page = 1,
+  pageSize = 20,
+): Promise<{ count: number; comments: CommentData[]; page: number; totalPages: number; hasMore: boolean }> {
   const base = normalizeBaseUrl(serverUrl);
-  // NOTE: v1 fetches the latest 100 comments only (no pagination).
-  const url = `${base}/api/comment?path=${encodeURIComponent(path)}&pageSize=100&sortBy=insertedAt_desc`;
+  // 分页拉取：有图（含 base64 内嵌）的评论 HTML 大，一次拉 100 条很重 → 每页 20 + 加载更多
+  const url = `${base}/api/comment?path=${encodeURIComponent(path)}&pageSize=${pageSize}&page=${page}&sortBy=insertedAt_desc`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const json = await res.json();
@@ -258,7 +262,8 @@ async function fetchWalineComments(serverUrl: string, path: string): Promise<{ c
   const flat = list.flatMap((root) => [root, ...(root.children || [])]);
   const comments = flat.map(mapWalineComment);
   const count = typeof json?.data?.count === 'number' ? json.data.count : comments.length;
-  return { count, comments };
+  const totalPages = typeof json?.data?.totalPages === 'number' ? json.data.totalPages : 1;
+  return { count, comments, page, totalPages, hasMore: page < totalPages };
 }
 
 /** Extract a human-readable message from a Waline error envelope.
@@ -391,7 +396,29 @@ function setupWalineForm(
   const imageBtn = form.querySelector<HTMLButtonElement>('[data-role="image-btn"]');
   const imageInput = form.querySelector<HTMLInputElement>('[data-role="image-input"]');
   const attachContainer = form.querySelector<HTMLElement>('[data-role="attachments"]');
+  // 图片上传配置：开关 + 图床（endpoint/token）。未启用或无图床时整个上传链路不激活（按钮 SSR 已隐藏）。
+  const imageUpload = container.dataset.imageUpload === 'true';
+  const imageEndpoint = String(container.dataset.imageEndpoint || '').trim();
+  const imageToken = String(container.dataset.imageToken || '').trim();
   const attachments: { name: string; dataUrl: string }[] = [];
+
+  /** 上传一张图片到图床（multipart file），返回 URL。lsky-pro 风格响应：{ data: { links: { url } } }。 */
+  async function uploadImage(dataUrl: string): Promise<string> {
+    if (!imageEndpoint) throw new Error('image host not configured');
+    const blob = await (await fetch(dataUrl)).blob();
+    const fd = new FormData();
+    fd.append('file', blob, 'image.png');
+    const res = await fetch(imageEndpoint, {
+      method: 'POST',
+      headers: imageToken ? { Authorization: 'Bearer ' + imageToken } : {},
+      body: fd,
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json().catch(() => ({}));
+    const url = json?.data?.links?.url || json?.data?.url || json?.url;
+    if (!url) throw new Error('no url in response');
+    return String(url);
+  }
 
   const renderAttachments = () => {
     if (!attachContainer) return;
@@ -441,12 +468,25 @@ function setupWalineForm(
     // Email is required: a null `mail` breaks Waline's avatar renderer (Nunjucks trim(null)).
     if (!author || !content || !email) return;
 
-    // Attachments are appended after the text body as markdown image syntax.
-    // (Waline has no separate attachment field; the server renders them as images.)
-    const attachmentMarkdown = attachments
-      .map((a) => `![${a.name.replace(/[\[\]]/g, '')}](${a.dataUrl})`)
-      .join('\n');
-    const finalContent = [content, attachmentMarkdown].filter(Boolean).join('\n\n');
+    // Attachments are uploaded to the image host (URL), then appended after the
+    // text body as markdown image syntax. (Waline has no separate attachment
+    // field; the server renders them as images. Never inline base64.)
+    let finalContent = content;
+    if (attachments.length > 0 && !imageUpload) {
+      if (note) { note.textContent = i18n.imageDisabled || 'Images are disabled.'; note.hidden = false; }
+      return;
+    }
+    try {
+      const urls = await Promise.all(attachments.map((a) => uploadImage(a.dataUrl)));
+      const attachmentMarkdown = urls
+        .map((u, i) => `![${attachments[i].name.replace(/[\[\]]/g, '')}](${u})`)
+        .join('\n');
+      finalContent = [content, attachmentMarkdown].filter(Boolean).join('\n\n');
+    } catch (err) {
+      if (note) { note.textContent = i18n.imageUploadError || 'Image upload failed.'; note.hidden = false; }
+      submitBtn.disabled = false;
+      return;
+    }
 
     submitBtn.disabled = true;
     if (note) note.hidden = true;
@@ -505,31 +545,56 @@ async function hydrateWaline(
   const listEl = container.querySelector<HTMLElement>('.cs-list');
   const countEl = container.querySelector<HTMLElement>('.cs-count');
 
-  const render = async () => {
-    if (!listEl) return;
-    listEl.innerHTML = `<div class="cs-loading">${escapeHtml(i18n.loading || 'Loading comments...')}</div>`;
+  const PAGE_SIZE = 20;
+  let allComments: CommentData[] = [];
+  let page = 1;
+  let hasMore = true;
+  let loading = false;
+
+  const render = async (append = false) => {
+    if (!listEl || loading) return;
+    loading = true;
+    if (!append) {
+      listEl.innerHTML = `<div class="cs-loading">${escapeHtml(i18n.loading || 'Loading comments...')}</div>`;
+    }
     try {
-      const { count, comments } = await fetchWalineComments(serverUrl, path);
-      listEl.innerHTML = renderCommentList(
-        comments,
+      const { count, comments, hasMore: hm } = await fetchWalineComments(serverUrl, path, page, PAGE_SIZE);
+      allComments = append ? allComments.concat(comments) : comments;
+      hasMore = hm;
+      let html = renderCommentList(
+        allComments,
         lang,
         i18n.reply || 'Reply',
         i18n.replyTo || 'Reply to',
         i18n.pinned || 'Pinned',
         i18n.noComments || 'No comments yet.',
       );
+      if (hasMore) {
+        html += `<button type="button" class="cs-load-more" data-role="load-more">${escapeHtml(i18n.loadMore || 'Load more')}</button>`;
+      }
+      listEl.innerHTML = html;
       applyLazyMedia(listEl);
       if (countEl) {
         countEl.textContent = String(count);
         countEl.style.display = count > 0 ? '' : 'none';
       }
     } catch {
-      listEl.innerHTML = renderEmptyState(false, i18n.loadError || 'Could not load comments.');
+      if (!append) listEl.innerHTML = renderEmptyState(false, i18n.loadError || 'Could not load comments.');
+    } finally {
+      loading = false;
     }
   };
 
-  setupWalineForm(container, serverUrl, path, i18n, () => { void render(); });
-  await render();
+  // 加载更多：下一批评论追加到列表尾部
+  listEl?.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-role="load-more"]');
+    if (!btn) return;
+    page += 1;
+    void render(true);
+  });
+
+  setupWalineForm(container, serverUrl, path, i18n, () => { void render(false); });
+  await render(false);
 }
 
 function hydrateContainer(container: HTMLElement): void {

@@ -379,7 +379,7 @@
                 </div>
                 <div class="form-group">
                     <label>Slug</label>
-                    <input v-model="postSlug" class="modal-input" :class="{ 'input-error': slugError }" @focus="slugError = false" :placeholder="!postId ? (postTitle || tempTitle || 'untitled').toLowerCase().replace(/[^\w\s-]/g,'').replace(/[\s_]+/g,'-').replace(/-+/g,'-').replace(/^-+|-+$/g,'').slice(0,80) : ''" :disabled="!!postId" />
+                    <input v-model="postSlug" class="modal-input" :class="{ 'input-error': slugError }" @focus="slugError = false" :placeholder="!postId ? slugify(postTitle || tempTitle || 'untitled') : ''" :disabled="!!postId" />
                 </div>
                 <div class="form-group">
                     <label>{{ t('editor.tagsLabel') }}</label>
@@ -406,7 +406,26 @@
                 </div>
                 <div class="form-group">
                     <label>{{ t('editor.authorLabel') }}</label>
-                    <input v-model="postAuthor" class="modal-input" :placeholder="t('editor.authorPlaceholder')" />
+                    <div class="tags-input-container">
+                        <div class="tag-controls">
+                            <input v-model="authorInput" class="modal-input small-input"
+                                :placeholder="t('editor.authorPlaceholder')" @keyup.enter="addAuthor" />
+                            <button class="secondary-btn small-btn" @click="addAuthor">{{ t('editor.addAuthor') }}</button>
+                            <button class="secondary-btn small-btn" :class="{ active: postAuthors.includes(SITE_AUTHOR_PLACEHOLDER) }"
+                                @click="toggleSiteAuthor" :title="t('editor.siteAuthorTip')">
+                                {{ t('editor.siteAuthor') }}
+                            </button>
+                        </div>
+                        <div class="tags-list" v-if="postAuthors.length">
+                            <span class="tag-badge" v-for="(a, i) in postAuthors" :key="i"
+                                :class="{ featured: a === SITE_AUTHOR_PLACEHOLDER }">
+                                {{ a === SITE_AUTHOR_PLACEHOLDER ? t('editor.siteAuthor') : a }}
+                                <button class="tag-remove" @click="removeAuthor(i)">
+                                    <span class="icon-svg" v-html="Icons.close"></span>
+                                </button>
+                            </span>
+                        </div>
+                    </div>
                 </div>
                 <CheckRow v-model="postAIGenerated" :title="$t('editor.aiGeneratedLabel')" />
                 <div class="modal-actions">
@@ -457,7 +476,7 @@
                     <label>Slug</label>
                     <input v-model="postSlug" class="modal-input" :class="{ 'input-error': slugError }"
                         @focus="slugError = false"
-                        :placeholder="(tempTitle || postTitle || 'untitled').toLowerCase().replace(/[^\w\s-]/g,'').replace(/[\s_]+/g,'-').replace(/-+/g,'-').replace(/^-+|-+$/g,'').slice(0,80)" />
+                        :placeholder="slugify(tempTitle || postTitle || 'untitled')" />
                 </div>
                 <div class="form-group">
                     <label>{{ t('editor.tagsLabel') }}</label>
@@ -485,7 +504,26 @@
                 </div>
                 <div class="form-group">
                     <label>{{ t('editor.authorLabel') }}</label>
-                    <input v-model="postAuthor" class="modal-input" :placeholder="t('editor.authorPlaceholder')" />
+                    <div class="tags-input-container">
+                        <div class="tag-controls">
+                            <input v-model="authorInput" class="modal-input small-input"
+                                :placeholder="t('editor.authorPlaceholder')" @keyup.enter="addAuthor" />
+                            <button class="secondary-btn small-btn" @click="addAuthor">{{ t('editor.addAuthor') }}</button>
+                            <button class="secondary-btn small-btn" :class="{ active: postAuthors.includes(SITE_AUTHOR_PLACEHOLDER) }"
+                                @click="toggleSiteAuthor" :title="t('editor.siteAuthorTip')">
+                                {{ t('editor.siteAuthor') }}
+                            </button>
+                        </div>
+                        <div class="tags-list" v-if="postAuthors.length">
+                            <span class="tag-badge" v-for="(a, i) in postAuthors" :key="i"
+                                :class="{ featured: a === SITE_AUTHOR_PLACEHOLDER }">
+                                {{ a === SITE_AUTHOR_PLACEHOLDER ? t('editor.siteAuthor') : a }}
+                                <button class="tag-remove" @click="removeAuthor(i)">
+                                    <span class="icon-svg" v-html="Icons.close"></span>
+                                </button>
+                            </span>
+                        </div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <CheckRow v-model="postAIGenerated" :title="$t('editor.aiGeneratedLabel')" />
@@ -689,7 +727,7 @@ import { useEditorToolbar, type RibbonTool } from '../composables/editor/core/us
 import { useEditorFile } from '../composables/editor/markdown/useEditorFile'
 import { useEditorSession } from '../composables/editor/core/useEditorLifecycle'
 import { resolveEditorRoute } from '../composables/editor/cloud/useCloudRouter'
-import { slugify } from '../composables/editor/cloud/useCloudRelay'
+import { slugify, SITE_AUTHOR_PLACEHOLDER } from '@chronicle/shared/utils'
 import { useFileMenu } from '../composables/editor/markdown/useMarkdownFileMenu'
 
 import type { IEditorBody } from './editor/IEditorBody.ts'
@@ -795,6 +833,34 @@ const {
   localFileToApiFormat, extractEditorFm,
   isSlidesMeta, buildLocalDetail, CHRONICLE_FM_KEYS,
 } = useEditorFrontmatter({ editorType, t })
+
+// ── 作者输入：多值 tag 风格 + 「本人」一键（$site$ 占位符）──
+const authorInput = ref('')
+const postAuthors = ref<string[]>([])
+// postAuthor（逗号分隔串，useFrontmatter 管理）↔ postAuthors（数组）双向同步：
+// 读——frontmatter 'Alice, Bob' → ['Alice','Bob']；写——数组变化回写逗号串，保存链路不变
+watch(postAuthor, (v) => {
+  const arr = v ? v.split(',').map(s => s.trim()).filter(Boolean) : []
+  if (arr.join('\u0000') !== postAuthors.value.join('\u0000')) postAuthors.value = arr
+})
+watch(postAuthors, (arr) => {
+  const joined = arr.join(', ')
+  if (postAuthor.value !== joined) postAuthor.value = joined
+})
+function addAuthor(): void {
+  const v = authorInput.value.trim()
+  if (v && !postAuthors.value.includes(v)) postAuthors.value = [...postAuthors.value, v]
+  authorInput.value = ''
+}
+function removeAuthor(i: number): void {
+  const next = [...postAuthors.value]; next.splice(i, 1); postAuthors.value = next
+}
+function toggleSiteAuthor(): void {
+  const has = postAuthors.value.includes(SITE_AUTHOR_PLACEHOLDER)
+  postAuthors.value = has
+    ? postAuthors.value.filter(a => a !== SITE_AUTHOR_PLACEHOLDER)
+    : [...postAuthors.value, SITE_AUTHOR_PLACEHOLDER]
+}
 
 // ═══ Dirty state (before view — view needs isDirty etc) ═══
 const isSaving = ref(false)

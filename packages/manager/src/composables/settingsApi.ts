@@ -29,9 +29,9 @@ export async function syncSettings(): Promise<Record<string, any>> {
 
     const merged = { ...(site ?? {}), ...(ws ?? {}) }
     if (backendBgUrl) merged.backendBackground = backendBgUrl
-    if (frontendBgUrl) merged.frontendBackground = frontendBgUrl
-    if (frontendBgVideoUrl) merged.frontendBackgroundVideo = frontendBgVideoUrl
-    if (frontendBgMeta) merged.frontendBackgroundMeta = typeof frontendBgMeta === 'string' ? frontendBgMeta : JSON.stringify(frontendBgMeta)
+    if (frontendBgUrl) merged.background = frontendBgUrl
+    if (frontendBgVideoUrl) merged.backgroundVideo = frontendBgVideoUrl
+    if (frontendBgMeta) merged.backgroundMeta = typeof frontendBgMeta === 'string' ? frontendBgMeta : JSON.stringify(frontendBgMeta)
 
     Object.keys(settingsStore).forEach(k => delete settingsStore[k])
     Object.assign(settingsStore, merged)

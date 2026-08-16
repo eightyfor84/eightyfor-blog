@@ -16,12 +16,12 @@
 .post-title { font-size:2.5rem; font-weight:700; line-height:1.2; margin:0 0 1rem 0; }
 
 /* ── Metadata rows ── */
-.post-meta { display:flex; flex-direction:column; gap:1rem; }
-.meta-row { display:flex; gap:1rem; flex-wrap:wrap; }
+.post-meta { display:grid; grid-template-columns:repeat(4,auto); gap:1rem; justify-content:start; align-items:center; }
 .meta-item { display:inline-flex; align-items:center; gap:0.4rem; }
+.meta-item.warning { grid-column:1/-1; }
 
 /* ── Post tags ── */
-.post-tags { display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:1rem; }
+.post-tags { display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:1rem; grid-column:1/-1; }
 
 /* ── Inline TOC ── */
 .markdown-toc { padding:10px 14px; margin-bottom:24px; border-radius:10px; border:1px solid var(--border-color-blur); }
@@ -47,6 +47,11 @@
 @media (min-width:1200px) {
   .cn-panel[data-cn-variant="sidebar"] { top:120px; left:calc(15vw - 160px); }
   .post-detail-container.has-collection-nav { padding-left:280px; }
+  /* 始终折叠开关：把 ≥1200px 也切进可折叠态（rail，与 ≤1199px 同款）——
+     默认收起、hover 探头；正文不预留左间距 */
+  .cn-panel[data-cn-variant="sidebar"][data-always-collapsed="true"] { top:90px; left:20px; }
+  .cn-panel[data-cn-variant="sidebar"][data-always-collapsed="true"].collapsed { transform:translateX(calc(-260px + 0px)); opacity:0.5; }
+  .post-detail-container.has-collection-nav.always-collapsed { padding-left:0; }
 }
 @media (max-width:1199px) {
   .cn-panel[data-cn-variant="sidebar"] { top:90px; left:20px; }
@@ -77,7 +82,8 @@
 @media (max-width:768px) {
   .post-detail-container { padding:1rem 0.5rem; }
   .post-title { font-size:2rem; }
-  .meta-row { flex-direction:column; gap:0.5rem; }
+  .post-meta { grid-template-columns:repeat(3,auto); }
+  .meta-item:not(.warning) .meta-label { display:none; }
   .post-nav { margin-bottom:0.5rem; }
   .markdown-toc {display:none;}
   .toc-float { display:none; }

@@ -68,6 +68,16 @@ The `packages/template-astro/dist/` directory is a complete static site. Deploy 
 
 Typical CI config (GitHub Actions, Cloudflare Pages, etc.): `npm install && npx astro build --root packages/template-astro`, output `packages/template-astro/dist`.
 
+**Multi-target (3.1.x):**
+
+- **GitHub Pages** — see `.github/workflows/deploy.yml` (the default).
+- **Netlify / Vercel** — build command `npx astro build --root packages/template-astro`, publish `packages/template-astro/dist`.
+- **Self-hosted (Nginx / Caddy)** — serve `packages/template-astro/dist`; point the site at your domain.
+
+Set **`SITE_URL`** in `packages/template-astro/astro.config.mjs` to your production origin (e.g. `https://blog.example.com`).
+It powers absolute links in the RSS feed, `sitemap.xml`, and the `Sitemap:` line in `robots.txt`.
+This is deploy-time config — content (`data/`) never carries URL settings.
+
 ## License
 
 MIT

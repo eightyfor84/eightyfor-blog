@@ -34,7 +34,7 @@ export interface SchemaMapping {
  * │ chronicle:profile               │ data/profile.yml              │ yaml   │
  * │ chronicle:collections           │ data/collections.yml          │ yaml   │
  * │ chronicle:friends               │ data/friends.yml              │ yaml   │
- * │ chronicle:comments-config       │ data/site.yml (comment key)   │ yaml   │
+ * │ chronicle:post-page             │ data/site.yml (post key)      │ yaml   │
  * └─────────────────────────────────┴──────────────────────────────┴────────┘
  */
 export const SCHEMA_REGISTRY: Record<string, SchemaMapping> = {
@@ -65,11 +65,10 @@ export const SCHEMA_REGISTRY: Record<string, SchemaMapping> = {
     format: 'yaml',
     headerFlag: 'friendsPage',
   },
-  'chronicle:comments-config': {
-    schemaId: 'chronicle:comments-config',
+  'chronicle:post-page': {
+    schemaId: 'chronicle:post-page',
     filePath: 'data/site.yml',
     format: 'yaml',
-    headerFlag: 'comments',
   },
 }
 

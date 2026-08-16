@@ -9,7 +9,7 @@
  */
 
 import { ref, type Ref } from 'vue'
-import { readYaml, readJson, writeYaml, writeJson } from '../data/dataAccess'
+import { readYaml, readJson, writeYaml, writeJson, reindexPosts } from '../data/dataAccess'
 import { getMapping } from '../data/schemaRegistry'
 import { schemaStore, syncSchemas } from './schemaApi'
 import { resolveBackgroundUrlAsync, readBackgroundMeta, discoverBackendBgUrlAsync } from '../utils/backgroundSettings'
@@ -135,12 +135,12 @@ export function useSchemaForm(schemaId: string) {
         // Auto-discover background from directory (site.yml doesn't store these)
         if (id === 'chronicle:template-settings') {
           fileData = fileData ?? {}
-          if (!fileData.frontendBackground) {
-            fileData.frontendBackground = await resolveBackgroundUrlAsync('frontend')
+          if (!fileData.background) {
+            fileData.background = await resolveBackgroundUrlAsync('frontend')
           }
-          if (!fileData.frontendBackgroundMeta) {
+          if (!fileData.backgroundMeta) {
             const meta = await readBackgroundMeta('frontend')
-            if (meta) fileData.frontendBackgroundMeta = typeof meta === 'string' ? meta : meta
+            if (meta) fileData.backgroundMeta = typeof meta === 'string' ? meta : meta
           }
         }
       } else {
@@ -172,6 +172,20 @@ export function useSchemaForm(schemaId: string) {
           }
         }
 
+        // Fields marked x-file live in another file (e.g. background → background.yml).
+        // Cross-file persistence: UI stays with this schema, data lands in the target file.
+        // 按 schema 树路径合并（appearance.baseColorLight），而非顶层散键。
+        const xFileGroups = collectXFileFields(sch)
+        console.log('[load] xFileGroups:', JSON.stringify(xFileGroups))
+        for (const [file, fields] of Object.entries(xFileGroups)) {
+          const ext = await readYaml<Record<string, any>>(resolveXFilePath(file))
+          if (ext && typeof ext === 'object') {
+            for (const { path, key } of fields) {
+              if (ext[key] !== undefined) setAtPath(merged, path, ext[key])
+            }
+          }
+        }
+
         // Pre-populate metaRefs from *Meta fields
         for (const key of Object.keys(merged)) {
           if (key.endsWith('Meta') && merged[key]) {
@@ -184,6 +198,7 @@ export function useSchemaForm(schemaId: string) {
           }
         }
         data.value = merged
+        console.log('[load] merged.appearance:', JSON.stringify((merged as any)?.appearance))
       }
     } catch (e: any) {
       data.value = { ...defaults.value }
@@ -193,6 +208,78 @@ export function useSchemaForm(schemaId: string) {
     }
   }
 
+
+/**
+ * Recursively remove UI-virtual keys ($/_ prefixed — e.g. _localId, $about_edit,
+ * $waline_admin) from a payload so they never leak into content files (P2-5).
+ */
+/** 递归在 schema properties（含嵌套 fieldset）中按字段名或点路径查找定义（appearance.background）。 */
+function findNestedProp(schemaProps: Record<string, any>, key: string): Record<string, any> | undefined {
+  if (key.includes('.')) {
+    let node: any = schemaProps
+    for (const p of key.split('.')) {
+      if (!node || typeof node !== 'object') return undefined
+      const next = node[p]
+      if (next === undefined && node.properties) node = node.properties[p] || undefined
+      else node = next
+    }
+    return node
+  }
+  for (const [k, v] of Object.entries(schemaProps)) {
+    if (k === key) return v
+    if (v?.['x-widget'] === 'fieldset' && v.properties) {
+      const found = findNestedProp(v.properties, key)
+      if (found) return found
+    }
+  }
+  return undefined
+}
+
+/** 解析 x-file 目标路径：兼容逻辑名（background → data/background/background.yml）与完整路径。 */
+function resolveXFilePath(file: string): string {
+  const ALIASES: Record<string, string> = { background: 'data/background/background.yml' }
+  return ALIASES[file] || file
+}
+
+/** Set a value at a nested path on a plain object (creates intermediate objects). */
+function setAtPath(node: Record<string, any>, path: string[], val: any): void {
+  let cur = node
+  for (let i = 0; i < path.length - 1; i++) {
+    const p = path[i]
+    if (!cur[p] || typeof cur[p] !== 'object') cur[p] = {}
+    cur = cur[p]
+  }
+  cur[path[path.length - 1]] = val
+}
+
+/** Collect schema fields marked x-file (cross-file persistence), grouped by target path.
+ *  递归遍历嵌套块（如 appearance）内的字段；返回字段在 schema 树中的完整路径，
+ *  load 时据此把外部文件值合并到正确层级（appearance.baseColorLight 等）。 */
+function collectXFileFields(schema: Record<string, any>): Record<string, { path: string[]; key: string }[]> {
+  const groups: Record<string, { path: string[]; key: string }[]> = {}
+  const walk = (props: Record<string, any>, prefix: string[]): void => {
+    for (const [key, prop] of Object.entries(props)) {
+      const file = prop['x-file']
+      if (file) (groups[file] = groups[file] || []).push({ path: [...prefix, key], key })
+      if (prop['x-widget'] === 'fieldset' && prop.properties) walk(prop.properties, [...prefix, key])
+    }
+  }
+  walk(schema.properties || {}, [])
+  return groups
+}
+
+function stripVirtualKeys(value: any): any {
+  if (Array.isArray(value)) return value.map(stripVirtualKeys)
+  if (value && typeof value === 'object') {
+    const out: Record<string, any> = {}
+    for (const [k, v] of Object.entries(value)) {
+      if (k.startsWith('$') || k.startsWith('_')) continue
+      out[k] = stripVirtualKeys(v)
+    }
+    return out
+  }
+  return value
+}
   // ── Save data to filesystem ──────────────────────────────
   async function save(): Promise<boolean> {
     saving.value = true
@@ -205,33 +292,99 @@ export function useSchemaForm(schemaId: string) {
         ? (Array.isArray(data.value) ? data.value : [])
         : { ...data.value as Record<string, any> }
 
-      // Strip fields that have their own persistence (x-persist: false),
-      // and fields that live in site.yml (x-site-flag: true).
+      // 递归处理 schema 顶层与嵌套块（如 appearance）内的字段：
+      //  - x-persist: false → 从 payload 树删除（幽灵 background 等）
+      //  - x-file       → 提取到对应文件（background.yml），不进 site.yml
+      //  - x-site-flag  → 保留在 site.yml（本就是顶层）
       const siteFlags: string[] = []
+      const xFilePayloads: Record<string, Record<string, any>> = {}
+      console.log('[save] payload.appearance:', JSON.stringify((payload as any)?.appearance))
       if (!isArraySchema && schema.value?.properties) {
-        for (const [key, prop] of Object.entries(schema.value.properties as Record<string, any>)) {
-          if (prop['x-persist'] === false) {
-            delete payload[key]
-            delete payload[`${key}Meta`]
+        const getAt = (node: any, path: string[]): any => {
+          let cur: any = node
+          for (const p of path) {
+            if (cur == null || typeof cur !== 'object') return undefined
+            cur = cur[p]
           }
-          if (prop['x-site-flag'] === true) {
+          return cur
+        }
+        const deleteAt = (node: any, path: string[]): void => {
+          if (path.length === 0) return
+          const parent = path.slice(0, -1).reduce<any>((acc, p) => (acc == null || typeof acc !== 'object') ? undefined : acc[p], node)
+          if (parent && typeof parent === 'object') delete parent[path[path.length - 1]]
+        }
+        const stripNested = (node: Record<string, any>, schemaProps: Record<string, any>, prefix: string[]): void => {
+          for (const [key, prop] of Object.entries(schemaProps)) {
+            if (prop['x-persist'] === false) {
+              deleteAt(node, [...prefix, key])
+              deleteAt(node, [...prefix, `${key}Meta`])
+              continue
+            }
+            const file = prop['x-file']
+            if (file) {
+              const val = getAt(node, [...prefix, key])
+              if (val !== undefined) {
+                xFilePayloads[file] = xFilePayloads[file] || {}
+                xFilePayloads[file][key] = val
+              }
+              deleteAt(node, [...prefix, key])
+              continue
+            }
+            if (prop['x-site-flag'] === true) {
+              if (getAt(node, [...prefix, key]) !== undefined) deleteAt(node, [...prefix, key])
+              siteFlags.push(key)
+              continue
+            }
+            if (prop['x-widget'] === 'fieldset' && prop.properties) {
+              stripNested(node, prop.properties, [...prefix, key])
+            }
+          }
+        }
+        stripNested(payload, schema.value.properties, [])
+        // 兜底：x-persist false 字段的顶层幽灵键（background/backgroundMeta 等——旧残留进入
+        // merged 顶层后不删会一直写回 site.yml）
+        for (const key of Object.keys(payload)) {
+          const prop = findNestedProp(schema.value?.properties || {}, key)
+          if (prop?.['x-persist'] === false) delete payload[key]
+        }
+        console.log('[save] xFilePayloads:', JSON.stringify(Object.keys(xFilePayloads)), JSON.stringify(xFilePayloads))
+      }
+
+      // Strip UI-virtual keys ($/_ prefixed) — never persisted (P2-5).
+      payload = stripVirtualKeys(payload)
+
+      // 清理幽灵 Meta 键（backgroundMeta 等）：背景 meta 由组件 persistBg 写 background.yml，
+      // 对应字段 x-persist false / hidden / schema 无此字段 → 从 payload 删除（否则 Document API 崩）
+      for (const key of Object.keys(payload)) {
+        if (key.endsWith('Meta')) {
+          const base = key.replace(/Meta$/, '')
+          const prop = findNestedProp(schema.value?.properties || {}, base)
+          if (!prop || prop['x-persist'] === false || prop['x-widget'] === 'hidden') {
+            console.log('[save] cleanup ghost Meta:', key)
             delete payload[key]
-            siteFlags.push(key)
           }
         }
       }
+      console.log('[save] data keys:', Object.keys(data.value || {}))
 
       // Inject meta refs into payload (e.g. backgroundMeta ← metaRefs.background)
+      console.log('[save] metaRefs keys:', Object.keys(metaRefs.value))
       if (!isArraySchema) {
         for (const [key, meta] of Object.entries(metaRefs.value)) {
           if (meta) {
             const metaKey = `${key}Meta`
-            const prop = schema.value?.properties?.[key] as Record<string, any> | undefined
-            if (prop?.['x-persist'] === false) continue // skip self-persisting fields
+            // 递归查找（字段可能在嵌套块内，如 appearance.background）
+            const prop = findNestedProp(schema.value?.properties || {}, key)
+            // 背景 meta 由组件 persistBg 写 background.yml：x-persist false / hidden 虚拟字段
+            // / schema 无此字段（幽灵键）一律不注入 site.yml（否则 Document API 崩）
+            if (!prop) { console.log('[save] skip meta (no field):', key); continue }
+            if (prop['x-persist'] === false) { console.log('[save] skip meta (x-persist):', key); continue }
+            if (prop['x-widget'] === 'hidden') { console.log('[save] skip meta (hidden):', key); continue }
             payload[metaKey] = typeof meta === 'string' ? meta : JSON.stringify(meta)
           }
         }
       }
+      console.log('[save] payload Meta keys:', Object.keys(payload).filter((k) => k.endsWith('Meta')))
 
       let ok = false
       if (mapping.format === 'yaml') {
@@ -239,6 +392,18 @@ export function useSchemaForm(schemaId: string) {
       } else {
         ok = await writeJson(mapping.filePath, payload)
       }
+
+      // Write cross-file fields (x-file) — Document API preserves hand-written comments.
+      console.log('[save] before x-file writes, ok =', ok)
+      if (ok) {
+        for (const [file, xf] of Object.entries(xFilePayloads)) {
+          console.log('[save] writing x-file:', resolveXFilePath(file), JSON.stringify(xf))
+          ok = await writeYaml(resolveXFilePath(file), xf)
+          console.log('[save] x-file write result:', ok)
+          if (!ok) break
+        }
+      }
+      console.log('[save] final ok =', ok)
 
       // Persist the master-switch flag to site.yml when it lives outside this
       // page's data file (friends → friends.yml, collections → collections.yml).
@@ -262,11 +427,8 @@ export function useSchemaForm(schemaId: string) {
       // (rebuildPostIndex handles both article metadata and collection assignments)
       if (ok && activeSchemaId.value === 'chronicle:collections') {
         try {
-          const resp = await fetch('/api/reindex', { method: 'POST' })
-          if (resp.ok) {
-            const result = await resp.json()
-            console.log('[useSchemaForm] post index rebuilt:', result.count, 'posts')
-          }
+          await reindexPosts()
+          console.log('[useSchemaForm] post index rebuilt')
         } catch {}
       }
 

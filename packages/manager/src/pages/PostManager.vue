@@ -141,7 +141,7 @@
 </template>
 
 <script setup lang="ts">
-import { readJson, writeJson, deleteDir } from '../data/dataAccess'
+import { readJson, writeJson, deleteDir, reindexPosts } from '../data/dataAccess'
 import { ref, onMounted, onUnmounted, computed, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { sortTags } from '../utils/tagUtils'
@@ -430,7 +430,7 @@ async function loadPosts() {
 
 async function refresh() {
   if (loading.value) return
-  try { await fetch('/api/reindex', { method: 'POST' }) } catch (_) {}
+  try { await reindexPosts() } catch (_) {}
   loadPosts()
 }
 
@@ -440,7 +440,7 @@ let channel: BroadcastChannel | null = null
 
 onMounted(async () => {
   // Auto-reindex to keep index.json in sync with directories
-  try { await fetch('/api/reindex', { method: 'POST' }) } catch (_) {}
+  try { await reindexPosts() } catch (_) {}
   loadPosts()
   channel = new BroadcastChannel('chronicle')
   channel.onmessage = (e) => {

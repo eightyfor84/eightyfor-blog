@@ -80,10 +80,75 @@ const activeTab = computed(() => {
 })
 
 // ── Parse schema into tabs → groups → fields ──
+/** 顶层 fieldset 平铺（模块级，getValue/evaluate 共享）：把「分组型」fieldset 的叶子属性
+ *  平铺为组字段（post.toc.enabled、homepage.siteName 等）——支持单个根（post 树）或
+ *  多个顶层块（template-settings 的 homepage/appearance/search 按 x-tab 分块）。
+ *  UI 与扁平结构完全一致（组卡片 + 组开关），数据读写走点路径。 */
+const expandedRoot = computed<Record<string, any> | null>(() => {
+  const raw = (props.schema.properties || {}) as Record<string, any>
+  const entries = Object.entries(raw) as [string, Record<string, any>][]
+  const fieldsets = entries.filter(([, v]) => v && v['x-widget'] === 'fieldset')
+  if (fieldsets.length === 0) return null
+  const map: Record<string, any> = {}
+  let expanded = false
+  for (const [rootKey, rootSchema] of fieldsets) {
+    const sub = (rootSchema.properties || {}) as Record<string, any>
+    // 是否分组型 fieldset：直接子字段有 x-group，或子 fieldset 内有分组叶子
+    const isGrouping = Object.values(sub).some((v: any) => {
+      if (!v || typeof v !== 'object') return false
+      if (v['x-widget'] === 'fieldset') {
+        // 子 fieldset 自身带 x-group（post.meta → postMeta）或其叶子带 x-group（tab 分块）都算分组型
+        return !!v['x-group'] || Object.values(v.properties || {}).some((sv: any) => sv && sv['x-group'])
+      }
+      return !!v['x-group']
+    })
+    if (!isGrouping || Object.keys(sub).length === 0) {
+      map[rootKey] = rootSchema // 非分组 fieldset 原样（NativeFieldset 嵌套渲染）
+      continue
+    }
+    expanded = true
+    for (const [k, v] of Object.entries(sub)) {
+      if (v && v['x-widget'] === 'fieldset') {
+        // 子分组 fieldset → 深度平铺叶子属性；叶子自带 x-group 保留（tab 分块），
+        // 无则继承父分组 x-group（post 树）
+        for (const [sk, sv] of Object.entries((v.properties || {}) as Record<string, any>)) {
+          // 平铺叶子：x-group/x-tab 继承父块（叶子自身无则继承——否则被 tab 过滤掉）
+          const leaf = { ...(sv as Record<string, any>) } as Record<string, any>
+          leaf['x-group'] = leaf['x-group'] || v['x-group']
+          leaf['x-tab'] = leaf['x-tab'] || v['x-tab'] || rootSchema['x-tab']
+          // x-visible-when / x-disabled-when 的相对字段名（backend/prevNextScope）展开为
+          // 完整路径（post.comments.backend / post.endOfArticle.prevNextScope），否则顶层
+          // evaluateCondition 解析不到 → 条件字段被隐藏或误禁用
+          for (const key of ['x-visible-when', 'x-disabled-when']) {
+            const cond = leaf[key]
+            if (cond && typeof cond === 'object' && cond.field && !String(cond.field).includes('.')) {
+              leaf[key] = { ...cond, field: `${rootKey}.${k}.${cond.field}` }
+            }
+          }
+          map[`${rootKey}.${k}.${sk}`] = leaf
+        }
+      } else {
+        // 直接叶子：x-tab 继承根块（homepage 等顶层块）
+        map[`${rootKey}.${k}`] = {
+          ...(v as Record<string, any>),
+          'x-group': (v as Record<string, any>)['x-group'] || rootSchema['x-group'],
+          'x-tab': (v as Record<string, any>)['x-tab'] || rootSchema['x-tab'],
+        }
+      }
+    }
+  }
+  // 顶层非 fieldset 字段（如 comments 总开关 / pages 开关）保留并入对应组
+  for (const [k, v] of entries) {
+    if (!(v && v['x-widget'] === 'fieldset')) map[k] = v
+  }
+  return expanded ? map : null
+})
+
 const tabs = computed<TabDef[]>(() => {
   const xnav = props.schema['x-nav'] || {}
   const tabDefs = xnav.tabs || {}
-  const propsMap = props.schema.properties || {}
+  // 根 fieldset 展开（模块级 expandedRoot）：UI 与扁平结构完全一致，数据读写走 post.* 路径
+  const propsMap = expandedRoot.value || props.schema.properties || {}
 
   // Collect all field keys, sort by x-order
   const allKeys = Object.keys(propsMap).sort((a, b) => {
@@ -146,8 +211,10 @@ function buildGroups(fieldKeys: string[], propsMap: Record<string, any>, xGroups
     .map(([key, g]) => {
       // A group's toggle field (x-groups[].toggle → a boolean property key) is
       // rendered once above the rest and excluded from the detail fields.
-      const toggleField = g.toggle ? g.fields.find(f => f.key === g.toggle) : undefined
-      const fields = g.toggle ? g.fields.filter(f => f.key !== g.toggle) : g.fields
+      // toggle 匹配：扁平顶层（f.key === g.toggle）或展开树（f.key 以 .enabled 结尾等）
+      const toggleField = g.toggle ? g.fields.find(f => f.key === g.toggle || f.key.endsWith('.' + g.toggle)) : undefined
+      // 过滤必须排除 toggleField 本身（展开后 key 是 post.toc.enabled，不能按短名 g.toggle 匹配）
+      const fields = toggleField ? g.fields.filter(f => f !== toggleField) : g.fields
       return { key, label: g.label, order: g.order, toggleField, fields }
     })
     .sort((a, b) => a.order - b.order)
@@ -168,7 +235,30 @@ const visibleTabs = computed(() => tabs.value)
  * Resolves dot-separated paths against props.data.
  * Returns true if the condition is satisfied (or if no condition is defined).
  */
-function evaluateCondition(cond: Record<string, any> | undefined, data: Record<string, any>): boolean {
+/** Resolve a field's schema default by dot path (e.g. "postEndOfArticle.share" → share.default). */
+function resolveFieldDefault(propsMap: Record<string, any> | undefined, field: string): unknown {
+  if (!propsMap) return undefined
+  // 平铺形态（expandedRoot）：键即完整点路径（如 post.endOfArticle.prevNext）——
+  // 嵌套路径逐层下钻会取 propsMap['post'] 为 undefined，导致默认值回退失败、条件字段被隐藏
+  const flat = propsMap[field]
+  if (flat && typeof flat === 'object' && 'default' in flat) return flat.default
+  // 嵌套形态（未展开的 schema.properties）：按路径逐层下钻
+  const parts = field.split('.')
+  let node: any = propsMap
+  for (let i = 0; i < parts.length; i++) {
+    const p = parts[i]
+    if (i === parts.length - 1) return node?.[p]?.default
+    node = node?.[p]?.properties
+    if (!node) return undefined
+  }
+  return undefined
+}
+
+function evaluateCondition(
+  cond: Record<string, any> | undefined,
+  data: Record<string, any>,
+  propsMap?: Record<string, any>,
+): boolean {
   if (!cond) return true
   const { field, equals, notEquals } = cond
   if (!field) return true
@@ -177,9 +267,12 @@ function evaluateCondition(cond: Record<string, any> | undefined, data: Record<s
   const parts = String(field).split('.')
   let value: any = data
   for (const p of parts) {
-    if (value == null || typeof value !== 'object') return true // can't resolve, assume visible
+    if (value == null || typeof value !== 'object') { value = undefined; break }
     value = value[p]
   }
+  // 数据中未配置该字段时回退 schema 默认值（与 getValue 的显示逻辑一致），
+  // 否则初始状态（只有 default、尚未写入 data）条件字段会被误判隐藏
+  if (value === undefined) value = resolveFieldDefault(propsMap, String(field))
 
   if (equals !== undefined && value !== equals) return false
   if (notEquals !== undefined && value === notEquals) return false
@@ -187,19 +280,45 @@ function evaluateCondition(cond: Record<string, any> | undefined, data: Record<s
 }
 
 function isFieldVisible(schema: Record<string, any>): boolean {
-  return evaluateCondition(schema['x-visible-when'], props.data)
+  return evaluateCondition(schema['x-visible-when'], props.data, expandedRoot.value || props.schema?.properties)
 }
 
 // ── Data access ──
+
+/** Resolve a dot path like "post.toc" against a data object. */
+function resolvePath(data: Record<string, any> | undefined, key: string): any {
+  if (!data) return undefined
+  let value: any = data
+  for (const p of key.split('.')) {
+    if (value == null || typeof value !== 'object') return undefined
+    value = value[p]
+  }
+  return value
+}
+
+/** Set a dot path like "post.toc" — shallow-clones each level, returns new object. */
+function setPath(data: Record<string, any>, key: string, val: any): Record<string, any> {
+  const parts = key.split('.')
+  const clone: Record<string, any> = { ...data }
+  let node = clone
+  for (let i = 0; i < parts.length - 1; i++) {
+    const p = parts[i]
+    node[p] = { ...(node[p] || {}) }
+    node = node[p]
+  }
+  node[parts[parts.length - 1]] = val
+  return clone
+}
+
 function getValue(key: string): any {
-  const schema = props.schema.properties?.[key]
-  const val = props.data?.[key]
+  const schema = (expandedRoot.value || props.schema.properties)?.[key]
+  const val = resolvePath(props.data, key)
   if (val !== undefined) return val
   return schema?.default
 }
 
 function setValue(key: string, val: any) {
-  emit('update:data', { ...props.data, [key]: val })
+  emit('update:data', setPath(props.data, key, val))
 }
 
 function onFieldMeta(key: string, val: any) {
@@ -210,12 +329,15 @@ function isDisabled(field: FieldDef): boolean {
   if (field.schema['x-disabled']) return true
   // Check x-disabled-when: if condition is met, disable the field
   const cond = field.schema['x-disabled-when']
-  if (cond && evaluateCondition(cond, props.data)) return true
+  // 与 isFieldVisible 一致：传 expandedRoot 供条件字段默认值回退（平铺键/嵌套双形态）
+  if (cond && evaluateCondition(cond, props.data, expandedRoot.value || props.schema?.properties)) return true
   return false
 }
 
 function disabledText(field: FieldDef): string {
-  return field.schema['x-disabled-text'] || ''
+  // x-disabled-text 是 i18n 对象（{en, zh-CN}）——resolveLocale 成当前语言，
+  // 否则组件收到 JSON 对象直接渲染出原文
+  return resolveLocale(field.schema['x-disabled-text'], '') || ''
 }
 
 /** A group with a toggle is disabled when its toggle field resolves to a falsy value. */

@@ -85,7 +85,7 @@ import { computed, ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import useToast from '../../composables/useToast.ts'
 import BackgroundEditorModal from '../../components/BackgroundEditorModal.vue'
-import { hexToRgbString } from '../../utils/colorUtils.ts'
+import { hexToRgbString } from '@chronicle/shared/utils'
 import { resolveMediaUrl, discoverBackendBgUrlAsync } from '../../utils/backgroundSettings.ts'
 
 const { locale } = useI18n()
@@ -137,7 +137,7 @@ async function loadSettingsFromServer() {
     if (s.backendLocale) uiBackendLocale.value = s.backendLocale
     if (s.backendFont) uiBackendFont.value = s.backendFont
     if (s.backendTheme) uiBackendTheme.value = s.backendTheme
-    uiAccentColor.value = s.backendAccent || s.frontendAccent || '#2ea35f'
+    uiAccentColor.value = s.backendAccent || s.accent || s.frontendAccent || '#2ea35f'
     if (s.backendBackground) {
       uiBackendBackground.value = typeof s.backendBackground === 'string'
         ? s.backendBackground
@@ -323,7 +323,7 @@ async function save() {
       document.documentElement.style.setProperty('--backend-font-stack', 'var(--app-font-stack-inter)')
     } else if (uiBackendFont.value === 'serif') {
       try { (await import('../../utils/fontLoader.ts')).ensureNotoLoaded() } catch (e) { }
-      document.documentElement.style.setProperty('--backend-font-stack', "'Noto Serif SC', serif")
+      document.documentElement.style.setProperty('--backend-font-stack', 'var(--app-font-stack-serif)')
     }
 
     // Apply backend theme immediately

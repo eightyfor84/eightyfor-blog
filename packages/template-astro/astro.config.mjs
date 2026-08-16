@@ -42,6 +42,12 @@ function readSiteConfig() {
   return {};
 }
 
+// Module-level site config (used by feature flags).
+const siteConfig = readSiteConfig();
+
+// Deploy-time origin — edit for production (see README → Deployment).
+const SITE_URL = 'http://localhost:4321';
+
 function isFullTextEnabled() {
   const site = readSiteConfig();
   // Full-text search is opt-out — on by default (aligned with the schema).
@@ -70,7 +76,7 @@ function markdownToPlainText(md) {
 }
 
 export default defineConfig({
-  site: process.env.CHRONICLE_SITE_URL || 'http://localhost:4321',
+  site: SITE_URL,
   output: 'static',
   // Deferred prefetch — Astro's built-in `prefetch` config injects prefetch.js +
   // preload-helper.js (~4 KiB) into the initial bundle, hurting FCP. Instead, we

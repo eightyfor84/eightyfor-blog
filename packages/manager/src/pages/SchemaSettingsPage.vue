@@ -22,7 +22,7 @@
       <!-- For object-type schemas, use SchemaForm -->
       <SchemaForm v-else :schema="schema" :data="data" :active-tab="tab" :disabled="isDisabled"
         :field-meta-map="metaRefs"
-        @update:data="(v) => data = v" @update:meta="(key, val) => setMeta(key, val)" />
+        @update:data="onUpdateData" @update:meta="(key, val) => setMeta(key, val)" />
 
       <!-- Actions — always interactive, even when the feature is off -->
       <div class="actions-wrapper">
@@ -114,6 +114,11 @@ function handleReset() {
 
 function onToggleHeader(value: boolean) {
   toggleHeaderFlag(value)
+}
+
+/** SchemaForm 全量数据更新——经方法赋值解构 ref（模板直赋 data = v 对 ref 无效）。 */
+function onUpdateData(v: Record<string, any>) {
+  data.value = v
 }
 
 // RouterView uses :key="$route.fullPath" so this component remounts

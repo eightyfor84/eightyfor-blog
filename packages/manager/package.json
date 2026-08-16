@@ -7,7 +7,7 @@
     "name": "Eightyfor",
     "email": "j13811593@163.com"
   },
-  "homepage": "https://github.com/vanvanhasnophi/Chronicle",
+  "homepage": "https://github.com/vanvanhasnophi/chronicle-aurora",
   "type": "module",
   "main": "electron/main.cjs",
   "scripts": {

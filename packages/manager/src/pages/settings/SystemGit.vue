@@ -123,7 +123,8 @@ async function syncNow() {
   try {
     const isElec = typeof window !== 'undefined' && !!(window as any).chronicleElectron?.isElectron
     if (isElec) {
-      await (window as any).chronicleElectron.invoke('git:sync')
+      const result = await (window as any).chronicleElectron.invoke('git:sync')
+      if (!result?.ok) throw new Error(result?.message || 'Sync failed')
     } else {
       const resp = await fetch('/api/git/sync', { method: 'POST' })
       if (!resp.ok) throw new Error((await resp.json()).error || 'Sync failed')

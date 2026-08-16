@@ -130,9 +130,8 @@ async function loadText() {
     const relPath = state.file.path.replace(/^\/?(api\/|server\/data\/)/, '').replace(/^\//, '')
     const text = await readText(relPath)
     if (!text) throw new Error('Failed to load file')
-    let decoded = text
-    try { decoded = new TextDecoder(encoding.value).decode(buf) }
-    catch { decoded = new TextDecoder('utf-8').decode(buf) }
+    // readText 已返回解码后的字符串（Electron IPC / browser 均 UTF-8）
+    const decoded = text
 
     const lines = decoded.split(/\r?\n/)
     const out: string[] = []

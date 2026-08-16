@@ -1,0 +1,599 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronicle:post-page",
+  "title": {
+    "en": "Post Page",
+    "zh-CN": "文章页"
+  },
+  "x-lang": "en",
+  "x-version": "3.0.0",
+  "x-migrations": [],
+  "type": "object",
+  "x-nav": {
+    "group": "template",
+    "icon": "file-text",
+    "order": 2
+  },
+  "x-groups": {
+    "postMeta": {
+      "label": {
+        "en": "Header & Meta",
+        "zh-CN": "标题区域"
+      },
+      "order": 1
+    },
+    "postToc": {
+      "label": {
+        "en": "Table of Contents",
+        "zh-CN": "目录控件"
+      },
+      "order": 2,
+      "toggle": "enabled"
+    },
+    "postCollectionNav": {
+      "label": {
+        "en": "Collection Navigation",
+        "zh-CN": "合集导航"
+      },
+      "order": 3,
+      "toggle": "enabled"
+    },
+    "postEndOfArticle": {
+      "label": {
+        "en": "End of Article",
+        "zh-CN": "文章末尾"
+      },
+      "order": 4
+    },
+    "postComments": {
+      "label": {
+        "en": "Comments",
+        "zh-CN": "评论区"
+      },
+      "order": 5,
+      "toggle": "comments"
+    }
+  },
+  "properties": {
+    "comments": {
+      "type": "boolean",
+      "default": true,
+      "x-widget": "toggle",
+      "x-group": "postComments",
+      "x-order": 0,
+      "title": {
+        "en": "Enable Comments",
+        "zh-CN": "启用评论"
+      },
+      "description": {
+        "en": "Master switch — the existing top-level comments flag in site.yml.",
+        "zh-CN": "评论区总开关（site.yml 顶层现有 comments 标志）。"
+      }
+    },
+    "post": {
+      "type": "object",
+      "x-widget": "fieldset",
+      "x-order": 1,
+      "title": {
+        "en": "Post Page",
+        "zh-CN": "文章页"
+      },
+      "properties": {
+        "meta": {
+          "type": "object",
+          "x-widget": "fieldset",
+          "x-order": 1,
+          "title": {
+            "en": "Header & Meta",
+            "zh-CN": "标题区域"
+          },
+          "properties": {
+            "metaUpdated": {
+              "type": "boolean",
+              "default": true,
+              "x-widget": "toggle",
+              "x-order": 1,
+              "title": {
+                "en": "Show Updated Date",
+                "zh-CN": "显示更新时间"
+              }
+            },
+            "metaStats": {
+              "type": "boolean",
+              "default": true,
+              "x-widget": "toggle",
+              "x-order": 2,
+              "title": {
+                "en": "Word Count & Reading Time",
+                "zh-CN": "字数与阅读时间"
+              }
+            },
+            "metaAiBadge": {
+              "type": "boolean",
+              "default": true,
+              "x-widget": "toggle",
+              "x-order": 3,
+              "title": {
+                "en": "Show AI Badge",
+                "zh-CN": "显示 AI 标记"
+              }
+            },
+            "showTags": {
+              "type": "boolean",
+              "default": true,
+              "x-widget": "toggle",
+              "x-order": 4,
+              "title": {
+                "en": "Show Tags",
+                "zh-CN": "显示标签"
+              }
+            }
+          },
+          "x-group": "postMeta"
+        },
+        "toc": {
+          "type": "object",
+          "x-widget": "fieldset",
+          "x-order": 2,
+          "title": {
+            "en": "Table of Contents",
+            "zh-CN": "目录控件"
+          },
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true,
+              "x-widget": "toggle",
+              "x-order": 0,
+              "title": {
+                "en": "Enable TOC",
+                "zh-CN": "启用目录"
+              }
+            },
+            "inlineToc": {
+              "type": "boolean",
+              "default": true,
+              "x-widget": "toggle",
+              "x-order": 1,
+              "title": {
+                "en": "Inline TOC",
+                "zh-CN": "行内目录"
+              }
+            },
+            "tocFloat": {
+              "type": "boolean",
+              "default": true,
+              "x-widget": "toggle",
+              "x-order": 2,
+              "title": {
+                "en": "Floating TOC",
+                "zh-CN": "悬浮目录"
+              }
+            },
+            "tocFloatAlwaysExpanded": {
+              "type": "boolean",
+              "default": false,
+              "x-widget": "toggle",
+              "x-order": 5,
+              "title": {
+                "en": "Always Expanded Floating TOC",
+                "zh-CN": "悬浮目录始终展开"
+              },
+              "description": {
+                "en": "Permanently expanded floating TOC — no background/blur, items never collapse to lines, content reserves right space. Overrides the collapse toggle.",
+                "zh-CN": "悬浮目录始终保持展开——无背景/无模糊、条目不折叠成线、正文让出右侧空间。优先于折叠开关。"
+              }
+            },
+            "mobileTocControl": {
+              "type": "boolean",
+              "default": true,
+              "x-widget": "toggle",
+              "x-order": 4,
+              "title": {
+                "en": "Mobile TOC Control",
+                "zh-CN": "移动端目录控件"
+              }
+            }
+          },
+          "x-group": "postToc"
+        },
+        "collectionNav": {
+          "type": "object",
+          "x-widget": "fieldset",
+          "x-order": 3,
+          "title": {
+            "en": "Collection Navigation",
+            "zh-CN": "合集导航"
+          },
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true,
+              "x-widget": "toggle",
+              "x-order": 0,
+              "title": {
+                "en": "Enable Collection Navigation",
+                "zh-CN": "启用合集导航"
+              }
+            },
+            "alwaysCollapsed": {
+              "type": "boolean",
+              "default": false,
+              "x-widget": "toggle",
+              "x-order": 1,
+              "title": {
+                "en": "Always Collapsed",
+                "zh-CN": "始终折叠"
+              }
+            }
+          },
+          "x-group": "postCollectionNav"
+        },
+        "endOfArticle": {
+          "type": "object",
+          "x-widget": "fieldset",
+          "x-order": 4,
+          "title": {
+            "en": "End of Article",
+            "zh-CN": "文章末尾"
+          },
+          "properties": {
+            "relatedPosts": {
+              "type": "boolean",
+              "default": true,
+              "x-widget": "toggle",
+              "x-order": 1,
+              "title": {
+                "en": "Related Posts",
+                "zh-CN": "相关文章"
+              },
+              "description": {
+                "en": "Derived at build time from shared tags/collections (3 posts).",
+                "zh-CN": "构建期按标签/合集相似度派生（3 篇）。"
+              }
+            },
+            "prevNext": {
+              "type": "boolean",
+              "default": true,
+              "x-widget": "toggle",
+              "x-order": 2,
+              "title": {
+                "en": "Prev / Next Navigation",
+                "zh-CN": "前后导航"
+              }
+            },
+            "prevNextMode": {
+              "type": "string",
+              "default": "both",
+              "x-widget": "radio-group",
+              "x-order": 3,
+              "x-options": [
+                {
+                  "value": "both",
+                  "label": {
+                    "en": "Both prev & next",
+                    "zh-CN": "上一篇 + 下一篇"
+                  }
+                },
+                {
+                  "value": "next-only",
+                  "label": {
+                    "en": "Next only",
+                    "zh-CN": "只显示下一篇"
+                  }
+                }
+              ],
+              "title": {
+                "en": "Navigation Mode",
+                "zh-CN": "导航模式"
+              },
+              "x-visible-when": {
+                "field": "prevNext",
+                "equals": true
+              }
+            },
+            "prevNextScope": {
+              "type": "string",
+              "default": "collection",
+              "x-widget": "radio-group",
+              "x-order": 4,
+              "x-options": [
+                {
+                  "value": "global",
+                  "label": {
+                    "en": "All posts (by date)",
+                    "zh-CN": "全部文章（按日期）"
+                  }
+                },
+                {
+                  "value": "collection",
+                  "label": {
+                    "en": "Within the same collection",
+                    "zh-CN": "同合集内"
+                  }
+                }
+              ],
+              "title": {
+                "en": "Navigation Scope",
+                "zh-CN": "导航范围"
+              },
+              "x-visible-when": {
+                "field": "prevNext",
+                "equals": true
+              }
+            },
+            "prevNextOrder": {
+              "type": "string",
+              "default": "desc",
+              "x-widget": "radio-group",
+              "x-order": 5,
+              "x-options": [
+                {
+                  "value": "desc",
+                  "label": {
+                    "en": "Newest first (first = latest)",
+                    "zh-CN": "最新在前（第一篇 = 最新）"
+                  }
+                },
+                {
+                  "value": "asc",
+                  "label": {
+                    "en": "Oldest first (first = earliest)",
+                    "zh-CN": "最老在前（第一篇 = 最老）"
+                  }
+                }
+              ],
+              "title": {
+                "en": "Navigation Order",
+                "zh-CN": "导航排序"
+              },
+              "description": {
+                "en": "Direction for all-posts ordering (scope: All posts). Collection order is defined by collections.yml and unaffected.",
+                "zh-CN": "全部拉通（范围：全部文章）时的排序方向。合集内顺序由 collections.yml 定义，不受此设置影响。"
+              },
+              "x-visible-when": {
+                "field": "prevNext",
+                "equals": true
+              },
+              "x-disabled-when": {
+                "field": "prevNextScope",
+                "equals": "collection"
+              },
+              "x-disabled-text": {
+                "en": "Unused while scope is \"Within the same collection\" — collection order comes from collections.yml.",
+                "zh-CN": "范围选择「同合集内」时不生效——合集内顺序由 collections.yml 定义。"
+              }
+            },
+            "authorCard": {
+              "type": "boolean",
+              "default": false,
+              "x-widget": "toggle",
+              "x-order": 6,
+              "title": {
+                "en": "Author Card",
+                "zh-CN": "作者卡片"
+              }
+            },
+            "share": {
+              "type": "boolean",
+              "default": true,
+              "x-widget": "toggle",
+              "x-order": 7,
+              "title": {
+                "en": "Share Article",
+                "zh-CN": "分享文章"
+              }
+            },
+            "shareChannels": {
+              "type": "array",
+              "default": [
+                "twitter",
+                "linkedin",
+                "weibo"
+              ],
+              "items": {
+                "type": "string",
+                "enum": [
+                  "twitter",
+                  "weibo",
+                  "linkedin"
+                ]
+              },
+              "x-widget": "card-list",
+              "x-card-intro": false,
+              "x-order": 8,
+              "x-item-labels": {
+                "twitter": {
+                  "en": "Twitter / X",
+                  "zh-CN": "Twitter / X"
+                },
+                "weibo": {
+                  "en": "Weibo",
+                  "zh-CN": "微博"
+                },
+                "linkedin": {
+                  "en": "LinkedIn",
+                  "zh-CN": "领英"
+                }
+              },
+              "title": {
+                "en": "Share Channels",
+                "zh-CN": "分享渠道"
+              },
+              "description": {
+                "en": "Sortable channel list — order matters for rendering.",
+                "zh-CN": "可排序渠道列表，顺序即渲染顺序。"
+              },
+              "x-visible-when": {
+                "field": "share",
+                "equals": true
+              },
+              "x-card-editable": false
+            }
+          },
+          "x-group": "postEndOfArticle"
+        },
+        "comments": {
+          "type": "object",
+          "x-widget": "fieldset",
+          "x-order": 5,
+          "title": {
+            "en": "Comments",
+            "zh-CN": "评论区"
+          },
+          "properties": {
+            "backend": {
+              "type": "string",
+              "default": "",
+              "enum": [
+                "",
+                "waline"
+              ],
+              "x-widget": "select",
+              "x-order": 1,
+              "x-options": [
+                {
+                  "value": "",
+                  "label": {
+                    "en": "Static JSON (no interaction)",
+                    "zh-CN": "静态 JSON（无交互）"
+                  }
+                },
+                {
+                  "value": "waline",
+                  "label": {
+                    "en": "Waline (headless API)",
+                    "zh-CN": "Waline（headless API）"
+                  }
+                }
+              ],
+              "title": {
+                "en": "Backend",
+                "zh-CN": "后端"
+              }
+            },
+            "walineServerUrl": {
+              "type": "string",
+              "default": "",
+              "maxLength": 256,
+              "x-widget": "input",
+              "x-order": 2,
+              "x-visible-when": {
+                "field": "backend",
+                "equals": "waline"
+              },
+              "title": {
+                "en": "Waline Server URL",
+                "zh-CN": "Waline 服务地址"
+              }
+            },
+            "attitude": {
+              "type": "boolean",
+              "default": true,
+              "x-widget": "toggle",
+              "x-order": 3,
+              "x-visible-when": {
+                "field": "backend",
+                "equals": "waline"
+              },
+              "title": {
+                "en": "Post Attitude (Like / Dislike)",
+                "zh-CN": "文章态度（点赞 / 点踩）"
+              },
+              "description": {
+                "en": "Rendered via the Waline reaction API. Hidden when the backend is not Waline.",
+                "zh-CN": "通过 Waline reaction API 渲染；后端非 Waline 时隐藏。"
+              }
+            },
+            "showGeoAddress": {
+              "type": "boolean",
+              "default": true,
+              "x-widget": "toggle",
+              "x-order": 4,
+              "x-visible-when": {
+                "field": "backend",
+                "equals": "waline"
+              },
+              "title": {
+                "en": "Show Commenter Location",
+                "zh-CN": "显示评论者地区"
+              },
+              "description": {
+                "en": "Shows the geo address (e.g. China · Beijing) derived from IP, never the raw IP. Omitted when unavailable.",
+                "zh-CN": "展示 IP 对应的地理地址（如「中国 北京市」），绝不显示原始 IP；取不到时省略。"
+              }
+            },
+            "$waline_admin": {
+              "type": "null",
+              "x-chronicle-class": "waline-admin-link",
+              "x-order": 5,
+              "x-visible-when": {
+                "field": "backend",
+                "equals": "waline"
+              },
+              "title": {
+                "en": "Open Waline Admin",
+                "zh-CN": "打开 Waline 后台"
+              },
+              "description": {
+                "en": "Comment moderation is delegated to the Waline admin dashboard at <server>/ui.",
+                "zh-CN": "评论管理已委托 Waline 管理后台（<server>/ui）。"
+              }
+            },
+            "imageUploadEnabled": {
+              "type": "boolean",
+              "default": false,
+              "x-widget": "toggle",
+              "x-order": 6,
+              "title": {
+                "en": "Allow Images in Comments",
+                "zh-CN": "允许评论带图片"
+              },
+              "description": {
+                "en": "Upload images to the image host configured below. Off: comments cannot include images.",
+                "zh-CN": "上传图片到下方配置的图床；关闭则评论不可带图。"
+              }
+            },
+            "imageUploadEndpoint": {
+              "type": "string",
+              "default": "",
+              "x-widget": "input",
+              "x-order": 7,
+              "x-visible-when": {
+                "field": "imageUploadEnabled",
+                "equals": true
+              },
+              "title": {
+                "en": "Image Host Upload URL",
+                "zh-CN": "图床上传地址"
+              },
+              "description": {
+                "en": "POST multipart file; response JSON url field (lsky-pro style: data.links.url).",
+                "zh-CN": "POST multipart file，响应 JSON 取 url（lsky-pro 风格：data.links.url）。"
+              }
+            },
+            "imageUploadToken": {
+              "type": "string",
+              "default": "",
+              "x-widget": "input",
+              "x-order": 8,
+              "x-visible-when": {
+                "field": "imageUploadEnabled",
+                "equals": true
+              },
+              "title": {
+                "en": "Image Host Token",
+                "zh-CN": "图床令牌"
+              },
+              "description": {
+                "en": "Sent as Authorization: Bearer <token>.",
+                "zh-CN": "以 Authorization: Bearer <token> 发送。"
+              }
+            }
+          },
+          "x-group": "postComments"
+        }
+      }
+    }
+  }
+}

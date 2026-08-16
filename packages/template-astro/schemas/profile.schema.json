@@ -75,7 +75,7 @@
     },
     "showProfileCard": {
       "type": "boolean",
-      "default": true,
+      "default": false,
       "x-widget": "toggle",
       "x-group": "about",
       "x-order": 2,
@@ -90,7 +90,7 @@
     },
     "name": {
       "type": "string",
-      "default": "",
+      "default": "Chronicle Aurora",
       "minLength": 1,
       "maxLength": 60,
       "x-widget": "input",
@@ -124,7 +124,8 @@
       "title": {
         "en": "Bio",
         "zh-CN": "简介"
-      }
+      },
+      "default": ""
     },
     "location": {
       "type": "string",
@@ -136,7 +137,8 @@
       "title": {
         "en": "Location",
         "zh-CN": "位置"
-      }
+      },
+      "default": ""
     },
     "links": {
       "type": "array",
@@ -176,7 +178,8 @@
       "title": {
         "en": "Links",
         "zh-CN": "链接"
-      }
+      },
+      "default": []
     }
   }
 }

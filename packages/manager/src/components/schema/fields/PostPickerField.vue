@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="ts">
-import PostIdPicker from '../../PostIdPicker.vue'
+import PostIdPicker, { type PickerModelValue } from '../../PostIdPicker.vue'
 
 const props = defineProps<{
   modelValue: string
@@ -22,6 +22,6 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string]
+  'update:modelValue': [value: PickerModelValue]
 }>()
 </script>
