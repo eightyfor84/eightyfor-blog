@@ -16,6 +16,7 @@ import { Icons } from './icons';
 import DOMPurify from 'dompurify';
 import { JSDOM } from 'jsdom';
 import { SANITIZE_CONFIG } from '@chronicle/shared/src/utils';
+import { buildTocFromHtml, type TocItem } from './toc';
 
 // DOMPurify needs a DOM window at build time (SSG runs in Node.js).
 const purifyWindow = new JSDOM('').window as unknown as Window & typeof globalThis;
@@ -712,6 +713,18 @@ export function renderChronicleMarkdown(content: string, locale?: string): strin
   html = postProcessHtml(html);
 
   return html;
+}
+
+/**
+ * Single-pipeline TOC extraction (P2-3): renders markdown with the SAME md
+ * instance used for post bodies, then extracts headings from the resulting
+ * HTML. Verified identical to the old regex-over-rendered-HTML path on the
+ * full data/posts corpus (scripts/toc-compare.ts, 2026-08) — the regex
+ * markdownParser TOC path in toc.ts was retired.
+ */
+export function extractHeadings(content: string): TocItem[] {
+  if (!content) return [];
+  return buildTocFromHtml(md.render(content));
 }
 
 /**

@@ -1,5 +1,3 @@
-import { parseMarkdown } from './markdownParser';
-
 export interface TocItem {
   id: string;
   text: string;
@@ -83,66 +81,9 @@ export function normalizeTocItems(toc: unknown): TocItem[] {
   return items;
 }
 
-export function buildTocFromBlocks(blocks: Array<{ type?: string; content?: string }>) {
-  const itemsRaw: TocItem[] = [];
-  const used = new Set<string>();
-
-  blocks.forEach((block) => {
-    if (block.type !== 'heading') return;
-
-    const content = String(block.content || '');
-    const match = content.match(/^\s*(#{1,6})\s+(.*)$/);
-    if (!match) return;
-
-    // raw heading text as written in markdown (may contain markdown links/images or inline code)
-    const raw = String(match[2] || '').trim();
-
-    // Skip headings that are pure media links or images which are rendered as file-cards.
-    // Examples to skip: "[name](file.mp4)" or "![alt](image.png)"
-    const pureLinkMatch = raw.match(/^\[([^\]]+)\]\(([^)]+)\)\s*$/);
-    const imageLinkMatch = raw.match(/^!\[([^\]]*)\]\(([^)]+)\)\s*$/);
-    if (pureLinkMatch || imageLinkMatch) {
-      const url = (pureLinkMatch ? pureLinkMatch[2] : imageLinkMatch ? imageLinkMatch[2] : '') || '';
-      const extMatch = url.match(/\.([0-9a-z]+)(?:[?#]|$)/i);
-      const ext = extMatch ? extMatch[1].toLowerCase() : '';
-      const mediaExts = new Set(['mp3','wav','ogg','m4a','flac','aac','mp4','webm','mkv','mov','avi','pdf','doc','docx','ppt','pptx','xls','xlsx','jpg','jpeg','png','gif','svg','bmp','webp','zip','rar','7z','tar','gz']);
-      if (ext && mediaExts.has(ext)) return;
-    }
-
-    // If heading content contains rendered file-card HTML, skip it
-    if (raw.includes('<div class="file-card"') || raw.includes("class='file-card'") || raw.includes('data-type="')) return;
-
-    // If heading is only an inline code span like `something`, skip it
-    if (/^`[^`]+`$/.test(raw)) return;
-
-    const level = match[1].length;
-    const text = stripHtml(match[2]).replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1').trim();
-    if (!text) return;
-
-    let id = slugifyHeading(text);
-    let base = id;
-    let suffix = 1;
-    while (used.has(id)) {
-      id = `${base}-${suffix++}`;
-    }
-    used.add(id);
-
-    itemsRaw.push({ id, text, level });
-  });
-
-  if (!itemsRaw.length) return [];
-
-  const minLevel = Math.min(...itemsRaw.map((item) => item.level));
-  return itemsRaw.map((item) => ({
-    id: item.id,
-    text: item.text,
-    level: item.level - minLevel + 1,
-  }));
-}
-
-export function buildTocFromMarkdown(content: string) {
-  return buildTocFromBlocks(parseMarkdown(content));
-}
+// buildTocFromBlocks / buildTocFromMarkdown (regex markdownParser TOC path)
+// retired in P2-3 — TOC now comes from extractHeadings() in chronicleMarkdown
+// (single markdown-it pipeline, verified identical on the data/posts corpus).
 
 export function buildTocFromHtml(html: string) {
   const items: TocItem[] = [];
@@ -186,7 +127,10 @@ export function buildTocItems(content: string, isHtml = false, toc?: unknown) {
   const normalized = normalizeTocItems(toc);
   if (normalized.length) return normalized;
   if (!content) return [];
-  return isHtml ? buildTocFromHtml(content) : buildTocFromMarkdown(content);
+  // Markdown-input branch retired (P2-3): use extractHeadings() from
+  // chronicleMarkdown for markdown → TOC; this function only takes HTML.
+  if (!isHtml) return [];
+  return buildTocFromHtml(content);
 }
 
 export function injectHeadingIds(html: string, toc: TocItem[]): string {

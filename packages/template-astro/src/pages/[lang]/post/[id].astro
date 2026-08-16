@@ -4,6 +4,7 @@ import { getPublishedPosts, getPostById, getPublicSettings, getCollections } fro
 import { getTranslation, getLocale } from '../../../utils/i18n';
 import { buildLocalizedPath, toContentLocale } from '../../../utils/routeLocale';
 import { buildTocItems, injectHeadingIds } from '../../../utils/toc';
+import { extractHeadings } from '../../../utils/chronicleMarkdown';
 import { renderCodeBlockStatsHtml, renderCodeBlockLangLabelsHtml } from '../../../utils/markdownParser';
 import { escapeHtmlText, decodeHtmlEntities, getFileExt, getMediaIcon, toMediaCard, rewriteMediaLinks, hydrateLegacyKatexPlaceholders, wrapRenderedKatex } from '../../../utils/contentUtils';
 import DesktopFloatingToc from '../../../components/FloatingToc.astro';
@@ -201,11 +202,12 @@ if (renderedPostContent) {
       // ignore and keep placeholders
     }
 
-    // Use server-provided TOC if available; fall back to local HTML heading extraction
+    // Use server-provided TOC if available; fall back to the single markdown-it
+    // pipeline (extractHeadings — replaces the old regex-over-HTML extraction).
     if (post && Array.isArray(post.toc) && post.toc.length > 0) {
       tocItems = buildTocItems('', true, post.toc);
-    } else if (renderedPostContent) {
-      tocItems = buildTocItems(renderedPostContent, true);
+    } else if (post?.content) {
+      tocItems = extractHeadings(post.content);
     } else {
       tocItems = [];
     }
