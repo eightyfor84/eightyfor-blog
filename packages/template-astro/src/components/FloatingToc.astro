@@ -241,22 +241,28 @@ const {
     border: none !important;
   }
 
-  /* 3.1.x — expanded-by-default mode (data-force-expanded): when the window
-     narrows below the threshold, revert to the collapsed look purely via CSS.
-     The hover-to-expand engine (mouseenter/mouseleave) is untouched. */
+  /* 3.1.x — expanded modes (data-force-expanded / data-always-expanded): when the
+     window narrows below the threshold (<900px), BOTH revert to the collapsible
+     rail look purely via CSS. Hover still expands (engine untouched);
+     reserve-toc-right right-padding is dropped below the threshold too. */
   @media (max-width: 900px) {
-    .toc-float[data-force-expanded="true"]:not(:hover) {
+    .toc-float[data-force-expanded="true"]:not(:hover),
+    .toc-float[data-always-expanded="true"]:not(:hover) {
       width: 38px; padding: 4px 8px; border: none; background-color: transparent;
       border-radius: 10px; overflow-y: auto; scrollbar-width: none;
     }
-    .toc-float[data-force-expanded="true"]:not(:hover) ul { padding: 0; }
-    .toc-float[data-force-expanded="true"]:not(:hover) li {
+    .toc-float[data-force-expanded="true"]:not(:hover) ul,
+    .toc-float[data-always-expanded="true"]:not(:hover) ul { padding: 0; }
+    .toc-float[data-force-expanded="true"]:not(:hover) li,
+    .toc-float[data-always-expanded="true"]:not(:hover) li {
       justify-content: center; margin: 0; min-height: 18px;
     }
-    .toc-float[data-force-expanded="true"]:not(:hover) .toc-text {
+    .toc-float[data-force-expanded="true"]:not(:hover) .toc-text,
+    .toc-float[data-always-expanded="true"]:not(:hover) .toc-text {
       opacity: 0; transform: translateX(10px); position: absolute; pointer-events: none;
     }
-    .toc-float[data-force-expanded="true"]:not(:hover) .toc-line {
+    .toc-float[data-force-expanded="true"]:not(:hover) .toc-line,
+    .toc-float[data-always-expanded="true"]:not(:hover) .toc-line {
       opacity: 1; transform: translateX(0); position: relative; margin: 0;
     }
   }
