@@ -82,7 +82,8 @@ async function loadPosts(): Promise<Post[]> {
 
 export const GET: APIRoute = async ({ site }) => {
   const settings = await loadSiteSettings();
-  const baseUrl = normalizeBaseUrl(settings?.frontendUrl) || (site ? site.origin : '');
+  // Absolute links come from the deploy-time astro `site` config.
+  const baseUrl = site ? site.origin : '';
   const siteTitle = String(settings?.siteName || 'Chronicle').trim();
   const siteDescription = String(settings?.siteDescription || 'Latest posts from Chronicle').trim();
   const feedTitle = `${siteTitle} RSS`;

@@ -1,7 +1,3 @@
 siteName: Chronicle Demo
-frontendUrl: ""
 siteDescription: A local-first, git-backed Jamstack blogging platform. Write in Markdown, sync with Git, deploy anywhere.
 icpNumber: ""
-homepageMode: split
-singleColumnHomepage: false
-cardVisibility: {}

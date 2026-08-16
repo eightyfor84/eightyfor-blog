@@ -74,9 +74,9 @@ Typical CI config (GitHub Actions, Cloudflare Pages, etc.): `npm install && npx 
 - **Netlify / Vercel** — build command `npx astro build --root packages/template-astro`, publish `packages/template-astro/dist`.
 - **Self-hosted (Nginx / Caddy)** — serve `packages/template-astro/dist`; point the site at your domain.
 
-Set **`frontendUrl`** in `data/site.yml` to your absolute site URL (e.g. `https://blog.example.com`).
+Set **`SITE_URL`** in `packages/template-astro/astro.config.mjs` to your production origin (e.g. `https://blog.example.com`).
 It powers absolute links in the RSS feed, `sitemap.xml`, and the `Sitemap:` line in `robots.txt`.
-Leave it empty to fall back to the build default (`http://localhost:4321`).
+This is deploy-time config — content (`data/`) never carries URL settings.
 
 ## License
 

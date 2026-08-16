@@ -4,14 +4,13 @@ import { getPublishedPosts, getPublicSettings } from '../data/localDataSource';
 export const prerender = true;
 
 /**
- * sitemap.xml (3.1.x) — SSG-generated. Requires an absolute frontendUrl
- * (data/site.yml); without it the urlset is empty (the Sitemap line in
- * robots.txt is omitted too).
+ * sitemap.xml (3.1.x) — SSG-generated. Base URL comes from the deploy-time
+ * astro `site` config; without a configured origin the urlset is empty
+ * (the Sitemap line in robots.txt is omitted too).
  */
 export const GET: APIRoute = async ({ site }) => {
-  const settings = getPublicSettings() as Record<string, any>;
-  const base = String(settings?.frontendUrl || '').trim().replace(/\/$/, '')
-    || (site ? site.origin : '');
+  // Base URL comes from the deploy-time astro `site` config, not content data.
+  const base = site ? site.origin : '';
   const posts = getPublishedPosts() as any[];
 
   const escapeXml = (s: unknown) => String(s ?? '')

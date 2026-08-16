@@ -132,23 +132,6 @@
         "zh-CN": "中国大陆ICP备案号，留空则隐藏。"
       }
     },
-    "frontendUrl": {
-      "type": "string",
-      "default": "",
-      "maxLength": 200,
-      "x-widget": "input",
-      "x-tab": "template-homepage",
-      "x-group": "general",
-      "x-order": 6,
-      "title": {
-        "en": "Site URL (frontendUrl)",
-        "zh-CN": "站点地址（frontendUrl）"
-      },
-      "description": {
-        "en": "Absolute site URL (e.g. https://blog.example.com). Used for RSS links and sitemap.xml. Leave empty if unsure — falls back to the build site URL.",
-        "zh-CN": "站点绝对地址（如 https://blog.example.com）。用于 RSS 链接与 sitemap.xml。留空则回退到构建的 site URL。"
-      }
-    },
     "homepageMode": {
       "type": "string",
       "default": "split",
