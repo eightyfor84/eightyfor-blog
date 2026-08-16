@@ -411,15 +411,16 @@
                             <input v-model="authorInput" class="modal-input small-input"
                                 :placeholder="t('editor.authorPlaceholder')" @keyup.enter="addAuthor" />
                             <button class="secondary-btn small-btn" @click="addAuthor">{{ t('editor.addAuthor') }}</button>
-                            <button class="secondary-btn small-btn" :class="{ active: postAuthor === SITE_AUTHOR_PLACEHOLDER }"
+                            <button class="secondary-btn small-btn" :class="{ active: postAuthors.includes(SITE_AUTHOR_PLACEHOLDER) }"
                                 @click="toggleSiteAuthor" :title="t('editor.siteAuthorTip')">
                                 {{ t('editor.siteAuthor') }}
                             </button>
                         </div>
-                        <div class="tags-list" v-if="postAuthor">
-                            <span class="tag-badge" :class="{ featured: postAuthor === SITE_AUTHOR_PLACEHOLDER }">
-                                {{ postAuthor === SITE_AUTHOR_PLACEHOLDER ? t('editor.siteAuthor') : postAuthor }}
-                                <button class="tag-remove" @click="clearAuthor">
+                        <div class="tags-list" v-if="postAuthors.length">
+                            <span class="tag-badge" v-for="(a, i) in postAuthors" :key="i"
+                                :class="{ featured: a === SITE_AUTHOR_PLACEHOLDER }">
+                                {{ a === SITE_AUTHOR_PLACEHOLDER ? t('editor.siteAuthor') : a }}
+                                <button class="tag-remove" @click="removeAuthor(i)">
                                     <span class="icon-svg" v-html="Icons.close"></span>
                                 </button>
                             </span>
@@ -508,15 +509,16 @@
                             <input v-model="authorInput" class="modal-input small-input"
                                 :placeholder="t('editor.authorPlaceholder')" @keyup.enter="addAuthor" />
                             <button class="secondary-btn small-btn" @click="addAuthor">{{ t('editor.addAuthor') }}</button>
-                            <button class="secondary-btn small-btn" :class="{ active: postAuthor === SITE_AUTHOR_PLACEHOLDER }"
+                            <button class="secondary-btn small-btn" :class="{ active: postAuthors.includes(SITE_AUTHOR_PLACEHOLDER) }"
                                 @click="toggleSiteAuthor" :title="t('editor.siteAuthorTip')">
                                 {{ t('editor.siteAuthor') }}
                             </button>
                         </div>
-                        <div class="tags-list" v-if="postAuthor">
-                            <span class="tag-badge" :class="{ featured: postAuthor === SITE_AUTHOR_PLACEHOLDER }">
-                                {{ postAuthor === SITE_AUTHOR_PLACEHOLDER ? t('editor.siteAuthor') : postAuthor }}
-                                <button class="tag-remove" @click="clearAuthor">
+                        <div class="tags-list" v-if="postAuthors.length">
+                            <span class="tag-badge" v-for="(a, i) in postAuthors" :key="i"
+                                :class="{ featured: a === SITE_AUTHOR_PLACEHOLDER }">
+                                {{ a === SITE_AUTHOR_PLACEHOLDER ? t('editor.siteAuthor') : a }}
+                                <button class="tag-remove" @click="removeAuthor(i)">
                                     <span class="icon-svg" v-html="Icons.close"></span>
                                 </button>
                             </span>
@@ -832,18 +834,32 @@ const {
   isSlidesMeta, buildLocalDetail, CHRONICLE_FM_KEYS,
 } = useEditorFrontmatter({ editorType, t })
 
-// ── 作者输入：tag 风格 + 「本人」一键（$site$ 占位符）──
+// ── 作者输入：多值 tag 风格 + 「本人」一键（$site$ 占位符）──
 const authorInput = ref('')
+const postAuthors = ref<string[]>([])
+// postAuthor（逗号分隔串，useFrontmatter 管理）↔ postAuthors（数组）双向同步：
+// 读——frontmatter 'Alice, Bob' → ['Alice','Bob']；写——数组变化回写逗号串，保存链路不变
+watch(postAuthor, (v) => {
+  const arr = v ? v.split(',').map(s => s.trim()).filter(Boolean) : []
+  if (arr.join('\u0000') !== postAuthors.value.join('\u0000')) postAuthors.value = arr
+})
+watch(postAuthors, (arr) => {
+  const joined = arr.join(', ')
+  if (postAuthor.value !== joined) postAuthor.value = joined
+})
 function addAuthor(): void {
   const v = authorInput.value.trim()
-  if (v) postAuthor.value = v
+  if (v && !postAuthors.value.includes(v)) postAuthors.value = [...postAuthors.value, v]
   authorInput.value = ''
 }
-function toggleSiteAuthor(): void {
-  postAuthor.value = postAuthor.value === SITE_AUTHOR_PLACEHOLDER ? '' : SITE_AUTHOR_PLACEHOLDER
+function removeAuthor(i: number): void {
+  const next = [...postAuthors.value]; next.splice(i, 1); postAuthors.value = next
 }
-function clearAuthor(): void {
-  postAuthor.value = ''
+function toggleSiteAuthor(): void {
+  const has = postAuthors.value.includes(SITE_AUTHOR_PLACEHOLDER)
+  postAuthors.value = has
+    ? postAuthors.value.filter(a => a !== SITE_AUTHOR_PLACEHOLDER)
+    : [...postAuthors.value, SITE_AUTHOR_PLACEHOLDER]
 }
 
 // ═══ Dirty state (before view — view needs isDirty etc) ═══
