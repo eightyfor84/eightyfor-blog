@@ -372,7 +372,9 @@ ipcMain.handle('fs:writeYaml', async (_event, relativePath, data) => {
     const absPath = resolveRepoPath(relativePath)
     const dir = path.dirname(absPath)
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true, mode: 0o775 })
-    const content = yaml.dump(data, { lineWidth: -1, noRefs: true })
+    // Serialization options must stay in sync with renderer dataAccess.writeYaml (YAML.stringify).
+    // Note: yaml 2.9 has no 'noRefs' option for dump() — lineWidth: -1 disables wrapping.
+    const content = yaml.dump(data, { lineWidth: -1 })
     fs.writeFileSync(absPath, content, 'utf-8')
     return true
   } catch (e) {

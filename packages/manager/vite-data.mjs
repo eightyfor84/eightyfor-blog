@@ -228,48 +228,32 @@ export default function chronicleData() {
           }
 
           // ── POST /api/settings ──────────────────────────
+          // Sole purpose: verbatim file writes. The renderer always serializes
+          // first (YAML.stringify / JSON.stringify in dataAccess) and sends
+          // { _rawPath, _rawContent }. The old flat-merge / wsKeys-whitelist
+          // branches were removed — they rebuilt site.yml from regex lines
+          // (destroying nested YAML blocks) and leaked unknown workspace keys
+          // into site.yml.
           if (method === 'POST' && urlPath === '/api/settings') {
             const body = await readBody(req)
             if (!body) return notFound(res)
 
-            // Generic file write via _rawPath (used by writeText for YAML files)
+            // Generic file write via _rawPath (used by writeText / writeJson / writeYaml)
             if (body._rawPath && body._rawContent !== undefined) {
-              const absPath = join(repoRoot, body._rawPath)
+              const absPath = join(repoRoot, String(body._rawPath).replace(/^\/+/, ''))
+              // Safety: keep writes inside the repo (same guard as DELETE /api/files)
+              if (!absPath.startsWith(repoRoot)) return notFound(res, 'Invalid path')
               ensureDir(dirname(absPath))
               writeFileSync(absPath, body._rawContent, 'utf-8')
               console.log('[vite-data] _rawPath written:', body._rawPath)
               return ok(res, { success: true })
             }
 
-            // Pure settings: site.yml + .chronicle/workspace.json
-            const wsKeys = ['backendTheme','backendAccent','backendFont','backendLocale','backendBackground','backendBackgroundMeta','frontendCodeDir','frontendBuildTargetDir','autoBuildOnPublish','buildGranularity','scheduledBuildEnabled','scheduledBuildMode','scheduledBuildMinute','scheduledBuildHour','scheduledBuildWeekday','scheduledBuildCron','frontendUrl','gitAutoCommit','gitAutoPush','gitCommitTemplate','previewAutoOpen','previewPort']
-            const siteFields = {}, wsFields = {}
-            for (const [k, v] of Object.entries(body)) { if (wsKeys.includes(k)) wsFields[k] = v; else siteFields[k] = v }
-            console.log('[vite-data] /api/settings siteFields keys:', Object.keys(siteFields), 'wsFields keys:', Object.keys(wsFields))
-            // Merge with existing data (don't overwrite untouched fields)
-            if (Object.keys(siteFields).length) {
-              ensureDir(dataDir); const siteFile = join(dataDir, 'site.yml')
-              const existing = existsSync(siteFile) ? readFileSync(siteFile, 'utf-8').split('\n').reduce((acc, line) => { const m = line.match(/^([\w-]+):\s*(.*)$/); if (m) acc[m[1]] = JSON.parse(m[2]); return acc }, {}) : {}
-              Object.assign(existing, siteFields)
-              writeFileSync(siteFile, Object.entries(existing).map(([k,v]) => `${k}: ${JSON.stringify(v)}`).join('\n') + '\n')
-              console.log('[vite-data] site.yml written')
-            }
-            if (Object.keys(wsFields).length) {
-              ensureDir(join(repoRoot, '.chronicle')); const wsFile = join(repoRoot, '.chronicle', 'workspace.json')
-              const existing = existsSync(wsFile) ? JSON.parse(readFileSync(wsFile, 'utf-8')) : {}
-              Object.assign(existing, wsFields)
-              // Remove undefined values
-              for (const k of Object.keys(existing)) { if (existing[k] === undefined) delete existing[k] }
-              writeFileSync(wsFile, JSON.stringify(existing, null, 2) + '\n')
-              console.log('[vite-data] workspace.json written')
-            }
-            return ok(res, { success: true })
+            return notFound(res, 'Missing _rawPath')
           }
 
-          // ── POST /api/collections / friends / profile ───
-          if (method === 'POST' && urlPath === '/api/collections') { const b = await readBody(req); if (!b) return notFound(res); const d = b.collections ?? b; ensureDir(dataDir); writeFileSync(join(dataDir, 'collections.yml'), JSON.stringify(d, null, 2) + '\n'); return ok(res, { success: true }) }
-          if (method === 'POST' && urlPath === '/api/friends') { const b = await readBody(req); if (!b) return notFound(res); ensureDir(dataDir); writeFileSync(join(dataDir, 'friends.yml'), JSON.stringify(b, null, 2) + '\n'); return ok(res, { success: true }) }
-          if (method === 'POST' && urlPath === '/api/profile') { const b = await readBody(req); if (!b) return notFound(res); ensureDir(dataDir); writeFileSync(join(dataDir, 'profile.yml'), JSON.stringify(b, null, 2) + '\n'); return ok(res, { success: true }) }
+          // (POST /api/collections|friends|profile removed — dataAccess.browserWrite
+          //  routes those through the generic /api/settings _rawPath branch.)
 
           // ── POST /api/post (save) ───────────────────────
           if (method === 'POST' && urlPath === '/api/post') {
