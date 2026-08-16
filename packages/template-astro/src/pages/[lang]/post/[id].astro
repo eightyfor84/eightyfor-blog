@@ -75,13 +75,13 @@ if (localPost) {
 }
 settings = getPublicSettings() as Record<string, any>;
 
-// ── Post page config (3.1.x — nested `post:` block from site.yml) ──
+// ── Post page config (3.1.x — flat top-level groups from site.yml) ──
 const postCfg = ((settings as Record<string, any>).post || {}) as any;
-const metaCfg = postCfg.meta || {};
-const tocCfg = postCfg.toc || {};
-const collectionNavCfg = postCfg.collectionNav || {};
-const endOfArticleCfg = postCfg.endOfArticle || {};
-const commentsCfg = postCfg.comments || (settings as Record<string, any>).comment || {};
+const metaCfg = postCfg.postMeta || {};
+const tocCfg = postCfg.postToc || {};
+const collectionNavCfg = postCfg.postCollectionNav || {};
+const endOfArticleCfg = postCfg.postEndOfArticle || {};
+const commentsCfg = postCfg.postComments || (settings as Record<string, any>).comment || {};
 
 // ── Comment config ────────────────────────────────────
 const commentBackend = String(commentsCfg.backend || '');
@@ -96,13 +96,13 @@ const commentsEnabled = (settings as Record<string, any>).comments !== false;
 
 // ── Collection feature flag (distinct from data result — see getCollections) ──
 const collectionEnabled = (settings as Record<string, any>).collectionPage !== false;
-const collectionNavEnabled = collectionNavCfg.collectionNavEnabled !== false;
+const collectionNavEnabled = postCfg.postCollectionNavEnabled !== false;
 // Single source of truth for "render the collection nav + reserve its sidebar space".
 const hasCollectionNav = collectionEnabled && collectionNavEnabled && !!post?.collection;
 const collectionNavCollapsed = collectionNavCfg.alwaysCollapsed === true;
 
 // ── TOC toggles (3.1.x) ────────────────────────────────
-const tocEnabled = tocCfg.tocEnabled !== false;
+const tocEnabled = postCfg.postTocEnabled !== false;
 const inlineTocEnabled = tocEnabled && tocCfg.inlineToc !== false;
 const tocFloatEnabled = tocEnabled && tocCfg.tocFloat !== false;
 const tocFloatCollapsed = tocCfg.tocFloatCollapsed !== false;

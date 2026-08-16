@@ -252,29 +252,40 @@ export interface CommentConfig {
 }
 
 
-// ── Post page config (3.1.x) — mirrors the `post:` block of site.yml ──
+// ── Post page config (3.1.x) — flat top-level groups from site.yml ──
 export interface PostPageConfig {
-  meta?: { metaAuthor?: boolean; metaCreated?: boolean; metaUpdated?: boolean; metaWords?: boolean; metaReadingTime?: boolean; metaAiBadge?: boolean; showTags?: boolean };
-  toc?: { tocEnabled?: boolean; inlineToc?: boolean; tocFloat?: boolean; tocFloatCollapsed?: boolean; mobileTocControl?: boolean };
-  collectionNav?: { collectionNavEnabled?: boolean; alwaysCollapsed?: boolean };
-  endOfArticle?: { relatedPosts?: boolean; prevNext?: boolean; prevNextMode?: 'both' | 'next-only'; prevNextScope?: 'global' | 'collection'; authorCard?: boolean; share?: boolean; shareChannels?: string[] };
-  comments?: { backend?: string; walineServerUrl?: string; attitude?: boolean; showGeoAddress?: boolean };
+  postMeta?: { metaAuthor?: boolean; metaCreated?: boolean; metaUpdated?: boolean; metaWords?: boolean; metaReadingTime?: boolean; metaAiBadge?: boolean; showTags?: boolean };
+  postTocEnabled?: boolean;
+  postToc?: { inlineToc?: boolean; tocFloat?: boolean; tocFloatCollapsed?: boolean; mobileTocControl?: boolean };
+  postCollectionNavEnabled?: boolean;
+  postCollectionNav?: { alwaysCollapsed?: boolean };
+  postEndOfArticle?: { relatedPosts?: boolean; prevNext?: boolean; prevNextMode?: 'both' | 'next-only'; prevNextScope?: 'global' | 'collection'; authorCard?: boolean; share?: boolean; shareChannels?: string[] };
+  postComments?: { backend?: string; walineServerUrl?: string; attitude?: boolean; showGeoAddress?: boolean };
 }
 
 const POST_PAGE_DEFAULTS: Required<PostPageConfig> = {
-  meta: { metaAuthor: true, metaCreated: true, metaUpdated: true, metaWords: true, metaReadingTime: true, metaAiBadge: true, showTags: true },
-  toc: { tocEnabled: true, inlineToc: true, tocFloat: true, tocFloatCollapsed: true, mobileTocControl: true },
-  collectionNav: { collectionNavEnabled: true, alwaysCollapsed: false },
-  endOfArticle: { relatedPosts: true, prevNext: true, prevNextMode: 'both', prevNextScope: 'global', authorCard: true, share: true, shareChannels: ['twitter', 'weibo', 'copy-link'] },
-  comments: { backend: '', walineServerUrl: '', attitude: true, showGeoAddress: true },
+  postMeta: { metaAuthor: true, metaCreated: true, metaUpdated: true, metaWords: true, metaReadingTime: true, metaAiBadge: true, showTags: true },
+  postTocEnabled: true,
+  postToc: { inlineToc: true, tocFloat: true, tocFloatCollapsed: true, mobileTocControl: true },
+  postCollectionNavEnabled: true,
+  postCollectionNav: { alwaysCollapsed: false },
+  postEndOfArticle: { relatedPosts: true, prevNext: true, prevNextMode: 'both', prevNextScope: 'global', authorCard: true, share: true, shareChannels: ['twitter', 'weibo', 'copy-link'] },
+  postComments: { backend: '', walineServerUrl: '', attitude: true, showGeoAddress: true },
 }
 
+/**
+ * Merge raw site.yml values over defaults. Accepts both the flat 3.1.x keys
+ * (postMeta / postToc / …) and the legacy nested `post:` block (pre-review).
+ */
 function normalizePostConfig(raw: unknown): PostPageConfig {
   const src = raw && typeof raw === 'object' ? (raw as Record<string, any>) : {};
+  const legacy = src.post && typeof src.post === 'object' ? (src.post as Record<string, any>) : {};
   const out: Record<string, any> = {};
   for (const key of Object.keys(POST_PAGE_DEFAULTS)) {
     const def = (POST_PAGE_DEFAULTS as Record<string, any>)[key];
-    const val = src[key];
+    // Legacy key mapping: post.meta → postMeta, post.toc → postToc, …
+    const legacyKey = { postMeta: 'meta', postToc: 'toc', postCollectionNav: 'collectionNav', postEndOfArticle: 'endOfArticle', postComments: 'comments' }[key];
+    const val = src[key] ?? (legacyKey ? legacy[legacyKey] : undefined);
     if (val && typeof val === 'object' && !Array.isArray(val) && def && typeof def === 'object') {
       out[key] = { ...def, ...val };
     } else {
@@ -575,7 +586,7 @@ export function getPublicSettings(): LocalSettings {
         icpNumber: raw.icpNumber || '',
         defaultPerformanceMode: raw.defaultPerformanceMode || 'auto',
         comment: raw.comment || {},
-        post: normalizePostConfig(raw.post),
+        post: normalizePostConfig(raw),
     };
 }
 

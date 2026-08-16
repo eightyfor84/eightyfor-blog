@@ -31,18 +31,38 @@ rss: true
 frontendBackgroundColorLight: ""
 frontendBackgroundColorDark: ""
 
-# ── Post page (文章页) — nested block added in 3.1.x ──
-post:
-  meta:
-    metaAuthor: true
-    metaCreated: true
-    metaUpdated: true
-    metaWords: true
-    metaReadingTime: true
-    metaAiBadge: true
-    showTags: true
-  toc:
-    tocEnabled: true
-    inlineToc: true
-    tocFloat: true
-    tocFloatCollapsed: true
+
+# ── Post page (文章页) — 3.1.x, flat top-level groups ──
+postMeta:
+  metaAuthor: true
+  metaCreated: true
+  metaUpdated: true
+  metaWords: true
+  metaReadingTime: true
+  metaAiBadge: true
+  showTags: true
+postTocEnabled: true
+postToc:
+  inlineToc: true
+  tocFloat: true
+  tocFloatCollapsed: true
+  mobileTocControl: true
+postCollectionNavEnabled: true
+postCollectionNav:
+  alwaysCollapsed: false
+postEndOfArticle:
+  relatedPosts: true
+  prevNext: true
+  prevNextMode: both
+  prevNextScope: global
+  authorCard: true
+  share: true
+  shareChannels:
+    - twitter
+    - weibo
+    - copy-link
+postComments:
+  backend: ""
+  walineServerUrl: ""
+  attitude: true
+  showGeoAddress: true
