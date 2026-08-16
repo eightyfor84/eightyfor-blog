@@ -17,7 +17,7 @@ const t = (key: string) => getTranslation(locale, key);
       <svg class="attitude-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
       <span class="attitude-count" data-count-for="0">0</span>
     </button>
-    <button type="button" class="attitude-btn" data-reaction="1" disabled aria-label={t('postPage.attitudeDislike')}>
+    <button type="button" class="attitude-btn dislike" data-reaction="1" disabled aria-label={t('postPage.attitudeDislike')}>
       <svg class="attitude-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/><line x1="3" y1="21" x2="21" y2="3"/></svg>
       <span class="attitude-count" data-count-for="1">0</span>
     </button>
@@ -112,9 +112,10 @@ const t = (key: string) => getTranslation(locale, key);
   .attitude-btns { display: flex; gap: 1.5rem; }
   .attitude-btn { display: inline-flex; flex-direction: column; align-items: center; gap: 0.5rem;
     padding: 0.5rem 0.9rem; border-radius: 8px; border: none; background: transparent;
-    color: var(--app-text-sec); cursor: pointer; transition: background 0.15s ease, color 0.15s ease; }
+    color: var(--app-text-sec); cursor: pointer; transition: background 0.15s ease, color 0.15s ease, opacity 0.15s ease; }
   .attitude-btn:hover:not(:disabled) { background: var(--hover); color: var(--app-text-pri); }
   .attitude-btn.voted { color: var(--accent); opacity: 1 !important; }
+  .attitude-btn.voted.dislike { color: var(--bg-offset); }
   .attitude-btn.voted .attitude-icon { fill: currentColor; }
   .attitude-btn:disabled { opacity: 0.55; cursor: default; }
   .attitude-icon { width: 36px; height: 36px; }

@@ -24,6 +24,7 @@ import { extractBodySummary } from '../../../shared/src/utils/summary.ts'
  * @property {string} [summary]
  * @property {string} [font]
  * @property {string} [author]
+ * @property {string[]} [authors]
  * @property {boolean} [aiGenerated]
  * @property {'article'|'slides'} [type]
  * @property {string} [collection]
@@ -138,6 +139,10 @@ export function buildPostIndex(dataDir) {
 
     const collectionInfo = collectionIndex.get(slug)
     const summary = fm.summary || extractBodySummary(raw)
+    // 多作者：author 逗号分隔（同 tags 约定）；author 保留首个以兼容单值消费方，authors 存完整列表
+    const authors = typeof fm.author === 'string'
+      ? fm.author.split(',').map((s) => s.trim()).filter(Boolean)
+      : []
     /** @type {IndexEntry} */
     const out = {
       title: fm.title || slug,
@@ -146,7 +151,8 @@ export function buildPostIndex(dataDir) {
       status: fm.status || 'draft',
       summary,
       font: fm.font,
-      author: fm.author,
+      author: authors[0] || null,
+      authors: authors.length ? authors : undefined,
       aiGenerated: fm.aiGenerated,
       type: fm.marp ? 'slides' : (fm.type || 'article'),
     }

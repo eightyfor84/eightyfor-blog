@@ -1,7 +1,6 @@
-$about_edit: ""
 showProfileCard: false
-name: Chronicle
-bio: A local-first, git-backed Jamstack blogging platform. No server, no database, just files.
+name: Eightyfor
+bio: Author of the site. This is a placeholder bio.
 location: GitHub
 links:
   - label: GitHub

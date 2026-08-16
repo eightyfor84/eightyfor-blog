@@ -323,7 +323,7 @@ async function save() {
       document.documentElement.style.setProperty('--backend-font-stack', 'var(--app-font-stack-inter)')
     } else if (uiBackendFont.value === 'serif') {
       try { (await import('../../utils/fontLoader.ts')).ensureNotoLoaded() } catch (e) { }
-      document.documentElement.style.setProperty('--backend-font-stack', "'Noto Serif SC', serif")
+      document.documentElement.style.setProperty('--backend-font-stack', 'var(--app-font-stack-serif)')
     }
 
     // Apply backend theme immediately

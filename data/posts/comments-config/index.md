@@ -1,6 +1,7 @@
 ---
 title: Comments Configuration
 date: 2026-08-14
+updatedAt: 2026-08-16T17:30:30.885Z
 tags: comments, guide
 author: Eightyfor
 aiGenerated: true

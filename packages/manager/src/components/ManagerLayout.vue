@@ -565,7 +565,7 @@ function applySettingsFromStore(s: Record<string, any>) {
       if (s.frontendFont === 'serif') {
         // ensure serif font loaded when requested
         ensureNotoLoaded()
-        document.documentElement.style.setProperty('--app-font-stack', "'Noto Serif SC', serif")
+        document.documentElement.style.setProperty('--app-font-stack', 'var(--app-font-stack-serif)')
       } else {
         // default or sans
         document.documentElement.style.setProperty('--app-font-stack', 'var(--app-font-stack-inter)')
@@ -573,7 +573,7 @@ function applySettingsFromStore(s: Record<string, any>) {
 
       if (s.backendFont === 'serif') {
         ensureNotoLoaded()
-        document.documentElement.style.setProperty('--backend-font-stack', "'Noto Serif SC', serif")
+        document.documentElement.style.setProperty('--backend-font-stack', 'var(--app-font-stack-serif)')
       } else {
         // default or sans
         document.documentElement.style.setProperty('--backend-font-stack', 'var(--app-font-stack-inter)')

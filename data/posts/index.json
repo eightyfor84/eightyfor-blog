@@ -10,6 +10,9 @@
     "summary": "data/collections.yml lets you group articles into named sequences with a dedicated navigation panel and overview page. It's the closest thing Chronicle has to…",
     "font": "sans",
     "author": "Eightyfor",
+    "authors": [
+      "Eightyfor"
+    ],
     "aiGenerated": true,
     "type": "article",
     "collection": "Chronicle Guide",
@@ -26,6 +29,9 @@
     "summary": "data/site.yml controls how comments work on your Chronicle site. Chronicle is local-first with no runtime server, so comments are either read from static JSON…",
     "font": "sans",
     "author": "Eightyfor",
+    "authors": [
+      "Eightyfor"
+    ],
     "aiGenerated": true,
     "type": "article",
     "collection": "Chronicle Guide",
@@ -42,6 +48,9 @@
     "summary": "data/friends.yml builds the /friends page — a blogroll of external links to people, projects, or communities you want to share with your readers. It's a single…",
     "font": "sans",
     "author": "Eightyfor",
+    "authors": [
+      "Eightyfor"
+    ],
     "aiGenerated": true,
     "type": "article",
     "collection": "Chronicle Guide",
@@ -91,6 +100,9 @@
     "summary": "data/profile.yml defines who you are to your readers. It powers the author card on the homepage, the profile section of the About page, and the fallback author…",
     "font": "sans",
     "author": "Eightyfor",
+    "authors": [
+      "Eightyfor"
+    ],
     "aiGenerated": true,
     "type": "article",
     "collection": "Chronicle Guide",
@@ -107,6 +119,9 @@
     "summary": "data/site.yml is the central control panel for your Chronicle site. Every global behavior — from the color of your links to which pages exist — is declared…",
     "font": "sans",
     "author": "Eightyfor",
+    "authors": [
+      "Eightyfor"
+    ],
     "aiGenerated": true,
     "type": "article",
     "collection": "Chronicle Guide",
@@ -139,6 +154,7 @@
     "status": "published",
     "summary": "Chronicle is a local-first, git-backed Jamstack blogging platform. No server, no database — just Markdown, YAML, and Git.",
     "font": "sans",
+    "author": null,
     "type": "article",
     "collection": "Chronicle Guide",
     "collectionPath": "Chronicle Guide"

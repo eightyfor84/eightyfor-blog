@@ -12,7 +12,7 @@
   --app-font-stack-inter: -apple-system, BlinkMacSystemFont,  'InterVariable', 'Inter', 'HarmonyOS Sans', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', 'Pingfang SC', 'HarmonyOS Sans SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
   --app-font-stack: var(--app-font-stack-inter);
   --backend-font-stack: var(--app-font-stack-inter);
-  --app-font-stack-serif: 'Noto Serif SC', 'STSongti-SC', 'STSong', 'Songti SC', 'SimSun', serif;
+  --app-font-stack-serif: ui-serif, 'Noto Serif SC', 'STSongti-SC', 'STSong', 'Songti SC', 'SimSun', serif;
   --app-font-stack-mono: 'Consolas', 'SF Mono', 'Menlo', 'Monaco', 'Ubuntu Mono', 'Courier New', monospace, /var(--app-font-stack-inter);
   --app-text-wght: 400;
   font-family: var(--app-font-stack);

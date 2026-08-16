@@ -408,6 +408,18 @@ const rootId = isSidebar ? "collection-nav-root" : "collection-nav-inline";
     max-height: 66vh;
   }
   @media (min-width: 1200px) {
+    .cn-panel[data-always-collapsed="true"][data-cn-variant="sidebar"] {
+      position: fixed;
+      top: 90px;
+      left: 20px;
+      background: var(--comp-bg-blur);
+      border: 1px solid var(--border-color-blur);
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow-elev-3);
+      transition:
+        transform 280ms ease,
+        opacity 280ms ease;
+    }
     .cn-panel[data-cn-variant="sidebar"] {
       position: fixed;
       top: 120px;

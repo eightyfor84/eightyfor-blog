@@ -1,7 +1,7 @@
 ---
 title: Chronicle Presentation
 date: 2026-08-04
-updatedAt: 2026-08-07T07:00:05.382Z
+updatedAt: 2026-08-16T17:31:19.216Z
 tags: slides, demo, featured
 author: 
 aiGenerated: false

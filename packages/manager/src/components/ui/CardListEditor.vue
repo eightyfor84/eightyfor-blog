@@ -678,13 +678,11 @@ onBeforeUnmount(() => {
 /* ── Add ghost button + type popup ── */
 .card-list-editor__add { position: relative; flex-shrink: 0; }
 .add-ghost {
-  border: none !important;
-  background: transparent !important;
-  color: var(--comp-text-sec, var(--app-text-sec));
-  border-radius: 8px;
+  width: 36px; height: 36px; border-radius: 8px; border: none;
+  color: var(--comp-text-sec);
   transition: background 0.15s ease, color 0.15s ease;
 }
-.add-ghost:hover { background: var(--hover, rgba(128,128,128,0.12)); color: var(--accent, #36a32e); }
+.add-ghost .add-ghost__icon{ width: 22px; height: 22px; }
 .add-ghost__icon { display: block; }
 .add-type-menu {
   position: absolute; right: 0; top: calc(100% + 6px); z-index: 60;
@@ -699,7 +697,7 @@ onBeforeUnmount(() => {
   border: none; background: transparent; border-radius: 6px;
   color: var(--app-text-pri, inherit); font-size: 0.85rem; cursor: pointer;
 }
-.add-type-menu__item:hover:not(:disabled) { background: var(--hover, rgba(128,128,128,0.12)); color: var(--accent, #36a32e); }
+.add-type-menu__item:hover:not(:disabled) { background: var(--hover, rgba(128,128,128,0.12)); color: var(--comp-text-pri); }
 .add-type-menu__item:disabled { opacity: 0.4; cursor: default; }
 .add-type-menu__empty { padding: 0.45rem 0.7rem; font-size: 0.8rem; opacity: 0.6; }
 .card-pop-enter-active, .card-pop-leave-active { transition: opacity 0.12s ease, transform 0.12s ease; }

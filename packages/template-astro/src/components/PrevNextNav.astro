@@ -38,7 +38,7 @@ const showNext = mode === 'next-only' ? next : next;
     ) : (
       // 缺失侧占位符：说明性文字（已经是第一篇），保持网格布局稳定
       <span class="pn-card pn-placeholder pn-placeholder--prev">
-        <span class="pn-label">{t('postPage.noPrev')}</span>
+        <span class="pn-placeholder-label">{t('postPage.noPrev')}</span>
       </span>
     )}
     {showNext ? (
@@ -49,7 +49,7 @@ const showNext = mode === 'next-only' ? next : next;
     ) : (
       // 缺失侧占位符：说明性文字（已经是最后一篇）
       <span class="pn-card pn-placeholder pn-placeholder--next">
-        <span class="pn-label">{t('postPage.noNext')}</span>
+        <span class="pn-placeholder-label">{t('postPage.noNext')}</span>
       </span>
     )}
   </nav>
@@ -64,12 +64,12 @@ const showNext = mode === 'next-only' ? next : next;
   .pn-title { font-size: 0.9rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   /* 占位符：说明性文字（已经是第一篇 / 已经是最后一篇） */
   .pn-placeholder {
-    display: flex; align-items: center; min-height: 1.5rem;
+    display: flex; align-items: center; justify-content:center; min-height: 1.5rem;
     border: 1px dashed var(--border-color-blur, rgba(128,128,128,0.25));
     border-radius: 10px; color: var(--comp-text-sec-disabled, var(--comp-text-sec));
     opacity: 0.75;
   }
-  .pn-placeholder .pn-label { text-transform: none; letter-spacing: 0; opacity: 1; }
+  .pn-placeholder-label { font-size: 0.8rem; opacity: 0.7; }
   @media (max-width: 560px) { .prevnext-nav { grid-template-columns: 1fr; } .pn-next { text-align: left; } }
   @media (min-width: 769px) {
     .pn-card.pn-prev:hover { transform: translateX(-2%); }
