@@ -406,7 +406,25 @@
                 </div>
                 <div class="form-group">
                     <label>{{ t('editor.authorLabel') }}</label>
-                    <input v-model="postAuthor" class="modal-input" :placeholder="t('editor.authorPlaceholder')" />
+                    <div class="tags-input-container">
+                        <div class="tag-controls">
+                            <input v-model="authorInput" class="modal-input small-input"
+                                :placeholder="t('editor.authorPlaceholder')" @keyup.enter="addAuthor" />
+                            <button class="secondary-btn small-btn" @click="addAuthor">{{ t('editor.addAuthor') }}</button>
+                            <button class="secondary-btn small-btn" :class="{ active: postAuthor === SITE_AUTHOR_PLACEHOLDER }"
+                                @click="toggleSiteAuthor" :title="t('editor.siteAuthorTip')">
+                                {{ t('editor.siteAuthor') }}
+                            </button>
+                        </div>
+                        <div class="tags-list" v-if="postAuthor">
+                            <span class="tag-badge" :class="{ featured: postAuthor === SITE_AUTHOR_PLACEHOLDER }">
+                                {{ postAuthor === SITE_AUTHOR_PLACEHOLDER ? t('editor.siteAuthor') : postAuthor }}
+                                <button class="tag-remove" @click="clearAuthor">
+                                    <span class="icon-svg" v-html="Icons.close"></span>
+                                </button>
+                            </span>
+                        </div>
+                    </div>
                 </div>
                 <CheckRow v-model="postAIGenerated" :title="$t('editor.aiGeneratedLabel')" />
                 <div class="modal-actions">
@@ -485,7 +503,25 @@
                 </div>
                 <div class="form-group">
                     <label>{{ t('editor.authorLabel') }}</label>
-                    <input v-model="postAuthor" class="modal-input" :placeholder="t('editor.authorPlaceholder')" />
+                    <div class="tags-input-container">
+                        <div class="tag-controls">
+                            <input v-model="authorInput" class="modal-input small-input"
+                                :placeholder="t('editor.authorPlaceholder')" @keyup.enter="addAuthor" />
+                            <button class="secondary-btn small-btn" @click="addAuthor">{{ t('editor.addAuthor') }}</button>
+                            <button class="secondary-btn small-btn" :class="{ active: postAuthor === SITE_AUTHOR_PLACEHOLDER }"
+                                @click="toggleSiteAuthor" :title="t('editor.siteAuthorTip')">
+                                {{ t('editor.siteAuthor') }}
+                            </button>
+                        </div>
+                        <div class="tags-list" v-if="postAuthor">
+                            <span class="tag-badge" :class="{ featured: postAuthor === SITE_AUTHOR_PLACEHOLDER }">
+                                {{ postAuthor === SITE_AUTHOR_PLACEHOLDER ? t('editor.siteAuthor') : postAuthor }}
+                                <button class="tag-remove" @click="clearAuthor">
+                                    <span class="icon-svg" v-html="Icons.close"></span>
+                                </button>
+                            </span>
+                        </div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <CheckRow v-model="postAIGenerated" :title="$t('editor.aiGeneratedLabel')" />
@@ -689,7 +725,7 @@ import { useEditorToolbar, type RibbonTool } from '../composables/editor/core/us
 import { useEditorFile } from '../composables/editor/markdown/useEditorFile'
 import { useEditorSession } from '../composables/editor/core/useEditorLifecycle'
 import { resolveEditorRoute } from '../composables/editor/cloud/useCloudRouter'
-import { slugify } from '@chronicle/shared/utils'
+import { slugify, SITE_AUTHOR_PLACEHOLDER } from '@chronicle/shared/utils'
 import { useFileMenu } from '../composables/editor/markdown/useMarkdownFileMenu'
 
 import type { IEditorBody } from './editor/IEditorBody.ts'
@@ -795,6 +831,20 @@ const {
   localFileToApiFormat, extractEditorFm,
   isSlidesMeta, buildLocalDetail, CHRONICLE_FM_KEYS,
 } = useEditorFrontmatter({ editorType, t })
+
+// ── 作者输入：tag 风格 + 「本人」一键（$site$ 占位符）──
+const authorInput = ref('')
+function addAuthor(): void {
+  const v = authorInput.value.trim()
+  if (v) postAuthor.value = v
+  authorInput.value = ''
+}
+function toggleSiteAuthor(): void {
+  postAuthor.value = postAuthor.value === SITE_AUTHOR_PLACEHOLDER ? '' : SITE_AUTHOR_PLACEHOLDER
+}
+function clearAuthor(): void {
+  postAuthor.value = ''
+}
 
 // ═══ Dirty state (before view — view needs isDirty etc) ═══
 const isSaving = ref(false)

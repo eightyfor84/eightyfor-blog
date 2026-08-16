@@ -11,6 +11,43 @@ export { hexToRgbString, darkenHex } from "./colorUtils.js"
  * (browser, Node.js, edge functions).
  */
 
+/** 文章 frontmatter 中表示"网站作者本人"的占位符。
+ *  选 $site$：裸写即合法（$ 不是 YAML 保留/指示符，round-trip 无损，无需引号）；
+ *  @ 开头（如 @site）会被 yaml 拒绝。单点常量——换值只需改这一处。 */
+export const SITE_AUTHOR_PLACEHOLDER = '$site$'
+
+/** 判断文章作者是否为网站作者本人：占位符，或与 profile.name 匹配（大小写不敏感）。
+ *  空 author 不算本人（显示层有"匿名"回退）。 */
+export function isSiteAuthor(author: string | null | undefined, profileName: string | null | undefined): boolean {
+  const a = String(author ?? '').trim()
+  if (!a) return false
+  if (a.toLowerCase() === SITE_AUTHOR_PLACEHOLDER.toLowerCase()) return true
+  const n = String(profileName ?? '').trim()
+  return !!n && n.toLowerCase() === a.toLowerCase()
+}
+
+/** 归一化作者列表：$site$ 占位符展开为网站作者名，然后按大小写不敏感去重（保留首个）。
+ *  例如 authors: [$site$, Eightyfor] 且 profile.name=Eightyfor → [Eightyfor]（撞车合并为一个）。 */
+export function normalizeAuthors(
+  authors: Array<string | null | undefined> | null | undefined,
+  profileName: string | null | undefined,
+): string[] {
+  const site = String(profileName ?? '').trim()
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const raw of authors ?? []) {
+    const name = String(raw ?? '').trim()
+    if (!name) continue
+    // 占位符 → 网站作者名；profile.name 为空时保留占位符（由消费方兜底）
+    const expanded = name === SITE_AUTHOR_PLACEHOLDER ? (site || SITE_AUTHOR_PLACEHOLDER) : name
+    const key = expanded.toLowerCase()
+    if (seen.has(key)) continue
+    seen.add(key)
+    out.push(expanded)
+  }
+  return out
+}
+
 /** Slugify a string for URLs / ids.
  *  When no readable characters remain (e.g. a title of only CJK or emoji),
  *  falls back to crypto.randomUUID() so the id stays stable and unique. */

@@ -28,6 +28,7 @@ import path from 'node:path';
 import YAML from 'yaml';
 import crypto from 'node:crypto';
 import { renderChronicleMarkdown, setRenderPostId } from '../utils/chronicleMarkdown';
+import { normalizeAuthors } from '@chronicle/shared/src/utils';
 
 /** Resolve asset:// protocol to /assets/ (public URL) */
 function resolveAssetUrl(url: string): string {
@@ -233,6 +234,7 @@ export interface PostMeta {
     collection?: string;
     collectionPath?: string;
     author?: string;
+    authors?: string[];
     aiGenerated?: boolean;
     dir: string;
     toc: { id: string; text: string; level: number }[];
@@ -388,6 +390,15 @@ function scanPostsFromDisk(): PostMeta[] {
 
         // Parse frontmatter
         const attrs = parseFrontmatterYaml(raw);
+        // 多作者：author 支持 YAML 列表或逗号分隔；author 保留首个、authors 存完整列表
+        // 归一化：$site$ → 网站作者名，撞车去重（如 [$site$, Eightyfor] + name=Eightyfor → [Eightyfor]）
+        const rawAuthors = Array.isArray(attrs.author)
+            ? attrs.author.map((a: any) => String(a)).filter(Boolean)
+            : (typeof attrs.author === 'string' && attrs.author.trim())
+                ? attrs.author.split(',').map((s: string) => s.trim()).filter(Boolean)
+                : [];
+        const profileName = (getProfile() as Record<string, any>)?.name as string | undefined;
+        const authorList = normalizeAuthors(rawAuthors, profileName);
 
         posts.push({
             id,
@@ -401,7 +412,8 @@ function scanPostsFromDisk(): PostMeta[] {
             font: attrs.font ? String(attrs.font) : undefined,
             collection: attrs.collection ? String(attrs.collection) : undefined,
             collectionPath: attrs.collectionPath ? String(attrs.collectionPath) : undefined,
-            author: attrs.author ? String(attrs.author) : undefined,
+            author: authorList[0] || undefined,
+            authors: authorList.length ? authorList : undefined,
             aiGenerated: !!attrs.aiGenerated,
             type: (attrs.type === 'slides' || !!attrs.marp) ? 'slides' : (String(attrs.type || '') || undefined),
             slideshow: attrs.slideshow || undefined,
@@ -426,7 +438,14 @@ export function getAllPosts(): PostMeta[] {
             // index.json is object-format keyed by id (P2-4 — array shape retired with convert.mjs).
             let posts: any[] = [];
             if (typeof parsed === "object" && Object.keys(parsed).length > 0) {
-              posts = Object.entries(parsed).map(([slug, entry]: [string, any]) => ({ id: slug, ...entry }));
+              const profileName = (getProfile() as Record<string, any>)?.name as string | undefined;
+              // 作者归一化：$site$ → 网站作者名，撞车去重（如 [$site$, Eightyfor] + name=Eightyfor → [Eightyfor]）
+              posts = Object.entries(parsed).map(([slug, entry]: [string, any]) => {
+                const e = { id: slug, ...entry };
+                const rawAuthors = Array.isArray(e.authors) ? e.authors : (e.author ? [e.author] : []);
+                const authors = normalizeAuthors(rawAuthors, profileName);
+                return { ...e, author: authors[0] || undefined, authors: authors.length ? authors : undefined };
+              });
             }
             if (posts.length > 0) {
                 _postCache = posts;
