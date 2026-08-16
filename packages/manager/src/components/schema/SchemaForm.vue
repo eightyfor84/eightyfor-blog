@@ -97,7 +97,8 @@ const expandedRoot = computed<Record<string, any> | null>(() => {
     const isGrouping = Object.values(sub).some((v: any) => {
       if (!v || typeof v !== 'object') return false
       if (v['x-widget'] === 'fieldset') {
-        return Object.values(v.properties || {}).some((sv: any) => sv && sv['x-group'])
+        // 子 fieldset 自身带 x-group（post.meta → postMeta）或其叶子带 x-group（tab 分块）都算分组型
+        return !!v['x-group'] || Object.values(v.properties || {}).some((sv: any) => sv && sv['x-group'])
       }
       return !!v['x-group']
     })
@@ -111,10 +112,25 @@ const expandedRoot = computed<Record<string, any> | null>(() => {
         // 子分组 fieldset → 深度平铺叶子属性；叶子自带 x-group 保留（tab 分块），
         // 无则继承父分组 x-group（post 树）
         for (const [sk, sv] of Object.entries((v.properties || {}) as Record<string, any>)) {
-          map[`${rootKey}.${k}.${sk}`] = { ...(sv as Record<string, any>), 'x-group': (sv as Record<string, any>)['x-group'] || v['x-group'] }
+          // 平铺叶子：x-group/x-tab 继承父块（叶子自身无则继承——否则被 tab 过滤掉）
+          const leaf = { ...(sv as Record<string, any>) } as Record<string, any>
+          leaf['x-group'] = leaf['x-group'] || v['x-group']
+          leaf['x-tab'] = leaf['x-tab'] || v['x-tab'] || rootSchema['x-tab']
+          // x-visible-when 的相对字段名（backend）展开为完整路径（post.comments.backend），
+          // 否则顶层 evaluateCondition 解析不到 → 条件字段被隐藏
+          const cond = leaf['x-visible-when']
+          if (cond && typeof cond === 'object' && cond.field && !String(cond.field).includes('.')) {
+            leaf['x-visible-when'] = { ...cond, field: `${rootKey}.${k}.${cond.field}` }
+          }
+          map[`${rootKey}.${k}.${sk}`] = leaf
         }
       } else {
-        map[`${rootKey}.${k}`] = { ...(v as Record<string, any>), 'x-group': (v as Record<string, any>)['x-group'] || rootSchema['x-group'] }
+        // 直接叶子：x-tab 继承根块（homepage 等顶层块）
+        map[`${rootKey}.${k}`] = {
+          ...(v as Record<string, any>),
+          'x-group': (v as Record<string, any>)['x-group'] || rootSchema['x-group'],
+          'x-tab': (v as Record<string, any>)['x-tab'] || rootSchema['x-tab'],
+        }
       }
     }
   }
@@ -194,7 +210,8 @@ function buildGroups(fieldKeys: string[], propsMap: Record<string, any>, xGroups
       // rendered once above the rest and excluded from the detail fields.
       // toggle 匹配：扁平顶层（f.key === g.toggle）或展开树（f.key 以 .enabled 结尾等）
       const toggleField = g.toggle ? g.fields.find(f => f.key === g.toggle || f.key.endsWith('.' + g.toggle)) : undefined
-      const fields = g.toggle ? g.fields.filter(f => f.key !== g.toggle) : g.fields
+      // 过滤必须排除 toggleField 本身（展开后 key 是 post.toc.enabled，不能按短名 g.toggle 匹配）
+      const fields = toggleField ? g.fields.filter(f => f !== toggleField) : g.fields
       return { key, label: g.label, order: g.order, toggleField, fields }
     })
     .sort((a, b) => a.order - b.order)

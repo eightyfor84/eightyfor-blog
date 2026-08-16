@@ -36,8 +36,8 @@ const noUrlHint = computed(() => t('settings.walineAdminNoUrl'))
 
 /** Build the Waline admin dashboard URL: <server>/ui, normalizing scheme + trailing slash. */
 const adminUrl = computed(() => {
-  // 3.1.x: comments config 并入 post-page（postComments 组）
-  const raw = props.formData?.postComments?.walineServerUrl
+  // 3.1.x: comments config 并入 post-page 树（post.comments 组）；兼容旧扁平 postComments
+  const raw = props.formData?.post?.comments?.walineServerUrl || props.formData?.postComments?.walineServerUrl
   if (!raw || typeof raw !== 'string') return ''
   let url = raw.trim()
   if (!/^https?:\/\//i.test(url)) url = 'https://' + url

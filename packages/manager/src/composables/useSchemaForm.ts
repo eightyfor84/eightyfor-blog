@@ -341,27 +341,50 @@ function stripVirtualKeys(value: any): any {
           }
         }
         stripNested(payload, schema.value.properties, [])
+        // 兜底：x-persist false 字段的顶层幽灵键（background/backgroundMeta 等——旧残留进入
+        // merged 顶层后不删会一直写回 site.yml）
+        for (const key of Object.keys(payload)) {
+          const prop = findNestedProp(schema.value?.properties || {}, key)
+          if (prop?.['x-persist'] === false) delete payload[key]
+        }
         console.log('[save] xFilePayloads:', JSON.stringify(Object.keys(xFilePayloads)), JSON.stringify(xFilePayloads))
       }
 
       // Strip UI-virtual keys ($/_ prefixed) — never persisted (P2-5).
       payload = stripVirtualKeys(payload)
 
+      // 清理幽灵 Meta 键（backgroundMeta 等）：背景 meta 由组件 persistBg 写 background.yml，
+      // 对应字段 x-persist false / hidden / schema 无此字段 → 从 payload 删除（否则 Document API 崩）
+      for (const key of Object.keys(payload)) {
+        if (key.endsWith('Meta')) {
+          const base = key.replace(/Meta$/, '')
+          const prop = findNestedProp(schema.value?.properties || {}, base)
+          if (!prop || prop['x-persist'] === false || prop['x-widget'] === 'hidden') {
+            console.log('[save] cleanup ghost Meta:', key)
+            delete payload[key]
+          }
+        }
+      }
+      console.log('[save] data keys:', Object.keys(data.value || {}))
+
       // Inject meta refs into payload (e.g. backgroundMeta ← metaRefs.background)
+      console.log('[save] metaRefs keys:', Object.keys(metaRefs.value))
       if (!isArraySchema) {
         for (const [key, meta] of Object.entries(metaRefs.value)) {
           if (meta) {
             const metaKey = `${key}Meta`
-            // 递归查找（字段可能在嵌套块内，如 appearance.background）——x-persist 不注入
+            // 递归查找（字段可能在嵌套块内，如 appearance.background）
             const prop = findNestedProp(schema.value?.properties || {}, key)
-            // background 的 meta 由组件 persistBg 写 background.yml：x-persist false 或
-            // backgroundMeta（hidden 虚拟字段）一律不注入 site.yml（否则 Document API 崩）
-            if (prop?.['x-persist'] === false) continue
-            if (prop?.['x-widget'] === 'hidden') continue
+            // 背景 meta 由组件 persistBg 写 background.yml：x-persist false / hidden 虚拟字段
+            // / schema 无此字段（幽灵键）一律不注入 site.yml（否则 Document API 崩）
+            if (!prop) { console.log('[save] skip meta (no field):', key); continue }
+            if (prop['x-persist'] === false) { console.log('[save] skip meta (x-persist):', key); continue }
+            if (prop['x-widget'] === 'hidden') { console.log('[save] skip meta (hidden):', key); continue }
             payload[metaKey] = typeof meta === 'string' ? meta : JSON.stringify(meta)
           }
         }
       }
+      console.log('[save] payload Meta keys:', Object.keys(payload).filter((k) => k.endsWith('Meta')))
 
       let ok = false
       if (mapping.format === 'yaml') {
