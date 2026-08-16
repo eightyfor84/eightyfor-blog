@@ -31,6 +31,13 @@ contextBridge.exposeInMainWorld('chronicleElectron', {
     ipcRenderer.on('window-maximize-change', (_event, isMaximized) => callback(isMaximized));
   },
 
+  // Generic invoke with an explicit allow-list (git:sync / git:status etc.)
+  invoke(channel, ...args) {
+    const allowed = ['git:sync', 'git:status', 'posts:reindex', 'fs:getStorageStats'];
+    if (allowed.includes(channel)) return ipcRenderer.invoke(channel, ...args);
+    return Promise.reject(new Error('IPC channel not allowed: ' + channel));
+  },
+
   // IPC channels (placeholder for future use)
   send(channel, data) {
     const allowed = ['open-file', 'save-file', 'set-title'];

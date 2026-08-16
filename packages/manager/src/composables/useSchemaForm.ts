@@ -9,7 +9,7 @@
  */
 
 import { ref, type Ref } from 'vue'
-import { readYaml, readJson, writeYaml, writeJson } from '../data/dataAccess'
+import { readYaml, readJson, writeYaml, writeJson, reindexPosts } from '../data/dataAccess'
 import { getMapping } from '../data/schemaRegistry'
 import { schemaStore, syncSchemas } from './schemaApi'
 import { resolveBackgroundUrlAsync, readBackgroundMeta, discoverBackendBgUrlAsync } from '../utils/backgroundSettings'
@@ -262,11 +262,8 @@ export function useSchemaForm(schemaId: string) {
       // (rebuildPostIndex handles both article metadata and collection assignments)
       if (ok && activeSchemaId.value === 'chronicle:collections') {
         try {
-          const resp = await fetch('/api/reindex', { method: 'POST' })
-          if (resp.ok) {
-            const result = await resp.json()
-            console.log('[useSchemaForm] post index rebuilt:', result.count, 'posts')
-          }
+          await reindexPosts()
+          console.log('[useSchemaForm] post index rebuilt')
         } catch {}
       }
 

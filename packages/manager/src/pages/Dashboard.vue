@@ -4,8 +4,14 @@ import { readJson, readDir } from '../data/dataAccess'
 // Scan data/ directory via /api/storage
 async function fetchStorage() {
   try {
-    const resp = await fetch('/api/storage')
-    if (resp.ok) return resp.json()
+    const isElec = typeof window !== 'undefined' && !!(window as any).chronicleElectron?.isElectron
+    if (isElec) {
+      const stats = await (window as any).chronicleElectron.invoke('fs:getStorageStats')
+      if (stats && typeof stats === 'object') return stats
+    } else {
+      const resp = await fetch('/api/storage')
+      if (resp.ok) return resp.json()
+    }
   } catch (_) { /* ok */ }
   return { total: 0, categories: { images: 0, videos: 0, audio: 0, documents: 0, config: 0, other: 0 }, labels: {} }
 }

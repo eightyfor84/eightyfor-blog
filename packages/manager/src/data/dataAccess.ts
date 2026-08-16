@@ -191,6 +191,20 @@ export async function mkdir(_relativePath: string): Promise<boolean> {
   return true // no-op in browser mode
 }
 
+/** Rebuild posts/index.json — IPC in Electron, /api/reindex in browser dev. */
+export async function reindexPosts(): Promise<boolean> {
+  if (isElectron) {
+    const result = await getBridge()!.invoke('posts:reindex')
+    return result?.ok === true
+  }
+  try {
+    const resp = await fetch('/api/reindex', { method: 'POST' })
+    return resp.ok
+  } catch {
+    return false
+  }
+}
+
 export async function readText(relativePath: string): Promise<string | null> {
   if (isElectron) return getBridge()!.readText(relativePath)
   return browserReadText(relativePath)

@@ -147,9 +147,17 @@ function createChildWindow(url) {
 // ── Main window ──────────────────────────────────────────────
 
 function createWindow() {
+  // Restore window state from .chronicle/state.json (P4-4)
+  let winState = { x: null, y: null, width: 1400, height: 900, isMaximized: false }
+  try {
+    const saved = JSON.parse(fs.readFileSync(path.join(CHRONICLE_DIR, 'state.json'), 'utf-8'))
+    winState = { ...winState, ...(saved.window || {}) }
+  } catch {}
+
   mainWindow = new BrowserWindow({
-    width: 1400,
-    height: 900,
+    width: winState.width,
+    height: winState.height,
+    ...(winState.x != null && winState.y != null ? { x: winState.x, y: winState.y } : {}),
     minWidth: 900,
     minHeight: 600,
     title: 'Chronicle Manager',
@@ -161,6 +169,7 @@ function createWindow() {
       nodeIntegration: false,
     },
   });
+  if (winState.isMaximized) mainWindow.maximize();
 
   stripOrigin(mainWindow);
 
@@ -199,6 +208,18 @@ function createWindow() {
   setupUnsavedGuard(mainWindow);
   setupMaximizeListener(mainWindow);
 
+  // Persist window state on close (P4-4)
+  mainWindow.on('close', () => {
+    try {
+      const bounds = mainWindow.getBounds()
+      const isMax = mainWindow.isMaximized()
+      const statePath = path.join(CHRONICLE_DIR, 'state.json')
+      let state = {}
+      try { state = JSON.parse(fs.readFileSync(statePath, 'utf-8')) } catch {}
+      state.window = { x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height, isMaximized: isMax }
+      fs.writeFileSync(statePath, JSON.stringify(state, null, 2) + '\n', 'utf-8')
+    } catch {}
+  });
   mainWindow.on('closed', () => { mainWindow = null; });
 }
 
@@ -216,7 +237,7 @@ if (Menu) {
     ]},
     { label: 'View', submenu: viewSubmenu },
     { label: 'Help', submenu: [
-      { label: 'Chronicle Docs', click: () => shell.openExternal('https://github.com/vanvanhasnophi/Chronicle') },
+      { label: 'Chronicle Docs', click: () => shell.openExternal('https://github.com/vanvanhasnophi/chronicle-aurora') },
     ]},
   ]));
 }
@@ -452,6 +473,111 @@ ipcMain.handle('fs:mkdir', async (_event, relativePath) => {
 ipcMain.handle('fs:getRepoRoot', async () => REPO_ROOT)
 ipcMain.handle('fs:getDataDir', async () => DATA_DIR)
 
+
+// ── Git (commit = save, push = deploy) ─────────────────────
+const { execFile } = require('child_process');
+function runGit(args, cwd) {
+  return new Promise((resolve) => {
+    execFile('git', args, { cwd, timeout: 120000, maxBuffer: 10 * 1024 * 1024, encoding: 'utf-8' }, (err, stdout, stderr) => {
+      if (err) resolve({ ok: false, message: String(stderr || err.message || '').trim() })
+      else resolve({ ok: true, stdout: String(stdout || '').trim() })
+    })
+  })
+}
+
+ipcMain.handle('git:status', async () => {
+  const status = await runGit(['status', '--porcelain'], REPO_ROOT)
+  const branch = await runGit(['rev-parse', '--abbrev-ref', 'HEAD'], REPO_ROOT)
+  return { ok: status.ok, dirty: status.ok && status.stdout.length > 0, branch: branch.ok ? branch.stdout : '', message: status.ok ? '' : status.message }
+})
+
+ipcMain.handle('git:sync', async (_event, opts = {}) => {
+  const add = await runGit(['add', '-A'], REPO_ROOT)
+  if (!add.ok) return { ok: false, message: add.message, commits: 0, pushed: false }
+  const staged = await runGit(['diff', '--cached', '--quiet'], REPO_ROOT)
+  if (staged.ok) return { ok: true, commits: 0, pushed: false, message: 'Nothing to commit' }
+  // Commit message from workspace.json gitCommitTemplate ({title}/{slug} replaced).
+  let ws = {}
+  try { ws = JSON.parse(fs.readFileSync(path.join(CHRONICLE_DIR, 'workspace.json'), 'utf-8')) } catch {}
+  const template = typeof ws.gitCommitTemplate === 'string' && ws.gitCommitTemplate.trim() ? ws.gitCommitTemplate : 'Update: {title}'
+  const message = template.replace(/\{title\}/g, String((opts && opts.title) || '')).replace(/\{slug\}/g, String((opts && opts.slug) || ''))
+  const commit = await runGit(['commit', '-m', message], REPO_ROOT)
+  if (!commit.ok) return { ok: false, message: commit.message, commits: 0, pushed: false }
+  const doPush = (opts && opts.push === true) || ws.gitAutoPush === true
+  let pushed = false
+  if (doPush) {
+    const push = await runGit(['push'], REPO_ROOT)
+    if (!push.ok) return { ok: true, commits: 1, pushed: false, message: 'Committed, but push failed: ' + push.message }
+    pushed = true
+  }
+  return { ok: true, commits: 1, pushed, message: 'Committed' + (pushed ? ' and pushed' : '') }
+})
+
+
+/**
+ * Auto-commit after saving a post/about markdown when workspace.json has
+ * gitAutoCommit enabled (Electron side — mirrors the dev plugin's hook).
+ * Push only when gitAutoPush is also enabled. Failures are non-fatal.
+ */
+function maybeAutoGitCommit(relativePath, content) {
+  try {
+    if (!/^data\/(?:posts\/[^/]+|__about__)\/index\.md$/.test(String(relativePath))) return
+    const ws = JSON.parse(fs.readFileSync(path.join(CHRONICLE_DIR, 'workspace.json'), 'utf-8'))
+    if (ws.gitAutoCommit !== true) return
+    const slug = String(relativePath).includes('__about__') ? '__about__' : String(relativePath).split('/')[2]
+    const m = String(content || '').match(/^title:\s*(.+)$/m)
+    const title = m ? m[1].trim() : ''
+    const template = typeof ws.gitCommitTemplate === 'string' && ws.gitCommitTemplate.trim() ? ws.gitCommitTemplate : 'Update: {title}'
+    const message = template.replace(/\{title\}/g, title).replace(/\{slug\}/g, slug)
+    execFile('git', ['add', '-A'], { cwd: REPO_ROOT }, () => {
+      execFile('git', ['commit', '-m', message], { cwd: REPO_ROOT }, (err) => {
+        if (err) return
+        if (ws.gitAutoPush === true) execFile('git', ['push'], { cwd: REPO_ROOT }, () => {})
+      })
+    })
+  } catch {}
+}
+
+// ── Storage stats (Dashboard) ──
+ipcMain.handle('fs:getStorageStats', async () => {
+  // Mirror the dev plugin's /api/storage shape: { total, categories, labels }
+  const CATS = { images: 0, videos: 0, audio: 0, documents: 0, config: 0, other: 0 }
+  const EXT = {
+    images: ['.jpg', '.jpeg', '.png', '.webp', '.avif', '.gif', '.svg', '.ico'],
+    videos: ['.mp4', '.webm', '.mov', '.avi', '.mkv'],
+    audio: ['.mp3', '.wav', '.ogg', '.flac', '.aac'],
+    documents: ['.md', '.html', '.txt', '.pdf', '.doc', '.docx', '.ppt', '.pptx', '.xls', '.xlsx', '.csv'],
+    config: ['.yml', '.yaml', '.json'],
+  }
+  let total = 0
+  function walk(dir) {
+    try {
+      for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+        const p = path.join(dir, e.name)
+        if (e.isDirectory()) { walk(p); continue }
+        const size = fs.statSync(p).size; total += size
+        const ext = path.extname(e.name).toLowerCase()
+        let cat = 'other'
+        for (const [k, exts] of Object.entries(EXT)) { if (exts.includes(ext)) { cat = k; break } }
+        CATS[cat] += size
+      }
+    } catch {}
+  }
+  walk(DATA_DIR)
+  return { total, categories: CATS, labels: { images: 'Images', videos: 'Videos', audio: 'Audio', documents: 'Documents', config: 'Config', other: 'Other' } }
+})
+
+// ── Rebuild post index (canonical indexer from gen) ──
+ipcMain.handle('posts:reindex', async () => {
+  try {
+    const mod = await import(path.join(REPO_ROOT, 'packages', 'gen', 'src', 'builder', 'indexer.mjs'))
+    const count = mod.rebuildPostIndex(DATA_DIR)
+    return { ok: true, count }
+  } catch (e) {
+    return { ok: false, message: String((e && e.message) || e) }
+  }
+})
+
 // ── First-run initialization ────────────────────────────────────
 // Ensure .chronicle/ exists with default workspace files, and
 // migrate legacy settings.json → data/site.yml + .chronicle/workspace.json
@@ -496,6 +622,13 @@ function ensureChronicleDir() {
       settingsTab: null,
     }
     fs.writeFileSync(statePath, JSON.stringify(defaults, null, 2) + '\n', 'utf-8')
+  }
+
+  // Default .gitignore for .chronicle/ (P4-6): editor-local state ignored,
+  // workspace.json + background tracked by default. User adjusts as they wish.
+  const gitignorePath = path.join(CHRONICLE_DIR, '.gitignore')
+  if (!fs.existsSync(gitignorePath)) {
+    fs.writeFileSync(gitignorePath, ['state.json', 'recently-opened.json', 'thumbs/', ''].join('\n') + '\n', 'utf-8')
   }
 
   const recentPath = path.join(CHRONICLE_DIR, 'recently-opened.json')
@@ -643,6 +776,7 @@ ipcMain.handle('fs:writeText', async (_event, relativePath, content) => {
     const dir = path.dirname(absPath)
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true, mode: 0o775 })
     fs.writeFileSync(absPath, String(content), 'utf-8')
+    maybeAutoGitCommit(relativePath, content)
     return true
   } catch (e) {
     console.error('[fs:writeText]', e.message)
