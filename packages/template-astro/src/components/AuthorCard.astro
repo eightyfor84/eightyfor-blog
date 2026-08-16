@@ -1,5 +1,5 @@
 ---
-import { getProfile } from '../data/localDataSource';
+import { getProfile, getPublicSettings } from '../data/localDataSource';
 import ChronicleImage from './ChronicleImage.astro';
 import { getTranslation, type Locale } from '../utils/i18n';
 import { isSiteAuthor } from '@chronicle/shared/src/utils';
@@ -15,6 +15,9 @@ const authorList = Array.isArray(post?.authors) && post.authors.length > 0
   ? post.authors
   : (post?.author ? [post.author] : []);
 const showAuthorCard = authorList.length === 1 && isSiteAuthor(authorList[0], profile?.name);
+// 关于页跳转：aboutPage 开关关（site.yml aboutPage: false）则不显示
+const aboutEnabled = (getPublicSettings() as Record<string, any>)?.aboutPage !== false;
+const lang = locale === 'zh-CN' ? 'zh' : 'en';
 ---
 
 {showAuthorCard && (
@@ -25,6 +28,7 @@ const showAuthorCard = authorList.length === 1 && isSiteAuthor(authorList[0], pr
   <div class="author-body">
     <h3 class="author-name">{profile.name || t('inblog.anonymousAuthor')}</h3>
     {profile.bio && <p class="author-bio">{profile.bio}</p>}
+    {aboutEnabled && <a href={`/${lang}/about`} class="author-link">{t('inblog.aboutMe')}</a>}
     {Array.isArray(profile.links) && profile.links.length > 0 && (
       <div class="author-links">
         {profile.links.map((l: any) => (

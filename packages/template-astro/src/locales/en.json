@@ -26,6 +26,7 @@
     "toc-title": "Table of Contents",
     "backToBlogs": "Back to Posts",
     "anonymousAuthor": "Anonymous",
+    "moreAuthors": " +{count}",
     "wordSing": "{count} word",
     "wordPlural": "{count} words",
     "min": "min",
@@ -33,7 +34,8 @@
     "updated": "Updated",
     "words": "Words",
     "readingTime": "Read",
-    "aiGeneratedTip": "The post contains AI Generated Content"
+    "aiGeneratedTip": "The post contains AI Generated Content",
+    "aboutMe": "About Me"
   },
   "collection": {
     "title": "Collections",

@@ -34,7 +34,9 @@
     "updated": "更新于",
     "words": "字数",
     "readingTime": "阅读时间",
-    "aiGeneratedTip": "文章含 AI 生成内容"
+    "aiGeneratedTip": "文章含 AI 生成内容",
+    "aboutMe": "关于我",
+    "aboutMe": "关于我"
   },
   "collection": {
     "title": "合集",
