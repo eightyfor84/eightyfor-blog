@@ -224,11 +224,6 @@ let renderedPostContent = rawPostHtml
 let tocItems: any[] = [];
 
 if (renderedPostContent) {
-  console.info('[Post SSR] Rendering post content', {
-    context: renderContextLabel,
-    length: renderedPostContent.length,
-    htmlSource: !!rawPostHtml,
-  });
     try {
     // First apply server-side replacements that may affect headings (code footers, language labels)
     try {

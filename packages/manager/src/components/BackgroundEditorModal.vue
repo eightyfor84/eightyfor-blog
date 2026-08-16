@@ -64,10 +64,10 @@
                 <input type="range" min="0" max="100" v-model.number="meta.overlayLightOpacity" />
                 <span>{{ meta.overlayLightOpacity }}%</span>
               </div>
-              <div class="clone-buttons" role="group" aria-label="Clone overlay settings">
-                <button class="clone-button" :title="t('settings.copy_to_light')" @click.prevent="copyDarkToLight"
+              <div class="clone-btns" role="group" aria-label="Clone overlay settings">
+                <button class="clone-btn" :title="t('settings.copy_to_light')" @click.prevent="copyDarkToLight"
                   v-html="Icons.arrowUp"></button>
-                <button class="clone-button rotated" :title="t('settings.copy_to_dark')"
+                <button class="clone-btn rotated" :title="t('settings.copy_to_dark')"
                   @click.prevent="copyLightToDark" v-html="Icons.arrowUp"></button>
               </div>
               <div class="overlay-control control-row">
@@ -300,7 +300,7 @@ const previewInnerStyle = computed(() => {
   }
 
   // No `filter` here — media stays sharp. Blur belongs on the overlay via
-  // backdrop-filter (mirrors #chronicle-bg-layer .bg-overlay).
+  // backdrop-filter (mirrors #chr-bg-layer .bg-overlay).
   return {
     backgroundImage: url,
     backgroundPosition,
@@ -459,7 +459,7 @@ const canEditSize = computed(() => meta.mode === 'custom' || meta.mode === 'tile
   gap: 8px;
 }
 
-.clone-buttons {
+.clone-btns {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -467,7 +467,7 @@ const canEditSize = computed(() => meta.mode === 'custom' || meta.mode === 'tile
   justify-content: center;
 }
 
-.clone-button {
+.clone-btn {
   background: transparent;
   border: 1px solid var(--border-color);
   padding: 6px;
@@ -481,16 +481,16 @@ const canEditSize = computed(() => meta.mode === 'custom' || meta.mode === 'tile
   justify-content: center;
 }
 
-.clone-button:hover {
+.clone-btn:hover {
   opacity: 0.9;
 }
 
-.clone-button svg {
+.clone-btn svg {
   width: 18px;
   height: 18px;
 }
 
-.clone-button.rotated {
+.clone-btn.rotated {
   transform: rotate(180deg);
 }
 
@@ -553,7 +553,7 @@ const canEditSize = computed(() => meta.mode === 'custom' || meta.mode === 'tile
   gap: 8px
 }
 
-.clone-buttons {
+.clone-btns {
   display: flex;
   flex-direction: row;
   gap: 6px;
@@ -562,7 +562,7 @@ const canEditSize = computed(() => meta.mode === 'custom' || meta.mode === 'tile
   margin: -10px 0;
 }
 
-.clone-button {
+.clone-btn {
   background: transparent;
   border: none;
   padding: 0 2px;
@@ -571,7 +571,7 @@ const canEditSize = computed(() => meta.mode === 'custom' || meta.mode === 'tile
   color: var(--app-text-pri)
 }
 
-.clone-button:hover {
+.clone-btn:hover {
   color: var(--accent);
 }
 

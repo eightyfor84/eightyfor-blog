@@ -28,7 +28,7 @@ function notify() {
 
 let tocGetter: (() => TocItem[]) | null = null;
 let containerSelector = '.main-content';
-let inlineSelector = '.markdown-toc';
+let inlineSelector = '.toc-inline';
 let baselineOffset = 85;
 let liveSyncPaused = false;
 let liveSyncPauseTimer: number | undefined;

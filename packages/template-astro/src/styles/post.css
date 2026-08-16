@@ -120,7 +120,7 @@
       grid-column: 1 / -1;
     }
 
-    .markdown-toc {
+    .toc-inline {
       padding: 10px 14px;
       border: 1px solid var(--border-color);
       background: var(--comp-bg-glass);
@@ -128,7 +128,7 @@
       margin-bottom: 24px;
     }
 
-    .markdown-toc .toc-summary {
+    .toc-inline .toc-summary {
       width: 100%;
       padding: 0;
       border: none;
@@ -144,12 +144,12 @@
       margin-bottom: 0;
     }
 
-    .markdown-toc .toc-title {
+    .toc-inline .toc-title {
       font-weight: 600;
       color: var(--app-text-pri);
     }
 
-    .markdown-toc .toc-toggle-icon {
+    .toc-inline .toc-toggle-icon {
       width: 16px;
       height: 16px;
       flex: 0 0 auto;
@@ -161,49 +161,49 @@
       justify-content: center;
     }
 
-    .markdown-toc.open .toc-toggle-icon {
+    .toc-inline.open .toc-toggle-icon {
       transform: rotate(0deg);
     }
 
     /* Grid 展开动画 */
-    .markdown-toc .toc-body-wrap {
+    .toc-inline .toc-body-wrap {
       display: grid;
       grid-template-rows: 0fr;
       padding-top: 0;
       transition: grid-template-rows 0.25s ease, padding-top 0.25s ease;
     }
-    .markdown-toc.open .toc-body-wrap {
+    .toc-inline.open .toc-body-wrap {
       grid-template-rows: 1fr;
       padding-top: 8px;
     }
-    .markdown-toc .toc-body {
+    .toc-inline .toc-body {
       overflow: hidden;
       min-height: 0;
       opacity: 0;
       transition: opacity 0.25s ease;
     }
-    .markdown-toc.open .toc-body {
+    .toc-inline.open .toc-body {
       opacity: 1;
     }
 
-    .markdown-toc .toc-list {
+    .toc-inline .toc-list {
       list-style: none;
       padding: 0;
       margin: 0;
     }
 
-    .markdown-toc .toc-list li {
+    .toc-inline .toc-list li {
       margin: 1px 0;
     }
 
-    .markdown-toc .toc-list li a {
+    .toc-inline .toc-list li a {
       text-decoration: none;
       color: var(--comp-text-pri);
       display: block;
       box-sizing: border-box;
     }
 
-    .markdown-toc .toc-list li .toc-text {
+    .toc-inline .toc-list li .toc-text {
       --padding-h-base: 10px;
       display: block;
       width: 100%;
@@ -213,36 +213,36 @@
       transition: background 0.12s, color 0.12s;
     }
 
-    .markdown-toc .toc-list .toc-level-1 span {
+    .toc-inline .toc-list .toc-level-1 span {
       padding-left: var(--padding-h-base);
     }
 
-    .markdown-toc .toc-list .toc-level-2 span {
+    .toc-inline .toc-list .toc-level-2 span {
       padding-left: calc(8px + var(--padding-h-base));
     }
 
-    .markdown-toc .toc-list .toc-level-3 span {
+    .toc-inline .toc-list .toc-level-3 span {
       padding-left: calc(16px + var(--padding-h-base));
     }
 
-    .markdown-toc .toc-list .toc-level-4 span {
+    .toc-inline .toc-list .toc-level-4 span {
       padding-left: calc(24px + var(--padding-h-base));
     }
 
-    .markdown-toc .toc-list .toc-level-5 span {
+    .toc-inline .toc-list .toc-level-5 span {
       padding-left: calc(32px + var(--padding-h-base));
     }
 
-    .markdown-toc .toc-list .toc-level-6 span {
+    .toc-inline .toc-list .toc-level-6 span {
       padding-left: calc(40px + var(--padding-h-base));
     }
 
-    .markdown-toc .toc-list li:hover .toc-text {
+    .toc-inline .toc-list li:hover .toc-text {
       background: var(--hover);
       color: var(--comp-text-pri-hvr);
     }
 
-    .markdown-toc .toc-list li.active .toc-text {
+    .toc-inline .toc-list li.active .toc-text {
       background: var(--active);
       color: var(--comp-text-pri-active);
       font-weight: 500;

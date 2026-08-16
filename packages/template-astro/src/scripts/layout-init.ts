@@ -83,7 +83,7 @@ document.addEventListener('astro:after-swap', () => applyPerfMode(resolvePerfMod
 // (loadeddata). The video sits above the image (z-index 3 > 2), so it cross-fades
 // over the fallback; on error it hides, revealing the fallback underneath.
 function initBackgroundLayer() {
-  const layer = document.getElementById('chronicle-bg-layer');
+  const layer = document.getElementById('chr-bg-layer');
   if (!layer) return;
 
   const imgEl = layer.querySelector<HTMLElement>('.bg-image');

@@ -74,7 +74,7 @@
       />
       <div class="search-float-actions">
         <span class="search-counter">{{ previewSearchMatchLabel }}</span>
-        <div class="search-nav-buttons">
+        <div class="search-nav-btns">
           <button class="search-nav-btn" :disabled="!previewSearchMatchCount" @click="jumpToSearchMatch('preview', -1)">↑</button>
           <button class="search-nav-btn" :disabled="!previewSearchMatchCount" @click="jumpToSearchMatch('preview', 1)">↓</button>
         </div>
@@ -604,7 +604,7 @@ defineExpose({
   color: var(--comp-text-sec);
 }
 
-.search-nav-buttons {
+.search-nav-btns {
   display: flex;
   gap: 4px;
 }

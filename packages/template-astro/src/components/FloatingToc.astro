@@ -18,7 +18,7 @@ const {
   toc = [],
   navLabel = 'Table of contents',
   containerSelector = '.main-content',
-  inlineSelector = '.markdown-toc',
+  inlineSelector = '.toc-inline',
   baselineOffset = 85,
   mountToBody = false,
   collapsed = true,
@@ -70,7 +70,7 @@ const {
       // Destroy previous controller state before re-initializing
       destroyController();
       const containerSelector = nav.dataset.containerSelector || '.main-content';
-      const inlineSelector = nav.dataset.inlineSelector || '.markdown-toc';
+      const inlineSelector = nav.dataset.inlineSelector || '.toc-inline';
       const baselineOffset = parseInt(nav.dataset.baselineOffset || '85');
 
       setTocGetter(() => JSON.parse(document.getElementById('chronicle-toc-data')?.textContent || '[]'));
