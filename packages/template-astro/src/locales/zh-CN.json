@@ -18,7 +18,9 @@
   "postPage": {
     "relatedPosts": "相关文章",
     "prevPost": "上一篇",
-    "nextPost": "下一篇"
+    "nextPost": "下一篇",
+    "noPrev": "已经是第一篇",
+    "noNext": "已经是最后一篇"
   },
   "inblog": {
     "toc-title": "目录",

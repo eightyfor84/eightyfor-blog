@@ -36,8 +36,10 @@ const showNext = mode === 'next-only' ? next : next;
         <span class="pn-title">{showPrev.title}</span>
       </a>
     ) : (
-      // 缺失侧用占位符填充，保持网格布局稳定
-      <span class="pn-card pn-placeholder" aria-hidden="true"></span>
+      // 缺失侧占位符：说明性文字（已经是第一篇），保持网格布局稳定
+      <span class="pn-card pn-placeholder pn-placeholder--prev">
+        <span class="pn-label">{t('postPage.noPrev')}</span>
+      </span>
     )}
     {showNext ? (
       <a class="pn-card mtl-surface interactive glowable pn-next" href={`/${lang}/post/${encodeURIComponent(showNext.id)}`}>
@@ -45,7 +47,10 @@ const showNext = mode === 'next-only' ? next : next;
         <span class="pn-title">{showNext.title}</span>
       </a>
     ) : (
-      <span class="pn-card pn-placeholder" aria-hidden="true"></span>
+      // 缺失侧占位符：说明性文字（已经是最后一篇）
+      <span class="pn-card pn-placeholder pn-placeholder--next">
+        <span class="pn-label">{t('postPage.noNext')}</span>
+      </span>
     )}
   </nav>
 )}
@@ -59,7 +64,13 @@ const showNext = mode === 'next-only' ? next : next;
   .pn-next { text-align: right; }
   .pn-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.55; }
   .pn-title { font-size: 0.9rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  /* 占位符：仅保持占位与高度，不渲染内容 */
-  .pn-placeholder { min-height: 1.5rem; visibility: hidden; }
+  /* 占位符：说明性文字（已经是第一篇 / 已经是最后一篇） */
+  .pn-placeholder {
+    display: flex; align-items: center; min-height: 1.5rem;
+    border: 1px dashed var(--border-color-blur, rgba(128,128,128,0.25));
+    border-radius: 10px; color: var(--comp-text-sec-disabled, var(--comp-text-sec));
+    opacity: 0.75;
+  }
+  .pn-placeholder .pn-label { text-transform: none; letter-spacing: 0; opacity: 1; }
   @media (max-width: 560px) { .prevnext-nav { grid-template-columns: 1fr; } .pn-next { text-align: left; } }
 </style>

@@ -18,7 +18,9 @@
   "postPage": {
     "relatedPosts": "Related Posts",
     "prevPost": "Previous",
-    "nextPost": "Next"
+    "nextPost": "Next",
+    "noPrev": "This is the first post",
+    "noNext": "This is the last post"
   },
   "inblog": {
     "toc-title": "Table of Contents",
