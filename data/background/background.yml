@@ -4,9 +4,9 @@ posX: 50
 posY: 50
 size: 100
 blur: 20
-overlayLightColor: "#fefbfb"
+overlayLightColor: '#fefbfb'
 overlayLightOpacity: 70
-overlayDarkColor: "#000000"
+overlayDarkColor: '#000000'
 overlayDarkOpacity: 75
 videoAutoplay: true
 videoLoop: true

@@ -73,6 +73,7 @@ const routes = [
       { path: 'template-appearance', name: 'SettingsTemplateAppearance', component: SchemaSettingsPage, props: { schemaId: 'chronicle:template-settings', tab: 'template-appearance' }, meta: { title: 'settings.appearance' } },
       { path: 'template-features',   name: 'SettingsTemplateFeatures',   component: SchemaSettingsPage, props: { schemaId: 'chronicle:template-settings', tab: 'template-features' },   meta: { title: 'settings.features' } },
       { path: 'template-search',     name: 'SettingsTemplateSearch',     component: SchemaSettingsPage, props: { schemaId: 'chronicle:template-settings', tab: 'template-search' },     meta: { title: 'settings.search' } },
+      { path: 'background', name: 'SettingsBackground', component: SchemaSettingsPage, props: { schemaId: 'chronicle:background' }, meta: { title: 'settings.background' } },
       { path: 'template', redirect: '/settings/template-homepage' },
       // System schema tabs (Build & Deploy removed — Aurora is CI/CD-managed)
       { path: 'system-appearance', name: 'SettingsSystemAppearance', component: SystemAppearance, meta: { title: 'settings.appearance' } },

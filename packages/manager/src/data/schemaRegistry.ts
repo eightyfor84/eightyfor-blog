@@ -70,6 +70,11 @@ export const SCHEMA_REGISTRY: Record<string, SchemaMapping> = {
     filePath: 'data/site.yml',
     format: 'yaml',
   },
+  'chronicle:background': {
+    schemaId: 'chronicle:background',
+    filePath: 'data/background/background.yml',
+    format: 'yaml',
+  },
 }
 
 /**

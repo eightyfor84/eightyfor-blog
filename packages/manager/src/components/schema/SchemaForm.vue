@@ -80,38 +80,49 @@ const activeTab = computed(() => {
 })
 
 // ── Parse schema into tabs → groups → fields ──
-/** 根 fieldset 展开（模块级，getValue/evaluate 共享）：顶层唯一分组 fieldset（如 post）
- *  深度平铺其子分组——组字段即叶子属性（post.toc.enabled 等，继承父组 x-group），
- *  UI 与扁平结构完全一致（组卡片 + 组开关），数据读写走 post.* 路径。 */
+/** 顶层 fieldset 平铺（模块级，getValue/evaluate 共享）：把「分组型」fieldset 的叶子属性
+ *  平铺为组字段（post.toc.enabled、homepage.siteName 等）——支持单个根（post 树）或
+ *  多个顶层块（template-settings 的 homepage/appearance/search 按 x-tab 分块）。
+ *  UI 与扁平结构完全一致（组卡片 + 组开关），数据读写走点路径。 */
 const expandedRoot = computed<Record<string, any> | null>(() => {
   const raw = (props.schema.properties || {}) as Record<string, any>
   const entries = Object.entries(raw) as [string, Record<string, any>][]
   const fieldsets = entries.filter(([, v]) => v && v['x-widget'] === 'fieldset')
   if (fieldsets.length === 0) return null
-  if (fieldsets.length === 1) {
-    const [rootKey, rootSchema] = fieldsets[0]
+  const map: Record<string, any> = {}
+  let expanded = false
+  for (const [rootKey, rootSchema] of fieldsets) {
     const sub = (rootSchema.properties || {}) as Record<string, any>
-    const subHasGroups = Object.values(sub).some((v: any) => v && v['x-group'])
-    if (subHasGroups && Object.keys(sub).length > 0) {
-      const map: Record<string, any> = {}
-      for (const [k, v] of Object.entries(sub)) {
-        if (v && v['x-widget'] === 'fieldset') {
-          // 子分组 fieldset → 深度平铺叶子属性，继承父分组 x-group
-          for (const [sk, sv] of Object.entries((v.properties || {}) as Record<string, any>)) {
-            map[`${rootKey}.${k}.${sk}`] = { ...(sv as Record<string, any>), 'x-group': v['x-group'] }
-          }
-        } else {
-          map[`${rootKey}.${k}`] = v
+    // 是否分组型 fieldset：直接子字段有 x-group，或子 fieldset 内有分组叶子
+    const isGrouping = Object.values(sub).some((v: any) => {
+      if (!v || typeof v !== 'object') return false
+      if (v['x-widget'] === 'fieldset') {
+        return Object.values(v.properties || {}).some((sv: any) => sv && sv['x-group'])
+      }
+      return !!v['x-group']
+    })
+    if (!isGrouping || Object.keys(sub).length === 0) {
+      map[rootKey] = rootSchema // 非分组 fieldset 原样（NativeFieldset 嵌套渲染）
+      continue
+    }
+    expanded = true
+    for (const [k, v] of Object.entries(sub)) {
+      if (v && v['x-widget'] === 'fieldset') {
+        // 子分组 fieldset → 深度平铺叶子属性；叶子自带 x-group 保留（tab 分块），
+        // 无则继承父分组 x-group（post 树）
+        for (const [sk, sv] of Object.entries((v.properties || {}) as Record<string, any>)) {
+          map[`${rootKey}.${k}.${sk}`] = { ...(sv as Record<string, any>), 'x-group': (sv as Record<string, any>)['x-group'] || v['x-group'] }
         }
+      } else {
+        map[`${rootKey}.${k}`] = { ...(v as Record<string, any>), 'x-group': (v as Record<string, any>)['x-group'] || rootSchema['x-group'] }
       }
-      // 顶层非 fieldset 字段（如 comments 总开关）保留并入对应组
-      for (const [k, v] of entries) {
-        if (!(v && v['x-widget'] === 'fieldset')) map[k] = v
-      }
-      return map
     }
   }
-  return null
+  // 顶层非 fieldset 字段（如 comments 总开关 / pages 开关）保留并入对应组
+  for (const [k, v] of entries) {
+    if (!(v && v['x-widget'] === 'fieldset')) map[k] = v
+  }
+  return expanded ? map : null
 })
 
 const tabs = computed<TabDef[]>(() => {

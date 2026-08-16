@@ -1,0 +1,242 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronicle:background",
+  "title": {
+    "en": "Background",
+    "zh-CN": "背景"
+  },
+  "x-lang": "en",
+  "x-version": "3.0.0",
+  "x-migrations": [],
+  "type": "object",
+  "x-nav": {
+    "group": "template",
+    "icon": "image",
+    "order": 3
+  },
+  "x-groups": {
+    "background": {
+      "label": {
+        "en": "Background",
+        "zh-CN": "背景"
+      }
+    }
+  },
+  "properties": {
+    "frontendBackground": {
+      "type": "string",
+      "x-widget": "background-editor",
+      "x-group": "background",
+      "x-order": 0,
+      "title": {
+        "en": "Background Image",
+        "zh-CN": "背景图"
+      },
+      "x-persist": false
+    },
+    "frontendBackgroundMeta": {
+      "type": "string",
+      "x-widget": "hidden",
+      "x-group": "background",
+      "x-order": 1,
+      "title": {
+        "en": "Background Meta",
+        "zh-CN": "背景元数据"
+      },
+      "x-persist": false
+    },
+    "mode": {
+      "type": "string",
+      "x-widget": "select",
+      "x-group": "background",
+      "x-order": 2,
+      "title": {
+        "en": "Mode",
+        "zh-CN": "模式"
+      },
+      "default": "cover",
+      "x-options": [
+        {
+          "value": "cover",
+          "label": {
+            "en": "Cover",
+            "zh-CN": "铺满"
+          }
+        },
+        {
+          "value": "contain",
+          "label": {
+            "en": "Contain",
+            "zh-CN": "包含"
+          }
+        },
+        {
+          "value": "fixed",
+          "label": {
+            "en": "Fixed",
+            "zh-CN": "固定"
+          }
+        }
+      ]
+    },
+    "posX": {
+      "type": "string",
+      "x-widget": "range",
+      "x-group": "background",
+      "x-order": 3,
+      "title": {
+        "en": "Position X",
+        "zh-CN": "水平位置"
+      },
+      "default": 50,
+      "minimum": 0,
+      "maximum": 100
+    },
+    "posY": {
+      "type": "string",
+      "x-widget": "range",
+      "x-group": "background",
+      "x-order": 4,
+      "title": {
+        "en": "Position Y",
+        "zh-CN": "垂直位置"
+      },
+      "default": 50,
+      "minimum": 0,
+      "maximum": 100
+    },
+    "size": {
+      "type": "string",
+      "x-widget": "range",
+      "x-group": "background",
+      "x-order": 5,
+      "title": {
+        "en": "Size",
+        "zh-CN": "大小"
+      },
+      "default": 100,
+      "minimum": 1,
+      "maximum": 200
+    },
+    "blur": {
+      "type": "string",
+      "x-widget": "range",
+      "x-group": "background",
+      "x-order": 6,
+      "title": {
+        "en": "Blur",
+        "zh-CN": "模糊"
+      },
+      "default": 20,
+      "minimum": 0,
+      "maximum": 100
+    },
+    "overlayLightColor": {
+      "type": "string",
+      "x-widget": "color",
+      "x-group": "background",
+      "x-order": 7,
+      "title": {
+        "en": "Light Overlay Color",
+        "zh-CN": "浅色遮罩颜色"
+      },
+      "default": "#fefbfb"
+    },
+    "overlayLightOpacity": {
+      "type": "string",
+      "x-widget": "range",
+      "x-group": "background",
+      "x-order": 8,
+      "title": {
+        "en": "Light Overlay Opacity",
+        "zh-CN": "浅色遮罩透明度"
+      },
+      "default": 70,
+      "minimum": 0,
+      "maximum": 100
+    },
+    "overlayDarkColor": {
+      "type": "string",
+      "x-widget": "color",
+      "x-group": "background",
+      "x-order": 9,
+      "title": {
+        "en": "Dark Overlay Color",
+        "zh-CN": "深色遮罩颜色"
+      },
+      "default": "#000000"
+    },
+    "overlayDarkOpacity": {
+      "type": "string",
+      "x-widget": "range",
+      "x-group": "background",
+      "x-order": 10,
+      "title": {
+        "en": "Dark Overlay Opacity",
+        "zh-CN": "深色遮罩透明度"
+      },
+      "default": 75,
+      "minimum": 0,
+      "maximum": 100
+    },
+    "videoAutoplay": {
+      "type": "string",
+      "x-widget": "toggle",
+      "x-group": "background",
+      "x-order": 11,
+      "title": {
+        "en": "Video Autoplay",
+        "zh-CN": "视频自动播放"
+      },
+      "default": true
+    },
+    "videoLoop": {
+      "type": "string",
+      "x-widget": "toggle",
+      "x-group": "background",
+      "x-order": 12,
+      "title": {
+        "en": "Video Loop",
+        "zh-CN": "视频循环"
+      },
+      "default": true
+    },
+    "videoPlaybackRate": {
+      "type": "string",
+      "x-widget": "number",
+      "x-group": "background",
+      "x-order": 13,
+      "title": {
+        "en": "Video Playback Rate",
+        "zh-CN": "视频播放速率"
+      },
+      "default": 1
+    },
+    "frontendBackgroundColorLight": {
+      "type": "string",
+      "x-widget": "color",
+      "x-group": "background",
+      "x-order": 14,
+      "title": {
+        "en": "Base Color (Light)",
+        "zh-CN": "基础背景色（浅色）"
+      },
+      "default": "",
+      "pattern": "^(|#[0-9a-fA-F]{6})$",
+      "x-allow-empty": true
+    },
+    "frontendBackgroundColorDark": {
+      "type": "string",
+      "x-widget": "color",
+      "x-group": "background",
+      "x-order": 15,
+      "title": {
+        "en": "Base Color (Dark)",
+        "zh-CN": "基础背景色（深色）"
+      },
+      "default": "",
+      "pattern": "^(|#[0-9a-fA-F]{6})$",
+      "x-allow-empty": true
+    }
+  }
+}

@@ -1,23 +1,27 @@
+homepage:
+  siteName: Chronicle Demo
+  siteDescription: A local-first, git-backed Jamstack blogging platform. Write in
+    Markdown, sync with Git, deploy anywhere.
+  icpNumber: ''
+  homepageMode: split
+  singleColumnHomepage: false
+  cardVisibility: {}
+  recentUpdates: {}
+appearance:
+  frontendTheme: follow
+  frontendAccent: '#36a32e'
+  frontendFont: sans
+  frontendLocale: follow
+  defaultPerformanceMode: auto
+search:
+  searchSuggestions: true
+  globalSearch: true
+  fullTextSearch: true
 comments: true
-siteName: Chronicle Demo
-siteDescription: A local-first, git-backed Jamstack blogging platform. Write in Markdown,
-  sync with Git, deploy anywhere.
-icpNumber: ''
-homepageMode: split
-singleColumnHomepage: false
-cardVisibility: {}
-recentUpdates: {}
-frontendTheme: follow
-frontendAccent: '#36a32e'
-frontendFont: sans
-frontendLocale: follow
-defaultPerformanceMode: auto
-searchSuggestions: true
-globalSearch: true
-fullTextSearch: true
 collectionPage: true
 aboutPage: true
 friendsPage: true
+rss: true
 analytics:
   enabled: false
   backend: ''
@@ -28,9 +32,6 @@ analytics:
   plausibleServerUrl: ''
   plausibleDomain: ''
   baiduId: ''
-rss: true
-frontendBackgroundColorLight: ''
-frontendBackgroundColorDark: ''
 post:
   meta: {}
   toc:

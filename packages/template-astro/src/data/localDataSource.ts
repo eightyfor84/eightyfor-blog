@@ -111,6 +111,15 @@ function readBackgroundMeta(): string {
   return bgMeta ? JSON.stringify(bgMeta) : ''
 }
 
+/** Read a single key from data/background/background.yml (e.g. frontendBackgroundColorLight). */
+function parseBackgroundColor(key: string): string {
+  try {
+    const meta = readDataFile(path.join(DATA_DIR, 'background', 'background.yml'))
+    if (meta && typeof meta === 'object') return String((meta as Record<string, any>)[key] || '')
+  } catch { /* ignore */ }
+  return ''
+}
+
 /** Strip YAML frontmatter, returning the body */
 function stripFrontmatter(content: string): string {
     if (!content) return '';
@@ -570,6 +579,15 @@ export function getPublicSettings(): LocalSettings {
     // Aurora: read from data/site.yml (single source of truth)
     const siteYml = path.join(DATA_DIR, 'site.yml');
     let raw = readDataFile(siteYml) || {}
+    // 树结构兼容：homepage/appearance/search 顶层块（对应 template-settings 的 x-tab 分块）
+    // 摊平到顶层，顶层显式键优先；features 相关（comments/pages/rss/analytics）本就留顶层
+    const BLOCKS = ['homepage', 'appearance', 'search']
+    const flat: Record<string, any> = {}
+    for (const b of BLOCKS) {
+      const block = raw[b]
+      if (block && typeof block === 'object') Object.assign(flat, block)
+    }
+    if (Object.keys(flat).length > 0) raw = { ...flat, ...raw }
     return {
         siteName: raw.siteName || raw.sitename || raw.site_name,
         siteDescription: raw.siteDescription || '',
@@ -579,8 +597,9 @@ export function getPublicSettings(): LocalSettings {
         frontendBackgroundVideo: readBackgroundVideo(),
         frontendBackgroundPoster: readBackgroundPoster(),
         frontendBackgroundMeta: readBackgroundMeta(),
-        frontendBackgroundColorLight: raw.frontendBackgroundColorLight || '',
-        frontendBackgroundColorDark: raw.frontendBackgroundColorDark || '',
+        // 背景色持久化在 background.yml（3.1.x）；兼容旧 site.yml 顶层值（优先）
+        frontendBackgroundColorLight: raw.frontendBackgroundColorLight || parseBackgroundColor('frontendBackgroundColorLight'),
+        frontendBackgroundColorDark: raw.frontendBackgroundColorDark || parseBackgroundColor('frontendBackgroundColorDark'),
         frontendFont: raw.frontendFont,
         frontendLocale: raw.frontendLocale,
         collectionPage: raw.collectionPage ?? raw.featureFlags?.collectionPage ?? true,
