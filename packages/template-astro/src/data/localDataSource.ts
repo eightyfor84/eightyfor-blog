@@ -8,10 +8,6 @@
 /** Unified data-source mode. Always local in Aurora (no API backend). */
 export const isLocalMode = process.env.DATA_SOURCE !== 'api';
 
-// Emit data-source info at build time (dev only)
-if (import.meta.env.DEV) {
-  console.info('[Chronicle] 📦 数据源: 本地文件系统 (localDataSource)');
-}
 
 /**
  * Usage:
@@ -480,11 +476,6 @@ export function getAllPosts(): PostMeta[] {
     // Fallback: scan posts/ directory
     _postCache = scanPostsFromDisk();
     _postCacheMtime = Date.now();
-    if (_postCache.length > 0) {
-        if (import.meta.env.DEV) console.log(`[localDataSource] Scanned ${_postCache.length} posts from ${POSTS_DIR}`);
-    } else {
-        console.warn('[localDataSource] No posts found in', POSTS_DIR);
-    }
     return _postCache;
 }
 
@@ -810,9 +801,3 @@ export function buildCommentTree(flat: ChronicleComment[]): CommentTreeNode[] {
   return roots;
 }
 
-// ── Debug ────────────────────────────────────────────────
-
-if (import.meta.env.DEV) {
-  console.log('[localDataSource] DATA_DIR:', DATA_DIR);
-  console.log('[localDataSource] Posts:', getAllPosts().length, '| Published:', getPublishedPosts().length);
-}
