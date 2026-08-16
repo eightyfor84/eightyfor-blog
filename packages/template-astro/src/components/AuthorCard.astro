@@ -1,5 +1,6 @@
 ---
 import { getProfile } from '../data/localDataSource';
+import ChronicleImage from './ChronicleImage.astro';
 import { getTranslation, type Locale } from '../utils/i18n';
 import { isSiteAuthor } from '@chronicle/shared/src/utils';
 
@@ -18,7 +19,9 @@ const showAuthorCard = authorList.length === 1 && isSiteAuthor(authorList[0], pr
 
 {showAuthorCard && (
 <section class="author-card">
-  {profile.avatar && <img class="author-avatar" src={profile.avatar} alt={profile.name || 'author'} loading="lazy" />}
+  {profile.avatar && (
+  <ChronicleImage src={profile.avatar} alt={profile.name || 'author'} class="author-avatar" loading="lazy" decoding="async" style="cursor:pointer" onclick="window.__openFilePreview?.({ url: event.target.src, title: event.target.alt, type: 'image' })" />
+)}
   <div class="author-body">
     <h3 class="author-name">{profile.name || t('inblog.anonymousAuthor')}</h3>
     {profile.bio && <p class="author-bio">{profile.bio}</p>}

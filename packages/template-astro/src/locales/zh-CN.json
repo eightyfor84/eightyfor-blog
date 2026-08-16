@@ -26,6 +26,7 @@
     "toc-title": "目录",
     "backToBlogs": "返回博客列表",
     "anonymousAuthor": "匿名",
+    "moreAuthors": " 及{count}人",
     "wordSing": "{count} 字",
     "wordPlural": "{count} 字",
     "min": "分钟",
