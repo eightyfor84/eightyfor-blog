@@ -8,6 +8,7 @@
       :field-schema="childSchema[key]"
       :model-value="getNested(key)"
       :disabled="isChildDisabled(key)"
+      :form-data="props.formData"
       @update:model-value="(v: any) => setNested(key, v)"
     />
   </div>
