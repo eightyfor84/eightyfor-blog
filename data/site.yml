@@ -1,68 +1,7 @@
 siteName: Chronicle Demo
+frontendUrl: ""
 siteDescription: A local-first, git-backed Jamstack blogging platform. Write in Markdown, sync with Git, deploy anywhere.
 icpNumber: ""
 homepageMode: split
 singleColumnHomepage: false
 cardVisibility: {}
-recentUpdates: {}
-frontendTheme: follow
-frontendAccent: "#36a32e"
-frontendFont: sans
-frontendLocale: follow
-defaultPerformanceMode: auto
-searchSuggestions: true
-globalSearch: true
-fullTextSearch: true
-collectionPage: true
-aboutPage: true
-friendsPage: true
-comments: true
-analytics:
-  enabled: false
-  backend: ""
-  gaMeasurementId: ""
-  cloudflareToken: ""
-  umamiServerUrl: ""
-  umamiWebsiteId: ""
-  plausibleServerUrl: ""
-  plausibleDomain: ""
-  baiduId: ""
-rss: true
-frontendBackgroundColorLight: ""
-frontendBackgroundColorDark: ""
-
-
-# ── Post page (文章页) — 3.1.x, flat top-level groups ──
-postMeta:
-  metaAuthor: true
-  metaCreated: true
-  metaUpdated: true
-  metaWords: true
-  metaReadingTime: true
-  metaAiBadge: true
-  showTags: true
-postTocEnabled: true
-postToc:
-  inlineToc: true
-  tocFloat: true
-  tocFloatCollapsed: true
-  mobileTocControl: true
-postCollectionNavEnabled: true
-postCollectionNav:
-  alwaysCollapsed: false
-postEndOfArticle:
-  relatedPosts: true
-  prevNext: true
-  prevNextMode: both
-  prevNextScope: global
-  authorCard: true
-  share: true
-  shareChannels:
-    - twitter
-    - weibo
-    - copy-link
-postComments:
-  backend: ""
-  walineServerUrl: ""
-  attitude: true
-  showGeoAddress: true

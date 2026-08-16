@@ -297,6 +297,7 @@ function normalizePostConfig(raw: unknown): PostPageConfig {
 export interface LocalSettings {
     siteName?: string;
     siteDescription?: string;
+    frontendUrl?: string;
     frontendTheme?: string;
     frontendAccent?: string;
     frontendBackground?: unknown;
@@ -544,6 +545,7 @@ export function getPublicSettings(): LocalSettings {
     return {
         siteName: raw.siteName || raw.sitename || raw.site_name,
         siteDescription: raw.siteDescription || '',
+        frontendUrl: raw.frontendUrl || '',
         frontendTheme: raw.frontendTheme,
         frontendAccent: raw.frontendAccent,
         frontendBackground: readBackgroundUrl(),
