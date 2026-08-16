@@ -14,7 +14,7 @@
           @click="$emit('select', i)"
         >
           <span class="overview-card-num">{{ i + 1 }}</span>
-          <div class="overview-card-preview chronicle-markdown" v-html="slide.html"></div>
+          <div class="overview-card-preview chr-md" v-html="slide.html"></div>
           <span v-if="slide.hasNotes" class="overview-card-notes-badge">💬</span>
         </div>
       </div>

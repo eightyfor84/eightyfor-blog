@@ -1,5 +1,5 @@
 <template>
-  <div v-if="readOnly" class="markdown-table-readonly">
+  <div v-if="readOnly" class="md-table-readonly">
     <table class="readonly-table">
       <thead>
         <tr>
@@ -23,7 +23,7 @@
         @click="deleteCol(idx)" :style="{ left: (colWidths.slice(0, idx).reduce((a,b)=>a+b,0) + colWidths[idx]/2 - 4) + 'px' }"
         title="删除列"></span>
     </div>
-  <table class="markdown-table" :style="{ width: tableWidth + 'px', marginTop: '0px' }">
+  <table class="md-table" :style="{ width: tableWidth + 'px', marginTop: '0px' }">
       <thead>
         <tr>
           <th v-for="(_cell, idx) in header" :key="'h'+idx" :style="{ width: colWidths[idx] + 'px', height: rowHeights[0] + 'px', position: 'relative' }">
@@ -438,7 +438,7 @@ function autoResize(e: Event) {
   border-right: none;
   margin-right: 0;
 }
-.markdown-table {
+.md-table {
   border-collapse: collapse;
   margin: 0 0 1em 0;
   width: 900px;
@@ -446,7 +446,7 @@ function autoResize(e: Event) {
   border: 2px solid #888;
   box-shadow: 0 2px 8px #0002;
 }
-.markdown-table th, .markdown-table td {
+.md-table th, .md-table td {
   border: 1.5px solid #aaa;
   padding: 0;
   text-align: left;
@@ -528,7 +528,7 @@ function autoResize(e: Event) {
   box-shadow: none;
 }
 
-.markdown-table-readonly {
+.md-table-readonly {
   width: 100%;
   overflow-x: auto;
   margin: 1em 0;

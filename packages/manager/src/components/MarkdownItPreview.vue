@@ -7,7 +7,7 @@
   never triggers content re-render.
 -->
 <template>
-  <div class="chronicle-markdown mdit-preview" :class="$attrs.class" @click="handleClick" ref="containerRef">
+  <div class="chr-md mdit-preview" :class="$attrs.class" @click="handleClick" ref="containerRef">
     <template v-for="(blk, i) in blocks" :key="`b-${i}`">
       <!-- active class on wrapper — cheap CSS toggle, no re-render -->
       <div :class="{ 'active-block': i === activeBlockIndex }">
