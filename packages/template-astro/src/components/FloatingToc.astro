@@ -10,6 +10,8 @@ interface Props {
   mountToBody?: boolean;
   /** 3.1.x — collapse-by-default. When false the panel starts expanded (CSS-only). */
   collapsed?: boolean;
+  /** 3.1.x — always-expanded mode: never collapses, no background/blur. */
+  alwaysExpanded?: boolean;
 }
 
 const {
@@ -20,6 +22,7 @@ const {
   baselineOffset = 85,
   mountToBody = false,
   collapsed = true,
+  alwaysExpanded = false,
 } = Astro.props as Props;
 ---
 
@@ -28,7 +31,8 @@ const {
     <nav
       class="toc-float"
       class:list={{ collapsed, visible: false }}
-      data-force-expanded={collapsed ? undefined : 'true'}
+      data-force-expanded={!alwaysExpanded && !collapsed ? 'true' : undefined}
+      data-always-expanded={alwaysExpanded ? 'true' : undefined}
       aria-label={navLabel}
       data-container-selector={containerSelector}
       data-inline-selector={inlineSelector}
@@ -119,13 +123,15 @@ const {
         if (max > 0) nav.scrollTo({ top: pct * max, behavior: 'instant' });
       }
 
-      // 常展开态（tocFloatCollapsed = false）：面板保持展开、不随 hover 折叠，
+      // 常展开态（data-always-expanded）：面板保持展开、不随 hover 折叠，
       // 并给正文让出右侧空间（reserve-toc-right，桌面端）。
-      const forceExpanded = nav.dataset.forceExpanded === 'true';
+      // 注意：data-force-expanded（默认展开但 hover 可折叠）不预留空间——
+      // 轻量级 hover 动作不动正文容器。
+      const alwaysExpanded = nav.dataset.alwaysExpanded === 'true';
       const container = document.querySelector('.post-detail-container') as HTMLElement | null;
       function syncTocPadding() {
         if (!container) return;
-        container.classList.toggle('reserve-toc-right', forceExpanded && window.innerWidth > 900);
+        container.classList.toggle('reserve-toc-right', alwaysExpanded && window.innerWidth > 900);
       }
       syncTocPadding();
       window.addEventListener('resize', syncTocPadding);
@@ -141,7 +147,7 @@ const {
       });
       nav.addEventListener('mouseleave', () => {
         if (_floatTimer) clearTimeout(_floatTimer);
-        if (forceExpanded) return; // 常展开：不折叠
+        if (alwaysExpanded) return; // 始终展开：永不折叠
         _floatTimer = window.setTimeout(() => {
           const pct = tocScrollPercent(nav);
           nav.classList.add('collapsed');
@@ -225,9 +231,9 @@ const {
   .toc-float.visible {  opacity: 1; pointer-events: auto; }
   .toc-float:not(.visible) { transform: translateX(20px); opacity: 0; pointer-events: none; }
 
-  /* 常展开态（data-force-expanded）：与 collectionNav 展开态类似 —— 无背景、
+  /* 始终展开态（data-always-expanded）：与 collectionNav 展开态类似 —— 无背景、
      无模糊、无阴影边框；条目保持完整文字，不折叠为线状。 */
-  .toc-float[data-force-expanded="true"]:not(.collapsed) {
+  .toc-float[data-always-expanded="true"]:not(.collapsed) {
     background-color: transparent !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;

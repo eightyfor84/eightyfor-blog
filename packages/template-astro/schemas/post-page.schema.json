@@ -196,6 +196,20 @@
             "equals": true
           }
         },
+        "tocFloatAlwaysExpanded": {
+          "type": "boolean",
+          "default": false,
+          "x-widget": "toggle",
+          "x-order": 5,
+          "title": {
+            "en": "Always Expanded Floating TOC",
+            "zh-CN": "悬浮目录始终展开"
+          },
+          "description": {
+            "en": "Permanently expanded floating TOC — no background/blur, items never collapse to lines, content reserves right space. Overrides the collapse toggle.",
+            "zh-CN": "悬浮目录始终保持展开——无背景/无模糊、条目不折叠成线、正文让出右侧空间。优先于折叠开关。"
+          }
+        },
         "mobileTocControl": {
           "type": "boolean",
           "default": true,

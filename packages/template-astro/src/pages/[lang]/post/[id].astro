@@ -106,6 +106,7 @@ const tocEnabled = postCfg.postTocEnabled !== false;
 const inlineTocEnabled = tocEnabled && tocCfg.inlineToc !== false;
 const tocFloatEnabled = tocEnabled && tocCfg.tocFloat !== false;
 const tocFloatCollapsed = tocCfg.tocFloatCollapsed !== false;
+const tocFloatAlwaysExpanded = tocCfg.tocFloatAlwaysExpanded === true;
 const mobileTocControlEnabled = tocEnabled && tocCfg.mobileTocControl !== false;
 
 // ── Collections + post titles for CollectionNav ──────────
@@ -431,7 +432,8 @@ const metaDescription = buildMetaDescription(post, locale);
         toc={tocItems}
         navLabel={t('inblog.toc-title')}
         mountToBody={true}
-        collapsed={tocFloatCollapsed}
+        collapsed={tocFloatAlwaysExpanded ? false : tocFloatCollapsed}
+        alwaysExpanded={tocFloatAlwaysExpanded}
       />
     </>
   )}
