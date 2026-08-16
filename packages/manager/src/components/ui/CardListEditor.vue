@@ -65,7 +65,7 @@
               <div class="card-list__heading">
                 <strong>{{ row.card.name || t('settings.friendCardUnnamed') }}</strong>
               </div>
-              <p class="card-list__intro">
+              <p v-if="props.secondaryOptional" class="card-list__intro">
                 <a v-if="row.card.homeUrl" :href="row.card.homeUrl" target="_blank" rel="noopener noreferrer">{{ row.card.homeUrl
                   }}</a>
                 <span v-else>{{ row.card.intro || t('settings.friendCardNoIntro') }}</span>
@@ -77,7 +77,7 @@
           </div>
 
           <div class="card-list__actions">
-            <button type="button" class="icon-btn edit-btn" @click="emit('edit', row.index)"
+            <button v-if="props.editable" type="button" class="icon-btn edit-btn" @click="emit('edit', row.index)"
               :title="editButtonTitle" :aria-label="editButtonTitle" v-html="Icons.edit">
 
             </button>
@@ -131,6 +131,8 @@ const props = withDefaults(defineProps<{
   addTypes?: { value: string; label: string }[]
   /** Which card property holds the type value (default "style"). */
   typeField?: string
+  /** Whether rows can be edited (edit button). Share-link lists have no edit. */
+  editable?: boolean
 }>(), {
   showImage: true,
   compact: false,
@@ -145,6 +147,7 @@ const props = withDefaults(defineProps<{
   removeTitle: undefined,
   addTypes: () => [],
   typeField: 'style',
+  editable: true,
 })
 
 const emit = defineEmits<{
@@ -605,6 +608,10 @@ onBeforeUnmount(() => {
 .card-list-editor--compact .drag-handle svg {
   width: 20px;
   height: 20px;
+}
+
+.card-list-editor--compact .icon-btn {
+  padding: 0.2rem;
 }
 
 .danger-btn {

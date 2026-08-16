@@ -371,6 +371,8 @@
             ]
           },
           "x-widget": "card-list",
+          "x-card-editable": false,
+          "x-card-intro": false,
           "x-item-labels": {
             "twitter": { "en": "Twitter / X", "zh-CN": "Twitter / X" },
             "weibo": { "en": "Weibo", "zh-CN": "微博" },

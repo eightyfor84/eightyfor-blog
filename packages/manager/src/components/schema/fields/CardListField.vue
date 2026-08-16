@@ -22,6 +22,8 @@
       :empty-text="emptyText"
       :add-types="addTypes"
       :type-field="typeField"
+      :editable="editable"
+      :secondary-optional="secondaryOptional"
       @add="onAdd"
       @edit="openEdit"
       @remove="removeCard"
@@ -161,6 +163,14 @@ const addTypes = computed<{ value: string; label: string }[]>(() => {
 
 /** Which card property receives the type value (schema.x-card-type-field). */
 const typeField = computed(() => String(props.schema['x-card-type-field'] || 'style'))
+
+/** Whether rows can be edited — schema.x-card-editable (default true).
+ *  Share-link channel lists have no edit (values come from a fixed pool). */
+const editable = computed(() => props.schema['x-card-editable'] !== false)
+
+/** Intro/subtitle visibility — maps to the existing CardListEditor
+ *  secondaryOptional prop (false = no intro line). Schema: x-card-intro. */
+const secondaryOptional = computed(() => props.schema['x-card-intro'] !== false)
 
 function resolveUrl(url: string): string {
   if (url.startsWith('asset://')) return '/data/assets/' + url.slice(8)
