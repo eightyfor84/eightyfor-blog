@@ -254,7 +254,7 @@ export interface CommentConfig {
 
 // ── Post page config (3.1.x) — flat top-level groups from site.yml ──
 export interface PostPageConfig {
-  postMeta?: { metaAuthor?: boolean; metaCreated?: boolean; metaUpdated?: boolean; metaWords?: boolean; metaReadingTime?: boolean; metaAiBadge?: boolean; showTags?: boolean };
+  postMeta?: { metaUpdated?: boolean; metaStats?: boolean; metaAiBadge?: boolean; showTags?: boolean };
   postTocEnabled?: boolean;
   postToc?: { inlineToc?: boolean; tocFloat?: boolean; tocFloatCollapsed?: boolean; tocFloatAlwaysExpanded?: boolean; mobileTocControl?: boolean };
   postCollectionNavEnabled?: boolean;
@@ -264,7 +264,7 @@ export interface PostPageConfig {
 }
 
 const POST_PAGE_DEFAULTS: Required<PostPageConfig> = {
-  postMeta: { metaAuthor: true, metaCreated: true, metaUpdated: true, metaWords: true, metaReadingTime: true, metaAiBadge: true, showTags: true },
+  postMeta: { metaUpdated: true, metaStats: true, metaAiBadge: true, showTags: true },
   postTocEnabled: true,
   postToc: { inlineToc: true, tocFloat: true, tocFloatCollapsed: true, tocFloatAlwaysExpanded: false, mobileTocControl: true },
   postCollectionNavEnabled: true,
@@ -685,6 +685,8 @@ export interface ChronicleComment {
   rootId?: string;
   /** Only on approved comments — hide from public display. Default false. */
   hidden?: boolean;
+  /** 3.1.x — commenter geo address (country/province), never the raw IP. */
+  location?: string;
 }
 
 /** Read comments for a post from data/comments/{postId}.json */

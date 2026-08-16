@@ -65,61 +65,31 @@
         "zh-CN": "标题区域"
       },
       "properties": {
-        "metaAuthor": {
+        "metaUpdated": {
           "type": "boolean",
           "default": true,
           "x-widget": "toggle",
           "x-order": 1,
           "title": {
-            "en": "Show Author",
-            "zh-CN": "显示作者"
+            "en": "Show Updated Date",
+            "zh-CN": "显示更新时间"
           }
         },
-        "metaCreated": {
+        "metaStats": {
           "type": "boolean",
           "default": true,
           "x-widget": "toggle",
           "x-order": 2,
           "title": {
-            "en": "Show Created Date",
-            "zh-CN": "显示创建时间"
-          }
-        },
-        "metaUpdated": {
-          "type": "boolean",
-          "default": true,
-          "x-widget": "toggle",
-          "x-order": 3,
-          "title": {
-            "en": "Show Updated Date",
-            "zh-CN": "显示更新时间"
-          }
-        },
-        "metaWords": {
-          "type": "boolean",
-          "default": true,
-          "x-widget": "toggle",
-          "x-order": 4,
-          "title": {
-            "en": "Show Word Count",
-            "zh-CN": "显示字数"
-          }
-        },
-        "metaReadingTime": {
-          "type": "boolean",
-          "default": true,
-          "x-widget": "toggle",
-          "x-order": 5,
-          "title": {
-            "en": "Show Reading Time",
-            "zh-CN": "显示阅读时间"
+            "en": "Word Count & Reading Time",
+            "zh-CN": "字数与阅读时间"
           }
         },
         "metaAiBadge": {
           "type": "boolean",
           "default": true,
           "x-widget": "toggle",
-          "x-order": 6,
+          "x-order": 3,
           "title": {
             "en": "Show AI Badge",
             "zh-CN": "显示 AI 标记"
@@ -129,7 +99,7 @@
           "type": "boolean",
           "default": true,
           "x-widget": "toggle",
-          "x-order": 7,
+          "x-order": 4,
           "title": {
             "en": "Show Tags",
             "zh-CN": "显示标签"
