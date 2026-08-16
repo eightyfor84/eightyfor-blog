@@ -172,6 +172,18 @@ export function useSchemaForm(schemaId: string) {
           }
         }
 
+        // Fields marked x-file live in another file (e.g. background → background.yml).
+        // Cross-file persistence: UI stays with this schema, data lands in the target file.
+        const xFileGroups = collectXFileFields(sch)
+        for (const [relPath, keys] of Object.entries(xFileGroups)) {
+          const ext = await readYaml<Record<string, any>>(relPath)
+          if (ext && typeof ext === 'object') {
+            for (const key of keys) {
+              if (ext[key] !== undefined) merged[key] = ext[key]
+            }
+          }
+        }
+
         // Pre-populate metaRefs from *Meta fields
         for (const key of Object.keys(merged)) {
           if (key.endsWith('Meta') && merged[key]) {
@@ -198,6 +210,16 @@ export function useSchemaForm(schemaId: string) {
  * Recursively remove UI-virtual keys ($/_ prefixed — e.g. _localId, $about_edit,
  * $waline_admin) from a payload so they never leak into content files (P2-5).
  */
+/** Collect schema fields marked x-file (cross-file persistence), grouped by target path. */
+function collectXFileFields(schema: Record<string, any>): Record<string, string[]> {
+  const groups: Record<string, string[]> = {}
+  for (const [key, prop] of Object.entries((schema.properties || {}) as Record<string, any>)) {
+    const file = prop['x-file']
+    if (file) (groups[file] = groups[file] || []).push(key)
+  }
+  return groups
+}
+
 function stripVirtualKeys(value: any): any {
   if (Array.isArray(value)) return value.map(stripVirtualKeys)
   if (value && typeof value === 'object') {
@@ -238,6 +260,24 @@ function stripVirtualKeys(value: any): any {
         }
       }
 
+      // Cross-file persistence (x-file): extract those fields from payload and
+      // write them to their own file (e.g. background → data/background/background.yml),
+      // so they never leak into site.yml while the CMS UI keeps them grouped with
+      // this schema's appearance settings.
+      const xFilePayloads: Record<string, Record<string, any>> = {}
+      if (!isArraySchema && schema.value?.properties) {
+        for (const [key, prop] of Object.entries(schema.value.properties as Record<string, any>)) {
+          const file = prop['x-file']
+          if (file) {
+            if (payload[key] !== undefined) {
+              xFilePayloads[file] = xFilePayloads[file] || {}
+              xFilePayloads[file][key] = payload[key]
+            }
+            delete payload[key]
+          }
+        }
+      }
+
       // Strip UI-virtual keys ($/_ prefixed) — never persisted (P2-5).
       payload = stripVirtualKeys(payload)
 
@@ -258,6 +298,14 @@ function stripVirtualKeys(value: any): any {
         ok = await writeYaml(mapping.filePath, payload)
       } else {
         ok = await writeJson(mapping.filePath, payload)
+      }
+
+      // Write cross-file fields (x-file) — Document API preserves hand-written comments.
+      if (ok) {
+        for (const [relPath, xf] of Object.entries(xFilePayloads)) {
+          ok = await writeYaml(relPath, xf)
+          if (!ok) break
+        }
       }
 
       // Persist the master-switch flag to site.yml when it lives outside this

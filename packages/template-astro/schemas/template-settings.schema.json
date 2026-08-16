@@ -498,6 +498,60 @@
               }
             }
           ]
+        },
+        "frontendBackground": {
+          "type": "string",
+          "x-widget": "background-editor",
+          "x-group": "background",
+          "x-order": 0,
+          "title": {
+            "en": "Background Image",
+            "zh-CN": "背景图"
+          },
+          "x-persist": false,
+          "x-tab": "template-appearance"
+        },
+        "frontendBackgroundMeta": {
+          "type": "string",
+          "x-widget": "hidden",
+          "x-group": "background",
+          "x-order": 1,
+          "title": {
+            "en": "Background Meta",
+            "zh-CN": "背景元数据"
+          },
+          "x-persist": false,
+          "x-tab": "template-appearance"
+        },
+        "frontendBackgroundColorLight": {
+          "type": "string",
+          "x-widget": "color",
+          "x-group": "background",
+          "x-order": 14,
+          "title": {
+            "en": "Base Color (Light)",
+            "zh-CN": "基础背景色（浅色）"
+          },
+          "default": "",
+          "pattern": "^(|#[0-9a-fA-F]{6})$",
+          "x-allow-empty": true,
+          "x-tab": "template-appearance",
+          "x-file": "background"
+        },
+        "frontendBackgroundColorDark": {
+          "type": "string",
+          "x-widget": "color",
+          "x-group": "background",
+          "x-order": 15,
+          "title": {
+            "en": "Base Color (Dark)",
+            "zh-CN": "基础背景色（深色）"
+          },
+          "default": "",
+          "pattern": "^(|#[0-9a-fA-F]{6})$",
+          "x-allow-empty": true,
+          "x-tab": "template-appearance",
+          "x-file": "background"
         }
       },
       "x-tab": "template-appearance"

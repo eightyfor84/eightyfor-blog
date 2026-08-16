@@ -231,26 +231,29 @@ async function onBgSave(m: any) {
 }
 
 async function persistBg(url: string) {
-  // Write metadata to data/background/background.yml
+  // 合并写 data/background/background.yml：保留非组件字段（frontendBackgroundColorLight/Dark，
+  // 由 useSchemaForm 的 x-file 写入）与手写注释；mode/blur 等组件 meta 更新。
   const meta = internalMeta.value || {}
   const { mode, posX, posY, size, blur, overlayLightColor, overlayLightOpacity, overlayDarkColor, overlayDarkOpacity, videoAutoplay, videoLoop, videoPlaybackRate } = meta
-  const yml = [
-    '# Chronicle Aurora — Site Background',
-    `mode: ${mode || 'cover'}`,
-    `posX: ${posX ?? 50}`,
-    `posY: ${posY ?? 50}`,
-    `size: ${size ?? 100}`,
-    `blur: ${blur ?? 0}`,
-    `overlayLightColor: "${overlayLightColor || '#ffffff'}"`,
-    `overlayLightOpacity: ${overlayLightOpacity ?? 0}`,
-    `overlayDarkColor: "${overlayDarkColor || '#000000'}"`,
-    `overlayDarkOpacity: ${overlayDarkOpacity ?? 0}`,
-    `videoAutoplay: ${videoAutoplay !== false}`,
-    `videoLoop: ${videoLoop !== false}`,
-    `videoPlaybackRate: ${Number(videoPlaybackRate ?? 1) || 1}`,
-    '',
-  ].join('\n')
-  try { await writeText('data/background/background.yml', yml) } catch {}
+  try {
+    const { readYaml, writeYaml } = await import('../../../data/dataAccess')
+    const existing = (await readYaml<Record<string, any>>('data/background/background.yml')) || {}
+    await writeYaml('data/background/background.yml', {
+      ...existing,
+      mode: mode || 'cover',
+      posX: posX ?? 50,
+      posY: posY ?? 50,
+      size: size ?? 100,
+      blur: blur ?? 0,
+      overlayLightColor: overlayLightColor || '#ffffff',
+      overlayLightOpacity: overlayLightOpacity ?? 0,
+      overlayDarkColor: overlayDarkColor || '#000000',
+      overlayDarkOpacity: overlayDarkOpacity ?? 0,
+      videoAutoplay: videoAutoplay !== false,
+      videoLoop: videoLoop !== false,
+      videoPlaybackRate: Number(videoPlaybackRate ?? 1) || 1,
+    })
+  } catch (e) { console.error('[BackgroundEditorField] persistBg failed', e) }
 }
 </script>
 
