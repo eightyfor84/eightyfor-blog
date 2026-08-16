@@ -562,7 +562,7 @@ function applySettingsFromStore(s: Record<string, any>) {
 
     // Apply Fonts from server settings only
     try {
-      if (s.frontendFont === 'serif') {
+      if ((s.font || s.frontendFont) === 'serif') {
         // ensure serif font loaded when requested
         ensureNotoLoaded()
         document.documentElement.style.setProperty('--app-font-stack', 'var(--app-font-stack-serif)')
@@ -582,12 +582,13 @@ function applySettingsFromStore(s: Record<string, any>) {
 
     // Apply Theme & Accent from server settings only
     try {
-      if (s.frontendTheme) {
-        if (s.frontendTheme === 'follow' || s.frontendTheme === 'system') {
+      const uiTheme = s.theme || s.frontendTheme
+      if (uiTheme) {
+        if (uiTheme === 'follow' || uiTheme === 'system') {
           document.documentElement.removeAttribute('data-theme')
-        } else if (s.frontendTheme === 'light') {
+        } else if (uiTheme === 'light') {
           document.documentElement.setAttribute('data-theme', 'light')
-        } else if (s.frontendTheme === 'dark') {
+        } else if (uiTheme === 'dark') {
           document.documentElement.setAttribute('data-theme', 'dark')
         }
       }
