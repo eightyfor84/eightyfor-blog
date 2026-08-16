@@ -210,13 +210,30 @@ export function useSchemaForm(schemaId: string) {
  * Recursively remove UI-virtual keys ($/_ prefixed — e.g. _localId, $about_edit,
  * $waline_admin) from a payload so they never leak into content files (P2-5).
  */
-/** Collect schema fields marked x-file (cross-file persistence), grouped by target path. */
+/** 递归在 schema properties（含嵌套 fieldset）中按字段名查找定义。 */
+function findNestedProp(schemaProps: Record<string, any>, key: string): Record<string, any> | undefined {
+  for (const [k, v] of Object.entries(schemaProps)) {
+    if (k === key) return v
+    if (v?.['x-widget'] === 'fieldset' && v.properties) {
+      const found = findNestedProp(v.properties, key)
+      if (found) return found
+    }
+  }
+  return undefined
+}
+
+/** Collect schema fields marked x-file (cross-file persistence), grouped by target path.
+ *  递归遍历嵌套块（如 appearance）内的字段——load 时据此合并外部文件值。 */
 function collectXFileFields(schema: Record<string, any>): Record<string, string[]> {
   const groups: Record<string, string[]> = {}
-  for (const [key, prop] of Object.entries((schema.properties || {}) as Record<string, any>)) {
-    const file = prop['x-file']
-    if (file) (groups[file] = groups[file] || []).push(key)
+  const walk = (props: Record<string, any>): void => {
+    for (const [key, prop] of Object.entries(props)) {
+      const file = prop['x-file']
+      if (file) (groups[file] = groups[file] || []).push(key)
+      if (prop['x-widget'] === 'fieldset' && prop.properties) walk(prop.properties)
+    }
   }
+  walk(schema.properties || {})
   return groups
 }
 
@@ -244,38 +261,54 @@ function stripVirtualKeys(value: any): any {
         ? (Array.isArray(data.value) ? data.value : [])
         : { ...data.value as Record<string, any> }
 
-      // Strip fields that have their own persistence (x-persist: false),
-      // and fields that live in site.yml (x-site-flag: true).
+      // 递归处理 schema 顶层与嵌套块（如 appearance）内的字段：
+      //  - x-persist: false → 从 payload 树删除（幽灵 background 等）
+      //  - x-file       → 提取到对应文件（background.yml），不进 site.yml
+      //  - x-site-flag  → 保留在 site.yml（本就是顶层）
       const siteFlags: string[] = []
-      if (!isArraySchema && schema.value?.properties) {
-        for (const [key, prop] of Object.entries(schema.value.properties as Record<string, any>)) {
-          if (prop['x-persist'] === false) {
-            delete payload[key]
-            delete payload[`${key}Meta`]
-          }
-          if (prop['x-site-flag'] === true) {
-            delete payload[key]
-            siteFlags.push(key)
-          }
-        }
-      }
-
-      // Cross-file persistence (x-file): extract those fields from payload and
-      // write them to their own file (e.g. background → data/background/background.yml),
-      // so they never leak into site.yml while the CMS UI keeps them grouped with
-      // this schema's appearance settings.
       const xFilePayloads: Record<string, Record<string, any>> = {}
       if (!isArraySchema && schema.value?.properties) {
-        for (const [key, prop] of Object.entries(schema.value.properties as Record<string, any>)) {
-          const file = prop['x-file']
-          if (file) {
-            if (payload[key] !== undefined) {
-              xFilePayloads[file] = xFilePayloads[file] || {}
-              xFilePayloads[file][key] = payload[key]
+        const getAt = (node: any, path: string[]): any => {
+          let cur: any = node
+          for (const p of path) {
+            if (cur == null || typeof cur !== 'object') return undefined
+            cur = cur[p]
+          }
+          return cur
+        }
+        const deleteAt = (node: any, path: string[]): void => {
+          if (path.length === 0) return
+          const parent = path.slice(0, -1).reduce<any>((acc, p) => (acc == null || typeof acc !== 'object') ? undefined : acc[p], node)
+          if (parent && typeof parent === 'object') delete parent[path[path.length - 1]]
+        }
+        const stripNested = (node: Record<string, any>, schemaProps: Record<string, any>, prefix: string[]): void => {
+          for (const [key, prop] of Object.entries(schemaProps)) {
+            if (prop['x-persist'] === false) {
+              deleteAt(node, [...prefix, key])
+              deleteAt(node, [...prefix, `${key}Meta`])
+              continue
             }
-            delete payload[key]
+            const file = prop['x-file']
+            if (file) {
+              const val = getAt(node, [...prefix, key])
+              if (val !== undefined) {
+                xFilePayloads[file] = xFilePayloads[file] || {}
+                xFilePayloads[file][key] = val
+              }
+              deleteAt(node, [...prefix, key])
+              continue
+            }
+            if (prop['x-site-flag'] === true) {
+              if (getAt(node, [...prefix, key]) !== undefined) deleteAt(node, [...prefix, key])
+              siteFlags.push(key)
+              continue
+            }
+            if (prop['x-widget'] === 'fieldset' && prop.properties) {
+              stripNested(node, prop.properties, [...prefix, key])
+            }
           }
         }
+        stripNested(payload, schema.value.properties, [])
       }
 
       // Strip UI-virtual keys ($/_ prefixed) — never persisted (P2-5).
@@ -286,7 +319,8 @@ function stripVirtualKeys(value: any): any {
         for (const [key, meta] of Object.entries(metaRefs.value)) {
           if (meta) {
             const metaKey = `${key}Meta`
-            const prop = schema.value?.properties?.[key] as Record<string, any> | undefined
+            // 递归查找（字段可能在嵌套块内，如 appearance.background）——x-persist 不注入
+            const prop = findNestedProp(schema.value?.properties || {}, key)
             if (prop?.['x-persist'] === false) continue // skip self-persisting fields
             payload[metaKey] = typeof meta === 'string' ? meta : JSON.stringify(meta)
           }

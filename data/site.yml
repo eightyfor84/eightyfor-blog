@@ -50,3 +50,6 @@ post:
     backend: waline
     walineServerUrl: https://aurora-comments.eightyfor.top
     imageUploadEnabled: false
+background: ''
+backgroundMeta: '{"mode":"cover","posX":50,"posY":50,"size":100,"blur":20,"overlayLightColor":"#fefbfb","overlayLightOpacity":70,"overlayDarkColor":"#000000","overlayDarkOpacity":75,"videoAutoplay":true,"videoLoop":true,"videoPlaybackRate":1}'
+appearance.backgroundMeta: '{"mode":"cover","posX":50,"posY":50,"size":100,"blur":20,"overlayLightColor":"#fefbfb","overlayLightOpacity":70,"overlayDarkColor":"#000000","overlayDarkOpacity":75,"videoAutoplay":true,"videoLoop":true,"videoPlaybackRate":1}'

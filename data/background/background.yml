@@ -1,4 +1,3 @@
-# Chronicle Aurora — Site Background
 mode: cover
 posX: 50
 posY: 50
@@ -11,3 +10,5 @@ overlayDarkOpacity: 75
 videoAutoplay: true
 videoLoop: true
 videoPlaybackRate: 1
+backgroundColorLight: '#ffffff'
+backgroundColorDark: '#000000'
