@@ -116,11 +116,14 @@ const expandedRoot = computed<Record<string, any> | null>(() => {
           const leaf = { ...(sv as Record<string, any>) } as Record<string, any>
           leaf['x-group'] = leaf['x-group'] || v['x-group']
           leaf['x-tab'] = leaf['x-tab'] || v['x-tab'] || rootSchema['x-tab']
-          // x-visible-when 的相对字段名（backend）展开为完整路径（post.comments.backend），
-          // 否则顶层 evaluateCondition 解析不到 → 条件字段被隐藏
-          const cond = leaf['x-visible-when']
-          if (cond && typeof cond === 'object' && cond.field && !String(cond.field).includes('.')) {
-            leaf['x-visible-when'] = { ...cond, field: `${rootKey}.${k}.${cond.field}` }
+          // x-visible-when / x-disabled-when 的相对字段名（backend/prevNextScope）展开为
+          // 完整路径（post.comments.backend / post.endOfArticle.prevNextScope），否则顶层
+          // evaluateCondition 解析不到 → 条件字段被隐藏或误禁用
+          for (const key of ['x-visible-when', 'x-disabled-when']) {
+            const cond = leaf[key]
+            if (cond && typeof cond === 'object' && cond.field && !String(cond.field).includes('.')) {
+              leaf[key] = { ...cond, field: `${rootKey}.${k}.${cond.field}` }
+            }
           }
           map[`${rootKey}.${k}.${sk}`] = leaf
         }
@@ -326,7 +329,8 @@ function isDisabled(field: FieldDef): boolean {
   if (field.schema['x-disabled']) return true
   // Check x-disabled-when: if condition is met, disable the field
   const cond = field.schema['x-disabled-when']
-  if (cond && evaluateCondition(cond, props.data)) return true
+  // 与 isFieldVisible 一致：传 expandedRoot 供条件字段默认值回退（平铺键/嵌套双形态）
+  if (cond && evaluateCondition(cond, props.data, expandedRoot.value || props.schema?.properties)) return true
   return false
 }
 

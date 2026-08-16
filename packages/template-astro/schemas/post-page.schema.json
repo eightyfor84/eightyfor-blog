@@ -354,6 +354,14 @@
               "x-visible-when": {
                 "field": "prevNext",
                 "equals": true
+              },
+              "x-disabled-when": {
+                "field": "prevNextScope",
+                "equals": "collection"
+              },
+              "x-disabled-text": {
+                "en": "Unused while scope is \"Within the same collection\" — collection order comes from collections.yml.",
+                "zh-CN": "范围选择「同合集内」时不生效——合集内顺序由 collections.yml 定义。"
               }
             },
             "authorCard": {
