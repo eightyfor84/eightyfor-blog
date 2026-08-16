@@ -8,10 +8,10 @@ homepage:
   cardVisibility: {}
   recentUpdates: {}
 appearance:
-  frontendTheme: follow
-  frontendAccent: '#36a32e'
-  frontendFont: sans
-  frontendLocale: follow
+  theme: follow
+  accent: '#36a32e'
+  font: sans
+  locale: follow
   defaultPerformanceMode: auto
 search:
   searchSuggestions: true

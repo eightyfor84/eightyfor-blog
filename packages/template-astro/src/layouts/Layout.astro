@@ -95,39 +95,39 @@ const metaUrl = String(pageMeta.url || '').trim();
 const metaRobots = String(pageMeta.robots || (pageMeta.noIndex ? 'noindex,nofollow' : '')).trim();
 
 // 从settings获取样式配置
-const frontendTheme = settings?.frontendTheme || 'follow';
-const frontendAccent = settings?.frontendAccent || '#2ea35f';
-const frontendBackground = normalizeLayoutBackground(settings?.frontendBackground || '');
-const frontendBackgroundMeta = settings?.frontendBackgroundMeta || null;
-const frontendBackgroundColorLight = settings?.frontendBackgroundColorLight || '';
-const frontendBackgroundColorDark = settings?.frontendBackgroundColorDark || '';
-const frontendFont = settings?.frontendFont || 'sans';
+const theme = settings?.theme || 'follow';
+const accent = settings?.accent || '#2ea35f';
+const background = normalizeLayoutBackground(settings?.background || '');
+const backgroundMetaRaw = settings?.backgroundMeta || null;
+const backgroundColorLight = settings?.backgroundColorLight || '';
+const backgroundColorDark = settings?.backgroundColorDark || '';
+const font = settings?.font || 'sans';
 const defaultPerformanceMode = settings?.defaultPerformanceMode || 'auto';
 
 // ── Background layer: resolve build-time CSS values ──
 // The background image URL, mode-derived size/position/repeat, blur, and the
 // light/dark overlay + surface colors are all known at build time. Emit them as
 // static CSS so no runtime JS is needed to render the background layer.
-const backgroundImageUrl = typeof frontendBackground === 'string'
-  ? frontendBackground
-  : (frontendBackground && (frontendBackground as any).url) || '';
+const backgroundImageUrl = typeof background === 'string'
+  ? background
+  : (background && (background as any).url) || '';
 
 let backgroundMeta: any = null;
 try {
-  backgroundMeta = frontendBackgroundMeta ? JSON.parse(String(frontendBackgroundMeta)) : null;
+  backgroundMeta = backgroundMetaRaw ? JSON.parse(String(backgroundMetaRaw)) : null;
 } catch (e) { backgroundMeta = null; }
 
 // ── Background video (optional) — preload="none" so it never competes with the
 //    page skeleton; the fallback image below shows first, and the video fades in
 //    over it once its first frame is decodable (layout-init.ts) ──
-const backgroundVideoUrl = typeof settings?.frontendBackgroundVideo === 'string'
-  ? settings.frontendBackgroundVideo
+const backgroundVideoUrl = typeof settings?.backgroundVideo === 'string'
+  ? settings.backgroundVideo
   : '';
 // Explicit fallback first-frame poster (background_alt.<ext>) — shown as the
 // static bg-image while the video loads (no native `poster` attr, to avoid the
 // cached-refresh poster flash).
-const backgroundPosterUrl = typeof settings?.frontendBackgroundPoster === 'string'
-  ? settings.frontendBackgroundPoster
+const backgroundPosterUrl = typeof settings?.backgroundPoster === 'string'
+  ? settings.backgroundPoster
   : '';
 const videoAutoplay = backgroundMeta?.videoAutoplay !== false;   // default true
 const videoLoop = backgroundMeta?.videoLoop !== false;           // default true
@@ -191,8 +191,8 @@ const bgOverlayDark = overlayRgba(
   backgroundMeta?.overlayDarkOpacity != null ? backgroundMeta?.overlayDarkOpacity : backgroundMeta?.overlayOpacity
 );
 
-const hasSurfaceLight = Boolean(frontendBackgroundColorLight);
-const hasSurfaceDark = Boolean(frontendBackgroundColorDark);
+const hasSurfaceLight = Boolean(backgroundColorLight);
+const hasSurfaceDark = Boolean(backgroundColorDark);
 
 // 遮罩/模糊属于「背景层」而非「图片」——有图或有视频都应生效，否则纯视频背景
 // 会漏掉 background.yml 里配置的 overlay + blur。
@@ -220,8 +220,8 @@ if (hasBackgroundMedia) {
   backgroundCss += '}\n';
 }
 if (hasSurfaceLight || hasSurfaceDark) {
-  if (hasSurfaceLight) backgroundCss += `:root { --bg-surface-color-light: ${frontendBackgroundColorLight}; }\n`;
-  if (hasSurfaceDark) backgroundCss += `:root { --bg-surface-color-dark: ${frontendBackgroundColorDark}; }\n`;
+  if (hasSurfaceLight) backgroundCss += `:root { --bg-surface-color-light: ${backgroundColorLight}; }\n`;
+  if (hasSurfaceDark) backgroundCss += `:root { --bg-surface-color-dark: ${backgroundColorDark}; }\n`;
   backgroundCss += ':root { --bg-surface-color: var(--bg-surface-color-dark, var(--app-bg-pri)); }\n';
   backgroundCss += ':root[data-theme="light"] { --bg-surface-color: var(--bg-surface-color-light, var(--app-bg-pri)); }\n';
   backgroundCss += '@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) { --bg-surface-color: var(--bg-surface-color-light, var(--app-bg-pri)); } }\n';
@@ -356,7 +356,7 @@ const ANALYTICS_GA_ID = String(process.env.GA_MEASUREMENT_ID || analyticsCfg.gaM
       (function() {
         try {
           const settings = JSON.parse(localStorage.getItem('chronicle.settings') || '{}');
-          const theme = settings.frontendTheme || 'follow';
+          const theme = settings.theme || 'follow';
           if (theme === 'follow' || theme === 'system') {
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
@@ -377,8 +377,8 @@ const ANALYTICS_GA_ID = String(process.env.GA_MEASUREMENT_ID || analyticsCfg.gaM
 
     <!-- Custom properties from SSR (before skeleton so var() refs resolve first-paint) -->
     <style define:vars={{
-      accentColor: frontendAccent,
-      fontStack: frontendFont === 'serif' ? "var(--app-font-stack-serif)" : "var(--app-font-stack-inter)"
+      accentColor: accent,
+      fontStack: font === 'serif' ? "var(--app-font-stack-serif)" : "var(--app-font-stack-inter)"
     }}>
       .frontend-body {
         margin: 0;
@@ -417,16 +417,16 @@ const ANALYTICS_GA_ID = String(process.env.GA_MEASUREMENT_ID || analyticsCfg.gaM
     <!-- Background layer CSS: image + mode + blur + overlay/surface colors resolved at build time -->
     {backgroundCss ? <style is:inline set:html={backgroundCss}></style> : null}
 
-    <script define:vars={{ frontendTheme, frontendAccent, frontendBackground, frontendBackgroundMeta, frontendBackgroundColorLight, frontendBackgroundColorDark, frontendFont, featureFlags, analyticsCfg }}>
+    <script define:vars={{ theme, accent, background, backgroundMeta, backgroundColorLight, backgroundColorDark, font, featureFlags, analyticsCfg }}>
       // 将settings传递给客户端
       window.__CHRONICLE_SETTINGS__ = {
-        frontendTheme,
-        frontendAccent,
-        frontendBackground,
-        frontendBackgroundMeta,
-        frontendBackgroundColorLight,
-        frontendBackgroundColorDark,
-        frontendFont,
+        theme,
+        accent,
+        background,
+        backgroundMeta,
+        backgroundColorLight,
+        backgroundColorDark,
+        font,
         featureFlags,
         analytics: analyticsCfg
       };
@@ -488,7 +488,7 @@ const ANALYTICS_GA_ID = String(process.env.GA_MEASUREMENT_ID || analyticsCfg.gaM
       function initThemeListener() {
         try {
           const settings = JSON.parse(localStorage.getItem('chronicle.settings') || '{}');
-          const theme = settings.frontendTheme || 'follow';
+          const theme = settings.theme || 'follow';
 
           if (theme === 'follow' || theme === 'system') {
             // Listen for system theme changes
@@ -521,22 +521,22 @@ const ANALYTICS_GA_ID = String(process.env.GA_MEASUREMENT_ID || analyticsCfg.gaM
         // 本地保存的主题覆盖 SSR 设置
         try {
           const localSettings = JSON.parse(localStorage.getItem('chronicle.settings') || '{}');
-          if (localSettings.frontendTheme) {
-            settings.frontendTheme = localSettings.frontendTheme;
+          if (localSettings.theme) {
+            settings.theme = localSettings.theme;
           }
         } catch (e) {}
 
         try {
           // 主题：设置 <html data-theme>，背景/遮罩/底色均由 CSS 变量按主题解析
-          applyTheme(settings.frontendTheme);
+          applyTheme(settings.theme);
 
           // 应用accent颜色
-          if (settings.frontendAccent) {
-            document.documentElement.style.setProperty('--accent', settings.frontendAccent);
+          if (settings.accent) {
+            document.documentElement.style.setProperty('--accent', settings.accent);
           }
 
           // 应用字体
-          if (settings.frontendFont === 'serif') {
+          if (settings.font === 'serif') {
             document.documentElement.style.setProperty('--app-font-stack', 'var(--app-font-stack-serif)');
           } else {
             document.documentElement.style.setProperty('--app-font-stack', 'var(--app-font-stack-inter)');
@@ -613,7 +613,7 @@ const ANALYTICS_GA_ID = String(process.env.GA_MEASUREMENT_ID || analyticsCfg.gaM
       document.addEventListener('astro:after-swap', () => {
         try {
           const settings = JSON.parse(localStorage.getItem('chronicle.settings') || '{}');
-          const theme = settings.frontendTheme || 'follow';
+          const theme = settings.theme || 'follow';
 
           if (theme === 'follow' || theme === 'system') {
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;

@@ -998,7 +998,7 @@ const isActive = (path: string) => {
     if (!settingBtn || !settingsMenu) return;
     if (settingsMenu.parentNode !== document.body) document.body.appendChild(settingsMenu);
     function getCurrentTheme() {
-      try { return JSON.parse(localStorage.getItem("chronicle.settings") || "{}").frontendTheme || "follow"; }
+      try { const s = JSON.parse(localStorage.getItem("chronicle.settings") || "{}"); return s.theme || s.frontendTheme || "follow"; }
       catch { return "follow"; }
     }
     function getCurrentLocale() { return localStorage.getItem("locale") || "follow"; }
@@ -1057,7 +1057,7 @@ const isActive = (path: string) => {
         const theme = btn.getAttribute("data-theme");
         try {
           const s = JSON.parse(localStorage.getItem("chronicle.settings") || "{}");
-          s.frontendTheme = theme;
+          s.theme = theme;
           localStorage.setItem("chronicle.settings", JSON.stringify(s));
         } catch (e) {}
         if (theme === "follow" || theme === "system") document.documentElement.removeAttribute("data-theme");

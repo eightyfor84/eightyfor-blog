@@ -290,7 +290,7 @@
         "zh-CN": "外观"
       },
       "properties": {
-        "frontendTheme": {
+        "theme": {
           "type": "string",
           "default": "follow",
           "enum": [
@@ -330,7 +330,7 @@
             }
           ]
         },
-        "frontendAccent": {
+        "accent": {
           "type": "string",
           "default": "#2ea35f",
           "pattern": "^#[0-9a-fA-F]{6}$",
@@ -343,7 +343,7 @@
             "zh-CN": "强调色"
           }
         },
-        "frontendFont": {
+        "font": {
           "type": "string",
           "default": "sans",
           "enum": [
@@ -375,7 +375,7 @@
             }
           ]
         },
-        "frontendLocale": {
+        "locale": {
           "type": "string",
           "default": "follow",
           "enum": [
@@ -499,7 +499,7 @@
             }
           ]
         },
-        "frontendBackground": {
+        "background": {
           "type": "string",
           "x-widget": "background-editor",
           "x-group": "background",
@@ -511,7 +511,7 @@
           "x-persist": false,
           "x-tab": "template-appearance"
         },
-        "frontendBackgroundMeta": {
+        "backgroundMeta": {
           "type": "string",
           "x-widget": "hidden",
           "x-group": "background",
@@ -523,7 +523,7 @@
           "x-persist": false,
           "x-tab": "template-appearance"
         },
-        "frontendBackgroundColorLight": {
+        "backgroundColorLight": {
           "type": "string",
           "x-widget": "color",
           "x-group": "background",
@@ -538,7 +538,7 @@
           "x-tab": "template-appearance",
           "x-file": "background"
         },
-        "frontendBackgroundColorDark": {
+        "backgroundColorDark": {
           "type": "string",
           "x-widget": "color",
           "x-group": "background",

@@ -111,7 +111,7 @@ function readBackgroundMeta(): string {
   return bgMeta ? JSON.stringify(bgMeta) : ''
 }
 
-/** Read a single key from data/background/background.yml (e.g. frontendBackgroundColorLight). */
+/** Read a single key from data/background/background.yml (e.g. backgroundColorLight). */
 function parseBackgroundColor(key: string): string {
   try {
     const meta = readDataFile(path.join(DATA_DIR, 'background', 'background.yml'))
@@ -318,16 +318,16 @@ function normalizePostConfig(raw: unknown): PostPageConfig {
 export interface LocalSettings {
     siteName?: string;
     siteDescription?: string;
-    frontendTheme?: string;
-    frontendAccent?: string;
-    frontendBackground?: unknown;
-    frontendBackgroundVideo?: string;
-    frontendBackgroundPoster?: string;
-    frontendBackgroundMeta?: string;
-    frontendBackgroundColorLight?: string;
-    frontendBackgroundColorDark?: string;
-    frontendFont?: string;
-    frontendLocale?: string;
+    theme?: string;
+    accent?: string;
+    background?: unknown;
+    backgroundVideo?: string;
+    backgroundPoster?: string;
+    backgroundMeta?: string;
+    backgroundColorLight?: string;
+    backgroundColorDark?: string;
+    font?: string;
+    locale?: string;
     featureFlags?: Record<string, boolean>;
     friendsCards?: unknown;
     friendsGlobalStyle?: unknown;
@@ -591,17 +591,20 @@ export function getPublicSettings(): LocalSettings {
     return {
         siteName: raw.siteName || raw.sitename || raw.site_name,
         siteDescription: raw.siteDescription || '',
-        frontendTheme: raw.frontendTheme,
-        frontendAccent: raw.frontendAccent,
-        frontendBackground: readBackgroundUrl(),
-        frontendBackgroundVideo: readBackgroundVideo(),
-        frontendBackgroundPoster: readBackgroundPoster(),
-        frontendBackgroundMeta: readBackgroundMeta(),
-        // 背景色持久化在 background.yml（3.1.x）；兼容旧 site.yml 顶层值（优先）
-        frontendBackgroundColorLight: raw.frontendBackgroundColorLight || parseBackgroundColor('frontendBackgroundColorLight'),
-        frontendBackgroundColorDark: raw.frontendBackgroundColorDark || parseBackgroundColor('frontendBackgroundColorDark'),
-        frontendFont: raw.frontendFont,
-        frontendLocale: raw.frontendLocale,
+        // 3.1.x 去 frontend 前缀（site 设置无 backend 对应物）；兼容旧键 frontendTheme 等
+        theme: raw.theme ?? raw.frontendTheme,
+        accent: raw.accent ?? raw.frontendAccent,
+        background: readBackgroundUrl(),
+        backgroundVideo: readBackgroundVideo(),
+        backgroundPoster: readBackgroundPoster(),
+        backgroundMeta: readBackgroundMeta(),
+        // 背景色持久化在 background.yml（3.1.x）；兼容旧 site.yml 顶层值与旧 background.yml 键
+        backgroundColorLight: raw.backgroundColorLight ?? raw.frontendBackgroundColorLight
+          ?? parseBackgroundColor('backgroundColorLight') ?? parseBackgroundColor('frontendBackgroundColorLight') ?? '',
+        backgroundColorDark: raw.backgroundColorDark ?? raw.frontendBackgroundColorDark
+          ?? parseBackgroundColor('backgroundColorDark') ?? parseBackgroundColor('frontendBackgroundColorDark') ?? '',
+        font: raw.font ?? raw.frontendFont,
+        locale: raw.locale ?? raw.frontendLocale,
         collectionPage: raw.collectionPage ?? raw.featureFlags?.collectionPage ?? true,
         aboutPage: raw.aboutPage ?? raw.featureFlags?.aboutPage ?? true,
         friendsPage: raw.friendsPage ?? raw.featureFlags?.friendsPage ?? raw.friends ?? true,

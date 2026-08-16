@@ -137,7 +137,7 @@ async function loadSettingsFromServer() {
     if (s.backendLocale) uiBackendLocale.value = s.backendLocale
     if (s.backendFont) uiBackendFont.value = s.backendFont
     if (s.backendTheme) uiBackendTheme.value = s.backendTheme
-    uiAccentColor.value = s.backendAccent || s.frontendAccent || '#2ea35f'
+    uiAccentColor.value = s.backendAccent || s.accent || s.frontendAccent || '#2ea35f'
     if (s.backendBackground) {
       uiBackendBackground.value = typeof s.backendBackground === 'string'
         ? s.backendBackground

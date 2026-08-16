@@ -135,12 +135,12 @@ export function useSchemaForm(schemaId: string) {
         // Auto-discover background from directory (site.yml doesn't store these)
         if (id === 'chronicle:template-settings') {
           fileData = fileData ?? {}
-          if (!fileData.frontendBackground) {
-            fileData.frontendBackground = await resolveBackgroundUrlAsync('frontend')
+          if (!fileData.background) {
+            fileData.background = await resolveBackgroundUrlAsync('frontend')
           }
-          if (!fileData.frontendBackgroundMeta) {
+          if (!fileData.backgroundMeta) {
             const meta = await readBackgroundMeta('frontend')
-            if (meta) fileData.frontendBackgroundMeta = typeof meta === 'string' ? meta : meta
+            if (meta) fileData.backgroundMeta = typeof meta === 'string' ? meta : meta
           }
         }
       } else {
