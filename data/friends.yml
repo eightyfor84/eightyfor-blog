@@ -1,3 +1,5 @@
+# Chronicle Aurora — Friends page (友链卡片)
+# `globalStyle` picks the card layout (left-sm / left-lg / top-lg); `cards` is the sortable list.
 globalStyle: left-sm
 cards:
   - name: Astro

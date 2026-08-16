@@ -1,27 +1,46 @@
+# Chronicle Aurora site configuration — written by the CMS settings pages; hand-written comments and untouched keys are preserved
+
+# Homepage settings (Template settings → Homepage)
 homepage:
   siteName: Chronicle Demo
-  siteDescription: A local-first, git-backed Jamstack blogging platform. Write in
-    Markdown, sync with Git, deploy anywhere.
+  siteDescription: A local-first, git-backed Jamstack blogging platform. Write in Markdown, sync with Git, deploy anywhere.
   icpNumber: ''
   homepageMode: split
   singleColumnHomepage: false
-  cardVisibility: {}
-  recentUpdates: {}
+  cardVisibility:
+    activity: true
+    taxonomy: true
+    author: true
+  recentUpdates:
+    aggregateDays: 7
+    staleDays: 30
+
+# Appearance settings (Template settings → Appearance: theme/accent/font/locale)
 appearance:
   theme: follow
   accent: '#36a32e'
   font: sans
   locale: follow
   defaultPerformanceMode: auto
+
+# Search settings (Template settings → Search)
 search:
   searchSuggestions: true
   globalSearch: true
   fullTextSearch: true
+
+# Comments master switch (Post page → Comments group toggle)
 comments: true
+
+# Page toggles
 collectionPage: true
 aboutPage: true
 friendsPage: true
+
+# RSS feed toggle
 rss: true
+
+# Analytics (multi-backend)
 analytics:
   enabled: false
   backend: ''
@@ -32,24 +51,25 @@ analytics:
   plausibleServerUrl: ''
   plausibleDomain: ''
   baiduId: ''
+
+# Post page settings (Post page tab: header/meta, TOC, collection nav, end-of-article, comments)
 post:
   meta: {}
   toc:
     enabled: true
+    tocFloatAlwaysExpanded: false
   collectionNav:
     enabled: true
+    alwaysCollapsed: false
   endOfArticle:
     share: true
     shareChannels:
-    - twitter
-    - linkedin
-    - weibo
+      - twitter
+      - linkedin
+      - weibo
     prevNextMode: next-only
     prevNextScope: collection
   comments:
-    backend: waline
+    backend: ''
     walineServerUrl: https://aurora-comments.eightyfor.top
     imageUploadEnabled: false
-background: ''
-backgroundMeta: '{"mode":"cover","posX":50,"posY":50,"size":100,"blur":20,"overlayLightColor":"#fefbfb","overlayLightOpacity":70,"overlayDarkColor":"#000000","overlayDarkOpacity":75,"videoAutoplay":true,"videoLoop":true,"videoPlaybackRate":1}'
-appearance.backgroundMeta: '{"mode":"cover","posX":50,"posY":50,"size":100,"blur":20,"overlayLightColor":"#fefbfb","overlayLightOpacity":70,"overlayDarkColor":"#000000","overlayDarkOpacity":75,"videoAutoplay":true,"videoLoop":true,"videoPlaybackRate":1}'

@@ -1,3 +1,5 @@
+# Chronicle Aurora — Collection definitions (合集定义)
+# A list of collections; each `nodes` entry is a post (`type: post`) or a group of posts.
 - name: Chronicle Guide
   description: Everything you need to get started with Chronicle — from first principles to advanced features.
   slug: chronicle-guide
