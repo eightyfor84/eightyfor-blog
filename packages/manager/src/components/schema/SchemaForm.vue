@@ -168,7 +168,25 @@ const visibleTabs = computed(() => tabs.value)
  * Resolves dot-separated paths against props.data.
  * Returns true if the condition is satisfied (or if no condition is defined).
  */
-function evaluateCondition(cond: Record<string, any> | undefined, data: Record<string, any>): boolean {
+/** Resolve a field's schema default by dot path (e.g. "postEndOfArticle.share" → share.default). */
+function resolveFieldDefault(propsMap: Record<string, any> | undefined, field: string): unknown {
+  if (!propsMap) return undefined
+  const parts = field.split('.')
+  let node: any = propsMap
+  for (let i = 0; i < parts.length; i++) {
+    const p = parts[i]
+    if (i === parts.length - 1) return node?.[p]?.default
+    node = node?.[p]?.properties
+    if (!node) return undefined
+  }
+  return undefined
+}
+
+function evaluateCondition(
+  cond: Record<string, any> | undefined,
+  data: Record<string, any>,
+  propsMap?: Record<string, any>,
+): boolean {
   if (!cond) return true
   const { field, equals, notEquals } = cond
   if (!field) return true
@@ -177,9 +195,12 @@ function evaluateCondition(cond: Record<string, any> | undefined, data: Record<s
   const parts = String(field).split('.')
   let value: any = data
   for (const p of parts) {
-    if (value == null || typeof value !== 'object') return true // can't resolve, assume visible
+    if (value == null || typeof value !== 'object') { value = undefined; break }
     value = value[p]
   }
+  // 数据中未配置该字段时回退 schema 默认值（与 getValue 的显示逻辑一致），
+  // 否则初始状态（只有 default、尚未写入 data）条件字段会被误判隐藏
+  if (value === undefined) value = resolveFieldDefault(propsMap, String(field))
 
   if (equals !== undefined && value !== equals) return false
   if (notEquals !== undefined && value === notEquals) return false
@@ -187,7 +208,7 @@ function evaluateCondition(cond: Record<string, any> | undefined, data: Record<s
 }
 
 function isFieldVisible(schema: Record<string, any>): boolean {
-  return evaluateCondition(schema['x-visible-when'], props.data)
+  return evaluateCondition(schema['x-visible-when'], props.data, props.schema?.properties)
 }
 
 // ── Data access ──
