@@ -162,7 +162,7 @@
             "zh-CN": "开：默认折叠（现况）。关：默认展开，窗口宽度低于移动端阈值时切回折叠。纯 CSS 外观，目录引擎不变。"
           },
           "x-visible-when": {
-            "field": "tocFloat",
+            "field": "postToc.tocFloat",
             "equals": true
           }
         },
@@ -285,7 +285,7 @@
             "zh-CN": "导航模式"
           },
           "x-visible-when": {
-            "field": "prevNext",
+            "field": "postEndOfArticle.prevNext",
             "equals": true
           }
         },
@@ -315,7 +315,7 @@
             "zh-CN": "导航范围"
           },
           "x-visible-when": {
-            "field": "prevNext",
+            "field": "postEndOfArticle.prevNext",
             "equals": true
           }
         },
@@ -381,7 +381,7 @@
             "zh-CN": "可排序渠道列表，顺序即渲染顺序。"
           },
           "x-visible-when": {
-            "field": "share",
+            "field": "postEndOfArticle.share",
             "equals": true
           }
         }
@@ -453,7 +453,7 @@
           "x-widget": "input",
           "x-order": 2,
           "x-visible-when": {
-            "field": "backend",
+            "field": "postComments.backend",
             "equals": "waline"
           },
           "title": {
@@ -467,7 +467,7 @@
           "x-widget": "toggle",
           "x-order": 3,
           "x-visible-when": {
-            "field": "backend",
+            "field": "postComments.backend",
             "equals": "waline"
           },
           "title": {
@@ -485,7 +485,7 @@
           "x-widget": "toggle",
           "x-order": 4,
           "x-visible-when": {
-            "field": "backend",
+            "field": "postComments.backend",
             "equals": "waline"
           },
           "title": {
@@ -502,7 +502,7 @@
           "x-chronicle-class": "waline-admin-link",
           "x-order": 5,
           "x-visible-when": {
-            "field": "backend",
+            "field": "postComments.backend",
             "equals": "waline"
           },
           "title": {
