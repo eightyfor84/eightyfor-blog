@@ -193,6 +193,7 @@
     "staticPlaceholder": "评论以只读模式展示。发布新评论入口暂不开放。",
     "loading": "正在加载评论...",
     "loadError": "无法加载最新评论。",
+    "loadMore": "加载更多评论",
     "submitted": "评论已提交，等待审核。",
     "submitError": "提交失败，请重试。",
     "reply": "回复",

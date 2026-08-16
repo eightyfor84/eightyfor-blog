@@ -192,6 +192,7 @@
     "staticPlaceholder": "Comments are displayed in read-only mode, new comment submission is not available now.",
     "loading": "Loading comments...",
     "loadError": "Could not load latest comments.",
+    "loadMore": "Load more comments",
     "submitted": "Comment submitted, awaiting review.",
     "submitError": "Submission failed. Please try again.",
     "reply": "Reply",

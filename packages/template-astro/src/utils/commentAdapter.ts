@@ -61,6 +61,8 @@ export interface CommentData {
   avatarUrl?: string;
   /** Pinned (置顶) comment — Waline `sticky` flag. */
   pinned?: boolean;
+  /** 3.1.x — commenter geo address (country/province), never the raw IP. */
+  location?: string;
 }
 
 interface WalineComment {
@@ -77,6 +79,8 @@ interface WalineComment {
   rid?: string | number | null;
   /** Waline pinned flag — boolean after `formatCmt`, but tolerate raw string/number storage. */
   sticky?: boolean | number | string;
+  /** IP geo-location string (e.g. "中国 江苏省 南京市") — Waline's `addr` field. */
+  addr?: string;
   children?: WalineComment[];
 }
 
@@ -235,13 +239,19 @@ function mapWalineComment(c: WalineComment): CommentData {
     rootId: c.rid != null ? String(c.rid) : String(c.objectId),
     avatarUrl: c.avatar || undefined,
     pinned,
+    location: c.addr || undefined,
   };
 }
 
-async function fetchWalineComments(serverUrl: string, path: string): Promise<{ count: number; comments: CommentData[] }> {
+async function fetchWalineComments(
+  serverUrl: string,
+  path: string,
+  page = 1,
+  pageSize = 20,
+): Promise<{ count: number; comments: CommentData[]; page: number; totalPages: number; hasMore: boolean }> {
   const base = normalizeBaseUrl(serverUrl);
-  // NOTE: v1 fetches the latest 100 comments only (no pagination).
-  const url = `${base}/api/comment?path=${encodeURIComponent(path)}&pageSize=100&sortBy=insertedAt_desc`;
+  // 分页拉取：有图（含 base64 内嵌）的评论 HTML 大，一次拉 100 条很重 → 每页 20 + 加载更多
+  const url = `${base}/api/comment?path=${encodeURIComponent(path)}&pageSize=${pageSize}&page=${page}&sortBy=insertedAt_desc`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const json = await res.json();
@@ -252,7 +262,8 @@ async function fetchWalineComments(serverUrl: string, path: string): Promise<{ c
   const flat = list.flatMap((root) => [root, ...(root.children || [])]);
   const comments = flat.map(mapWalineComment);
   const count = typeof json?.data?.count === 'number' ? json.data.count : comments.length;
-  return { count, comments };
+  const totalPages = typeof json?.data?.totalPages === 'number' ? json.data.totalPages : 1;
+  return { count, comments, page, totalPages, hasMore: page < totalPages };
 }
 
 /** Extract a human-readable message from a Waline error envelope.
@@ -499,31 +510,56 @@ async function hydrateWaline(
   const listEl = container.querySelector<HTMLElement>('.cs-list');
   const countEl = container.querySelector<HTMLElement>('.cs-count');
 
-  const render = async () => {
-    if (!listEl) return;
-    listEl.innerHTML = `<div class="cs-loading">${escapeHtml(i18n.loading || 'Loading comments...')}</div>`;
+  const PAGE_SIZE = 20;
+  let allComments: CommentData[] = [];
+  let page = 1;
+  let hasMore = true;
+  let loading = false;
+
+  const render = async (append = false) => {
+    if (!listEl || loading) return;
+    loading = true;
+    if (!append) {
+      listEl.innerHTML = `<div class="cs-loading">${escapeHtml(i18n.loading || 'Loading comments...')}</div>`;
+    }
     try {
-      const { count, comments } = await fetchWalineComments(serverUrl, path);
-      listEl.innerHTML = renderCommentList(
-        comments,
+      const { count, comments, hasMore: hm } = await fetchWalineComments(serverUrl, path, page, PAGE_SIZE);
+      allComments = append ? allComments.concat(comments) : comments;
+      hasMore = hm;
+      let html = renderCommentList(
+        allComments,
         lang,
         i18n.reply || 'Reply',
         i18n.replyTo || 'Reply to',
         i18n.pinned || 'Pinned',
         i18n.noComments || 'No comments yet.',
       );
+      if (hasMore) {
+        html += `<button type="button" class="cs-load-more" data-role="load-more">${escapeHtml(i18n.loadMore || 'Load more')}</button>`;
+      }
+      listEl.innerHTML = html;
       applyLazyMedia(listEl);
       if (countEl) {
         countEl.textContent = String(count);
         countEl.style.display = count > 0 ? '' : 'none';
       }
     } catch {
-      listEl.innerHTML = renderEmptyState(false, i18n.loadError || 'Could not load comments.');
+      if (!append) listEl.innerHTML = renderEmptyState(false, i18n.loadError || 'Could not load comments.');
+    } finally {
+      loading = false;
     }
   };
 
-  setupWalineForm(container, serverUrl, path, i18n, () => { void render(); });
-  await render();
+  // 加载更多：下一批评论追加到列表尾部
+  listEl?.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-role="load-more"]');
+    if (!btn) return;
+    page += 1;
+    void render(true);
+  });
+
+  setupWalineForm(container, serverUrl, path, i18n, () => { void render(false); });
+  await render(false);
 }
 
 function hydrateContainer(container: HTMLElement): void {
