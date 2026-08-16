@@ -1,30 +1,86 @@
-siteName: Blogs →
-siteDescription: 爱我所爱，自成一派。 Love what you wanna love, be what you wanna be.
-icpNumber: 京ICP备2025153813号-1
-homepageMode: split
-singleColumnHomepage: false
-cardVisibility: {}
-recentUpdates:
-  aggregateDays: 3
-frontendTheme: follow
-frontendAccent: "#51a32e"
-frontendFont: sans
-frontendLocale: follow
-defaultPerformanceMode: auto
-searchSuggestions: true
-globalSearch: true
-fullTextSearch: true
+# Chronicle Aurora site configuration — written by the CMS settings pages; hand-written comments and untouched keys are preserved
+
+# Homepage settings (Template settings → Homepage)
+homepage:
+  siteName: Blogs →
+  siteDescription: 爱我所爱，自成一派。 Love what you wanna love, be what you wanna be.
+  icpNumber: '京ICP备2025153813号-1'
+  homepageMode: split
+  singleColumnHomepage: false
+  cardVisibility:
+    activity: true
+    taxonomy: true
+    author: true
+  recentUpdates:
+    aggregateDays: 3
+    staleDays: 30
+
+# Appearance settings (Template settings → Appearance: theme/accent/font/locale)
+appearance:
+  theme: follow
+  accent: '#51a32e'
+  font: sans
+  locale: follow
+  defaultPerformanceMode: auto
+
+# Search settings (Template settings → Search)
+search:
+  searchSuggestions: true
+  globalSearch: true
+  fullTextSearch: true
+
+# Comments master switch (Post page → Comments group toggle)
+comments: true
+
+# Page toggles
 collectionPage: true
 aboutPage: true
 friendsPage: true
-comments: true
-traffic: false
+
+# RSS feed toggle
 rss: true
-gaMeasurementId: G-VPZBFWJ7FJ
-frontendBackgroundColorLight: ""
-frontendBackgroundColorDark: ""
-relatedPosts: false
-sitemap: false
-comment:
-  backend: waline
-  walineServerUrl: https://aurora-comments.eightyfor.top
+
+# Analytics (multi-backend)
+analytics:
+  enabled: false
+  backend: ''
+  gaMeasurementId: ''
+  cloudflareToken: ''
+  umamiServerUrl: ''
+  umamiWebsiteId: ''
+  plausibleServerUrl: ''
+  plausibleDomain: ''
+  baiduId: ''
+
+# Post page settings (Post page tab: header/meta, TOC, collection nav, end-of-article, comments)
+post:
+  meta: { metaUpdated: true, metaStats: true, metaAiBadge: true, showTags: true }
+  toc:
+    enabled: true
+    tocFloatAlwaysExpanded: false
+    inlineToc: true
+    tocFloat: true
+    mobileTocControl: true
+  collectionNav:
+    enabled: true
+    alwaysCollapsed: false
+  endOfArticle:
+    share: true
+    shareChannels:
+      - twitter
+      - linkedin
+      - weibo
+    prevNextMode: both
+    prevNextScope: collection
+    prevNext: true
+    relatedPosts: true
+    authorCard: false
+    prevNextOrder: desc
+  comments:
+    backend: 'waline'
+    walineServerUrl: "https://aurora-comments.eightyfor.top"
+    imageUploadEnabled: false
+    attitude: true
+    showGeoAddress: true
+    imageUploadEndpoint: ""
+    imageUploadToken: ""

@@ -5,22 +5,16 @@
   nodes:
     - id: 45175cf3-db12-4dda-8a62-f36d0d2c3d51
       type: post
-      _localId: n_pflxce6
-    - _localId: n_voep8qo
-      id: ""
+    - id: ""
       type: group
       title: content theme
       children:
-        - _localId: n_fett79c
-          id: 8a877784-76cd-4b0a-a669-4c30cc3a32ec
+        - id: 8a877784-76cd-4b0a-a669-4c30cc3a32ec
           type: post
-        - _localId: n_6fitamm
-          id: 6d879241-fa6c-4099-82a5-066853046b9a
+        - id: 6d879241-fa6c-4099-82a5-066853046b9a
           type: post
         - id: 26s3
           type: post
-          _localId: n_4ylifzo
-  _localId: n_m0n776o
 - name: Chronicle Docs
   description: Offical Documents of Chronicle Project
   cover: asset://1770891564693_cktp_.png
@@ -31,31 +25,22 @@
       children:
         - id: chronicle-aurora
           type: post
-          _localId: n_6emxdfg
-      _localId: n_ma5bloy
-    - _localId: n_zburnxa
-      id: ""
+    - id: ""
       type: group
       title: legacy
       children:
-        - _localId: n_5bpvajn
-          id: ""
+        - id: ""
           type: group
           title: changelog
           children:
-            - _localId: n_4i64bvp
-              id: b792d6ca-5efb-405e-84d2-609f056d4be9
+            - id: b792d6ca-5efb-405e-84d2-609f056d4be9
               type: post
-            - _localId: n_gqcjv0w
-              id: 9fad38a2-cf83-476b-bbab-5c097a1180fc
+            - id: 9fad38a2-cf83-476b-bbab-5c097a1180fc
               type: post
-        - _localId: n_fbu3n2o
-          id: 88394cb9-6f3b-4c20-a950-e6d74ea912a0
+        - id: 88394cb9-6f3b-4c20-a950-e6d74ea912a0
           type: post
-    - _localId: n_5oeoqq2
-      id: chronicle-aurora-css
+    - id: chronicle-aurora-css
       type: post
-  _localId: n_b8xz3fa
 - name: AuthorDNA
   description: the offical docs of AuthorDNA, an AI-powered writing assistant.
   cover: asset://1780412391392_8rqy_2026-06-02225940.png
@@ -63,5 +48,3 @@
   nodes:
     - id: 249931ea-c899-45a5-9daa-9b6fe0089a41
       type: post
-      _localId: n_ahyusmh
-  _localId: n_tfx3wy0
