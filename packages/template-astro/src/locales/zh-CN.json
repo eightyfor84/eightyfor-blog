@@ -20,7 +20,10 @@
     "prevPost": "上一篇",
     "nextPost": "下一篇",
     "noPrev": "已经是第一篇",
-    "noNext": "已经是最后一篇"
+    "noNext": "已经是最后一篇",
+    "attitudePrompt": "觉得这篇文章怎么样？",
+    "attitudeLike": "喜欢",
+    "attitudeDislike": "不喜欢"
   },
   "inblog": {
     "toc-title": "目录",

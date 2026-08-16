@@ -407,7 +407,7 @@ const metaDescription = buildMetaDescription(post, locale);
     ) : null}
 
     {post && attitudeEnabled && (
-      <AttitudeButtons postId={post?.id || id} walineServerUrl={commentWalineServerUrl} />
+      <AttitudeButtons postId={post?.id || id} walineServerUrl={commentWalineServerUrl} locale={locale} />
     )}
 
     {post && commentsEnabled && (

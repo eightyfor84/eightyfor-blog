@@ -20,7 +20,10 @@
     "prevPost": "Previous",
     "nextPost": "Next",
     "noPrev": "This is the first post",
-    "noNext": "This is the last post"
+    "noNext": "This is the last post",
+    "attitudePrompt": "What do you think of this article?",
+    "attitudeLike": "Like",
+    "attitudeDislike": "Dislike"
   },
   "inblog": {
     "toc-title": "Table of Contents",

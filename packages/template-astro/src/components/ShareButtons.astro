@@ -53,13 +53,14 @@ const COPY_ICON = '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" s
     const base = location.origin;
     // 复制成功后图标变对钩，1.5s 后恢复
     const DONE_ICON = '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>';
-    const done = (btn: HTMLElement) => {
+    const done = (btn) => {
       const old = btn.innerHTML;
       btn.innerHTML = DONE_ICON;
       setTimeout(() => { btn.innerHTML = old; }, 1500);
     };
+    const bind = () => {
     document.addEventListener('click', (e) => {
-      const btn = (e.target as HTMLElement).closest?.('.share-btn') as HTMLElement | null;
+      const btn = (e.target).closest?.('.share-btn');
       if (!btn) return;
       const kind = btn.dataset.share;
       const rel = btn.dataset.url || '';
@@ -82,14 +83,14 @@ const COPY_ICON = '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" s
         copyText(abs, btn);
       }
     });
-    function copyText(text: string, btn: HTMLElement) {
+    function copyText(text, btn) {
       if (navigator.clipboard?.writeText) {
         navigator.clipboard.writeText(text).then(() => done(btn)).catch(() => fallbackCopy(text, btn));
       } else {
         fallbackCopy(text, btn);
       }
     }
-    function fallbackCopy(text: string, btn: HTMLElement) {
+    function fallbackCopy(text, btn) {
       const ta = document.createElement('textarea');
       ta.value = text;
       ta.style.position = 'fixed'; ta.style.opacity = '0';
@@ -97,6 +98,20 @@ const COPY_ICON = '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" s
       ta.select();
       try { document.execCommand('copy'); done(btn); } catch {}
       document.body.removeChild(ta);
+    }
+    };
+
+    // 进视口才绑定分享事件（底部控件懒加载——脚本按需初始化）
+    const root = document.querySelector('.share-buttons');
+    if (root) {
+      if ('IntersectionObserver' in window) {
+        const io = new IntersectionObserver((entries, obs) => {
+          if (entries.some(e => e.isIntersecting)) { obs.disconnect(); bind(); }
+        });
+        io.observe(root);
+      } else {
+        bind();
+      }
     }
   })();
 </script>
@@ -106,5 +121,6 @@ const COPY_ICON = '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" s
   .share-btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.8rem; border-radius: 8px;
     background: transparent; color: var(--app-text-sec); border: none;
     cursor: pointer; transition: background 0.15s ease, color 0.15s ease; }
+  .share-btn span { width: 24px; height: 24px; }
   .share-btn:hover { background: var(--hover);color: var(--app-text-pri); }
 </style>

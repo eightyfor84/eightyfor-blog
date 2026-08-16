@@ -1,20 +1,27 @@
 ---
+import { getTranslation, type Locale } from '../utils/i18n';
+
 interface Props {
   postId: string;
   walineServerUrl: string;
+  locale: Locale;
 }
-const { postId, walineServerUrl } = Astro.props as Props;
+const { postId, walineServerUrl, locale } = Astro.props as Props;
+const t = (key: string) => getTranslation(locale, key);
 ---
 
 <div class="attitude" data-waline-server={walineServerUrl} data-post-id={postId}>
-  <button type="button" class="attitude-btn" data-reaction="0" disabled aria-label="Like">
-    <span class="attitude-icon">👍</span>
-    <span class="attitude-count" data-count-for="0">0</span>
-  </button>
-  <button type="button" class="attitude-btn" data-reaction="1" disabled aria-label="Dislike">
-    <span class="attitude-icon">👎</span>
-    <span class="attitude-count" data-count-for="1">0</span>
-  </button>
+  <p class="attitude-prompt">{t('postPage.attitudePrompt')}</p>
+  <div class="attitude-btns">
+    <button type="button" class="attitude-btn" data-reaction="0" disabled aria-label={t('postPage.attitudeLike')}>
+      <svg class="attitude-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      <span class="attitude-count" data-count-for="0">0</span>
+    </button>
+    <button type="button" class="attitude-btn" data-reaction="1" disabled aria-label={t('postPage.attitudeDislike')}>
+      <svg class="attitude-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/><line x1="3" y1="21" x2="21" y2="3"/></svg>
+      <span class="attitude-count" data-count-for="1">0</span>
+    </button>
+  </div>
 </div>
 
 <script is:inline>
@@ -40,6 +47,7 @@ const { postId, walineServerUrl } = Astro.props as Props;
       try { localStorage.setItem(storageKey, String(i)); } catch {}
     }
 
+    function init() {
     // 1. Load counts
     fetch(server + '/api/reaction?path=' + encodeURIComponent(path), { headers: { Accept: 'application/json' } })
       .then((r) => (r.ok ? r.json() : null))
@@ -79,17 +87,33 @@ const { postId, walineServerUrl } = Astro.props as Props;
         })
         .catch(() => { btn.disabled = false; });
     });
+    }
+
+    // 进视口才初始化（Waline 请求按需触发，避免页面加载即拉取）
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver((entries, obs) => {
+        if (entries.some(e => e.isIntersecting)) { obs.disconnect(); init(); }
+      });
+      io.observe(root);
+    } else {
+      init();
+    }
   })();
 </script>
 
+
 <style>
-  .attitude { display: inline-flex; gap: 0.6rem; margin: 0.25rem 0 0.5rem; }
-  .attitude-btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.9rem; border-radius: 999px;
-    border: 1px solid var(--border-color); background: var(--comp-bg-blur); color: var(--app-text-pri);
-    font-size: 0.85rem; cursor: pointer; transition: border-color 0.15s ease; }
-  .attitude-btn:hover:not(:disabled) { border-color: var(--accent); }
-  .attitude-btn.voted { border-color: var(--accent); color: var(--accent); }
+  /* share-btn 同款：大 SVG 图标在上、较淡小字计数在下、透明背景 hover 高亮 */
+  .attitude { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; margin: 1rem 0; }
+  .attitude-prompt { margin: 0; font-size: 0.85rem; opacity: 0.72; }
+  .attitude-btns { display: flex; gap: 0.6rem; }
+  .attitude-btn { display: inline-flex; flex-direction: column; align-items: center; gap: 0.2rem;
+    padding: 0.5rem 0.9rem; border-radius: 8px; border: none; background: transparent;
+    color: var(--app-text-sec); cursor: pointer; transition: background 0.15s ease, color 0.15s ease; }
+  .attitude-btn:hover:not(:disabled) { background: var(--hover); color: var(--app-text-pri); }
+  .attitude-btn.voted { color: var(--accent); }
+  .attitude-btn.voted .attitude-icon { fill: currentColor; }
   .attitude-btn:disabled { opacity: 0.55; cursor: default; }
-  .attitude-icon { line-height: 1; }
-  .attitude-count { font-variant-numeric: tabular-nums; }
+  .attitude-icon { width: 22px; height: 22px; }
+  .attitude-count { font-size: 0.72rem; opacity: 0.6; font-variant-numeric: tabular-nums; }
 </style>
