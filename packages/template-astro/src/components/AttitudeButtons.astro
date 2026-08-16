@@ -24,77 +24,78 @@ const t = (key: string) => getTranslation(locale, key);
   </div>
 </div>
 
+
 <script is:inline>
   // Waline reaction (article reaction counts). Waline stores up to 9 emoji
   // reaction counts per path; here reaction0 = like, reaction1 = dislike.
   // Server API: Waline 计数端点 GET/POST /api/article（type: reaction0/reaction1, action: inc/desc）。
-  // Degrades gracefully when the API shape differs or the server is unreachable.
+  // NOTE: is:inline script is output verbatim — keep this file plain JS (no TS annotations).
   (() => {
-    const root = document.querySelector('.attitude') as HTMLElement | null;
+    const root = document.querySelector('.attitude');
     if (!root) return;
     const server = (root.dataset.walineServer || '').replace(/\/$/, '');
     if (!server) { root.remove(); return; }
     const lang = root.dataset.lang || 'zh-CN';
     const path = location.pathname;
     const storageKey = 'chronicle-attitude:' + path;
-    const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>('.attitude-btn'));
-    const countEls = Array.from(root.querySelectorAll<HTMLElement>('[data-count-for]'));
+    const buttons = Array.from(root.querySelectorAll('.attitude-btn'));
+    const countEls = Array.from(root.querySelectorAll('[data-count-for]'));
 
-    function setCount(i: number, n: number) {
+    function setCount(i, n) {
       countEls.forEach((el) => { if (el.dataset.countFor === String(i)) el.textContent = String(n); });
     }
-    function lockVote(i: number) {
+    function lockVote(i) {
       buttons.forEach((b, idx) => { b.classList.toggle('voted', idx === i); b.disabled = true; });
-      try { localStorage.setItem(storageKey, String(i)); } catch {}
+      try { localStorage.setItem(storageKey, String(i)); } catch (e) {}
     }
 
     function init() {
-    // 1. Load counts — Waline 计数 API：GET /api/article?path=&type=reaction0,reaction1&lang=
-    fetch(server + '/api/article?path=' + encodeURIComponent(path) + '&type=reaction0,reaction1&lang=' + encodeURIComponent(lang), { headers: { Accept: 'application/json' } })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((json: any) => {
-        // Waline 计数返回 { errno: 0, data: [{reaction0, reaction1}] }（数组按 path 顺序）
-        const d = Array.isArray(json?.data) ? (json.data[0] ?? {}) : (json?.data ?? json);
-        const c0 = Number(d?.reaction0 ?? 0);
-        const c1 = Number(d?.reaction1 ?? 0);
-        setCount(0, c0); setCount(1, c1);
-        buttons.forEach((b) => { b.disabled = false; });
-        // Re-apply a previous vote for this path (local-only).
-        try {
-          const v = localStorage.getItem(storageKey);
-          if (v !== null) lockVote(Number(v));
-        } catch {}
-      })
-      .catch(() => {
-        // Server unreachable / shape mismatch — keep the widget but non-interactive.
-        buttons.forEach((b) => { b.disabled = true; });
-      });
-
-    // 2. Submit vote
-    root.addEventListener('click', (e) => {
-      const btn = (e.target as HTMLElement).closest?.('.attitude-btn') as HTMLButtonElement | null;
-      if (!btn || btn.disabled) return;
-      const i = Number(btn.dataset.reaction);
-      btn.disabled = true;
-      fetch(server + '/api/article?lang=' + encodeURIComponent(lang), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ path, type: 'reaction' + i, action: 'inc' }),
-      })
+      // 1. Load counts — Waline 计数 API：GET /api/article?path=&type=reaction0,reaction1&lang=
+      fetch(server + '/api/article?path=' + encodeURIComponent(path) + '&type=reaction0,reaction1&lang=' + encodeURIComponent(lang), { headers: { Accept: 'application/json' } })
         .then((r) => (r.ok ? r.json() : null))
-        .then(() => {
-          const cur = Number(countEls[i]?.textContent || 0);
-          setCount(i, cur + 1);
-          lockVote(i);
+        .then((json) => {
+          // Waline 计数返回 { errno: 0, data: [{reaction0, reaction1}] }（数组按 path 顺序）
+          const d = Array.isArray(json && json.data) ? (json.data[0] || {}) : (json && json.data) || json;
+          const c0 = Number(d.reaction0 || 0);
+          const c1 = Number(d.reaction1 || 0);
+          setCount(0, c0); setCount(1, c1);
+          buttons.forEach((b) => { b.disabled = false; });
+          // Re-apply a previous vote for this path (local-only).
+          try {
+            const v = localStorage.getItem(storageKey);
+            if (v !== null) lockVote(Number(v));
+          } catch (e) {}
         })
-        .catch(() => { btn.disabled = false; });
-    });
+        .catch(() => {
+          // Server unreachable / shape mismatch — keep the widget but non-interactive.
+          buttons.forEach((b) => { b.disabled = true; });
+        });
+
+      // 2. Submit vote
+      root.addEventListener('click', (e) => {
+        const btn = (e.target).closest && (e.target).closest('.attitude-btn');
+        if (!btn || btn.disabled) return;
+        const i = Number(btn.dataset.reaction);
+        btn.disabled = true;
+        fetch(server + '/api/article?lang=' + encodeURIComponent(lang), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ path: path, type: 'reaction' + i, action: 'inc' }),
+        })
+          .then((r) => (r.ok ? r.json() : null))
+          .then(() => {
+            const cur = Number(countEls[i] && countEls[i].textContent || 0);
+            setCount(i, cur + 1);
+            lockVote(i);
+          })
+          .catch(() => { btn.disabled = false; });
+      });
     }
 
     // 进视口才初始化（Waline 请求按需触发，避免页面加载即拉取）
     if ('IntersectionObserver' in window) {
       const io = new IntersectionObserver((entries, obs) => {
-        if (entries.some(e => e.isIntersecting)) { obs.disconnect(); init(); }
+        if (entries.some((e) => e.isIntersecting)) { obs.disconnect(); init(); }
       });
       io.observe(root);
     } else {
@@ -102,7 +103,6 @@ const t = (key: string) => getTranslation(locale, key);
     }
   })();
 </script>
-
 
 <style>
   /* share-btn 同款：大 SVG 图标在上、较淡小字计数在下、透明背景 hover 高亮 */
