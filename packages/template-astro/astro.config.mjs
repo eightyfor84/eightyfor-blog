@@ -73,7 +73,7 @@ function markdownToPlainText(md) {
 }
 
 export default defineConfig({
-  site: process.env.CHRONICLE_SITE_URL || siteConfig?.frontendUrl || 'http://localhost:4321',
+  site: siteConfig?.frontendUrl || 'http://localhost:4321',
   output: 'static',
   // Deferred prefetch — Astro's built-in `prefetch` config injects prefetch.js +
   // preload-helper.js (~4 KiB) into the initial bundle, hurting FCP. Instead, we

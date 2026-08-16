@@ -76,7 +76,7 @@ Typical CI config (GitHub Actions, Cloudflare Pages, etc.): `npm install && npx 
 
 Set **`frontendUrl`** in `data/site.yml` to your absolute site URL (e.g. `https://blog.example.com`).
 It powers absolute links in the RSS feed, `sitemap.xml`, and the `Sitemap:` line in `robots.txt`.
-Leave it empty to fall back to the build site URL (`CHRONICLE_SITE_URL` env or the default).
+Leave it empty to fall back to the build default (`http://localhost:4321`).
 
 ## License
 
