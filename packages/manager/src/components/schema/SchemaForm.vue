@@ -80,10 +80,45 @@ const activeTab = computed(() => {
 })
 
 // ── Parse schema into tabs → groups → fields ──
+/** 根 fieldset 展开（模块级，getValue/evaluate 共享）：顶层唯一分组 fieldset（如 post）
+ *  深度平铺其子分组——组字段即叶子属性（post.toc.enabled 等，继承父组 x-group），
+ *  UI 与扁平结构完全一致（组卡片 + 组开关），数据读写走 post.* 路径。 */
+const expandedRoot = computed<Record<string, any> | null>(() => {
+  const raw = (props.schema.properties || {}) as Record<string, any>
+  const entries = Object.entries(raw) as [string, Record<string, any>][]
+  const fieldsets = entries.filter(([, v]) => v && v['x-widget'] === 'fieldset')
+  if (fieldsets.length === 0) return null
+  if (fieldsets.length === 1) {
+    const [rootKey, rootSchema] = fieldsets[0]
+    const sub = (rootSchema.properties || {}) as Record<string, any>
+    const subHasGroups = Object.values(sub).some((v: any) => v && v['x-group'])
+    if (subHasGroups && Object.keys(sub).length > 0) {
+      const map: Record<string, any> = {}
+      for (const [k, v] of Object.entries(sub)) {
+        if (v && v['x-widget'] === 'fieldset') {
+          // 子分组 fieldset → 深度平铺叶子属性，继承父分组 x-group
+          for (const [sk, sv] of Object.entries((v.properties || {}) as Record<string, any>)) {
+            map[`${rootKey}.${k}.${sk}`] = { ...(sv as Record<string, any>), 'x-group': v['x-group'] }
+          }
+        } else {
+          map[`${rootKey}.${k}`] = v
+        }
+      }
+      // 顶层非 fieldset 字段（如 comments 总开关）保留并入对应组
+      for (const [k, v] of entries) {
+        if (!(v && v['x-widget'] === 'fieldset')) map[k] = v
+      }
+      return map
+    }
+  }
+  return null
+})
+
 const tabs = computed<TabDef[]>(() => {
   const xnav = props.schema['x-nav'] || {}
   const tabDefs = xnav.tabs || {}
-  const propsMap = props.schema.properties || {}
+  // 根 fieldset 展开（模块级 expandedRoot）：UI 与扁平结构完全一致，数据读写走 post.* 路径
+  const propsMap = expandedRoot.value || props.schema.properties || {}
 
   // Collect all field keys, sort by x-order
   const allKeys = Object.keys(propsMap).sort((a, b) => {
@@ -146,7 +181,8 @@ function buildGroups(fieldKeys: string[], propsMap: Record<string, any>, xGroups
     .map(([key, g]) => {
       // A group's toggle field (x-groups[].toggle → a boolean property key) is
       // rendered once above the rest and excluded from the detail fields.
-      const toggleField = g.toggle ? g.fields.find(f => f.key === g.toggle) : undefined
+      // toggle 匹配：扁平顶层（f.key === g.toggle）或展开树（f.key 以 .enabled 结尾等）
+      const toggleField = g.toggle ? g.fields.find(f => f.key === g.toggle || f.key.endsWith('.' + g.toggle)) : undefined
       const fields = g.toggle ? g.fields.filter(f => f.key !== g.toggle) : g.fields
       return { key, label: g.label, order: g.order, toggleField, fields }
     })
@@ -208,19 +244,45 @@ function evaluateCondition(
 }
 
 function isFieldVisible(schema: Record<string, any>): boolean {
-  return evaluateCondition(schema['x-visible-when'], props.data, props.schema?.properties)
+  return evaluateCondition(schema['x-visible-when'], props.data, expandedRoot.value || props.schema?.properties)
 }
 
 // ── Data access ──
+
+/** Resolve a dot path like "post.toc" against a data object. */
+function resolvePath(data: Record<string, any> | undefined, key: string): any {
+  if (!data) return undefined
+  let value: any = data
+  for (const p of key.split('.')) {
+    if (value == null || typeof value !== 'object') return undefined
+    value = value[p]
+  }
+  return value
+}
+
+/** Set a dot path like "post.toc" — shallow-clones each level, returns new object. */
+function setPath(data: Record<string, any>, key: string, val: any): Record<string, any> {
+  const parts = key.split('.')
+  const clone: Record<string, any> = { ...data }
+  let node = clone
+  for (let i = 0; i < parts.length - 1; i++) {
+    const p = parts[i]
+    node[p] = { ...(node[p] || {}) }
+    node = node[p]
+  }
+  node[parts[parts.length - 1]] = val
+  return clone
+}
+
 function getValue(key: string): any {
-  const schema = props.schema.properties?.[key]
-  const val = props.data?.[key]
+  const schema = (expandedRoot.value || props.schema.properties)?.[key]
+  const val = resolvePath(props.data, key)
   if (val !== undefined) return val
   return schema?.default
 }
 
 function setValue(key: string, val: any) {
-  emit('update:data', { ...props.data, [key]: val })
+  emit('update:data', setPath(props.data, key, val))
 }
 
 function onFieldMeta(key: string, val: any) {

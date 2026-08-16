@@ -1,30 +1,14 @@
-postMeta: "{}"
-postTocEnabled: true
-postToc: {}
-postCollectionNavEnabled: true
-postCollectionNav: {}
-postEndOfArticle:
-  share: true
-  shareChannels:
-    - twitter
-    - linkedin
-    - weibo
-  prevNextMode: next-only
-  prevNextScope: collection
 comments: true
-postComments:
-  backend: waline
-  walineServerUrl: https://aurora-comments.eightyfor.top
-  imageUploadEnabled: false
 siteName: Chronicle Demo
-siteDescription: A local-first, git-backed Jamstack blogging platform. Write in Markdown, sync with Git, deploy anywhere.
-icpNumber: ""
+siteDescription: A local-first, git-backed Jamstack blogging platform. Write in Markdown,
+  sync with Git, deploy anywhere.
+icpNumber: ''
 homepageMode: split
 singleColumnHomepage: false
 cardVisibility: {}
 recentUpdates: {}
 frontendTheme: follow
-frontendAccent: "#36a32e"
+frontendAccent: '#36a32e'
 frontendFont: sans
 frontendLocale: follow
 defaultPerformanceMode: auto
@@ -36,28 +20,32 @@ aboutPage: true
 friendsPage: true
 analytics:
   enabled: false
-  backend: ""
-  gaMeasurementId: ""
-  cloudflareToken: ""
-  umamiServerUrl: ""
-  umamiWebsiteId: ""
-  plausibleServerUrl: ""
-  plausibleDomain: ""
-  baiduId: ""
+  backend: ''
+  gaMeasurementId: ''
+  cloudflareToken: ''
+  umamiServerUrl: ''
+  umamiWebsiteId: ''
+  plausibleServerUrl: ''
+  plausibleDomain: ''
+  baiduId: ''
 rss: true
-frontendBackgroundColorLight: ""
-frontendBackgroundColorDark: ""
+frontendBackgroundColorLight: ''
+frontendBackgroundColorDark: ''
 post:
-  meta:
-    metaAuthor: true
-    metaCreated: true
-    metaUpdated: true
-    metaWords: true
-    metaReadingTime: true
-    metaAiBadge: true
-    showTags: true
+  meta: {}
   toc:
-    tocEnabled: true
-    inlineToc: true
-    tocFloat: true
-    tocFloatCollapsed: true
+    enabled: true
+  collectionNav:
+    enabled: true
+  endOfArticle:
+    share: true
+    shareChannels:
+    - twitter
+    - linkedin
+    - weibo
+    prevNextMode: next-only
+    prevNextScope: collection
+  comments:
+    backend: waline
+    walineServerUrl: https://aurora-comments.eightyfor.top
+    imageUploadEnabled: false

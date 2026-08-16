@@ -285,9 +285,19 @@ function normalizePostConfig(raw: unknown): PostPageConfig {
   const out: Record<string, any> = {};
   for (const key of Object.keys(POST_PAGE_DEFAULTS)) {
     const def = (POST_PAGE_DEFAULTS as Record<string, any>)[key];
-    // Legacy key mapping: post.meta → postMeta, post.toc → postToc, …
-    const legacyKey = { postMeta: 'meta', postToc: 'toc', postCollectionNav: 'collectionNav', postEndOfArticle: 'endOfArticle', postComments: 'comments' }[key];
-    const val = src[key] ?? (legacyKey ? legacy[legacyKey] : undefined);
+    // Legacy/tree key mapping: post.meta → postMeta, post.toc → postToc,
+    // post.toc.enabled → postTocEnabled, …（树结构与旧扁平 site.yml 双兼容）
+    const legacyKey = { postMeta: 'meta', postToc: 'toc', postCollectionNav: 'collectionNav', postEndOfArticle: 'endOfArticle', postComments: 'comments', postTocEnabled: 'toc.enabled', postCollectionNavEnabled: 'collectionNav.enabled' }[key];
+    let legacyVal: unknown
+    if (legacyKey) {
+      // 支持点路径（toc.enabled）
+      legacyVal = legacy
+      for (const p of String(legacyKey).split('.')) {
+        if (legacyVal == null || typeof legacyVal !== 'object') { legacyVal = undefined; break }
+        legacyVal = (legacyVal as Record<string, any>)[p]
+      }
+    }
+    const val = src[key] ?? legacyVal;
     if (val && typeof val === 'object' && !Array.isArray(val) && def && typeof def === 'object') {
       out[key] = { ...def, ...val };
     } else {
