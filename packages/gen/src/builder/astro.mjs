@@ -184,33 +184,12 @@ export async function runBuild({ dataDir, codeDir, targetDir, granularity }) {
 
 export function buildCommand(argv = []) {
   const args = parseArgs(argv);
-  // Check for --site / -s flag
-  let siteDir = null;
-  for (let i = 0; i < argv.length; i++) {
-    if (argv[i] === '--site' || argv[i] === '-s') {
-      siteDir = argv[i + 1] && !argv[i + 1].startsWith('-') ? argv[++i] : join(process.cwd(), 'site');
-    }
-  }
-
-  // If --site, convert site/ → data/ first
-  if (siteDir !== null) {
-    const dataDir = args.dataDir || join(process.cwd(), 'data');
-    console.log(`[chronicle-gen] Converting site/ → data/ (site: ${siteDir}, data: ${dataDir})`);
-    import('../commands/convert.mjs').then(async ({ convertSite }) => {
-      const convResult = await convertSite(siteDir, dataDir);
-      if (!convResult.success) { process.exit(1); }
-      args.dataDir = args.dataDir || dataDir;
-      await doBuild(args);
-    });
-    return;
-  }
-
   doBuild(args);
 }
 
 async function doBuild(args) {
   if (!args.dataDir || !args.codeDir || !args.targetDir) {
-    console.error('Usage: npx chronicle-gen build --dataDir <path> --codeDir <path> --targetDir <path> [--granularity full|posts|index] [--site <path>]');
+    console.error('Usage: npx chronicle-gen build --dataDir <path> --codeDir <path> --targetDir <path> [--granularity full|posts|index]');
     process.exit(1);
   }
 

@@ -2,19 +2,16 @@
  * Chronicle Template — Local Data Source
  *
  * Reads content directly from the filesystem at build time.
- * Enables the `lite` variant: build without a running backend.
- *
- * isLocalMode: unified switch — true when data/ is the primary source
- * (lite/static builds with local filesystem data, no API backend).
+ * No API backend — data/ is the primary source.
  */
 
-/** Unified data-source mode. Controlled by DATA_SOURCE env var.
- *  DATA_SOURCE=local  (default) → local filesystem via localDataSource
- *  DATA_SOURCE=api                 → remote API via host */
+/** Unified data-source mode. Always local in Aurora (no API backend). */
 export const isLocalMode = process.env.DATA_SOURCE !== 'api';
 
-// Emit data-source info at build time
-console.info(`[Chronicle] 📦 数据源: ${isLocalMode ? '本地文件系统 (localDataSource)' : `远程 API (${process.env.API_BASE_URL || 'host'})`}`);
+// Emit data-source info at build time (dev only)
+if (import.meta.env.DEV) {
+  console.info('[Chronicle] 📦 数据源: 本地文件系统 (localDataSource)');
+}
 
 /**
  * Usage:
@@ -31,33 +28,6 @@ import path from 'node:path';
 import YAML from 'yaml';
 import crypto from 'node:crypto';
 import { renderChronicleMarkdown, setRenderPostId } from '../utils/chronicleMarkdown';
-
-// ── Crypto (mirrors host/src/middleware/auth.js) ──────
-
-const ALGORITHM = 'aes-256-cbc';
-const SECRET_KEY = crypto.scryptSync('chronicle-secret-key-123', 'salt', 32);
-
-function decrypt(text: string): string {
-    if (!text || typeof text !== 'string') return '';
-    const parts = text.split(':');
-    if (parts.length < 2) return text;
-    const [ivHex, ...rest] = parts;
-    const encryptedText = rest.join(':');
-    if (!ivHex || !encryptedText) return text;
-    try {
-        const iv = Buffer.from(ivHex, 'hex');
-        const decipher = crypto.createDecipheriv(ALGORITHM, SECRET_KEY, iv);
-        let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
-        decrypted += decipher.final('utf8');
-        return decrypted;
-    } catch (e) {
-        return ''; // decrypt failed
-    }
-}
-
-function isEncryptedContent(raw: string): boolean {
-    return /^[0-9a-fA-F]+:/.test(raw);
-}
 
 /** Resolve asset:// protocol to /assets/ (public URL) */
 function resolveAssetUrl(url: string): string {
@@ -240,7 +210,6 @@ function resolveDataDir(): string {
 const DATA_DIR = resolveDataDir();
 const POSTS_DIR = path.join(DATA_DIR, 'posts');
 const INDEX_FILE = path.join(POSTS_DIR, 'index.json');
-const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json'); // gen-built from site.yml
 const COLLECTION_FILE = path.join(DATA_DIR, 'collections.yml');
 const FRIENDS_FILE = path.join(DATA_DIR, 'friends.yml');
 const PROFILE_FILE = path.join(DATA_DIR, 'profile.yml');
@@ -345,7 +314,7 @@ function normalizeDate(raw: unknown): string {
     return Number.isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
 }
 
-/** Scan posts/ directory and build PostMeta array from individual *-content.md files */
+/** Scan posts/ directory and build PostMeta array from index.md files (fallback when index.json is missing) */
 function scanPostsFromDisk(): PostMeta[] {
     const posts: PostMeta[] = [];
 
@@ -357,28 +326,21 @@ function scanPostsFromDisk(): PostMeta[] {
         const dir = entry.name;
         const dirPath = path.join(POSTS_DIR, dir);
 
-        // Find the *-content.md file in this directory
-        const files = fs.readdirSync(dirPath).filter(f => f.endsWith('-content.md'));
-        if (files.length === 0) continue;
-        const contentFile = files[0];
-        const id = contentFile.replace('-content.md', '');
+        // Read the post body (data/posts/<id>/index.md)
+        const contentFile = 'index.md';
+        const id = dir;
+        const mdPath = path.join(dirPath, contentFile);
+        if (!fs.existsSync(mdPath)) continue;
 
         let raw: string;
         try {
-            raw = fs.readFileSync(path.join(dirPath, contentFile), 'utf-8');
+            raw = fs.readFileSync(mdPath, 'utf-8');
         } catch {
             continue;
         }
 
-        // Handle encrypted content
-        let effectiveContent = raw;
-        if (isEncryptedContent(raw)) {
-            const dec = decrypt(raw);
-            if (dec) effectiveContent = dec;
-        }
-
         // Parse frontmatter
-        const attrs = parseFrontmatterYaml(effectiveContent);
+        const attrs = parseFrontmatterYaml(raw);
 
         posts.push({
             id,
@@ -394,7 +356,7 @@ function scanPostsFromDisk(): PostMeta[] {
             collectionPath: attrs.collectionPath ? String(attrs.collectionPath) : undefined,
             author: attrs.author ? String(attrs.author) : undefined,
             aiGenerated: !!attrs.aiGenerated,
-            type: attrs.type || attrs.marp ? 'slides' : undefined,
+            type: (attrs.type === 'slides' || !!attrs.marp) ? 'slides' : (String(attrs.type || '') || undefined),
             slideshow: attrs.slideshow || undefined,
             dir,
             toc: [],
@@ -505,12 +467,11 @@ export function searchPosts(keyword: string, tags?: string[]): PostMeta[] {
 
 // ── Settings ─────────────────────────────────────────────
 
-/** Read friends data from friends.json, with settings.json fallback */
+/** Read friends data from friends.yml */
 function readFriendsFromFile(): { cards: unknown[]; globalStyle: string | null } {
     const data = readDataFile(FRIENDS_FILE)
-    const result = data ? { cards: data.cards || [], globalStyle: data.globalStyle || null }
-      : (readDataFile(SETTINGS_FILE) ? { cards: (readDataFile(SETTINGS_FILE) || {} as any).friendsCards || [], globalStyle: (readDataFile(SETTINGS_FILE) || {} as any).friendsGlobalStyle || null } : null)
-    if (!result) return { cards: [], globalStyle: null }
+    if (!data) return { cards: [], globalStyle: null }
+    const result = { cards: data.cards || [], globalStyle: data.globalStyle || null }
     // Resolve asset:// URLs in card data
     result.cards = (result.cards || []).map((c: any) => ({
       ...c,
@@ -530,9 +491,9 @@ function readFriendsGlobalStyle(): string | null {
 
 /** Get public-safe settings */
 export function getPublicSettings(): LocalSettings {
-    // Aurora: read from data/site.yml, fall back to legacy settings.json
+    // Aurora: read from data/site.yml (single source of truth)
     const siteYml = path.join(DATA_DIR, 'site.yml');
-    let raw = readDataFile(siteYml) || readDataFile(SETTINGS_FILE) || {}
+    let raw = readDataFile(siteYml) || {}
     return {
         siteName: raw.siteName || raw.sitename || raw.site_name,
         siteDescription: raw.siteDescription || '',

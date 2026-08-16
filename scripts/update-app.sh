@@ -84,7 +84,7 @@ if [ -z "$UPSTREAM_REMOTE" ]; then
   say "    2. An \"origin\" remote whose URL contains \"chronicle-aurora\""
   say ""
   say "  Add the upstream remote manually, for example:"
-  say "    git remote add upstream https://github.com/eightyfor/chronicle-aurora.git"
+  say "    git remote add upstream https://github.com/vanvanhasnophi/chronicle-aurora.git"
   exit 1
 fi
 

@@ -14,10 +14,9 @@ function mergeVaryHeader(current: string | null, value: string): string {
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const pathname = context.url.pathname;
-  const isApiPath = pathname.startsWith('/api/');
   const isCssAsset = pathname.endsWith('.css') || (pathname.startsWith('/_astro/') && pathname.includes('.css'));
   const hasExtension = /\.[a-zA-Z0-9]+$/.test(pathname);
-  const isHtmlPage = !isApiPath && !isCssAsset && !hasExtension;
+  const isHtmlPage = !isCssAsset && !hasExtension;
 
   const routeLocale = getRouteLocaleFromPath(pathname);
   // Static SSG: locale is determined by URL prefix (/zh/ or /en/).

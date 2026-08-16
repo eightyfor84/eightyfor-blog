@@ -44,11 +44,7 @@ export interface EditorSessionOptions {
   // i18n / 通知 / 网络
   t: (key: string) => string
   showToast: (msg: string, opts?: any) => void
-  fetchWithAuth: any
   // 认证
-  isCloudAuthenticated: () => boolean
-  refreshCloudAuthState: () => boolean
-  goToLogin: (nextUrl: string) => void
   // Frontmatter state（会被 initLoad 写入）
   postId: Ref<string | null>
   postTitle: Ref<string>
@@ -93,7 +89,6 @@ export interface EditorSessionOptions {
 export function useEditorSession(options: EditorSessionOptions) {
   const {
     editorType, editorQueryId, editorBasePath, route, router, t, showToast,
-    isCloudAuthenticated, refreshCloudAuthState, goToLogin, fetchWithAuth,
     postId, postTitle, isDefaultTitle, postStatus, postDate, postUpdated,
     postTags, postSlug, postFont, postAuthor, postAIGenerated, slideshowConfig,
     localValue, savedContent, savedFm, buildSavedFm,
@@ -273,7 +268,7 @@ export function useEditorSession(options: EditorSessionOptions) {
     let apiPost: ApiPost
     if (params.source === 'cloud') {
       if (!params.id) throw new Error('openPost cloud requires id')
-      const detail = await fetchPost(fetchWithAuth, params.id)
+      const detail = await fetchPost(params.id)
       if (!detail) { skeletonStatus.value = 'editor.skeletonValidatingId'; throw new Error('POST_NOT_FOUND') }
       // 版本冲突
       const draft = getDraft(params.id)
@@ -297,7 +292,7 @@ export function useEditorSession(options: EditorSessionOptions) {
       if (!params.text) throw new Error('openPost local requires text')
       apiPost = localFileToApiFormat(params.text, params.filename || 'untitled.md', params.handle)
     } else {
-      const data = await fetchAbout(fetchWithAuth)
+      const data = await fetchAbout()
       if (!data) throw new Error('Failed to load about')
       apiPost = aboutToApiPost(data)
     }
@@ -324,8 +319,6 @@ export function useEditorSession(options: EditorSessionOptions) {
     if (initLoadActive) return
     initLoadActive = true
     try {
-      refreshCloudAuthState()
-
       // 启动骨架屏计时器
       skeletonStatus.value = 'editor.skeletonLoading'
       skeletonShowDirectEntry.value = false

@@ -1,5 +1,3 @@
-import buildSettings from '../data/settings.json';
-
 export type FeatureFlagKey =
   | 'searchSuggestions'
   | 'globalSearch'
@@ -37,9 +35,9 @@ export function normalizeFeatureFlags(input: any): FeatureFlags {
   };
 }
 
+/** Build-time defaults — constants only, no legacy settings.json source. */
 export function getBuildFeatureFlags(): FeatureFlags {
-  const raw = (buildSettings as any)?.featureFlags || buildSettings;
-  return normalizeFeatureFlags(raw);
+  return { ...DEFAULT_FEATURE_FLAGS };
 }
 
 export function resolveFeatureFlags(input?: any): FeatureFlags {
@@ -47,7 +45,7 @@ export function resolveFeatureFlags(input?: any): FeatureFlags {
     return normalizeFeatureFlags(input);
   }
 
-  return getBuildFeatureFlags() || DEFAULT_FEATURE_FLAGS;
+  return getBuildFeatureFlags();
 }
 
 export function isFeatureEnabled(input: any, key: FeatureFlagKey): boolean {

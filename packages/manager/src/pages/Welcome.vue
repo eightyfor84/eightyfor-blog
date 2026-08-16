@@ -10,11 +10,11 @@
 
     <!-- Cards -->
     <div class="card-row">
-      <button class="hero-card" @click="authChecked && isLoggedIn ? goConsole() : authChecked ? goLogin() : undefined" :style="{ opacity: authChecked ? 1 : 0.5 }">
+      <button class="hero-card" @click="goConsole">
         <div class="card-icon" v-html="Icons.columns"></div>
         <h2>{{ $t('welcome.console') }}</h2>
-        <p>{{ authChecked ? (isLoggedIn ? $t('welcome.enterHint') : $t('welcome.loginHint')) : $t('welcome.checking') }}</p>
-        <span class="card-arrow">{{ authChecked ? (isLoggedIn ? $t('welcome.enter') : $t('welcome.login')) : '…' }} →</span>
+        <p>{{ $t('welcome.enterHint') }}</p>
+        <span class="card-arrow">{{ $t('welcome.enter') }} →</span>
       </button>
 
       <button class="hero-card" @click="goEditor">
@@ -28,17 +28,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
 import StandaloneHeader from '../components/StandaloneHeader.vue'
 import { Icons } from '../utils/icons'
 
 const router = useRouter()
-const { t } = useI18n()
-// Aurora: local-first — always authenticated, no server ping needed
-const authChecked = ref(true)
-const isLoggedIn = ref(true)
 
 function goEditor()  { router.push('/editor') }
 function goConsole() { router.push('/dashboard') }

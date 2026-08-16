@@ -39,10 +39,6 @@ function readSiteConfig() {
     const siteYml = join(DATA_DIR, 'site.yml');
     if (existsSync(siteYml)) return YAML.parse(readFileSync(siteYml, 'utf-8')) || {};
   } catch {}
-  try {
-    const settingsJson = join(DATA_DIR, 'settings.json');
-    if (existsSync(settingsJson)) return JSON.parse(readFileSync(settingsJson, 'utf-8')) || {};
-  } catch {}
   return {};
 }
 
@@ -138,16 +134,8 @@ export default defineConfig({
     define: {
       __VERSION__: JSON.stringify(pkg.version),
       __YEAR__: new Date().getFullYear(),
-      'process.env.DATA_SOURCE': JSON.stringify(process.env.DATA_SOURCE || 'remote'),
+      'process.env.DATA_SOURCE': JSON.stringify(process.env.DATA_SOURCE || 'local'),
       'process.env.CHRONICLE_DATA_DIR': JSON.stringify(process.env.CHRONICLE_DATA_DIR || ''),
-    },
-    server: {
-      proxy: {
-        '/api': {
-          target: 'http://127.0.0.1:3000',
-          changeOrigin: true
-        },
-      }
     },
     optimizeDeps: {
       exclude: ['astro-icon'],

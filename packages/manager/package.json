@@ -69,8 +69,6 @@
     "@codemirror/state": "^6.6.0",
     "@codemirror/view": "^6.43.0",
     "@marp-team/marp-core": "^4.3.1",
-    "@simplewebauthn/browser": "^13.2.2",
-    "@simplewebauthn/server": "^13.2.2",
     "dompurify": "^3.4.9",
     "highlight.js": "^11.11.1",
     "js-yaml": "^5.2.1",

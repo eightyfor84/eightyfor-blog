@@ -65,11 +65,6 @@ function resolveMediaUrl(value: any) {
   const normalized = String(value || '').trim();
   if (!normalized) return '';
   if (/^https?:\/\//i.test(normalized)) return normalized;
-  if (normalized.startsWith('/server/data/') || normalized.startsWith('server/data/')) {
-    const base = mediaDomain;
-    const pathPart = normalized.replace(/^\/+/, '');
-    return base ? `${base}/${pathPart}` : `/${pathPart}`;
-  }
   return normalized;
 }
 
@@ -675,10 +670,11 @@ try {
         });
       })();
     </script>
-    <!-- Data source debug info -->
-    <script define:vars={{ isLocalMode }}>
-      console.info(`%c📦 Chronicle %c数据源: ${isLocalMode ? '%c本地文件系统 (localDataSource)' : '%c远程 API (host)'}%c | 构建模式: ${isLocalMode ? 'lite/static' : 'API'}`,
-        'font-weight:bold', '', isLocalMode ? 'color:#2ea35f;font-weight:bold' : 'color:#e06c75;font-weight:bold', '');
+    <!-- Data source debug info (dev only) -->
+    <script define:vars={{ isLocalMode }} is:inline>
+      if (import.meta.env.DEV) {
+        console.info('%c📦 Chronicle %c数据源: %c本地文件系统 (localDataSource)', 'font-weight:bold', '', 'color:#2ea35f;font-weight:bold');
+      }
     </script>
 
     <!-- tocController is lazily loaded by FloatingToc.astro (article pages) and

@@ -12,6 +12,7 @@ node_modules/
 
 # Agent
 CLAUDE.md
+.dsh/
 
 # Local dev docs (not committed)
 docs/

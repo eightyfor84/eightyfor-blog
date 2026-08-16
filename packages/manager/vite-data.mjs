@@ -27,102 +27,15 @@ const loadVideoConverter = () => requireCjs(join(__dirname, 'electron', 'video-c
 // Both produce identical output (posts + collection assignments in one pass).
 
 /** Parse simple YAML frontmatter from markdown text */
-function parseFrontmatter(raw) {
-  const fm = {}
-  if (!raw.startsWith('---')) return fm
-  const end = raw.indexOf('---', 3)
-  if (end === -1) return fm
-  const block = raw.slice(3, end)
-  for (const line of block.split('\n')) {
-    const m = line.match(/^(\w[\w-]*):\s*(.*)/)
-    if (!m) continue
-    const key = m[1]; let val = m[2].trim()
-    if (val === 'true') val = true
-    else if (val === 'false') val = false
-    else if (val === 'null' || val === '~' || val === '') val = null
-    else if (/^\d+(\.\d+)?$/.test(val)) val = Number(val)
-    else val = val.replace(/^"(.*)"$/, '$1').replace(/^'(.*)'$/, '$1')
-    if (key === 'tags' && typeof val === 'string') val = val.split(',').map(s => s.trim()).filter(Boolean)
-    fm[key] = val
-  }
-  return fm
-}
-
-/** Build collection→post reverse index from collections.yml */
-function buildCollectionIndex(dataDir) {
-  const map = new Map()
-  const file = join(dataDir, 'collections.yml')
-  if (!existsSync(file)) return map
-  try {
-    const data = YAML.parse(readFileSync(file, 'utf-8'))
-    const cols = Array.isArray(data) ? data : (data?.collections || [])
-    function walk(nodes, colName, parents) {
-      if (!Array.isArray(nodes)) return
-      for (const node of nodes) {
-        if (node?.type === 'post' && node.id) {
-          const cp = parents.length > 0 ? `${colName} / ${parents.join(' / ')}` : colName
-          map.set(String(node.id), { collection: colName, collectionPath: cp })
-        }
-        if (node?.type === 'group' && Array.isArray(node.children)) {
-          walk(node.children, colName, [...parents, node.title || 'Untitled'])
-        }
-      }
-    }
-    for (const col of cols) { if (col.name && Array.isArray(col.nodes)) walk(col.nodes, col.name, []) }
-  } catch {}
-  return map
-}
-
-/** Build complete posts index (articles + collections, one pass) */
-function buildPostIndexLocal(dataDir) {
-  const postsDir = join(dataDir, 'posts')
-  const index = {}
-  if (!existsSync(postsDir)) return index
-  const colIdx = buildCollectionIndex(dataDir)
-  for (const entry of readdirSync(postsDir, { withFileTypes: true })) {
-    if (!entry.isDirectory() || entry.name.startsWith('.') || entry.name.startsWith('_')) continue
-    const slug = entry.name
-    const mdPath = join(postsDir, slug, 'index.md')
-    if (!existsSync(mdPath)) continue
-    const raw = readFileSync(mdPath, 'utf-8')
-    const fm = parseFrontmatter(raw)
-    const ci = colIdx.get(slug)
-    const summary = fm.summary || extractBodySummary(raw)
-    const out = {
-      title: fm.title || slug,
-      date: fm.date || new Date().toISOString(),
-      tags: Array.isArray(fm.tags) ? fm.tags : [],
-      status: fm.status || 'draft',
-      summary,
-      font: fm.font,
-      author: fm.author,
-      aiGenerated: fm.aiGenerated,
-      type: fm.marp ? 'slides' : (fm.type || 'article'),
-    }
-    if (ci) { out.collection = ci.collection; out.collectionPath = ci.collectionPath }
-    index[slug] = out
-  }
-  return index
-}
-
-/** Rebuild and write index.json. Returns count of posts indexed. */
-function rebuildPostIndexLocal(dataDir) {
-  const index = buildPostIndexLocal(dataDir)
-  const indexFile = join(dataDir, 'posts', 'index.json')
-  mkdirSync(dirname(indexFile), { recursive: true })
-  writeFileSync(indexFile, JSON.stringify(index, null, 2) + '\n', 'utf-8')
-  return Object.keys(index).length
-}
-
-// Try to use the canonical indexer from gen; fall back to local copy.
-// Top-level await is used so the choice is settled before any requests arrive.
-let rebuildPostIndex = rebuildPostIndexLocal
+// Use the canonical indexer from gen — the single source of truth for
+// index.json generation (gen/src/builder/indexer.mjs).
+let rebuildPostIndex
 try {
   const mod = await import('../gen/src/builder/indexer.mjs')
   rebuildPostIndex = mod.rebuildPostIndex
-  console.log('[vite-data] Using canonical indexer from gen package')
 } catch (e) {
-  console.warn('[vite-data] Using inline indexer (gen package not available):', e.message)
+  console.error('[vite-data] Failed to load canonical indexer from gen package:', e.message)
+  process.exit(1)
 }
 
 // Build index.json on CMS startup so posts/collections are current
@@ -380,6 +293,8 @@ export default function chronicleData() {
               const mdPath = join(postDir, 'index.md')
               writeFileSync(mdPath, body.content, 'utf-8')
               console.log('[vite-data] index.md written OK to', mdPath)
+              const tm = body.content.match(/^title:\s*(.+)$/m)
+              maybeAutoGitCommit(tm?.[1]?.trim(), body.slug)
               return ok(res, { slug: body.slug })
             }
 
@@ -411,6 +326,7 @@ export default function chronicleData() {
             writeFileSync(idxFile, JSON.stringify(idx, null, 2) + '\n')
             console.log('[vite-data] index.json written to', idxFile)
             console.log('[vite-data] full-save DONE: id=', id, 'slug=', slug, 'status=', idx[id].status)
+            maybeAutoGitCommit(idx[id]?.title, slug)
             return ok(res, { id, slug, status: idx[id].status })
           }
 
@@ -625,21 +541,63 @@ export default function chronicleData() {
             return ok(res, { success: true })
           }
 
+
+          // ── Git settings (from .chronicle/workspace.json) ─────
+          function readGitSettings() {
+            try {
+              const ws = JSON.parse(readFileSync(join(repoRoot, '.chronicle', 'workspace.json'), 'utf-8'))
+              return {
+                autoCommit: ws.gitAutoCommit === true,
+                autoPush: ws.gitAutoPush === true,
+                commitTemplate: typeof ws.gitCommitTemplate === 'string' && ws.gitCommitTemplate.trim()
+                  ? ws.gitCommitTemplate : 'Update: {title}',
+              }
+            } catch {
+              return { autoCommit: false, autoPush: false, commitTemplate: 'Update: {title}' }
+            }
+          }
+
+          function applyTemplate(tpl, { title, slug }) {
+            return String(tpl)
+              .replace(/\{title\}/g, title || 'changes')
+              .replace(/\{slug\}/g, slug || '')
+          }
+
+          /** git add + commit (template message); push only when requested. */
+          function gitAddCommitPush(message, doPush) {
+            execSync('git add -A', { cwd: repoRoot, timeout: 15000, encoding: 'utf-8' })
+            try {
+              execSync('git diff --cached --quiet', { cwd: repoRoot, timeout: 5000 })
+            } catch {
+              const safeMsg = String(message || 'Update: changes').replace(/"/g, '\\"')
+              execSync('git commit -m "' + safeMsg + '"', { cwd: repoRoot, timeout: 15000, encoding: 'utf-8' })
+            }
+            if (doPush) {
+              execSync('git push', { cwd: repoRoot, timeout: 120000, maxBuffer: 10 * 1024 * 1024, encoding: 'utf-8' })
+            }
+          }
+
+          /** Auto-commit hook after a save when gitAutoCommit is enabled. */
+          function maybeAutoGitCommit(title, slug) {
+            try {
+              const g = readGitSettings()
+              if (!g.autoCommit) return
+              gitAddCommitPush(applyTemplate(g.commitTemplate, { title, slug }), g.autoPush)
+              console.log('[vite-data] auto git commit OK')
+            } catch (e) {
+              console.warn('[vite-data] auto git commit skipped:', e.message)
+            }
+          }
+
           // ── POST /api/git/sync ─────────────────────────
           if (method === 'POST' && urlPath === '/api/git/sync') {
             try {
-              // Stage all changes; skip commit if nothing to commit (avoids non-zero exit)
-              execSync('git add -A', { cwd: repoRoot, timeout: 15000, encoding: 'utf-8' })
-              try {
-                execSync('git diff --cached --quiet', { cwd: repoRoot, timeout: 5000 })
-              } catch {
-                // There are staged changes — commit them
-                execSync('git commit -m "Sync: Chronicle save"', { cwd: repoRoot, timeout: 15000, encoding: 'utf-8' })
-              }
-              // Push — 120s timeout for slow HTTPS connections
-              const result = execSync('git push', { cwd: repoRoot, timeout: 120000, maxBuffer: 10 * 1024 * 1024, encoding: 'utf-8' })
+              // Manual full sync: commit (with workspace template) + always push.
+              const g = readGitSettings()
+              const message = applyTemplate(g.commitTemplate, { title: 'changes' })
+              gitAddCommitPush(message, true)
               console.log('[vite-data] git sync OK')
-              return ok(res, { success: true, output: result })
+              return ok(res, { success: true })
             } catch (e) {
               console.error('[vite-data] git sync failed:', e.message)
               return json(res, { success: false, error: e.message }, 500)

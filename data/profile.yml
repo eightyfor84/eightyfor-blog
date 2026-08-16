@@ -5,6 +5,6 @@ bio: A local-first, git-backed Jamstack blogging platform. No server, no databas
 location: GitHub
 links:
   - label: GitHub
-    url: https://github.com/eightyfor/chronicle-aurora
+    url: https://github.com/vanvanhasnophi/chronicle-aurora
   - label: Docs
-    url: https://github.com/eightyfor/chronicle-aurora#readme
+    url: https://github.com/vanvanhasnophi/chronicle-aurora#readme

@@ -129,7 +129,7 @@ Posts → Groups → Breadcrumbs → Navigation. All automatic.
 # Start Today
 
 ```bash
-git clone https://github.com/eightyfor/chronicle-aurora
+git clone https://github.com/vanvanhasnophi/chronicle-aurora
 cd chronicle-aurora
 cd packages/manager && npm install && npm run dev
 ```

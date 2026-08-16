@@ -83,7 +83,6 @@ const routes = [
       { path: 'friends',     name: 'SettingsFriends',     component: SchemaSettingsPage, props: { schemaId: 'chronicle:friends' },     meta: { title: 'settings.friends' } },
       { path: 'profile',     name: 'SettingsProfile',     component: SchemaSettingsPage, props: { schemaId: 'chronicle:profile' },     meta: { title: 'settings.profile' } },
       { path: 'comments',   name: 'SettingsComments',   component: SchemaSettingsPage, props: { schemaId: 'chronicle:comments-config' }, meta: { title: 'settings.comments' } },
-      { path: 'security', redirect: '/dashboard' },
       // Backward-compat redirects (old paths → new direct routes)
       { path: 'homepage',   redirect: '/settings/template-homepage' },
       { path: 'appearance', redirect: '/settings/template-appearance' },
@@ -93,10 +92,7 @@ const routes = [
       { path: 'i18n',       redirect: '/settings/template-appearance' },
     ]
   },
-  {
-    path: '/security',
-    redirect: '/settings/security'
-  },
+
   {
     path: '/manage',
     name: 'PostManager',
@@ -161,7 +157,7 @@ router.afterEach((to) => {
   let appName = 'Chronicle'
 
   // Distinguish Management and Editor for suffixing
-  if (to.path.startsWith('/manage') || to.path.startsWith('/files') || to.path.startsWith('/security') || to.path.startsWith('/settings')) {
+  if (to.path.startsWith('/manage') || to.path.startsWith('/files') || to.path.startsWith('/settings')) {
       appName = 'Chronicle Manager'
   } else if (to.path.startsWith('/editor')) {
       appName = 'Chronicle Workdown'

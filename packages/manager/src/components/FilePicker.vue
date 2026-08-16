@@ -16,20 +16,6 @@
 
         <!-- Part 2: Cloud resource area -->
         <div class="cloud-area">
-            <div v-if="!authChecked" class="cloud-login-overlay">
-                <div class="login-placeholder">
-                    <p>{{ t('filePicker.loading') || '正在加载...' }}</p>
-                </div>
-            </div>
-            <div v-else-if="!isAuthenticated" class="cloud-login-overlay">
-                <div class="login-placeholder">
-                    <p>{{ t('editor.file.loginRequired') || '请先登录以查看云端资源' }}</p>
-                    <button class="primary"
-                        @click="router.push({ path: '/login', query: { next: route.fullPath || '/editor', source: 'editor' } } as any)">{{
-                            t('editor.file.login') || '去登录' }}</button>
-                </div>
-            </div>
-            <template v-else>
                 <div class="cloud-leftbar sidebar">
                     <!-- Source switch (only when postId provided) -->
                     <div v-if="showSourceSwitch" class="sidebar-source-switch">
@@ -169,7 +155,6 @@
                         </table>
                     </div>
                 </div>
-            </template>
         </div>
 
         <!-- Part 3: Selected list -->
@@ -238,15 +223,6 @@ const restrictedTypes = Array.isArray(props.restrictedTypes) ? props.restrictedT
 // Source: assets (public) or post directory (private)
 const currentSource = ref<'assets' | 'post'>(props.source || 'assets')
 const showSourceSwitch = computed(() => !!props.postId)
-
-const isAuthenticated = ref(false)
-const authChecked = ref(false)
-
-function checkAuth() {
-    // Aurora: always authenticated (local-first)
-    isAuthenticated.value = true
-    authChecked.value = true
-}
 
 const localInput = ref<HTMLInputElement | null>(null)
 const uploadInput = ref<HTMLInputElement | null>(null)
@@ -394,11 +370,6 @@ function standardizeFileType(raw: string) {
 }
 
 async function loadCloudFiles() {
-    if (!isAuthenticated.value) {
-        cloudFiles.value = []
-        refreshVisibleFiles()
-        return
-    }
 
     try {
         const isPost = currentSource.value === 'post' && props.postId
@@ -799,18 +770,11 @@ function onDrop(e: DragEvent, idx: number) {
 
 
 function refreshCloudFiles() {
-    fetchCloudWithAuthCheck()
-}
-
-function fetchCloudWithAuthCheck() {
-    checkAuth()
-    if (isAuthenticated.value) {
-        loadCloudFiles()
-    }
+    loadCloudFiles()
 }
 
 onMounted(() => {
-    fetchCloudWithAuthCheck()
+    loadCloudFiles()
 })
 
 

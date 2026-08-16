@@ -1,6 +1,5 @@
 ---
 import { buildLocalizedPath } from "../utils/routeLocale";
-import { getApiUrl } from "../config/api";
 import { loadSiteSettings } from "../utils/siteSettings";
 import { loadSiteProfile } from "../utils/siteProfile";
 import { getTranslation, getLocale } from "../utils/i18n";
@@ -33,7 +32,7 @@ const authorAvatarSource =
   authorAvatarSourceRaw &&
   !authorAvatarSourceRaw.startsWith("/") &&
   !authorAvatarSourceRaw.startsWith("http")
-    ? `/server/data/upload/${authorAvatarSourceRaw}`
+    ? `/assets/${authorAvatarSourceRaw}`
     : authorAvatarSourceRaw || authorAvatar;
 const cardSubtitle =
   settings?.siteDescription || (t("home.cardSubtitle") as string);
@@ -104,15 +103,6 @@ function interpolate(
   values: Record<string, string | number>,
 ) {
   return template.replace(/\{(\w+)\}/g, (_, key) => String(values[key] ?? ""));
-}
-
-function normalizeApiList(payload: any) {
-  // Unwrap Chronicle API envelope { code, data, message } → data
-  const d = payload?.data ?? payload;
-  if (Array.isArray(d)) return d;
-  if (Array.isArray(d?.posts)) return d.posts;
-  if (Array.isArray(d?.collections)) return d.collections;
-  return [];
 }
 
 function toPlainText(input: unknown) {
@@ -276,57 +266,28 @@ function buildCollectionSummaries(collectionsList: any[]) {
 let posts: any[] = [];
 let collections: any[] = [];
 
-// In local/filesystem mode, read directly from data/ without API
-const isLocal = process.env.DATA_SOURCE !== "api";
-if (isLocal) {
-  try {
-    const { getPublishedPosts, getCollections } =
-      await import("../data/localDataSource");
-    posts = getPublishedPosts().map((p: any) => ({
-      ...p,
-      content: undefined,
-      compiledHtml: undefined,
-    }));
-    collections = (getCollections() as any) || [];
-    // unwrap legacy collection format
-    if (
-      !Array.isArray(collections) &&
-      Array.isArray((collections as any).collections)
-    ) {
-      collections = (collections as any).collections;
-    }
-    if (!Array.isArray(collections)) collections = [];
-  } catch (e) {
-    console.warn(
-      "[CardStyleHomeDeck] localDataSource fallback failed, posts empty",
-    );
+// Local/filesystem mode: read directly from data/ (single source of truth)
+try {
+  const { getPublishedPosts, getCollections } =
+    await import("../data/localDataSource");
+  posts = getPublishedPosts().map((p: any) => ({
+    ...p,
+    content: undefined,
+    compiledHtml: undefined,
+  }));
+  collections = (getCollections() as any) || [];
+  // unwrap legacy collection format
+  if (
+    !Array.isArray(collections) &&
+    Array.isArray((collections as any).collections)
+  ) {
+    collections = (collections as any).collections;
   }
-} else {
-  // Remote API mode — fetch at build time
-  const [postsRes, collectionsRes] = await Promise.allSettled([
-    fetch(getApiUrl(`/api/posts?t=${Date.now()}`, true), { cache: "no-store" }),
-    fetch(getApiUrl(`/api/collections?t=${Date.now()}`, true), {
-      cache: "no-store",
-    }),
-  ]);
-
-  if (postsRes.status === "fulfilled" && postsRes.value.ok) {
-    try {
-      const data = await postsRes.value.json();
-      posts = normalizeApiList(data);
-    } catch {
-      posts = [];
-    }
-  }
-
-  if (collectionsRes.status === "fulfilled" && collectionsRes.value.ok) {
-    try {
-      const data = await collectionsRes.value.json();
-      collections = normalizeApiList(data);
-    } catch {
-      collections = [];
-    }
-  }
+  if (!Array.isArray(collections)) collections = [];
+} catch (e) {
+  console.warn(
+    "[CardStyleHomeDeck] localDataSource fallback failed, posts empty",
+  );
 }
 
 const sortedPosts = [...posts].sort(
@@ -391,17 +352,15 @@ const appChangelogUrl =
   "https://github.com/vanvanhasnophi/chronicle-aurora/commits/main/";
 
 let recentUpdates: RecentUpdatesData | null = null;
-if (isLocal) {
-  try {
-    const { getRecentUpdates } = await import("../utils/recentUpdates");
-    recentUpdates = await getRecentUpdates({
-      posts,
-      collections,
-      aggregateDays,
-    });
-  } catch {
-    recentUpdates = null;
-  }
+try {
+  const { getRecentUpdates } = await import("../utils/recentUpdates");
+  recentUpdates = await getRecentUpdates({
+    posts,
+    collections,
+    aggregateDays,
+  });
+} catch {
+  recentUpdates = null;
 }
 
 const updateTimeLabel = recentUpdates

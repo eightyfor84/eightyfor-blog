@@ -17,7 +17,7 @@ collectionPage: true
 aboutPage: true
 friendsPage: true
 comments: true
-traffic: true
+traffic: false
 rss: true
 gaMeasurementId: ""
 frontendBackgroundColorLight: ""

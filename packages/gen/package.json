@@ -2,15 +2,14 @@
   "name": "@chronicle/gen",
   "version": "3.0.0",
   "private": true,
-  "description": "Chronicle Gen — content generation: Astro builds, image processing, Notion sync, search indexing",
+  "description": "Chronicle Gen — content generation: Astro builds, post indexing",
   "type": "module",
   "main": "./src/index.ts",
   "bin": {
     "chronicle-gen": "./bin/cli.mjs"
   },
   "scripts": {
-    "build": "node src/builder/astro.js",
-    "sync": "echo 'Notion sync not yet implemented'",
+    "build": "node bin/cli.mjs build",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
