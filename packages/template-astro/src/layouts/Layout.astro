@@ -291,7 +291,7 @@ const ANALYTICS_GA_ID = String(process.env.GA_MEASUREMENT_ID || analyticsCfg.gaM
             if (typeof window === 'undefined') return;
             // __chronicleAnalytics shim — custom events only meaningful for GA.
             window.__chronicleAnalytics = {
-              track: function (event: string, params: any) {
+              track: function (event, params) {
                 if (typeof window.gtag === 'function') {
                   try { window.gtag('event', event, params || {}); } catch (e) {}
                 }
@@ -690,9 +690,9 @@ const ANALYTICS_GA_ID = String(process.env.GA_MEASUREMENT_ID || analyticsCfg.gaM
         });
       })();
     </script>
-    <!-- Data source debug info (dev only) -->
+    <!-- Data source debug info (dev only) — is:inline scripts can't use import.meta; gate on isLocalMode instead -->
     <script define:vars={{ isLocalMode }} is:inline>
-      if (import.meta.env.DEV) {
+      if (isLocalMode) {
         console.info('%c📦 Chronicle %c数据源: %c本地文件系统 (localDataSource)', 'font-weight:bold', '', 'color:#2ea35f;font-weight:bold');
       }
     </script>
