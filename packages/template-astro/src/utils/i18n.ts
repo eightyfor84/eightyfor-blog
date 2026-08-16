@@ -32,13 +32,17 @@ export function getTranslation(locale: Locale, key: string): string {
 }
 
 /**
- * Get locale from Astro context locals (set by middleware)
- * This replaces the old detectLocale function
- * @param locals - Astro.locals object from middleware
- * @returns Current locale
+ * Get locale from Astro context locals (set by middleware), or from a locale
+ * string directly. Normalizes the route-style 'zh' to the content locale
+ * 'zh-CN'; anything else falls back to 'zh-CN'.
+ * @param locals - Astro.locals object ({ locale }) or a locale string
+ * @returns Content locale ('en' | 'zh-CN')
  */
-export function getLocale(locals: any): Locale {
-  return locals.locale || 'zh-CN';
+export function getLocale(locals: { locale?: unknown } | string): Locale {
+  const raw = typeof locals === 'string' ? locals : locals?.locale;
+  if (raw === 'en') return 'en';
+  if (raw === 'zh' || raw === 'zh-CN') return 'zh-CN';
+  return 'zh-CN';
 }
 
 /**
