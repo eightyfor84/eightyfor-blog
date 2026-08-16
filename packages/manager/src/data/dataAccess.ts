@@ -143,14 +143,36 @@ export async function readYaml<T = unknown>(relativePath: string): Promise<T | n
   return browserReadYaml(relativePath) as Promise<T | null>
 }
 
+/**
+ * Write YAML — Document API 增量合并写，**尊重手写注释**：
+ * 读原文件 → parseDocument（保留注释/键序）→ setIn 只改 payload 涉及的路径 →
+ * toString 写回。未触碰的键（含注释、自定义键）原样保留；文件不存在时全量序列化。
+ */
 export async function writeYaml(relativePath: string, data: unknown): Promise<boolean> {
+  const existing = await readText(relativePath)
+  if (existing) {
+    const YAML = await import('yaml')
+    const doc = YAML.parseDocument(existing, { keepSourceTokens: true })
+    applyPayload(doc, data as Record<string, any>)
+    return writeText(relativePath, doc.toString())
+  }
   if (isElectron) return getBridge()!.writeYaml(relativePath, data)
-  // Serialize to YAML string and write as text.
-  // Options must stay in sync with electron/main.cjs fs:writeYaml (yaml.dump).
-  // Note: yaml 2.9 stringify() has no 'noRefs' option — lineWidth: -1 disables wrapping.
   const YAML = await import('yaml')
   const yml = YAML.stringify(data, { lineWidth: -1 })
   return writeText(relativePath, yml)
+}
+
+/** 递归把 payload 的每个路径 setIn 到 YAML Document（对象递归、标量/数组/空对象直接 set）。 */
+function applyPayload(doc: any, payload: Record<string, any>, prefix: string[] = []): void {
+  for (const [k, v] of Object.entries(payload || {})) {
+    const path = [...prefix, k]
+    if (v && typeof v === 'object' && !Array.isArray(v)) {
+      if (doc.getIn(path) === undefined || doc.getIn(path) === null) doc.setIn(path, {})
+      applyPayload(doc, v, path)
+    } else {
+      doc.setIn(path, v)
+    }
+  }
 }
 
 export async function readJson<T = unknown>(relativePath: string): Promise<T | null> {
