@@ -46,6 +46,7 @@ import PostPickerField from './fields/PostPickerField.vue'
 import LinkListField from './fields/LinkListField.vue'
 import BackgroundEditorField from './fields/BackgroundEditorField.vue'
 import CardListField from './fields/CardListField.vue'
+import ChannelListField from './fields/ChannelListField.vue'
 import CollectionTreeField from './fields/CollectionTreeField.vue'
 import AboutEditorButton from './fields/AboutEditorButton.vue'
 
@@ -119,6 +120,7 @@ const resolvedComponent = computed(() => {
     'link-list':        LinkListField,
     'background-editor':BackgroundEditorField,
     'card-list':        CardListField,
+    'channel-list':     ChannelListField,
     'collection-editor':CollectionTreeField,
   }
   return fallbackMap[widget] || NativeInput

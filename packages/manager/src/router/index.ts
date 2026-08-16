@@ -82,7 +82,7 @@ const routes = [
       { path: 'collections', name: 'SettingsCollections', component: SchemaSettingsPage, props: { schemaId: 'chronicle:collections' }, meta: { title: 'settings.collections' } },
       { path: 'friends',     name: 'SettingsFriends',     component: SchemaSettingsPage, props: { schemaId: 'chronicle:friends' },     meta: { title: 'settings.friends' } },
       { path: 'profile',     name: 'SettingsProfile',     component: SchemaSettingsPage, props: { schemaId: 'chronicle:profile' },     meta: { title: 'settings.profile' } },
-      { path: 'comments',   name: 'SettingsComments',   component: SchemaSettingsPage, props: { schemaId: 'chronicle:comments-config' }, meta: { title: 'settings.comments' } },
+      { path: 'post-page',  name: 'SettingsPostPage',   component: SchemaSettingsPage, props: { schemaId: 'chronicle:post-page' }, meta: { title: 'settings.postPage' } },
       // Backward-compat redirects (old paths → new direct routes)
       { path: 'homepage',   redirect: '/settings/template-homepage' },
       { path: 'appearance', redirect: '/settings/template-appearance' },

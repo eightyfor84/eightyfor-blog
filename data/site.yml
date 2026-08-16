@@ -22,3 +22,39 @@ rss: true
 gaMeasurementId: ""
 frontendBackgroundColorLight: ""
 frontendBackgroundColorDark: ""
+
+# ── Post page (文章页) — nested block added in 3.1.x ──
+post:
+  meta:
+    metaAuthor: true
+    metaCreated: true
+    metaUpdated: true
+    metaWords: true
+    metaReadingTime: true
+    metaAiBadge: true
+    showTags: true
+  toc:
+    tocEnabled: true
+    inlineToc: true
+    tocFloat: true
+    tocFloatCollapsed: true
+    mobileTocControl: true
+  collectionNav:
+    collectionNavEnabled: true
+    alwaysCollapsed: false
+  endOfArticle:
+    relatedPosts: true
+    prevNext: true
+    prevNextMode: both
+    prevNextScope: global
+    authorCard: true
+    share: true
+    shareChannels:
+      - twitter
+      - weibo
+      - copy-link
+  comments:
+    backend: ""
+    walineServerUrl: ""
+    attitude: true
+    showGeoAddress: true
