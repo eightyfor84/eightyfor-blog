@@ -68,13 +68,13 @@
                                 </svg><span class="label">{{ t('filePicker.listView') || 'List' }}</span></button>
                         </div>
                         <div class="right" style="display: flex; align-items: center; gap: 0.5rem;">
-                            <div class="chronicle-fb-sort-group">
-                                <select v-model="selectedSortBy" class="chronicle-fb-sort-select">
+                            <div class="chr-fb-sort-group">
+                                <select v-model="selectedSortBy" class="chr-fb-sort-select">
                                     <option value="created">{{ t('filePicker.sortByCreated') || '上传时间' }}</option>
                                     <option value="name">{{ t('filePicker.sortByName') || '文件名' }}</option>
                                     <option value="type">{{ t('filePicker.sortByType') || '文件类型' }}</option>
                                 </select>
-                                <button type="button" class="chronicle-fb-sort-toggle" :class="sortOrder"
+                                <button type="button" class="chr-fb-sort-toggle" :class="sortOrder"
                                     @click="toggleAscDesc"><svg xmlns="http://www.w3.org/2000/svg" width="24"
                                         height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">

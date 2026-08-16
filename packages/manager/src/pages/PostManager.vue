@@ -2,9 +2,9 @@
   <div class="post-manager">
     <section class="post-manager-container">
       <!-- Toolbar -->
-      <div class="chronicle-fb-toolbar">
+      <div class="chr-fb-toolbar">
         <FilterDropdown v-model="activeFilters" :groups="filterGroups" :label="$t('nav.posts')" />
-        <div class="chronicle-fb-toolbar-right">
+        <div class="chr-fb-toolbar-right">
           <!-- Search -->
           <div class="search-box">
             <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
@@ -16,13 +16,13 @@
           </div>
 
           <!-- Sort -->
-          <div class="chronicle-fb-sort-group">
-            <select v-model="selectedSortBy" class="chronicle-fb-sort-select">
+          <div class="chr-fb-sort-group">
+            <select v-model="selectedSortBy" class="chr-fb-sort-select">
               <option value="date">{{ $t('post.table.date') }}</option>
               <option value="title">{{ $t('post.table.title') }}</option>
               <option value="status">{{ $t('post.table.status') }}</option>
             </select>
-            <button type="button" class="chronicle-fb-sort-toggle" :class="sortOrder"
+            <button type="button" class="chr-fb-sort-toggle" :class="sortOrder"
               @click="toggleAscDesc">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -35,15 +35,15 @@
               </svg>
             </button>
           </div>
-          <div class="chronicle-fb-toolbar-actions">
+          <div class="chr-fb-toolbar-actions">
             <!-- Refresh -->
-            <button type="button" class="icon-label-btn chronicle-fb-btn narrow" @click="refresh"
+            <button type="button" class="icon-label-btn chr-fb-btn narrow" @click="refresh"
               :disabled="loading" :title="$t('file.refresh')">
               <span class="icon-svg" v-html="Icons.refresh"></span>
             </button>
 
             <!-- New Post -->
-            <button class="chronicle-fb-btn new-post-btn" @click="createNew">
+            <button class="chr-fb-btn new-post-btn" @click="createNew">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
                 stroke-linejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19" />
@@ -63,20 +63,20 @@
           {{ $t('post.selectAll') }}
         </label>
         <div class="batch-actions">
-          <button class="chronicle-fb-btn batch-delete-btn" @click="bulkDelete">
+          <button class="chr-fb-btn batch-delete-btn" @click="bulkDelete">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
             <span class="label">{{ $t('post.deleteSelected') }}</span>
           </button>
         </div>
-        <button class="chronicle-fb-btn batch-clear-btn" @click="clearSelection" :title="$t('post.clearSelection')">
+        <button class="chr-fb-btn batch-clear-btn" @click="clearSelection" :title="$t('post.clearSelection')">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
 
       <!-- Post list -->
-      <div class="chronicle-fb-list">
-        <div v-if="loading" class="chronicle-fb-loading">{{ $t('post.loadingPosts') }}</div>
-        <div v-else-if="filteredPosts.length === 0" class="chronicle-fb-empty">
+      <div class="chr-fb-list">
+        <div v-if="loading" class="chr-fb-loading">{{ $t('post.loadingPosts') }}</div>
+        <div v-else-if="filteredPosts.length === 0" class="chr-fb-empty">
           {{ searchQuery ? $t('search.noResults') : $t('post.noPostsFound') }}
         </div>
 
@@ -117,14 +117,14 @@
 
             <!-- Actions -->
             <div class="post-actions">
-              <button class="chronicle-fb-preview-btn" @click.stop="editPost(post.id)" :title="$t('post.table.edit')">
+              <button class="chr-fb-preview-btn" @click.stop="editPost(post.id)" :title="$t('post.table.edit')">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
                   stroke-linejoin="round">
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                   <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                 </svg>
               </button>
-              <button class="chronicle-fb-preview-btn delete-action" @click.stop="deletePost(post.id)"
+              <button class="chr-fb-preview-btn delete-action" @click.stop="deletePost(post.id)"
                 :title="$t('post.table.delete')">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -481,7 +481,7 @@ onUnmounted(() => {
 
 /* ── Toolbar ───────────────────────────────────────────────────────── */
 
-:deep(.chronicle-fb-toolbar) {
+:deep(.chr-fb-toolbar) {
   min-height: 48px;
   height: auto;
   flex-wrap: wrap;
@@ -490,7 +490,7 @@ onUnmounted(() => {
   margin-bottom: 1rem;
 }
 
-:deep(.chronicle-fb-toolbar-right) {
+:deep(.chr-fb-toolbar-right) {
   flex-wrap: wrap;
   justify-content: space-between;
 }
@@ -576,20 +576,20 @@ onUnmounted(() => {
 /* ── Sort overrides ────────────────────────────────────────────────── */
 
 
-:deep(.chronicle-fb-btn) {
+:deep(.chr-fb-btn) {
   font-size: 0.9rem;
   padding: 0.45rem 0.7rem;
 }
 
-:deep(.chronicle-fb-btn svg),
-:deep(.chronicle-fb-btn .icon-svg) {
+:deep(.chr-fb-btn svg),
+:deep(.chr-fb-btn .icon-svg) {
     width: 18px;
     height: 18px;
 }
 
 /* ── Post list area ────────────────────────────────────────────────── */
 
-:deep(.chronicle-fb-list) {
+:deep(.chr-fb-list) {
   flex: 1;
   min-height: 0;
 }
@@ -635,7 +635,7 @@ onUnmounted(() => {
   flex: 1;
 }
 
-.batch-actions .chronicle-fb-btn {
+.batch-actions .chr-fb-btn {
   font-size: 0.82rem;
   padding: 0.35rem 0.65rem;
 }
@@ -787,7 +787,7 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 
-.post-actions .chronicle-fb-preview-btn {
+.post-actions .chr-fb-preview-btn {
   width: 32px;
   height: 32px;
   padding: 0;
@@ -797,7 +797,7 @@ onUnmounted(() => {
   border-radius: 8px;
 }
 
-.post-actions .chronicle-fb-preview-btn svg {
+.post-actions .chr-fb-preview-btn svg {
   width: 16px;
   height: 16px;
 }
@@ -828,8 +828,8 @@ onUnmounted(() => {
 
 /* ── Loading / empty ───────────────────────────────────────────────── */
 
-:deep(.chronicle-fb-loading),
-:deep(.chronicle-fb-empty) {
+:deep(.chr-fb-loading),
+:deep(.chr-fb-empty) {
   font-size: 1rem;
   padding: 60px;
 }
@@ -851,7 +851,7 @@ onUnmounted(() => {
     order: 3;
   }
 
-  :deep(.chronicle-fb-btn .label) {
+  :deep(.chr-fb-btn .label) {
     display: none;
   }
 }
@@ -869,7 +869,7 @@ onUnmounted(() => {
   }
 
   /* Toolbar controls: full-width row 2 */
-  :deep(.chronicle-fb-toolbar-right) {
+  :deep(.chr-fb-toolbar-right) {
     width: 100%;
   }
 
@@ -903,12 +903,12 @@ onUnmounted(() => {
     justify-content: flex-end;
   }
 
-  .post-actions .chronicle-fb-preview-btn {
+  .post-actions .chr-fb-preview-btn {
     width: 36px;
     height: 36px;
   }
 
-  .post-actions .chronicle-fb-preview-btn svg {
+  .post-actions .chr-fb-preview-btn svg {
     width: 18px;
     height: 18px;
   }

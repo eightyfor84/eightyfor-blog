@@ -19,11 +19,11 @@ body { min-height:100vh; }
 
 /* ── Shell ── */
 #app { display:flex; flex-direction:column; height:100vh; }
-#chronicle-bg-layer { position:fixed; inset:0; z-index:0; pointer-events:none; }
+#chr-bg-layer { position:fixed; inset:0; z-index:0; pointer-events:none; }
 /* 背景媒体首帧隐藏，layout-init.ts 在可解码后逐个淡入（图：decode，视频：loadeddata）。
    防止扫描式加载与缓存刷新时的闪烁；完整规则与过渡在 global.css。 */
-#chronicle-bg-layer .bg-image,
-#chronicle-bg-layer .bg-video { opacity:0; }
+#chr-bg-layer .bg-image,
+#chr-bg-layer .bg-video { opacity:0; }
 
 /* ── Nav header (fixed) ── */
 .nav-header {
@@ -62,7 +62,7 @@ html.immersive .nav-header {
 .nav-link-full { display:inline-block }
 .nav-link-collapsed { position:absolute; max-width:0; opacity:0; overflow:hidden }
 .nav-close { display:none }
-.menu-toggle { display:none }
+.menu-toggle { display:none; background: none; border: none;  align-items: center;  justify-content: center;  width: 40px;  height: 40px;}
 .menu-toggle .menu-icon,
 .menu-toggle .close-icon { position:absolute }
 .menu-toggle .close-icon { opacity:0 }
@@ -80,7 +80,7 @@ a { color:var(--accent); }
   .main-content { padding-top:50px; }
   .nav-content { padding:0 1.5rem; }
   /* Mobile: show hamburger, use text labels not icons */
-  .menu-toggle { display:flex; position:relative }
+  .menu-toggle { display:flex; position:relative; }
   .nav-link-collapsed { display:none; position:static }
   /* Mobile nav links are off-screen overlay until opened */
   .nav-links:not(.mobile-open) { position:fixed; top:0; left:0; right:0; bottom:0; opacity:0; transform:translateY(-100%); pointer-events:none }

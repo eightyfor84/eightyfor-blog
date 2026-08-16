@@ -30,7 +30,7 @@ const CHANNEL_DEFS: Record<string, { icon: string }> = {
 const SYSTEM_ICON = '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>';
 const COPY_ICON = '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
 ---
-<div class="share-buttons">
+<div class="share-btns">
   {channels.map((kind: string) => {
     const def = CHANNEL_DEFS[kind];
     if (!def) return null;
@@ -102,7 +102,7 @@ const COPY_ICON = '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" s
     };
 
     // 进视口才绑定分享事件（底部控件懒加载——脚本按需初始化）
-    const root = document.querySelector('.share-buttons');
+    const root = document.querySelector('.share-btns');
     if (root) {
       if ('IntersectionObserver' in window) {
         const io = new IntersectionObserver((entries, obs) => {
@@ -117,7 +117,7 @@ const COPY_ICON = '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" s
 </script>
 
 <style>
-  .share-buttons { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.25rem; align-items: center; justify-content: center;}
+  .share-btns { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.25rem; align-items: center; justify-content: center;}
   .share-btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.8rem; border-radius: 8px;
     background: transparent; color: var(--app-text-sec); border: none;
     cursor: pointer; transition: background 0.15s ease, color 0.15s ease; }

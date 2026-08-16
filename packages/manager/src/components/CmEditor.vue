@@ -701,7 +701,7 @@ defineExpose({
   box-shadow: 0 0 0 2px var(--accent-bg);
 }
 
-.cm-panel .cm-button {
+.cm-panel .cm-btn {
   background-image: none !important;
   background: var(--comp-bg) !important;
   color: var(--comp-text-pri) !important;
@@ -716,11 +716,11 @@ defineExpose({
   touch-action: manipulation;
   text-transform: capitalize;
 }
-.cm-panel .cm-button:hover {
+.cm-panel .cm-btn:hover {
   background: var(--comp-bg-hvr) !important;
   border-color: var(--accent) !important;
 }
-.cm-panel .cm-button:active {
+.cm-panel .cm-btn:active {
   background: var(--comp-bg-active) !important;
 }
 

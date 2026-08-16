@@ -199,7 +199,7 @@ const hasBackgroundMedia = Boolean(fallbackImageUrl || backgroundVideoUrl);
 
 let backgroundCss = '';
 if (fallbackImageUrl) {
-  backgroundCss += '#chronicle-bg-layer .bg-image {\n';
+  backgroundCss += '#chr-bg-layer .bg-image {\n';
   backgroundCss += `  background-image: url("${fallbackImageUrl}") !important;\n`;
   backgroundCss += `  background-size: ${bgImageSize} !important;\n`;
   backgroundCss += `  background-position: ${bgImagePosition} !important;\n`;
@@ -208,7 +208,7 @@ if (fallbackImageUrl) {
 }
 if (hasBackgroundMedia) {
   if (bgBlur > 0) {
-    backgroundCss += '#chronicle-bg-layer .bg-overlay {\n';
+    backgroundCss += '#chr-bg-layer .bg-overlay {\n';
     backgroundCss += `  backdrop-filter: blur(${bgBlur}px);\n`;
     backgroundCss += `  -webkit-backdrop-filter: blur(${bgBlur}px);\n`;
     backgroundCss += '}\n';
@@ -453,7 +453,7 @@ const ANALYTICS_GA_ID = String(process.env.GA_MEASUREMENT_ID || analyticsCfg.gaM
       </defs>
     </svg>
     <!-- 背景层 - 使用transition:persist保持跨页面持久化 -->
-    <div id="chronicle-bg-layer" transition:persist="background-layer" data-bg-image={fallbackImageUrl || undefined}>
+    <div id="chr-bg-layer" transition:persist="background-layer" data-bg-image={fallbackImageUrl || undefined}>
       <div class="bg-image"></div>
       <div class="bg-surface"></div>
       {backgroundVideoUrl ? (
@@ -576,7 +576,7 @@ const ANALYTICS_GA_ID = String(process.env.GA_MEASUREMENT_ID || analyticsCfg.gaM
         && /^((?!chrome|android).)*safari/i.test(navigator.userAgent)) {
         let _bgOverlayBlur: { filter: string; webkitFilter: string } | null = null;
         const _bgOverlayEl = () => {
-          const layer = document.getElementById('chronicle-bg-layer');
+          const layer = document.getElementById('chr-bg-layer');
           return layer ? (layer.querySelector('.bg-overlay') as HTMLElement | null) : null;
         };
 

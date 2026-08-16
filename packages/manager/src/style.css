@@ -655,7 +655,7 @@ html:not(.is-mobile) button.danger:hover {
 
 
 /* Corner buttons (used by back-to-top and mobile TOC) */
-.corner-button {
+.corner-btn {
   position: fixed;
   bottom: 30px;
   right: 30px;
@@ -681,27 +681,27 @@ html:not(.is-mobile) button.danger:hover {
   line-height: 0;
 }
 
-.corner-button:not(.corner-menu.open) span {
+.corner-btn:not(.corner-menu.open) span {
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.corner-button.visible {
+.corner-btn.visible {
   opacity: 1;
   pointer-events: auto;
   transform: translateY(0);
 }
 
 /* Hover only when the app root is NOT in mobile mode (global class 'is-mobile') */
-html:not(.is-mobile) .corner-button:hover {
+html:not(.is-mobile) .corner-btn:hover {
   background: var(--comp-bg-glass-hvr);
   transform: scale(1.1);
   border-color: var(--border-color-blur);
   filter: brightness(1.5);
 }
 
-html.is-mobile .corner-button:active {
+html.is-mobile .corner-btn:active {
   background: var(--comp-bg-glass-active);
   transform: scale(1.3);
   border-color: var(--border-color-blur);
@@ -709,20 +709,20 @@ html.is-mobile .corner-button:active {
 }
 
 /* Primary variant (used for mobile TOC button): semi-transparent accent background */
-.corner-button.primary {
+.corner-btn.primary {
   background: var(--comp-bg-accent-blur);
   border: 1px solid var(--comp-bg-accent);
   color: var(--comp-text-pri);
 }
 
 /* Pressed state visual for primary (works on mobile via :active) */
-html.is-mobile .corner-button.primary:active {
+html.is-mobile .corner-btn.primary:active {
   transform: scale(1.3);
   border-color: var(--comp-bg-accent-blur);
   background: var(--comp-bg-accent-blur);
 }
 
-html:not(.is-mobile) .corner-button.primary:hover {
+html:not(.is-mobile) .corner-btn.primary:hover {
   transform: scale(1.1);
   background: var(--comp-bg-accent-hvr);
   border-color: var(--comp-bg-accent-hvr);
@@ -730,7 +730,7 @@ html:not(.is-mobile) .corner-button.primary:hover {
 }
 
 /* When running in mobile mode, ensure the primary corner button is visible on the left */
-html.is-mobile .corner-button.primary {
+html.is-mobile .corner-btn.primary {
   opacity: 1;
   pointer-events: auto;
   transform: translateY(0);
@@ -740,7 +740,7 @@ html.is-mobile .corner-button.primary {
 }
 
 /* Hide desktop inline/floating TOC on mobile (app has html.is-mobile) */
-html.is-mobile .markdown-toc {
+html.is-mobile .toc-inline {
   display: none !important;
 }
 
@@ -1156,12 +1156,12 @@ select:hover option {
 body {
   position: relative;
   /* Keep body background transparent so dedicated DOM background layer
-     (#chronicle-bg-layer) can render the surface and image without being
+     (#chr-bg-layer) can render the surface and image without being
      occluded by the body's own background color. */
   background-repeat: no-repeat;
 }
 
-/* Disabled on purpose: all background media/overlay now render only via #chronicle-bg-layer. */
+/* Disabled on purpose: all background media/overlay now render only via #chr-bg-layer. */
 body::before,
 body.backend::before,
 body::after,
@@ -1170,7 +1170,7 @@ body.backend::after {
 }
 
 /* Dedicated DOM background layer (lowest z-index) */
-#chronicle-bg-layer {
+#chr-bg-layer {
   position: fixed;
   inset: 0;
   z-index: -9999;
@@ -1179,12 +1179,12 @@ body.backend::after {
 }
 
 /* Auth pages: disable entire bg-layer (body has --app-bg-pri by default) */
-body.auth-page #chronicle-bg-layer {
+body.auth-page #chr-bg-layer {
   display: none;
 }
 
 /* Order inside layer (lower z => behind): image -> solid surface -> overlay */
-#chronicle-bg-layer .bg-image {
+#chr-bg-layer .bg-image {
   position: absolute;
   inset: 0;
   background-repeat: var(--frontend-bg-repeat, no-repeat);
@@ -1196,25 +1196,25 @@ body.auth-page #chronicle-bg-layer {
   transition: opacity 0.32s ease, background-image 0.25s ease, filter 0.25s ease, background-position 0.25s ease, background-size 0.25s ease;
 }
 
-body.backend #chronicle-bg-layer .bg-image {
+body.backend #chr-bg-layer .bg-image {
   background-repeat: var(--backend-bg-repeat, no-repeat);
   background-position: var(--backend-bg-pos, center center);
   background-size: var(--backend-bg-size, cover);
   filter: var(--backend-bg-blur, none);
 }
 
-#chronicle-bg-layer.is-ready .bg-image {
+#chr-bg-layer.is-ready .bg-image {
   opacity: 1;
 }
 
-#chronicle-bg-layer .bg-surface {
+#chr-bg-layer .bg-surface {
   position: absolute;
   inset: 0;
   background: var(--app-bg-pri);
   z-index: -3;
 }
 
-#chronicle-bg-layer .bg-overlay {
+#chr-bg-layer .bg-overlay {
   position: absolute;
   inset: 0;
   background: transparent;

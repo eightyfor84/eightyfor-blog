@@ -655,11 +655,11 @@ defineExpose({
 
 <style>
 /* flash highlight for directive focus — 瞬间亮，背景渐隐 */
-.chronicle-flash-line {
+.chr-flash-line {
   background: var(--accent)!important;
   border-radius: 4px;
 }
-.chronicle-flash-line.remove {
+.chr-flash-line.remove {
   background: transparent !important;
   transition: background 2s ease-out, color 2s ease-out, border-radius 2s ease-out;
 }

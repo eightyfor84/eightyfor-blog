@@ -605,7 +605,7 @@ button.secondary {
 
 /* Hide desktop inline/floating TOC on mobile */
 @media (max-width: 768px) {
-  .markdown-toc {
+  .toc-inline {
     display: none !important;
   }
 
@@ -765,14 +765,14 @@ button.secondary {
 body {
   position: relative;
   /* Keep body background transparent so dedicated DOM background layer
-     (#chronicle-bg-layer) can render the surface and image without being
+     (#chr-bg-layer) can render the surface and image without being
      occluded by the body's own background color. */
   background-color: transparent;
   background-repeat: no-repeat;
 }
 
 
-/* Disabled on purpose: all background media/overlay now render only via #chronicle-bg-layer. */
+/* Disabled on purpose: all background media/overlay now render only via #chr-bg-layer. */
 body::before,
 body.backend::before,
 body::after,
@@ -781,7 +781,7 @@ body.backend::after {
 }
 
 /* Dedicated DOM background layer (lowest z-index) */
-#chronicle-bg-layer {
+#chr-bg-layer {
   position: fixed;
   inset: 0;
   z-index: 0;
@@ -790,7 +790,7 @@ body.backend::after {
 }
 
 /* Order inside layer (从低到高): surface -> image -> overlay */
-#chronicle-bg-layer .bg-surface {
+#chr-bg-layer .bg-surface {
   position: absolute;
   inset: 0;
   background: var(--bg-surface-color, var(--app-bg-pri));
@@ -798,7 +798,7 @@ body.backend::after {
   /* 最底层：纯色背景，可通过 site.yml → frontendBackgroundColor 覆盖 */
 }
 
-#chronicle-bg-layer .bg-image {
+#chr-bg-layer .bg-image {
   position: absolute;
   inset: 0;
   background-repeat: no-repeat;
@@ -811,17 +811,17 @@ body.backend::after {
   transition: opacity 0.32s ease, background-image 0.25s ease, background-position 0.25s ease, background-size 0.25s ease;
 }
 
-#chronicle-bg-layer.is-ready .bg-image {
+#chr-bg-layer.is-ready .bg-image {
   opacity: 1;
 }
 
-html.bg-no-img #chronicle-bg-layer .bg-image {
+html.bg-no-img #chr-bg-layer .bg-image {
   display: none;
 }
 
 /* 背景视频：preload="none"（构建时不抢骨架），首帧就绪（loadeddata）后由
    layout-init.ts 加 .is-ready 淡入，覆盖在兜底图之上。 */
-#chronicle-bg-layer .bg-video {
+#chr-bg-layer .bg-video {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -832,11 +832,11 @@ html.bg-no-img #chronicle-bg-layer .bg-image {
   transition: opacity 0.32s ease;
 }
 
-#chronicle-bg-layer .bg-video.is-ready {
+#chr-bg-layer .bg-video.is-ready {
   opacity: 1;
 }
 
-#chronicle-bg-layer .bg-overlay {
+#chr-bg-layer .bg-overlay {
   position: absolute;
   inset: 0;
   background: var(--frontend-bg-overlay, transparent);
@@ -849,7 +849,7 @@ html.bg-no-img #chronicle-bg-layer .bg-image {
   transform: translateZ(0);
 }
 
-html.focus #chronicle-bg-layer .bg-overlay {
+html.focus #chr-bg-layer .bg-overlay {
   background: #000 !important;
 }
 

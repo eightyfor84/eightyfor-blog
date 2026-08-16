@@ -173,7 +173,7 @@ try {
         document.documentElement.style.setProperty('--backend-bg-overlay-light', `rgba(${rgb}, ${opa})`)
       }
       try {
-        const layer = document.getElementById('chronicle-bg-layer')
+        const layer = document.getElementById('chr-bg-layer')
         if (layer) {
           const imgEl = layer.querySelector('.bg-image') as HTMLElement | null
           const overlayEl = layer.querySelector('.bg-overlay') as HTMLElement | null
@@ -254,7 +254,7 @@ function applyBackgroundToDom() {
       ? (overlayDark === 'transparent' ? 'transparent' : `rgba(${hexToRgbString(overlayDark)}, ${overlayDarkOpa})`)
       : (overlayLight === 'transparent' ? 'transparent' : `rgba(${hexToRgbString(overlayLight)}, ${overlayLightOpa})`)
 
-    const layer = document.getElementById('chronicle-bg-layer')
+    const layer = document.getElementById('chr-bg-layer')
     if (!layer) return
 
     const imgEl = layer.querySelector('.bg-image') as HTMLElement | null

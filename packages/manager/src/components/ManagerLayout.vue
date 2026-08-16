@@ -229,7 +229,7 @@ async function stageBackgroundLayer(
   overlayValue: string
 ) {
   try {
-    const layer = document.getElementById('chronicle-bg-layer')
+    const layer = document.getElementById('chr-bg-layer')
     if (!layer) return
     if (backgroundSuspended) return
 
@@ -380,11 +380,11 @@ async function stageBackgroundLayer(
 
 function ensureBackgroundLayer() {
   try {
-    let layer = document.getElementById('chronicle-bg-layer')
+    let layer = document.getElementById('chr-bg-layer')
     if (!layer) {
       // creating layer
       layer = document.createElement('div')
-      layer.id = 'chronicle-bg-layer'
+      layer.id = 'chr-bg-layer'
       const img = document.createElement('div')
       img.className = 'bg-image'
       const surface = document.createElement('div')
@@ -498,7 +498,7 @@ function updateResolvedOverlays() {
 
   // Also apply the resolved overlay color directly to the DOM background layer
   try {
-    const layer = document.getElementById('chronicle-bg-layer')
+    const layer = document.getElementById('chr-bg-layer')
     if (layer) {
       const overlayEl = layer.querySelector('.bg-overlay') as HTMLElement | null
       if (overlayEl) {
@@ -631,7 +631,7 @@ function applySettingsFromStore(s: Record<string, any>) {
           if (backendBgUrl) void ensureBackgroundImagePrepared(backendBgUrl)
         } catch (e) { }
 
-        // Disable pseudo-element media rendering path; we render media only in #chronicle-bg-layer.
+        // Disable pseudo-element media rendering path; we render media only in #chr-bg-layer.
         try {
           document.documentElement.style.setProperty('--backend-bg-image', 'none')
           document.documentElement.style.setProperty('--backend-bg-opacity', '0')

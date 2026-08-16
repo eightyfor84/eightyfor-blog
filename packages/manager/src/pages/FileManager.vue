@@ -29,9 +29,9 @@
         </aside>
 
         <!-- Main content area -->
-        <section class="chronicle-fb-container">
+        <section class="chr-fb-container">
             <!-- Toolbar (matches FilePicker cloud-toolbar) -->
-            <div class="chronicle-fb-toolbar">
+            <div class="chr-fb-toolbar">
                 <h3 class="toolbar-title">{{ currentCategoryLabel }}</h3>
                 <!-- Narrow screen controls: source + post + category -->
                 <div class="toolbar-narrow-controls">
@@ -47,11 +47,11 @@
                         </option>
                     </select>
                 </div>
-                <div class="chronicle-fb-toolbar-right">
+                <div class="chr-fb-toolbar-right">
                     <!-- View toggle: Card / List -->
-                    <div class="segment-control-bar chronicle-fb-view-toggle">
+                    <div class="segment-control-bar chr-fb-view-toggle">
                         <button type="button"
-                            :class="['icon-label-btn', 'segment-control-item', 'chronicle-fb-view-btn', view === 'card' ? 'active' : '']"
+                            :class="['icon-label-btn', 'segment-control-item', 'chr-fb-view-btn', view === 'card' ? 'active' : '']"
                             @click="view = 'card'">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
                                 xmlns="http://www.w3.org/2000/svg">
@@ -64,7 +64,7 @@
                             <span class="label">{{ $t('filePicker.cardView') || 'Card' }}</span>
                         </button>
                         <button type="button"
-                            :class="['icon-label-btn', 'segment-control-item', 'chronicle-fb-view-btn', view === 'list' ? 'active' : '']"
+                            :class="['icon-label-btn', 'segment-control-item', 'chr-fb-view-btn', view === 'list' ? 'active' : '']"
                             @click="view = 'list'">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
                                 xmlns="http://www.w3.org/2000/svg">
@@ -83,13 +83,13 @@
                     </div>
 
                     <!-- Sort controls -->
-                    <div class="chronicle-fb-sort-group">
-                        <select v-model="selectedSortBy" class="chronicle-fb-sort-select">
+                    <div class="chr-fb-sort-group">
+                        <select v-model="selectedSortBy" class="chr-fb-sort-select">
                             <option value="created">{{ $t('filePicker.sortByCreated') || 'Created' }}</option>
                             <option value="name">{{ $t('filePicker.sortByName') || 'Name' }}</option>
                             <option value="type">{{ $t('filePicker.sortByType') || 'Type' }}</option>
                         </select>
-                        <button type="button" class="chronicle-fb-sort-toggle"
+                        <button type="button" class="chr-fb-sort-toggle"
                             :class="sortOrder" @click="toggleAscDesc">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
@@ -104,15 +104,15 @@
                         </button>
                     </div>
 
-                    <div class="chronicle-fb-toolbar-actions">
+                    <div class="chr-fb-toolbar-actions">
                         <!-- Refresh -->
-                        <button type="button" class="icon-label-btn chronicle-fb-btn narrow" @click="refresh"
+                        <button type="button" class="icon-label-btn chr-fb-btn narrow" @click="refresh"
                             :title="$t('file.refresh')">
                             <span class="icon-svg" v-html="Icons.refresh"></span>
                         </button>
 
                         <!-- Import -->
-                        <button type="button" class="icon-label-btn chronicle-fb-btn" @click="triggerUploadInput">
+                        <button type="button" class="icon-label-btn chr-fb-btn" @click="triggerUploadInput">
                             <span class="icon-svg" v-html="Icons.plus"></span>
                             <span class="label">{{ $t('file.import') || 'Import' }}</span>
                         </button>
@@ -129,30 +129,30 @@
                     {{ $t('file.selectAll') }}
                 </label>
                 <div class="batch-actions">
-                    <button class="chronicle-fb-btn batch-delete-btn" @click="bulkDeleteFiles">
+                    <button class="chr-fb-btn batch-delete-btn" @click="bulkDeleteFiles">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                         <span class="label">{{ $t('file.deleteSelected') }}</span>
                     </button>
                 </div>
-                <button class="chronicle-fb-btn batch-clear-btn" @click="clearFileSelection" :title="$t('file.clearSelection')">
+                <button class="chr-fb-btn batch-clear-btn" @click="clearFileSelection" :title="$t('file.clearSelection')">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
             </div>
 
             <!-- File list area -->
-            <div class="chronicle-fb-list">
+            <div class="chr-fb-list">
                 <!-- Loading state -->
-                <div v-if="loading" class="chronicle-fb-loading">{{ $t('file.loading') }}</div>
+                <div v-if="loading" class="chr-fb-loading">{{ $t('file.loading') }}</div>
 
                 <!-- Empty state -->
-                <div v-else-if="items.length === 0" class="chronicle-fb-empty">
+                <div v-else-if="items.length === 0" class="chr-fb-empty">
                     {{ $t('file.noFiles') }}
                 </div>
 
                 <!-- Card view -->
-                <div v-else-if="view === 'card'" class="chronicle-fb-grid">
+                <div v-else-if="view === 'card'" class="chr-fb-grid">
                     <div v-for="f in items" :key="f.key || f.name"
-                        :class="['chronicle-fb-card', f._justUploaded ? 'chronicle-fb-just-uploaded' : '', selectedPaths.has(f.path) ? 'chronicle-fb-card--selected' : '']"
+                        :class="['chr-fb-card', f._justUploaded ? 'chr-fb-just-uploaded' : '', selectedPaths.has(f.path) ? 'chr-fb-card--selected' : '']"
                         @click="openPreview(f)">
                         <input
                             type="checkbox"
@@ -160,16 +160,16 @@
                             :checked="selectedPaths.has(f.path)"
                             @click.stop="toggleSelectFile(f.path, $event)"
                         />
-                        <div class="chronicle-fb-thumb">
+                        <div class="chr-fb-thumb">
                             <img v-if="isImage(f.name)" :src="getThumbUrl(f)" loading="lazy" />
-                            <div v-else class="chronicle-fb-icon" v-html="getIconForFile(f.name)"></div>
+                            <div v-else class="chr-fb-icon" v-html="getIconForFile(f.name)"></div>
                         </div>
-                        <div class="chronicle-fb-meta">
-                            <span class="chronicle-fb-name" :title="f.name">{{ f.name }}</span>
+                        <div class="chr-fb-meta">
+                            <span class="chr-fb-name" :title="f.name">{{ f.name }}</span>
                             <div class="card-actions">
-                                <button class="chronicle-fb-preview-btn" :title="$t('file.copyLink')"
+                                <button class="chr-fb-preview-btn" :title="$t('file.copyLink')"
                                     @click.stop="copyLink(f)" v-html="Icons.link"></button>
-                                <button class="chronicle-fb-preview-btn delete-action" :title="$t('file.delete')"
+                                <button class="chr-fb-preview-btn delete-action" :title="$t('file.delete')"
                                     @click.stop="deleteItem(f.path)" v-html="Icons.trash"></button>
                             </div>
                         </div>
@@ -177,29 +177,29 @@
                 </div>
 
                 <!-- List / table view -->
-                <table v-else class="chronicle-fb-table">
+                <table v-else class="chr-fb-table">
                     <thead>
                         <tr>
-                            <th class="chronicle-fb-check-col">
+                            <th class="chr-fb-check-col">
                                 <input type="checkbox" :checked="allFilesSelected" @change="toggleSelectAllFiles" />
                             </th>
-                            <th class="chronicle-fb-name-col" @click="sortBy('name')">
+                            <th class="chr-fb-name-col" @click="sortBy('name')">
                                 {{ $t('filePicker.name') || 'Name' }}
                             </th>
-                            <th class="chronicle-fb-type-col" @click="sortBy('type')">
+                            <th class="chr-fb-type-col" @click="sortBy('type')">
                                 {{ $t('filePicker.type') || 'Type' }}
                             </th>
-                            <th class="chronicle-fb-created-col" @click="sortBy('created')">
+                            <th class="chr-fb-created-col" @click="sortBy('created')">
                                 {{ $t('filePicker.created') || 'Created' }}
                             </th>
-                            <th class="chronicle-fb-actions-col">{{ $t('filePicker.name') ? '' : '' }}</th>
+                            <th class="chr-fb-actions-col">{{ $t('filePicker.name') ? '' : '' }}</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr v-for="f in items" :key="f.key || f.name"
-                            :class="[f._justUploaded ? 'chronicle-fb-just-uploaded' : '', selectedPaths.has(f.path) ? 'chronicle-fb-row--selected' : '']"
+                            :class="[f._justUploaded ? 'chr-fb-just-uploaded' : '', selectedPaths.has(f.path) ? 'chr-fb-row--selected' : '']"
                             @click="openPreview(f)">
-                            <td class="chronicle-fb-check-col" @click.stop>
+                            <td class="chr-fb-check-col" @click.stop>
                                 <input
                                     type="checkbox"
                                     class="row-checkbox"
@@ -207,16 +207,16 @@
                                     @click.stop="toggleSelectFile(f.path, $event)"
                                 />
                             </td>
-                            <td class="chronicle-fb-name-col">{{ f.name }}</td>
-                            <td class="chronicle-fb-type-col">{{ getFileTypeLabel(f.name, t) }}</td>
-                            <td class="chronicle-fb-created-col">
+                            <td class="chr-fb-name-col">{{ f.name }}</td>
+                            <td class="chr-fb-type-col">{{ getFileTypeLabel(f.name, t) }}</td>
+                            <td class="chr-fb-created-col">
                                 {{ formatDateTime(f.created, locale, 'relative', 'show-weekday', 'hide-seconds', '24h',
                                 t) }}
                             </td>
-                            <td class="chronicle-fb-actions-col">
-                                <button class="chronicle-fb-preview-btn" :title="$t('file.copyLink')"
+                            <td class="chr-fb-actions-col">
+                                <button class="chr-fb-preview-btn" :title="$t('file.copyLink')"
                                     @click.stop="copyLink(f)" v-html="Icons.link"></button>
-                                <button class="chronicle-fb-preview-btn delete-action" :title="$t('file.delete')"
+                                <button class="chr-fb-preview-btn delete-action" :title="$t('file.delete')"
                                     @click.stop="deleteItem(f.path)" v-html="Icons.trash"></button>
                             </td>
                         </tr>
@@ -643,7 +643,7 @@ onUnmounted(() => {
 
 /* ── Container ─────────────────────────────────────────────────────── */
 
-.chronicle-fb-container {
+.chr-fb-container {
     position: relative;
     flex: 1;
     display: flex;
@@ -655,7 +655,7 @@ onUnmounted(() => {
 
 /* ── Toolbar ───────────────────────────────────────────────────────── */
 
-:deep(.chronicle-fb-toolbar) {
+:deep(.chr-fb-toolbar) {
     height: 48px;
     margin-bottom: 1rem;
 }
@@ -668,7 +668,7 @@ onUnmounted(() => {
 }
 
 /* View toggle */
-:deep(.chronicle-fb-view-toggle) {
+:deep(.chr-fb-view-toggle) {
     background: color-mix(var(--comp-bg-glass) 40%, transparent);
     height: 28px;
     border-radius: 10px;
@@ -684,12 +684,12 @@ onUnmounted(() => {
     outline: none;
 }
 
-:deep(.chronicle-fb-view-btn) {
+:deep(.chr-fb-view-btn) {
     font-size: 0.85rem;
     gap: 7px;
 }
 
-:deep(.chronicle-fb-view-btn svg) {
+:deep(.chr-fb-view-btn svg) {
     width: 14px;
     height: 14px;
 }
@@ -697,20 +697,20 @@ onUnmounted(() => {
 
 
 /* Toolbar buttons (refresh, upload) */
-:deep(.chronicle-fb-btn) {
+:deep(.chr-fb-btn) {
     font-size: 0.9rem;
     padding: 0.55rem 0.7rem;
 }
 
-:deep(.chronicle-fb-btn svg),
-:deep(.chronicle-fb-btn .icon-svg) {
+:deep(.chr-fb-btn svg),
+:deep(.chr-fb-btn .icon-svg) {
     width: 18px;
     height: 18px;
 }
 
 /* ── File list height (compensate for taller toolbar) ──────────────── */
 
-:deep(.chronicle-fb-list) {
+:deep(.chr-fb-list) {
     flex: 1;
     min-height: 0;
 }
@@ -731,8 +731,8 @@ onUnmounted(() => {
     transition: opacity 0.15s ease;
 }
 
-.chronicle-fb-card:hover .card-checkbox,
-.chronicle-fb-card--selected .card-checkbox {
+.chr-fb-card:hover .card-checkbox,
+.chr-fb-card--selected .card-checkbox {
     opacity: 1;
 }
 
@@ -743,13 +743,13 @@ onUnmounted(() => {
     cursor: pointer;
 }
 
-.chronicle-fb-check-col {
+.chr-fb-check-col {
     width: 32px;
     text-align: center;
     padding: 0 !important;
 }
 
-.chronicle-fb-check-col input {
+.chr-fb-check-col input {
     width: 14px;
     height: 14px;
     vertical-align: middle;
@@ -757,52 +757,52 @@ onUnmounted(() => {
     cursor: pointer;
 }
 
-.chronicle-fb-card--selected {
+.chr-fb-card--selected {
     outline: 2px solid var(--accent);
     outline-offset: -2px;
 }
 
-.chronicle-fb-row--selected {
+.chr-fb-row--selected {
     background: color-mix(in srgb, var(--accent) 6%, transparent) !important;
 }
 
-.chronicle-fb-row--selected td:first-child {
+.chr-fb-row--selected td:first-child {
     border-left: 3px solid var(--accent);
 }
 
 /* ── Grid / card view ──────────────────────────────────────────────── */
 
-:deep(.chronicle-fb-grid) {
+:deep(.chr-fb-grid) {
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 1rem;
 }
 
-:deep(.chronicle-fb-card) {
+:deep(.chr-fb-card) {
     padding: 0.75rem;
     gap: 0.6rem;
     border-radius: 14px;
     position: relative;
 }
 
-:deep(.chronicle-fb-thumb) {
+:deep(.chr-fb-thumb) {
     height: 130px;
     border-radius: 10px;
 }
 
-:deep(.chronicle-fb-thumb img) {
+:deep(.chr-fb-thumb img) {
     border-radius: 10px;
 }
 
-:deep(.chronicle-fb-icon) {
+:deep(.chr-fb-icon) {
     width: 44px;
     height: 44px;
 }
 
-:deep(.chronicle-fb-name) {
+:deep(.chr-fb-name) {
     font-size: 0.9rem;
 }
 
-:deep(.chronicle-fb-meta) {
+:deep(.chr-fb-meta) {
     min-height: 28px;
 }
 
@@ -815,7 +815,7 @@ onUnmounted(() => {
     flex-shrink: 0;
 }
 
-.card-actions .chronicle-fb-preview-btn {
+.card-actions .chr-fb-preview-btn {
     width: 28px;
     height: 28px;
     padding: 0;
@@ -825,7 +825,7 @@ onUnmounted(() => {
     border-radius: 7px;
 }
 
-.card-actions .chronicle-fb-preview-btn svg {
+.card-actions .chr-fb-preview-btn svg {
     width: 15px;
     height: 15px;
 }
@@ -837,46 +837,46 @@ onUnmounted(() => {
 
 /* ── Table / list view ─────────────────────────────────────────────── */
 
-:deep(.chronicle-fb-table) {
+:deep(.chr-fb-table) {
     font-size: 0.95rem;
 }
 
-:deep(.chronicle-fb-table th) {
+:deep(.chr-fb-table th) {
     padding: 0.55rem 0.6rem;
     font-size: 0.85rem;
 }
 
-:deep(.chronicle-fb-table td) {
+:deep(.chr-fb-table td) {
     padding: 0.45rem 0.6rem;
 }
 
-:deep(.chronicle-fb-type-col) {
+:deep(.chr-fb-type-col) {
     font-size: 0.85rem;
 }
 
-:deep(.chronicle-fb-created-col) {
+:deep(.chr-fb-created-col) {
     font-size: 0.85rem;
 }
 
-:deep(.chronicle-fb-actions-col) {
+:deep(.chr-fb-actions-col) {
     width: 1%;
     white-space: nowrap;
     text-align: right;
 }
 
-:deep(.chronicle-fb-actions-col .chronicle-fb-preview-btn) {
+:deep(.chr-fb-actions-col .chr-fb-preview-btn) {
     display: inline-flex;
     margin-left: 3px;
 }
 
-:deep(.chronicle-fb-actions-col .chronicle-fb-preview-btn svg) {
+:deep(.chr-fb-actions-col .chr-fb-preview-btn svg) {
     width: 15px;
     height: 15px;
 }
 
 /* ── Preview button in list rows ───────────────────────────────────── */
 
-:deep(.chronicle-fb-actions-col .chronicle-fb-preview-btn) {
+:deep(.chr-fb-actions-col .chr-fb-preview-btn) {
     width: 28px;
     height: 28px;
     padding: 0;
@@ -885,8 +885,8 @@ onUnmounted(() => {
 
 /* ── Loading / empty ───────────────────────────────────────────────── */
 
-:deep(.chronicle-fb-loading),
-:deep(.chronicle-fb-empty) {
+:deep(.chr-fb-loading),
+:deep(.chr-fb-empty) {
     font-size: 1rem;
     padding: 60px;
 }
@@ -894,7 +894,7 @@ onUnmounted(() => {
 /* ── Responsive: toolbar & sidebar ─────────────────────────────────── */
 
 /* Allow toolbar-right to wrap when it runs out of space */
-:deep(.chronicle-fb-toolbar) {
+:deep(.chr-fb-toolbar) {
     min-height: 48px;
     height: auto;
     flex-wrap: wrap;
@@ -902,7 +902,7 @@ onUnmounted(() => {
     align-items: center;
 }
 
-:deep(.chronicle-fb-toolbar-right) {
+:deep(.chr-fb-toolbar-right) {
     flex-wrap: wrap;
     justify-content: space-between;
 }
@@ -913,19 +913,19 @@ onUnmounted(() => {
         font-size: 1.15rem;
     }
 
-    :deep(.chronicle-fb-view-btn .label) {
+    :deep(.chr-fb-view-btn .label) {
         display: none;
     }
 
-    :deep(.chronicle-fb-btn .label) {
+    :deep(.chr-fb-btn .label) {
         display: none;
     }
 
-    :deep(.chronicle-fb-view-btn) {
+    :deep(.chr-fb-view-btn) {
         padding: 0 8px;
     }
 
-    :deep(.chronicle-fb-toolbar) {
+    :deep(.chr-fb-toolbar) {
         padding-right: 0;
     }
 }
@@ -956,36 +956,36 @@ onUnmounted(() => {
         padding: 1rem 1rem;
     }
 
-    :deep(.chronicle-fb-grid) {
+    :deep(.chr-fb-grid) {
         grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
         gap: 0.75rem;
     }
 
-    :deep(.chronicle-fb-thumb) {
+    :deep(.chr-fb-thumb) {
         height: 100px;
     }
 
-    :deep(.chronicle-fb-card) {
+    :deep(.chr-fb-card) {
         padding: 0.5rem;
         border-radius: 10px;
     }
 
-    :deep(.chronicle-fb-icon) {
+    :deep(.chr-fb-icon) {
         width: 36px;
         height: 36px;
     }
 
-    :deep(.chronicle-fb-name) {
+    :deep(.chr-fb-name) {
         font-size: 0.8rem;
     }
 
-    .card-actions .chronicle-fb-preview-btn {
+    .card-actions .chr-fb-preview-btn {
         width: 24px;
         height: 24px;
         border-radius: 5px;
     }
 
-    .card-actions .chronicle-fb-preview-btn svg {
+    .card-actions .chr-fb-preview-btn svg {
         width: 13px;
         height: 13px;
     }
@@ -1035,7 +1035,7 @@ onUnmounted(() => {
     }
 
     /* Controls row 2 — full width */
-    :deep(.chronicle-fb-toolbar-right) {
+    :deep(.chr-fb-toolbar-right) {
         width: 100%;
     }
 
@@ -1045,39 +1045,39 @@ onUnmounted(() => {
     }
 
     /* Touch-friendly toolbar buttons */
-    :deep(.chronicle-fb-btn) {
+    :deep(.chr-fb-btn) {
         min-height: 44px;
         min-width: 44px;
         padding: 0.5rem 0.8rem;
         font-size: 0.875rem;
     }
 
-    :deep(.chronicle-fb-btn svg) {
+    :deep(.chr-fb-btn svg) {
         width: 20px;
         height: 20px;
     }
 
 
-    :deep(.chronicle-fb-view-toggle) {
+    :deep(.chr-fb-view-toggle) {
         height: 34px;
     }
 
-    :deep(.chronicle-fb-view-btn) {
+    :deep(.chr-fb-view-btn) {
         width: 34px;
     }
 
 
     /* Grid: touch-friendly cards */
-    :deep(.chronicle-fb-grid) {
+    :deep(.chr-fb-grid) {
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
         gap: 0.6rem;
     }
 
-    :deep(.chronicle-fb-thumb) {
+    :deep(.chr-fb-thumb) {
         height: 110px;
     }
 
-    :deep(.chronicle-fb-name) {
+    :deep(.chr-fb-name) {
         font-size: 0.85rem;
     }
 
@@ -1086,33 +1086,33 @@ onUnmounted(() => {
         gap: 6px;
     }
 
-    .card-actions .chronicle-fb-preview-btn {
+    .card-actions .chr-fb-preview-btn {
         width: 36px;
         height: 36px;
         border-radius: 8px;
     }
 
-    .card-actions .chronicle-fb-preview-btn svg {
+    .card-actions .chr-fb-preview-btn svg {
         width: 16px;
         height: 16px;
     }
 
     /* Table row height */
-    :deep(.chronicle-fb-table) {
+    :deep(.chr-fb-table) {
         font-size: 0.85rem;
     }
 
-    :deep(.chronicle-fb-table th),
-    :deep(.chronicle-fb-table td) {
+    :deep(.chr-fb-table th),
+    :deep(.chr-fb-table td) {
         padding: 0.5rem 0.45rem;
     }
 
-    :deep(.chronicle-fb-actions-col .chronicle-fb-preview-btn) {
+    :deep(.chr-fb-actions-col .chr-fb-preview-btn) {
         width: 36px;
         height: 36px;
     }
 
-    :deep(.chronicle-fb-actions-col .chronicle-fb-preview-btn svg) {
+    :deep(.chr-fb-actions-col .chr-fb-preview-btn svg) {
         width: 16px;
         height: 16px;
     }
