@@ -95,18 +95,15 @@ async function browserWrite(relPath: string, data: any): Promise<boolean> {
     // data is the raw markdown content, wrap it for /api/post handler
     const slug = relPath.replace(/^data\/posts\//, '').replace(/\/index\.md$/, '')
     payload = { slug, content: data }
-  } else if (relPath.startsWith('data/site.yml')) {
-    endpoint = '/api/settings'
-  } else if (relPath.startsWith('.chronicle/')) {
-    endpoint = '/api/settings'
-  } else if (relPath.startsWith('data/collections')) {
-    endpoint = '/api/collections'
-  } else if (relPath.startsWith('data/friends')) {
-    endpoint = '/api/friends'
-  } else if (relPath.startsWith('data/profile')) {
-    endpoint = '/api/profile'
   } else {
+    // Everything else (site.yml / workspace.json / comments/*.json / …) is
+    // serialized here (or already by writeYaml) and written VERBATIM through
+    // the generic _rawPath branch. Never hand a raw object to a "smart" merge:
+    // the old flat-merge / wsKeys-whitelist branches rebuilt site.yml from
+    // regex lines (destroying nested YAML blocks) and leaked unknown workspace
+    // keys into site.yml.
     endpoint = '/api/settings'
+    payload = { _rawPath: relPath, _rawContent: typeof data === 'string' ? data : JSON.stringify(data) }
   }
   console.log('[dataAccess.browserWrite] relPath:', relPath, '→ endpoint:', endpoint)
   console.log('[dataAccess.browserWrite] payload type:', typeof payload, 'keys:', payload && typeof payload === 'object' ? Object.keys(payload) : 'N/A')
@@ -147,9 +144,11 @@ export async function readYaml<T = unknown>(relativePath: string): Promise<T | n
 
 export async function writeYaml(relativePath: string, data: unknown): Promise<boolean> {
   if (isElectron) return getBridge()!.writeYaml(relativePath, data)
-  // Serialize to YAML string and write as text
+  // Serialize to YAML string and write as text.
+  // Options must stay in sync with electron/main.cjs fs:writeYaml (yaml.dump).
+  // Note: yaml 2.9 stringify() has no 'noRefs' option — lineWidth: -1 disables wrapping.
   const YAML = await import('yaml')
-  const yml = YAML.stringify(data, { lineWidth: 0 })
+  const yml = YAML.stringify(data, { lineWidth: -1 })
   return writeText(relativePath, yml)
 }
 
