@@ -325,11 +325,25 @@ function saveDraft() {
 }
 
 function removeCard(index: number) {
+  // simple/string 模式数据在 simpleItems（cards 恒空）——按模式分流，否则删除/拖动不生效
+  if (isSimpleList.value) {
+    simpleItems.value = simpleItems.value.filter((_, i) => i !== index)
+    emitUpdate()
+    return
+  }
   cards.value.splice(index, 1)
   emitUpdate()
 }
 
 function moveCard(from: number, to: number) {
+  if (isSimpleList.value) {
+    const next = simpleItems.value.slice()
+    const [item] = next.splice(from, 1)
+    next.splice(to, 0, item)
+    simpleItems.value = next
+    emitUpdate()
+    return
+  }
   const next = cards.value.slice()
   const [item] = next.splice(from, 1)
   next.splice(to, 0, item)
