@@ -382,7 +382,8 @@
           "x-visible-when": {
             "field": "postEndOfArticle.share",
             "equals": true
-          }
+          },
+          "x-card-editable": false
         }
       }
     },

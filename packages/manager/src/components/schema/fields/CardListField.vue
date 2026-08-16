@@ -9,13 +9,13 @@
       - schema.x-card-subtitle-key → which property to show as subtitle (default: "intro")
   -->
   <div class="form-row">
-    <!-- Simple mode (items are plain strings, e.g. share channels): the SAME
+    <!-- Compact mode (items are plain strings, e.g. share channels): the SAME
          CardListEditor with full drag/edit/remove/add functionality, just the
          compact layout. Editing a string item = picking a value from the pool. -->
     <CardListEditor
-      :cards="isSimpleList ? simpleDisplayCards : displayCards"
-      :compact="isSimpleList"
-      :show-image="isSimpleList ? false : !!imageKey"
+      :cards="isCompactList ? compactDisplayCards : displayCards"
+      :compact="isCompactList"
+      :show-image="isCompactList ? false : !!imageKey"
       :title="title"
       :hint="hint"
       :add-label="addLabel"
@@ -41,8 +41,8 @@
         </div>
 
         <div class="card-modal__body">
-          <!-- Preview: image + key text fields (skipped in simple/string mode) -->
-          <div v-if="!isSimpleList && (imageKey || titleKey || subtitleKey)" class="card-modal__preview">
+          <!-- Preview: image + key text fields (skipped in compact/string mode) -->
+          <div v-if="!isCompactList && (imageKey || titleKey || subtitleKey)" class="card-modal__preview">
             <div v-if="imageKey && draftCard[imageKey]" class="card-modal__preview-media">
               <img :src="resolveUrl(draftCard[imageKey])" :alt="draftCard[titleKey] || ''" />
             </div>
@@ -106,12 +106,12 @@ const titleKey = computed(() => props.schema['x-card-title-key'] || 'name')
 const imageKey = computed(() => props.schema['x-card-image-key'] || 'avatar')
 const subtitleKey = computed(() => props.schema['x-card-subtitle-key'] || 'intro')
 
-// ── Simple mode (items are plain strings — e.g. share channels) ──
+// ── Compact mode (items are plain strings — e.g. share channels) ──
 // Full CardListEditor functionality (drag/edit/remove/add) via the compact
 // layout; editing a string item = picking a value from the pool in the modal.
-const isSimpleList = computed(() => cardItemSchema.value.type === 'string')
-const simpleItems = ref<string[]>([])
-const simplePool = computed<string[]>(() => {
+const isCompactList = computed(() => cardItemSchema.value.type === 'string')
+const compactItems = ref<string[]>([])
+const compactPool = computed<string[]>(() => {
   const pool = props.schema.items?.enum as string[] | undefined
   return Array.isArray(pool) && pool.length ? pool : []
 })
@@ -123,33 +123,38 @@ function itemLabel(value: string): string {
   return value
 }
 
-/** Display cards for CardListEditor in simple mode (name = localized label). */
-const simpleDisplayCards = computed(() => simpleItems.value.map((v, i) => ({
-  _localId: `s_${i}_${v}`, name: itemLabel(v), value: v,
-})))
+/** Display cards for CardListEditor in compact mode (name = localized label).
+ * _localId 用「value + 出现次数」而非 index —— key 稳定，拖动排序后不重建 DOM、重复值不撞 key（与 normal 模式一致）。 */
+const compactDisplayCards = computed(() => {
+  const seen: Record<string, number> = {}
+  return compactItems.value.map((v) => {
+    const n = (seen[v] = (seen[v] || 0) + 1)
+    return { _localId: `s_${v}_${n}`, name: itemLabel(v), value: v }
+  })
+})
 /** The single editable field shown in the modal for string items.
  * Uses a select when an enum pool exists, otherwise a plain input. */
-const simpleValueField = computed(() => {
-  const hasPool = simplePool.value.length > 0
+const compactValueField = computed(() => {
+  const hasPool = compactPool.value.length > 0
   return {
     key: 'value',
     schema: {
       type: 'string',
       'x-widget': hasPool ? 'select' : 'input',
-      ...(hasPool ? { 'x-options': simplePool.value.map(v => ({ value: v, label: itemLabel(v) })) } : {}),
+      ...(hasPool ? { 'x-options': compactPool.value.map(v => ({ value: v, label: itemLabel(v) })) } : {}),
       title: props.schema.title || { en: 'Value', 'zh-CN': '值' },
     },
   }
 })
 
 /**
- * Preset types for the + popup (CardList parameter). In simple/string mode the
+ * Preset types for the + popup (CardList parameter). In compact/string mode the
  * enum pool IS the type list; otherwise from schema.x-card-types. When empty,
  * + creates directly (no popup).
  */
 const addTypes = computed<{ value: string; label: string }[]>(() => {
-  if (isSimpleList.value) {
-    return simplePool.value.map(v => ({ value: v, label: itemLabel(v) }))
+  if (isCompactList.value) {
+    return compactPool.value.map(v => ({ value: v, label: itemLabel(v) }))
   }
   const types = props.schema['x-card-types'] as
     | Array<{ value: string; label: Record<string, string> | string }>
@@ -179,7 +184,7 @@ function resolveUrl(url: string): string {
 
 // Build ordered field list from schema properties
 const cardFields = computed(() => {
-  if (isSimpleList.value) return [simpleValueField.value]
+  if (isCompactList.value) return [compactValueField.value]
   const propsMap = cardPropSchemas.value
   return Object.keys(propsMap)
     .filter(k => (propsMap[k]['x-widget'] || 'input') !== 'hidden')
@@ -208,8 +213,8 @@ const displayCards = computed(() => cards.value.map(c => ({
 
 // ── Data binding ──
 watch(() => props.modelValue, (v) => {
-  if (isSimpleList.value) {
-    simpleItems.value = Array.isArray(v) ? v.map(String) : []
+  if (isCompactList.value) {
+    compactItems.value = Array.isArray(v) ? v.map(String) : []
     return
   }
   const source = v?.cards || (Array.isArray(v) ? v : [])
@@ -223,8 +228,8 @@ watch(() => props.modelValue, (v) => {
 }, { immediate: true, deep: true })
 
 function emitUpdate() {
-  if (isSimpleList.value) {
-    emit('update:modelValue', simpleItems.value)
+  if (isCompactList.value) {
+    emit('update:modelValue', compactItems.value)
     return
   }
   // Keep _localId — it flows to the server and back, giving the watch a stable key
@@ -253,14 +258,14 @@ function makeCard(): Record<string, any> {
 
 /**
  * Add entry point. With a type chosen from the + popup:
- *   - simple/string mode → the type IS the value → add it directly (no modal);
+ *   - compact/string mode → the type IS the value → add it directly (no modal);
  *   - object cards → open the modal pre-filled with the type.
  * Without a preset type → create directly (modal).
  */
 function onAdd(typeValue?: string) {
-  if (isSimpleList.value) {
+  if (isCompactList.value) {
     if (typeValue) {
-      simpleItems.value = [...simpleItems.value, typeValue]
+      compactItems.value = [...compactItems.value, typeValue]
       emitUpdate()
       return
     }
@@ -272,15 +277,15 @@ function onAdd(typeValue?: string) {
 
 function openCreate(typeValue?: string) {
   editingIndex.value = null
-  draftCard.value = isSimpleList.value ? { value: '' } : makeCard()
-  if (typeValue && !isSimpleList.value) draftCard.value[typeField.value] = typeValue
+  draftCard.value = isCompactList.value ? { value: '' } : makeCard()
+  if (typeValue && !isCompactList.value) draftCard.value[typeField.value] = typeValue
   modalTitle.value = t('settings.friendCardDialogTitleNew')
   isModalOpen.value = true
 }
 
 function openEdit(index: number) {
-  if (isSimpleList.value) {
-    const target = simpleItems.value[index]
+  if (isCompactList.value) {
+    const target = compactItems.value[index]
     if (target === undefined) return
     editingIndex.value = index
     draftCard.value = { value: target }
@@ -300,15 +305,15 @@ function closeModal() { isModalOpen.value = false; draftCard.value = null }
 
 function saveDraft() {
   if (!draftCard.value) return
-  if (isSimpleList.value) {
+  if (isCompactList.value) {
     const v = String(draftCard.value.value || '')
     if (!v) { closeModal(); return }
     if (editingIndex.value === null) {
-      simpleItems.value = [...simpleItems.value, v]
+      compactItems.value = [...compactItems.value, v]
     } else {
-      const next = [...simpleItems.value]
+      const next = [...compactItems.value]
       next.splice(editingIndex.value, 1, v)
-      simpleItems.value = next
+      compactItems.value = next
     }
     closeModal()
     emitUpdate()
@@ -325,9 +330,9 @@ function saveDraft() {
 }
 
 function removeCard(index: number) {
-  // simple/string 模式数据在 simpleItems（cards 恒空）——按模式分流，否则删除/拖动不生效
-  if (isSimpleList.value) {
-    simpleItems.value = simpleItems.value.filter((_, i) => i !== index)
+  // compact/string 模式数据在 compactItems（cards 恒空）——按模式分流，否则删除/拖动不生效
+  if (isCompactList.value) {
+    compactItems.value = compactItems.value.filter((_, i) => i !== index)
     emitUpdate()
     return
   }
@@ -336,11 +341,11 @@ function removeCard(index: number) {
 }
 
 function moveCard(from: number, to: number) {
-  if (isSimpleList.value) {
-    const next = simpleItems.value.slice()
+  if (isCompactList.value) {
+    const next = compactItems.value.slice()
     const [item] = next.splice(from, 1)
     next.splice(to, 0, item)
-    simpleItems.value = next
+    compactItems.value = next
     emitUpdate()
     return
   }
