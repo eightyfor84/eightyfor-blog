@@ -20,8 +20,6 @@ export interface EditorMediaOptions {
   isCloudEditing: Ref<boolean>
   showToast: (msg: string, opts?: any) => void
   t: (key: string) => string
-  CDN_BASE_URL: string
-  API_BASE_URL: string
   isElectron: boolean
   postSlug?: Ref<string>
   postId?: Ref<string | null>
@@ -31,7 +29,7 @@ export function useEditorMedia(options: EditorMediaOptions) {
   const {
     editorBodyRef, activeModal, isCloudEditing,
     showToast, t,
-    CDN_BASE_URL, API_BASE_URL, isElectron,
+    isElectron,
     postSlug, postId,
   } = options
 
@@ -121,7 +119,7 @@ export function useEditorMedia(options: EditorMediaOptions) {
 
   /** 从服务器获取媒体文件列表 → cloud/useCloudUpload */
   async function fetchServerImages() {
-    uploadedImages.value = await fetchServerFiles(selectedCategory.value)
+    uploadedImages.value = await fetchServerFiles()
   }
 
   function openMediaModal() {
@@ -151,7 +149,7 @@ export function useEditorMedia(options: EditorMediaOptions) {
     } else if (/^(https?:|blob:|data:|file:|\/|(?:audio|video|document|text|other):)/i.test(path)) {
       markdownPath = path
     } else if (path.includes('/')) {
-      markdownPath = `${CDN_BASE_URL}${path}`
+      markdownPath = path
     } else {
       // Bare filename — private asset, relative to post directory
       markdownPath = path
@@ -176,7 +174,7 @@ export function useEditorMedia(options: EditorMediaOptions) {
 
   /** 上传单个文件到服务器 → cloud/useCloudUpload */
   async function uploadMediaFile(file: File) {
-    return uploadFile(file, API_BASE_URL)
+    return uploadFile(file)
   }
 
   // ══════════════════════════════════════════════════════

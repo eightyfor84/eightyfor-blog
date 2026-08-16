@@ -89,7 +89,7 @@ type PickerObjectValue = {
   tinted: true
 }
 
-type PickerModelValue = string | PickerObjectValue | null | undefined
+export type PickerModelValue = string | PickerObjectValue | null | undefined
 
 const activePickerInstanceId = ref(0)
 
