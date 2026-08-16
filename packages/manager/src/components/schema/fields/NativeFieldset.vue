@@ -58,6 +58,11 @@ function evaluateCondition(cond: Record<string, any> | undefined): boolean {
       value = value[p]
     }
   }
+  // 数据未配置该字段时回退子字段 schema 默认值（与 getNested 显示逻辑一致），
+  // 否则初始状态（只有 default、尚未写入 data）条件字段会被误判隐藏
+  if (value === undefined && parts.length === 1) {
+    value = childSchema.value[parts[0]]?.default
+  }
 
   if (equals !== undefined && value !== equals) return false
   if (notEquals !== undefined && value === notEquals) return false

@@ -623,7 +623,7 @@
           "x-widget": "select",
           "x-order": 2,
           "x-visible-when": {
-            "field": "analytics.enabled",
+            "field": "enabled",
             "equals": true
           },
           "x-options": [
@@ -682,7 +682,7 @@
           "x-widget": "input",
           "x-order": 3,
           "x-visible-when": {
-            "field": "analytics.backend",
+            "field": "backend",
             "equals": "ga"
           },
           "title": {
@@ -696,7 +696,7 @@
           "x-widget": "input",
           "x-order": 4,
           "x-visible-when": {
-            "field": "analytics.backend",
+            "field": "backend",
             "equals": "cloudflare"
           },
           "title": {
@@ -710,7 +710,7 @@
           "x-widget": "input",
           "x-order": 5,
           "x-visible-when": {
-            "field": "analytics.backend",
+            "field": "backend",
             "equals": "umami"
           },
           "title": {
@@ -724,7 +724,7 @@
           "x-widget": "input",
           "x-order": 6,
           "x-visible-when": {
-            "field": "analytics.backend",
+            "field": "backend",
             "equals": "umami"
           },
           "title": {
@@ -738,7 +738,7 @@
           "x-widget": "input",
           "x-order": 7,
           "x-visible-when": {
-            "field": "analytics.backend",
+            "field": "backend",
             "equals": "plausible"
           },
           "title": {
@@ -752,7 +752,7 @@
           "x-widget": "input",
           "x-order": 8,
           "x-visible-when": {
-            "field": "analytics.backend",
+            "field": "backend",
             "equals": "plausible"
           },
           "title": {
@@ -766,7 +766,7 @@
           "x-widget": "input",
           "x-order": 9,
           "x-visible-when": {
-            "field": "analytics.backend",
+            "field": "backend",
             "equals": "baidu"
           },
           "title": {
