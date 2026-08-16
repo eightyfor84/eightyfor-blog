@@ -258,7 +258,7 @@ export interface CommentConfig {
 export interface PostPageConfig {
   postMeta?: { metaUpdated?: boolean; metaStats?: boolean; metaAiBadge?: boolean; showTags?: boolean };
   postTocEnabled?: boolean;
-  postToc?: { inlineToc?: boolean; tocFloat?: boolean; tocFloatCollapsed?: boolean; tocFloatAlwaysExpanded?: boolean; mobileTocControl?: boolean };
+  postToc?: { inlineToc?: boolean; tocFloat?: boolean; tocFloatAlwaysExpanded?: boolean; mobileTocControl?: boolean };
   postCollectionNavEnabled?: boolean;
   postCollectionNav?: { alwaysCollapsed?: boolean };
   postEndOfArticle?: { relatedPosts?: boolean; prevNext?: boolean; prevNextMode?: 'both' | 'next-only'; prevNextScope?: 'global' | 'collection'; authorCard?: boolean; share?: boolean; shareChannels?: string[] };
@@ -268,7 +268,7 @@ export interface PostPageConfig {
 const POST_PAGE_DEFAULTS: Required<PostPageConfig> = {
   postMeta: { metaUpdated: true, metaStats: true, metaAiBadge: true, showTags: true },
   postTocEnabled: true,
-  postToc: { inlineToc: true, tocFloat: true, tocFloatCollapsed: true, tocFloatAlwaysExpanded: false, mobileTocControl: true },
+  postToc: { inlineToc: true, tocFloat: true, tocFloatAlwaysExpanded: false, mobileTocControl: true },
   postCollectionNavEnabled: true,
   postCollectionNav: { alwaysCollapsed: false },
   postEndOfArticle: { relatedPosts: true, prevNext: true, prevNextMode: 'both', prevNextScope: 'global', authorCard: true, share: true, shareChannels: ['twitter', 'weibo', 'linkedin'] },

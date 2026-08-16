@@ -107,7 +107,7 @@ const collectionNavCollapsed = collectionNavCfg.alwaysCollapsed === true;
 const tocEnabled = postCfg.postTocEnabled !== false;
 const inlineTocEnabled = tocEnabled && tocCfg.inlineToc !== false;
 const tocFloatEnabled = tocEnabled && tocCfg.tocFloat !== false;
-const tocFloatCollapsed = tocCfg.tocFloatCollapsed !== false;
+// 悬浮目录折叠态：始终展开开关关闭时即折叠（rail 现况）；开启时始终展开（正文让位）
 const tocFloatAlwaysExpanded = tocCfg.tocFloatAlwaysExpanded === true;
 const mobileTocControlEnabled = tocEnabled && tocCfg.mobileTocControl !== false;
 
@@ -429,7 +429,7 @@ const metaDescription = buildMetaDescription(post, locale);
         toc={tocItems}
         navLabel={t('inblog.toc-title')}
         mountToBody={true}
-        collapsed={tocFloatAlwaysExpanded ? false : tocFloatCollapsed}
+        collapsed={!tocFloatAlwaysExpanded}
         alwaysExpanded={tocFloatAlwaysExpanded}
       />
     </>
