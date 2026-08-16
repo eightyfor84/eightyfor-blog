@@ -220,8 +220,9 @@ const {
   .toc-float:not(.visible) { transform: translateX(20px); opacity: 0; pointer-events: none; }
 
   /* 展开外观（data-default-expanded 基态 = 默认展开/始终展开）：>900px 生效，
-     覆盖 SSR 的 .collapsed 外观；≤900px 无此规则 → 保持可折叠 rail。
-     data-always-expanded 是修饰符（无背景/无模糊，正文让位由容器类处理）。 */
+     强设覆盖 SSR 的 .collapsed 外观（面板 + 子项）；≤900px 无此规则 → 保持可折叠 rail。
+     data-always-expanded 是修饰符（无背景/无模糊，正文让位由容器类处理）。
+     注意：collapsed 类仍在，滚动条保持隐藏（scrollbar-width:none），不因展开外观出现。 */
   @media (min-width: 900px) {
     .toc-float[data-default-expanded="true"],
     .toc-float[data-always-expanded="true"] {
@@ -234,7 +235,8 @@ const {
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       border: 1px solid var(--border-color);
       border-radius: 8px;
-      scrollbar-width: auto;
+      /* collapsed 不显示滚动条（即使展开外观） */
+      scrollbar-width: none;
     }
     .toc-float[data-default-expanded="true"] ul,
     .toc-float[data-always-expanded="true"] ul { padding: 4px; }
@@ -254,6 +256,31 @@ const {
       transform: translateX(10px) !important;
       pointer-events: none !important;
     }
+    /* 子项层级缩进：强设展开值，覆盖 .collapsed .toc-level-N 的压缩缩进 */
+    .toc-float[data-default-expanded="true"] .toc-level-1,
+    .toc-float[data-always-expanded="true"] .toc-level-1 { padding-left: 0 !important; }
+    .toc-float[data-default-expanded="true"] .toc-level-2,
+    .toc-float[data-always-expanded="true"] .toc-level-2 { padding-left: 0 !important; }
+    .toc-float[data-default-expanded="true"] .toc-level-3,
+    .toc-float[data-always-expanded="true"] .toc-level-3 { padding-left: 0 !important; }
+    .toc-float[data-default-expanded="true"] .toc-level-4,
+    .toc-float[data-always-expanded="true"] .toc-level-4 { padding-left: 0 !important; }
+    .toc-float[data-default-expanded="true"] .toc-level-5,
+    .toc-float[data-always-expanded="true"] .toc-level-5 { padding-left: 0 !important; }
+    .toc-float[data-default-expanded="true"] .toc-level-6,
+    .toc-float[data-always-expanded="true"] .toc-level-6 { padding-left: 0 !important; }
+    .toc-float[data-default-expanded="true"] .toc-level-1 span,
+    .toc-float[data-always-expanded="true"] .toc-level-1 span { padding-left: calc(1px + var(--padding-h-base)) !important; }
+    .toc-float[data-default-expanded="true"] .toc-level-2 span,
+    .toc-float[data-always-expanded="true"] .toc-level-2 span { padding-left: calc(6px + var(--padding-h-base)) !important; }
+    .toc-float[data-default-expanded="true"] .toc-level-3 span,
+    .toc-float[data-always-expanded="true"] .toc-level-3 span { padding-left: calc(12px + var(--padding-h-base)) !important; }
+    .toc-float[data-default-expanded="true"] .toc-level-4 span,
+    .toc-float[data-always-expanded="true"] .toc-level-4 span { padding-left: calc(18px + var(--padding-h-base)) !important; }
+    .toc-float[data-default-expanded="true"] .toc-level-5 span,
+    .toc-float[data-always-expanded="true"] .toc-level-5 span { padding-left: calc(24px + var(--padding-h-base)) !important; }
+    .toc-float[data-default-expanded="true"] .toc-level-6 span,
+    .toc-float[data-always-expanded="true"] .toc-level-6 span { padding-left: calc(30px + var(--padding-h-base)) !important; }
   }
 
   /* data-always-expanded 修饰符：无背景、无模糊、无阴影边框（>900px，与展开外观叠加） */
