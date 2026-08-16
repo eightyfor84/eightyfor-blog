@@ -592,15 +592,24 @@ onBeforeUnmount(() => {
     justify-content: flex-start;
   }
 }
-/* Compact variant — same functionality, tighter spacing (share channels etc.) */
+/* Compact variant — same functionality and FONT SIZES, but: smaller media,
+   single-line text (heading + intro collapse onto one ellipsized line) and
+   tighter spacing. Image visibility is independent of size — it follows the
+   showImage prop (the share-channels use case passes showImage=false). */
 .card-list-editor--compact { padding: 0.6rem 0.75rem; }
 .card-list-editor--compact .card-list-editor__toolbar { margin-bottom: 0.5rem; }
-.card-list-editor--compact .card-list-editor__toolbar strong { font-size: 0.9rem; }
-.card-list-editor--compact .card-list-editor__toolbar p { font-size: 0.75rem; margin: 0.15rem 0 0; }
-.card-list-editor--compact .card-list-editor__toolbar .primary { padding: 0.3rem 0.7rem; font-size: 0.8rem; }
+.card-list-editor--compact .card-list-editor__toolbar .primary { padding: 0.3rem 0.7rem; }
 .card-list-editor--compact .card-list__item { padding: 0.3rem 0.4rem; }
 .card-list-editor--compact .card-list__item-content { gap: 0.5rem; }
-.card-list-editor--compact .card-list__heading strong { font-size: 0.85rem; }
-.card-list-editor--compact .card-list__intro { font-size: 0.75rem; margin: 0.1rem 0 0; }
+.card-list-editor--compact .card-list__preview { gap: 0.4rem; }
+/* 图片等元素变小（字号不变） */
+.card-list-editor--compact .card-list__media { border-radius: 8px; }
+.card-list-editor--compact .card-list__preview .card-list__media { width: 32px; }
+.card-list-editor--compact .card-list__media-placeholder { border-radius: 8px; }
+/* 文字两行变一行：heading + intro 单行、各自省略 */
+.card-list-editor--compact .card-list__content { display: flex; align-items: center; gap: 0.5rem; min-width: 0; }
+.card-list-editor--compact .card-list__heading { min-width: 0; flex-shrink: 1; }
+.card-list-editor--compact .card-list__heading strong { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card-list-editor--compact .card-list__intro { margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 2; min-width: 0; }
 .card-list-editor--compact .card-list__actions .icon-btn { width: 24px; height: 24px; }
 </style>

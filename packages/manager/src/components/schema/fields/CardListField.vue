@@ -15,7 +15,7 @@
     <CardListEditor
       :cards="isSimpleList ? simpleDisplayCards : displayCards"
       :compact="isSimpleList"
-      :show-image="!!imageKey"
+      :show-image="isSimpleList ? false : !!imageKey"
       :title="title"
       :hint="hint"
       :add-label="addLabel"
