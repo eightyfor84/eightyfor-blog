@@ -3,6 +3,7 @@ export { parseSlides } from "./marpParser.js"
 export type { ParsedSlide, SlideMeta } from "./marpParser.js"
 export { extractBodySummary } from "./summary.js"
 export { formatRelativeTime } from "./relativeTime.js"
+export { hexToRgbString, darkenHex } from "./colorUtils.js"
 /**
  * Chronicle Shared Utilities
  *
@@ -10,14 +11,26 @@ export { formatRelativeTime } from "./relativeTime.js"
  * (browser, Node.js, edge functions).
  */
 
-/** Slugify a string for URLs */
+/** Slugify a string for URLs / ids.
+ *  When no readable characters remain (e.g. a title of only CJK or emoji),
+ *  falls back to crypto.randomUUID() so the id stays stable and unique. */
 export function slugify(text: string): string {
-  return text
+  const slug = String(text ?? '')
     .toLowerCase()
     .replace(/[^\w\s-]/g, '')
     .replace(/[\s_]+/g, '-')
     .replace(/-+/g, '-')
-    .trim()
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80)
+  return slug || crypto.randomUUID()
+}
+
+/** Make a slug unique against an index of existing keys (slug, slug-2, slug-3, …). */
+export function uniqueSlug(index: Record<string, unknown>, slug: string): string {
+  if (!index[slug]) return slug
+  let n = 2
+  while (index[`${slug}-${n}`]) n++
+  return `${slug}-${n}`
 }
 
 /** Extract plain text from markdown (strip formatting).

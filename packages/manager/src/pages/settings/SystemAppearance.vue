@@ -85,7 +85,7 @@ import { computed, ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import useToast from '../../composables/useToast.ts'
 import BackgroundEditorModal from '../../components/BackgroundEditorModal.vue'
-import { hexToRgbString } from '../../utils/colorUtils.ts'
+import { hexToRgbString } from '@chronicle/shared/utils'
 import { resolveMediaUrl, discoverBackendBgUrlAsync } from '../../utils/backgroundSettings.ts'
 
 const { locale } = useI18n()

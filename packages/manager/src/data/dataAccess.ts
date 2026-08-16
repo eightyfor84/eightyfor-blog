@@ -41,6 +41,7 @@ export interface ChronicleFileBridge {
   deleteDir: (relativePath: string) => Promise<boolean>
   deleteFile: (relativePath: string) => Promise<boolean>
   copyFile: (sourceAbs: string, destRel: string) => Promise<boolean>
+  writeBase64: (relativePath: string, base64: string) => Promise<boolean>
   invoke: (channel: string, ...args: any[]) => Promise<any>
 }
 
@@ -294,4 +295,42 @@ export async function getRepoRoot(): Promise<string> {
 export async function getDataDir(): Promise<string> {
   if (isElectron) return getBridge()!.getDataDir()
   return 'data'
+}
+
+// ═══════════════════════════════════════════════════════════════
+// File upload — single entry for renderer-side uploads
+//   Electron → fs:writeBase64 IPC (main mkdirs recursively)
+//   Browser  → POST /api/import (x-filename + x-dest headers)
+// ═══════════════════════════════════════════════════════════════
+
+/** Sanitize a filename for storage — CJK-safe, keeps dots/dashes/underscores. */
+export function safeFileName(name: string): string {
+  return String(name || 'untitled').replace(/[^\w.\-一-鿿]/g, '_')
+}
+
+/** Write a File to a repo-relative path. Returns true on success. */
+export async function uploadFile(relPath: string, file: File): Promise<boolean> {
+  try {
+    const buf = await file.arrayBuffer()
+    if (isElectron) {
+      const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)))
+      return await getBridge()!.writeBase64(relPath, b64)
+    }
+    const slash = relPath.lastIndexOf('/')
+    const dest = slash > 0 ? relPath.slice(0, slash) : ''
+    const name = slash >= 0 ? relPath.slice(slash + 1) : relPath
+    const resp = await fetch('/api/import', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/octet-stream',
+        'x-filename': encodeURIComponent(name),
+        ...(dest ? { 'x-dest': encodeURIComponent(dest) } : {}),
+      },
+      body: new Blob([new Uint8Array(buf)]),
+    })
+    return resp.ok
+  } catch (e) {
+    console.error('[dataAccess.uploadFile] failed:', relPath, e)
+    return false
+  }
 }

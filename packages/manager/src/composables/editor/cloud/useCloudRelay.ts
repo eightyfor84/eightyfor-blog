@@ -6,7 +6,8 @@
  * All operations go through dataAccess (IPC → main → fs).
  */
 
-import { readJson, writeJson, readText, writeText, readDir, mkdir } from '../../../data/dataAccess'
+import { readJson, writeJson, readText, writeText, readDir, mkdir, uploadFile as writeFileData, safeFileName } from '../../../data/dataAccess'
+import { slugify, uniqueSlug } from '@chronicle/shared/utils'
 
 // ═══════════════════════════════════════════════════════════════
 // Types
@@ -29,28 +30,6 @@ async function getIndex(): Promise<Record<string, any>> {
 
 async function saveIndex(idx: Record<string, any>): Promise<void> {
   await writeJson('data/posts/index.json', idx)
-}
-
-function uniqueSlug(idx: Record<string, any>, slug: string): string {
-  if (!idx[slug]) return slug
-  let n = 2
-  while (idx[`${slug}-${n}`]) n++
-  return `${slug}-${n}`
-}
-
-/**
- * Derive a readable slug from a title. When no readable characters remain
- * (e.g. a title of only CJK or emoji), fall back to crypto.randomUUID() so
- * the post still gets a stable, unique id.
- */
-export function slugify(title: string): string {
-  const s = title.toLowerCase()
-    .replace(/[^\w\s-]/g, '')
-    .replace(/[\s_]+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 80)
-  return s || crypto.randomUUID()
 }
 
 function deriveSlug(content: string): string {
@@ -173,11 +152,11 @@ export function clearDraft(id: string): void { try { localStorage.removeItem(dk(
 export function saveHistory(id: string, h: Record<string, any>): void { try { sessionStorage.setItem(hk(id), JSON.stringify(h)) } catch {} }
 export function getHistory(id: string): Record<string, any> | null { try { const r = sessionStorage.getItem(hk(id)); return r ? JSON.parse(r) : null } catch { return null } }
 export function clearHistory(id: string): void { try { sessionStorage.removeItem(hk(id)) } catch {} }
-/** Copy a file to a post directory — private asset. Returns the relative URL. */
+/** Copy a file to a post directory — private asset. Returns the filename. */
 export async function copyToPost(slug: string, file: File): Promise<string | null> {
   const rawName = (file as any).name || 'untitled'
   const dotIdx = rawName.lastIndexOf('.')
-  const baseName = dotIdx > 0 ? rawName.slice(0, dotIdx).replace(/[^\w.\-一-鿿]/g, '_') : rawName.replace(/[^\w.\-一-鿿]/g, '_')
+  const baseName = safeFileName(dotIdx > 0 ? rawName.slice(0, dotIdx) : rawName)
   const ext = dotIdx > 0 ? rawName.slice(dotIdx) : ''
   const base = slug === '__about__' ? 'data/__about__' : `data/posts/${slug}`
 
@@ -192,45 +171,18 @@ export async function copyToPost(slug: string, file: File): Promise<string | nul
     }
   } catch { /* directory may not exist yet */ }
 
-  const destRel = `${base}/${safeName}`
   try {
-    const isElec = typeof window !== 'undefined' && !!(window as any).chronicleElectron?.isElectron
-    if (isElec) {
-      await mkdir(base)
-      const buf = await file.arrayBuffer()
-      const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)))
-      await (window as any).chronicleElectron.writeBase64(destRel, b64)
-    } else {
-      const buf = await file.arrayBuffer()
-      const resp = await fetch('/api/import', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/octet-stream', 'x-filename': encodeURIComponent(safeName), 'x-dest': encodeURIComponent(base) },
-        body: new Blob([new Uint8Array(buf)]),
-      })
-      if (!resp.ok) return null
-    }
-    return safeName
+    await mkdir(base)
+    const ok = await writeFileData(`${base}/${safeName}`, file)
+    return ok ? safeName : null
   } catch { return null }
 }
 
 export async function uploadFile(file: File): Promise<string | null> {
   try {
-    const isElec = typeof window !== 'undefined' && !!(window as any).chronicleElectron?.isElectron
-    const safeName = file.name.replace(/[^\w.\-一-鿿]/g, '_')
-    if (isElec) {
-      const buf = await file.arrayBuffer()
-      const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)))
-      await (window as any).chronicleElectron.writeBase64(`data/assets/${safeName}`, b64)
-    } else {
-      const buf = await file.arrayBuffer()
-      const resp = await fetch('/api/import', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/octet-stream', 'x-filename': encodeURIComponent(safeName) },
-        body: new Blob([new Uint8Array(buf)]),
-      })
-      if (!resp.ok) return null
-    }
-    return `/data/assets/${encodeURIComponent(safeName)}`
+    const safeName = safeFileName(file.name)
+    const ok = await writeFileData(`data/assets/${safeName}`, file)
+    return ok ? `/data/assets/${encodeURIComponent(safeName)}` : null
   } catch { return null }
 }
 export async function fetchServerFiles(): Promise<ServerFile[]> {

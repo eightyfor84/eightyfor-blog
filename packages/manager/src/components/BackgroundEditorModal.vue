@@ -124,7 +124,7 @@
 <script setup lang="ts">
 import { reactive, toRefs, watch, computed, ref } from 'vue'
 import { Icons } from '../utils/icons';
-import { hexToRgbString } from '../utils/colorUtils'
+import { hexToRgbString } from '@chronicle/shared/utils'
 import { useI18n } from 'vue-i18n'
 import FilePicker from './FilePicker.vue'
 import { resolveMediaUrl } from '../utils/backgroundSettings'

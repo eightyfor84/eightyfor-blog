@@ -4,7 +4,7 @@ import { computed, ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 import { ShellIcons } from '../utils/shellIcons'
 import { ensureNotoLoaded } from '../utils/fontLoader'
-import { hexToRgbString } from '../utils/colorUtils'
+import { hexToRgbString, darkenHex } from '@chronicle/shared/utils'
 import { resolveBackgroundCompression, resolveBackgroundUrl, buildApiFallbackUrl, retryVideoConversion } from '../utils/backgroundSettings'
 import { useSchemaNav, type NavGroup } from '../composables/useSchemaNav'
 import { syncSchemas } from '../composables/schemaApi'
@@ -609,24 +609,9 @@ function applySettingsFromStore(s: Record<string, any>) {
       if (s.backendAccent || s.frontendAccent) {
         const accent = String(s.backendAccent || s.frontendAccent)
         document.documentElement.style.setProperty('--accent', accent)
-        // compute a darker variant for hover/active states
+        // darker variant for hover/active states — shared darkenHex
         try {
-          const dark = (h => {
-            // simple hex -> RGB darken by 14% (works for #rgb, #rrggbb)
-            try {
-              let hex = h.replace('#', '')
-              if (hex.length === 3) hex = hex.split('').map(c => c + c).join('')
-              const r = parseInt(hex.substring(0, 2), 16)
-              const g = parseInt(hex.substring(2, 4), 16)
-              const b = parseInt(hex.substring(4, 6), 16)
-              const factor = 0.86
-              const rr = Math.max(0, Math.min(255, Math.round(r * factor)))
-              const gg = Math.max(0, Math.min(255, Math.round(g * factor)))
-              const bb = Math.max(0, Math.min(255, Math.round(b * factor)))
-              return `rgb(${rr}, ${gg}, ${bb})`
-            } catch (e) { return accent }
-          })(accent)
-          document.documentElement.style.setProperty('--accent-dark', dark)
+          document.documentElement.style.setProperty('--accent-dark', darkenHex(accent))
         } catch (e) { }
       }
 

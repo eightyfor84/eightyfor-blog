@@ -379,7 +379,7 @@
                 </div>
                 <div class="form-group">
                     <label>Slug</label>
-                    <input v-model="postSlug" class="modal-input" :class="{ 'input-error': slugError }" @focus="slugError = false" :placeholder="!postId ? (postTitle || tempTitle || 'untitled').toLowerCase().replace(/[^\w\s-]/g,'').replace(/[\s_]+/g,'-').replace(/-+/g,'-').replace(/^-+|-+$/g,'').slice(0,80) : ''" :disabled="!!postId" />
+                    <input v-model="postSlug" class="modal-input" :class="{ 'input-error': slugError }" @focus="slugError = false" :placeholder="!postId ? slugify(postTitle || tempTitle || 'untitled') : ''" :disabled="!!postId" />
                 </div>
                 <div class="form-group">
                     <label>{{ t('editor.tagsLabel') }}</label>
@@ -457,7 +457,7 @@
                     <label>Slug</label>
                     <input v-model="postSlug" class="modal-input" :class="{ 'input-error': slugError }"
                         @focus="slugError = false"
-                        :placeholder="(tempTitle || postTitle || 'untitled').toLowerCase().replace(/[^\w\s-]/g,'').replace(/[\s_]+/g,'-').replace(/-+/g,'-').replace(/^-+|-+$/g,'').slice(0,80)" />
+                        :placeholder="slugify(tempTitle || postTitle || 'untitled')" />
                 </div>
                 <div class="form-group">
                     <label>{{ t('editor.tagsLabel') }}</label>
@@ -689,7 +689,7 @@ import { useEditorToolbar, type RibbonTool } from '../composables/editor/core/us
 import { useEditorFile } from '../composables/editor/markdown/useEditorFile'
 import { useEditorSession } from '../composables/editor/core/useEditorLifecycle'
 import { resolveEditorRoute } from '../composables/editor/cloud/useCloudRouter'
-import { slugify } from '../composables/editor/cloud/useCloudRelay'
+import { slugify } from '@chronicle/shared/utils'
 import { useFileMenu } from '../composables/editor/markdown/useMarkdownFileMenu'
 
 import type { IEditorBody } from './editor/IEditorBody.ts'
