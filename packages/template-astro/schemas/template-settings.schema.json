@@ -534,7 +534,7 @@
           "pattern": "^(|#[0-9a-fA-F]{6})$",
           "x-allow-empty": true,
           "x-tab": "template-appearance",
-          "x-file": "background"
+          "x-file": "data/background/background.yml"
         },
         "baseColorDark": {
           "type": "string",
@@ -549,7 +549,7 @@
           "pattern": "^(|#[0-9a-fA-F]{6})$",
           "x-allow-empty": true,
           "x-tab": "template-appearance",
-          "x-file": "background"
+          "x-file": "data/background/background.yml"
         }
       },
       "x-tab": "template-appearance"

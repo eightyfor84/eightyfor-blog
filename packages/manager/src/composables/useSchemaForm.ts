@@ -176,6 +176,7 @@ export function useSchemaForm(schemaId: string) {
         // Cross-file persistence: UI stays with this schema, data lands in the target file.
         // 按 schema 树路径合并（appearance.baseColorLight），而非顶层散键。
         const xFileGroups = collectXFileFields(sch)
+        console.log('[load] xFileGroups:', JSON.stringify(xFileGroups))
         for (const [relPath, fields] of Object.entries(xFileGroups)) {
           const ext = await readYaml<Record<string, any>>(relPath)
           if (ext && typeof ext === 'object') {
@@ -197,6 +198,7 @@ export function useSchemaForm(schemaId: string) {
           }
         }
         data.value = merged
+        console.log('[load] merged.appearance:', JSON.stringify((merged as any)?.appearance))
       }
     } catch (e: any) {
       data.value = { ...defaults.value }
@@ -280,6 +282,7 @@ function stripVirtualKeys(value: any): any {
       //  - x-site-flag  → 保留在 site.yml（本就是顶层）
       const siteFlags: string[] = []
       const xFilePayloads: Record<string, Record<string, any>> = {}
+      console.log('[save] payload.appearance:', JSON.stringify((payload as any)?.appearance))
       if (!isArraySchema && schema.value?.properties) {
         const getAt = (node: any, path: string[]): any => {
           let cur: any = node
@@ -322,6 +325,7 @@ function stripVirtualKeys(value: any): any {
           }
         }
         stripNested(payload, schema.value.properties, [])
+        console.log('[save] xFilePayloads:', JSON.stringify(Object.keys(xFilePayloads)), JSON.stringify(xFilePayloads))
       }
 
       // Strip UI-virtual keys ($/_ prefixed) — never persisted (P2-5).
