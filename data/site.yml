@@ -17,9 +17,17 @@ collectionPage: true
 aboutPage: true
 friendsPage: true
 comments: true
-traffic: false
+analytics:
+  enabled: false
+  backend: ""
+  gaMeasurementId: ""
+  cloudflareToken: ""
+  umamiServerUrl: ""
+  umamiWebsiteId: ""
+  plausibleServerUrl: ""
+  plausibleDomain: ""
+  baiduId: ""
 rss: true
-gaMeasurementId: ""
 frontendBackgroundColorLight: ""
 frontendBackgroundColorDark: ""
 
@@ -38,23 +46,3 @@ post:
     inlineToc: true
     tocFloat: true
     tocFloatCollapsed: true
-    mobileTocControl: true
-  collectionNav:
-    collectionNavEnabled: true
-    alwaysCollapsed: false
-  endOfArticle:
-    relatedPosts: true
-    prevNext: true
-    prevNextMode: both
-    prevNextScope: global
-    authorCard: true
-    share: true
-    shareChannels:
-      - twitter
-      - weibo
-      - copy-link
-  comments:
-    backend: ""
-    walineServerUrl: ""
-    attitude: true
-    showGeoAddress: true

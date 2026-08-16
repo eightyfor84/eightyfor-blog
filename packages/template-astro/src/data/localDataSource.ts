@@ -304,6 +304,8 @@ export interface LocalSettings {
     cardVisibility?: { author?: boolean; taxonomy?: boolean; activity?: boolean };
     recentUpdates?: { staleDays?: number; aggregateDays?: number };
     gaMeasurementId?: string;
+    /** 3.1.x — analytics backend config (site.yml analytics: block). */
+    analytics?: Record<string, any>;
     icpNumber?: string;
     defaultPerformanceMode?: string;
     comment?: CommentConfig;
@@ -548,7 +550,7 @@ export function getPublicSettings(): LocalSettings {
         searchSuggestions: raw.searchSuggestions ?? raw.featureFlags?.searchSuggestions ?? true,
         globalSearch: raw.globalSearch ?? raw.featureFlags?.globalSearch ?? true,
         fullTextSearch: raw.fullTextSearch ?? raw.featureFlags?.fullTextSearch ?? true,
-        traffic: raw.traffic ?? raw.featureFlags?.traffic ?? true,
+        traffic: raw.traffic ?? raw.featureFlags?.traffic ?? raw.analytics?.enabled ?? false,
         comments: raw.comments ?? raw.featureFlags?.comments ?? true,
         // Nested featureFlags mirror — pages read flags via resolveFeatureFlags(settings.featureFlags).
         featureFlags: {
@@ -559,7 +561,7 @@ export function getPublicSettings(): LocalSettings {
             searchSuggestions: raw.searchSuggestions ?? raw.featureFlags?.searchSuggestions ?? true,
             globalSearch: raw.globalSearch ?? raw.featureFlags?.globalSearch ?? true,
             fullTextSearch: raw.fullTextSearch ?? raw.featureFlags?.fullTextSearch ?? true,
-            traffic: raw.traffic ?? raw.featureFlags?.traffic ?? true,
+            traffic: raw.traffic ?? raw.featureFlags?.traffic ?? raw.analytics?.enabled ?? false,
             comments: raw.comments ?? raw.featureFlags?.comments ?? true,
         },
         friendsCards: readFriendsCards(),
@@ -568,7 +570,8 @@ export function getPublicSettings(): LocalSettings {
         singleColumnHomepage: raw.singleColumnHomepage,
         cardVisibility: raw.cardVisibility || {},
         recentUpdates: raw.recentUpdates || {},
-        gaMeasurementId: raw.gaMeasurementId,
+        gaMeasurementId: raw.analytics?.gaMeasurementId ?? raw.gaMeasurementId,
+        analytics: raw.analytics || {},
         icpNumber: raw.icpNumber || '',
         defaultPerformanceMode: raw.defaultPerformanceMode || 'auto',
         comment: raw.comment || {},

@@ -232,15 +232,11 @@ const locale = propLocale || getLocale(Astro.locals);
 const htmlLang = locale === 'zh-CN' ? 'zh-CN' : 'en';
 const t = (key: string) => getTranslation(locale, key);
 const routePrefix = locale === 'zh-CN' ? '/zh' : '/en';
-const GA_MEASUREMENT_ID = String(process.env.GA_MEASUREMENT_ID || settings?.gaMeasurementId || '').trim();
-
-// SSR-time diagnostics: record whether traffic feature and GA are configured
-const _ssr_traffic_flag = !!(featureFlags && (featureFlags as any).traffic === true)
-const _ssr_ga_id = GA_MEASUREMENT_ID || ''
-const _ssr_will_inject = Boolean(_ssr_ga_id && _ssr_traffic_flag)
-try {
-  console.info(`[GA SSR] traffic=${_ssr_traffic_flag} gaMeasurementId=${_ssr_ga_id || '<none>'} injected=${_ssr_will_inject}`)
-} catch (e) { }
+// ── Analytics (3.1.x) — multi-backend, from the site.yml analytics: block ──
+const analyticsCfg = ((settings as Record<string, any>)?.analytics || {}) as Record<string, any>;
+const analyticsEnabled = analyticsCfg.enabled === true;
+const analyticsBackend = analyticsEnabled ? String(analyticsCfg.backend || '') : '';
+const ANALYTICS_GA_ID = String(process.env.GA_MEASUREMENT_ID || analyticsCfg.gaMeasurementId || '').trim();
 ---
 <!DOCTYPE html>
 <html lang={htmlLang} class={"immersive"} data-perf-default={defaultPerformanceMode}>
@@ -260,24 +256,25 @@ try {
     <meta name="twitter:description" content={metaDescription} />
     {metaImage ? <meta name="twitter:image" content={metaImage} /> : null}
     <title>{displayTitle}</title>
-    <!-- Google Analytics (gtag) 注入：仅当 GA ID 存在且流量开关启用时注入 -->
-    {(GA_MEASUREMENT_ID && ((featureFlags && (featureFlags as any).traffic) === true)) ? (
-      
-        <script is:inline define:vars={{ GA_MEASUREMENT_ID }}>
+    <!-- Analytics injection (3.1.x multi-backend). All backends load after
+         window.load (non-blocking) and fail silently when unreachable.
+         Custom events (page_view / post_view) are only used by Google Analytics;
+         Cloudflare RUM / Umami / Plausible / Baidu auto-track. -->
+    {analyticsEnabled && analyticsBackend === 'ga' && ANALYTICS_GA_ID ? (
+        <script is:inline define:vars={{ ANALYTICS_GA_ID }}>
           // 队列：gtag() 调用先入 dataLayer，gtag.js 真正加载后自动重放，不丢事件。
           window.dataLayer = window.dataLayer || [];
           window.gtag = function () { window.dataLayer.push(arguments); };
           gtag('js', new Date());
-          gtag('config', GA_MEASUREMENT_ID, { send_page_view: false });
+          gtag('config', ANALYTICS_GA_ID, { send_page_view: false });
 
           // gtag.js 延迟注入：等 window.load 之后再加载，避免 googletagmanager.com
-          // 被墙/超时时阻塞 load 事件（转圈指示器 + 依赖 load 的交互）。被墙时脚本
-          // onerror 静默失败，不影响页面。
+          // 被墙/超时时阻塞 load 事件。被墙时脚本 onerror 静默失败，不影响页面。
           (function injectGtag() {
             function load() {
               var s = document.createElement('script');
               s.async = true;
-              s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(GA_MEASUREMENT_ID);
+              s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(ANALYTICS_GA_ID);
               s.onerror = function () { /* 被墙/超时：静默失败 */ };
               document.head.appendChild(s);
             }
@@ -289,30 +286,52 @@ try {
           })();
         </script>
         <script is:inline>
-            (function(){
+          (function(){
             if (typeof window === 'undefined') return;
+            // __chronicleAnalytics shim — custom events only meaningful for GA.
+            window.__chronicleAnalytics = {
+              track: function (event: string, params: any) {
+                if (typeof window.gtag === 'function') {
+                  try { window.gtag('event', event, params || {}); } catch (e) {}
+                }
+              }
+            };
             function sendPageView() {
               try {
                 const settings = (window.__CHRONICLE_SETTINGS__ || {});
-                const trafficEnabled = settings?.featureFlags?.traffic !== false;
-                if (!trafficEnabled) return;
-                if (typeof window.gtag === 'function') {
-                  window.gtag('event', 'page_view', { page_path: location.pathname, page_title: document.title });
-                }
-              } catch (e) { console.warn('[GA] page_view failed', e); }
+                const analytics = settings?.analytics || {};
+                if (analytics.enabled !== true) return;
+                window.__chronicleAnalytics.track('page_view', { page_path: location.pathname, page_title: document.title });
+              } catch (e) { console.warn('[analytics] page_view failed', e); }
             }
-
             document.addEventListener('astro:page-load', sendPageView);
             document.addEventListener('astro:after-swap', sendPageView);
-
-            // Always clear html.focus on any navigation so present-mode black bg never leaks
-            document.documentElement.classList.remove('focus');
-            document.addEventListener('astro:page-load', () => document.documentElement.classList.remove('focus'));
-            document.addEventListener('astro:after-swap', () => document.documentElement.classList.remove('focus'));
           })();
         </script>
-      
+    ) : analyticsEnabled && analyticsBackend === 'cloudflare' && analyticsCfg.cloudflareToken ? (
+        <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon={`{"token": "${analyticsCfg.cloudflareToken}"}`}></script>
+    ) : analyticsEnabled && analyticsBackend === 'umami' && analyticsCfg.umamiServerUrl && analyticsCfg.umamiWebsiteId ? (
+        <script defer src={`${analyticsCfg.umamiServerUrl}/script.js`} data-website-id={analyticsCfg.umamiWebsiteId}></script>
+    ) : analyticsEnabled && analyticsBackend === 'plausible' && analyticsCfg.plausibleServerUrl && analyticsCfg.plausibleDomain ? (
+        <script defer data-domain={analyticsCfg.plausibleDomain} src={`${analyticsCfg.plausibleServerUrl}/js/script.js`}></script>
+    ) : analyticsEnabled && analyticsBackend === 'baidu' && analyticsCfg.baiduId ? (
+        <script is:inline define:vars={{ BAIDU_ID: analyticsCfg.baiduId }}>
+          var _hmt = _hmt || [];
+          (function () {
+            var hm = document.createElement('script');
+            hm.src = 'https://hm.baidu.com/hm.js?' + BAIDU_ID;
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(hm, s);
+          })();
+        </script>
     ) : null}
+
+    <!-- Always clear html.focus on any navigation so present-mode black bg never leaks -->
+    <script is:inline>
+      document.documentElement.classList.remove('focus');
+      document.addEventListener('astro:page-load', () => document.documentElement.classList.remove('focus'));
+      document.addEventListener('astro:after-swap', () => document.documentElement.classList.remove('focus'));
+    </script>
     
     <!-- Legacy SW cleanup (non-blocking) -->
     <script async>
@@ -397,7 +416,7 @@ try {
     <!-- Background layer CSS: image + mode + blur + overlay/surface colors resolved at build time -->
     {backgroundCss ? <style is:inline set:html={backgroundCss}></style> : null}
 
-    <script define:vars={{ frontendTheme, frontendAccent, frontendBackground, frontendBackgroundMeta, frontendBackgroundColorLight, frontendBackgroundColorDark, frontendFont, featureFlags, GA_MEASUREMENT_ID }}>
+    <script define:vars={{ frontendTheme, frontendAccent, frontendBackground, frontendBackgroundMeta, frontendBackgroundColorLight, frontendBackgroundColorDark, frontendFont, featureFlags, analyticsCfg }}>
       // 将settings传递给客户端
       window.__CHRONICLE_SETTINGS__ = {
         frontendTheme,
@@ -408,7 +427,7 @@ try {
         frontendBackgroundColorDark,
         frontendFont,
         featureFlags,
-        gaMeasurementId: GA_MEASUREMENT_ID
+        analytics: analyticsCfg
       };
     </script>
 

@@ -488,8 +488,8 @@ const metaDescription = buildMetaDescription(post, locale);
       } catch(e) {}
       function sendPostView() {
         try {
-          if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
-            window.gtag('event', 'post_view', { post_id: POST_ID, post_title: POST_TITLE, page_path: location.pathname });
+          if (typeof window !== 'undefined' && typeof (window as any).__chronicleAnalytics?.track === 'function') {
+            (window as any).__chronicleAnalytics.track('post_view', { post_id: POST_ID, post_title: POST_TITLE, page_path: location.pathname });
           }
         } catch (e) {
           // ignore
