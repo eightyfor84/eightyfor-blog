@@ -111,9 +111,23 @@ export function getFileAtRevision(cwd: string | undefined, path: string, revisio
   return runGit(['show', `${revision}:${path}`], cwd);
 }
 
-/** Hash of the last commit before `beforeIso` (optionally touching `path`), or null. */
-export function getLastCommitBefore(cwd: string | undefined, beforeIso: string, path?: string): string | null {
+/**
+ * Hash of the last commit before `beforeIso` (optionally touching `path`), or null.
+ *
+ * `firstParent` (default true) follows only the main line. This matters after
+ * `scripts/update-app.sh` merges upstream with `--allow-unrelated-histories`:
+ * without it, `rev-list` can pick an upstream commit whose tree holds upstream's
+ * `data/posts/`, making `git diff <that> HEAD` report locally-existing posts as
+ * deleted (upstream edited them → appears as a removal vs. our tree).
+ */
+export function getLastCommitBefore(
+  cwd: string | undefined,
+  beforeIso: string,
+  path?: string,
+  firstParent = true,
+): string | null {
   const args = ['rev-list', '-1', `--before=${beforeIso}`, 'HEAD'];
+  if (firstParent) args.push('--first-parent');
   if (path) args.push('--', path);
   return runGit(args, cwd);
 }
