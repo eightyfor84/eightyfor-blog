@@ -210,6 +210,22 @@ function initMermaidCodeBlocks() {
     codeBtn?.addEventListener('click', () => applyMode('code'));
     previewBtn?.addEventListener('click', () => applyMode('preview'));
 
+    // Preview is the default mode, but the diagram is only rendered client-side on
+    // demand. Auto-render once when the block scrolls into view (the mermaid runtime
+    // stays a lazy dynamic import; scroll-driven rendering is excluded from CLS).
+    if ('IntersectionObserver' in window && container) {
+      const io = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            io.disconnect();
+            applyMode('preview');
+            break;
+          }
+        }
+      }, { rootMargin: '300px 0px' });
+      io.observe(block);
+    }
+
     downloadBtn?.addEventListener('click', () => {
       if (!lastRenderedSvg) return;
       try {
