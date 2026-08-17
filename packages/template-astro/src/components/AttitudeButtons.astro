@@ -92,16 +92,22 @@ const t = (key: string) => getTranslation(locale, key);
       });
     }
 
-    // 进视口才初始化（Waline 请求按需触发，避免页面加载即拉取）
-    if ('IntersectionObserver' in window) {
-      // rootMargin 下方提前 300px：用户滚向态度区时预取计数，滚到时数据已就绪
-      const io = new IntersectionObserver((entries, obs) => {
-        if (entries.some((e) => e.isIntersecting)) { obs.disconnect(); init(); }
-      }, { rootMargin: '0px 0px 300px 0px' });
-      io.observe(root);
-    } else {
-      init();
-    }
+    // 进视口 + 页面 load 完成才初始化（Waline 请求按需触发，避免页面加载即拉取；
+    // 且 load 前不 fetch——否则计数渲染会在加载期改动布局，配合大文章容器产生 CLS）
+    const start = () => {
+      // 进视口才 init；同时确保 fetch 只在 load 后发生
+      if ('IntersectionObserver' in window) {
+        // rootMargin 下方提前 300px：用户滚向态度区时预取计数，滚到时数据已就绪
+        const io = new IntersectionObserver((entries, obs) => {
+          if (entries.some((e) => e.isIntersecting)) { obs.disconnect(); init(); }
+        }, { rootMargin: '0px 0px 300px 0px' });
+        io.observe(root);
+      } else {
+        init();
+      }
+    };
+    if (document.readyState === 'complete') start();
+    else window.addEventListener('load', start, { once: true });
   })();
 </script>
 

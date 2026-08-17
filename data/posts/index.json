@@ -159,15 +159,5 @@
     "type": "article",
     "collection": "Chronicle Guide",
     "collectionPath": "Chronicle Guide"
-  },
-  "mixed-cjk-demo": {
-    "title": "站点配置指南 (Site Configuration Guide)",
-    "date": "2026-08-18T10:00:00.000Z",
-    "tags": [
-      "guide",
-      "site",
-      "配置"
-    ],
-    "status": "published"
   }
 }
