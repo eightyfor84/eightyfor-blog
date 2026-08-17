@@ -563,8 +563,9 @@ function renderImageWrapper(src: string, alt?: string, title?: string, width?: s
 
   // Auto-detected ratio → inline aspect-ratio beats the 2:1 placeholder rule in
   // chronicle-markdown.css; the wrapper scales responsively with the real ratio.
+  // Explicit relative hints (e.g. `=70%`, `=x50%`) are inlined alongside it.
   const wrapperStyle = (autoRatio && ratio)
-    ? ` style="aspect-ratio:${ratio};${width ? 'width:' + cssDim(width) + ';' : 'width:100%;'}max-width:100%"`
+    ? ` style="aspect-ratio:${ratio};${width ? 'width:' + cssDim(width) + ';' : 'width:100%;'}${height ? 'height:' + cssDim(height) + ';' : ''}max-width:100%"`
     : (width || height)
       ? ` style="${width ? 'width:' + cssDim(width) + ';' : ''}${height ? 'height:' + cssDim(height) + ';' : ''}max-width:100%"`
       : '';
@@ -683,13 +684,16 @@ function postProcessHtml(html: string): string {
   // 2. Images → image wrapper (title attr → caption, width/height from imsize
   //    hints, plus auto-detected real ratio for local files to reserve space)
   const resolveImageDims = (src: string, hintW: string, hintH: string) => {
-    // Both hints present → legacy fixed-dim behavior (e.g. `=500x300`).
+    // Both hints present → legacy fixed-dim behavior (e.g. `=500x300`, `=70%x50%`).
     if (hintW && hintH) return { width: hintW, height: hintH, autoRatio: false, ratio: undefined };
     const dims = getLocalImageSize(src);
     if (dims) {
+      // Auto ratio + explicit RELATIVE hints are both inlined (e.g. `=70%` keeps
+      // its width; `=x50%` keeps its height) — only the missing dimension is
+      // filled by the real aspect ratio.
       return {
         width: hintW || '100%',
-        height: '',
+        height: hintH || '',
         autoRatio: true,
         ratio: `${dims.width}/${dims.height}`,
       };
