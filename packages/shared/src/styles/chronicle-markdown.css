@@ -1039,7 +1039,7 @@
 }
 
 .font-serif .chr-md {
-  font-family: 'Noto Serif SC', serif;
+  font-family: var(--app-font-stack-serif), serif;
   font-weight: 400;
   line-height: 1.7;
   letter-spacing: 0;
