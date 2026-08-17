@@ -439,7 +439,9 @@ const ANALYTICS_GA_ID = String(process.env.GA_MEASUREMENT_ID || analyticsCfg.gaM
       import '../scripts/layout-init';
     </script>
 
-    
+    <!-- Named slot: pages can inject head content (e.g. render-blocking stylesheets
+         that must apply before first paint, like chronicle-markdown.css on post pages). -->
+    <slot name="head" />
   </head>
   <body class="frontend-body">
     <!-- 全局隐藏的 SVG defs，放在 body 开头 -->

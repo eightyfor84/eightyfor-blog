@@ -97,7 +97,11 @@ export default defineConfig({
         name: 'chronicle-defer-astro-css',
         hooks: {
           'astro:build:done': async ({ dir, pages }) => {
-            const CSS_LINK_RE = /<link\s+rel="stylesheet"\s+href="(\/_astro\/[^"]+\.css)"\s*\/?>/gi;
+            // Links carrying data-render-blocking stay on the critical path on
+            // purpose (see [lang]/post/[id].astro — chronicle-markdown.css owns the
+            // article typography metrics; deferring it reflowed the whole post after
+            // first paint → CLS ~0.8).
+            const CSS_LINK_RE = /<link\b[^>]*rel="stylesheet"[^>]*href="(\/_astro\/[^"]+\.css)"[^>]*>/gi;
             const outDir = typeof dir === 'string' ? dir : (dir.pathname || fileURLToPath(dir));
 
             for (const page of pages) {
@@ -115,6 +119,7 @@ export default defineConfig({
               let count = 0;
 
               html = html.replace(CSS_LINK_RE, (match, href) => {
+                if (match.includes('data-render-blocking')) return match;
                 count++;
                 return `<link rel="stylesheet" href="${href}" media="print" onload="this.onload=null;this.media='all'"><noscript><link rel="stylesheet" href="${href}"></noscript>`;
               });
