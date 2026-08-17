@@ -30,7 +30,7 @@ search:
   fullTextSearch: true
 
 # Comments master switch (Post page → Comments group toggle)
-comments: true
+comments: false
 
 # Page toggles
 collectionPage: true
@@ -65,15 +65,15 @@ post:
     enabled: true
     alwaysCollapsed: false
   endOfArticle:
-    share: false
+    share: true
     shareChannels:
       - twitter
       - linkedin
       - weibo
     prevNextMode: both
     prevNextScope: collection
-    prevNext: false
-    relatedPosts: false
+    prevNext: true
+    relatedPosts: true
     authorCard: false
     prevNextOrder: desc
   comments:
