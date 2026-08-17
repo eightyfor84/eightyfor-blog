@@ -34,7 +34,17 @@
 .toc-body { overflow:hidden; min-height:0; }
 
 /* ── Content body ── */
-.post-body { line-height:1.7; font-size:1rem; }
+.post-body {
+  line-height:1.7; font-size:1rem;
+  /* Skip layout/rendering of the article's below-fold content at first paint.
+     Heavy articles (mermaid, code chunks, tables, long bodies) spent the bulk of
+     pre-FCP time in Style & Layout (~700ms observed on a 18k-px post). With
+     content-visibility only the visible slice is laid out; the rest renders on
+     scroll (scroll-driven renders are excluded from CLS). MUST stay in critical
+     CSS — applied late it would collapse the page height and reflow everything. */
+  content-visibility:auto;
+  contain-intrinsic-size:auto 6000px;
+}
 
 /* ── Post nav (back link) ── */
 .post-nav { margin-bottom:1.5rem; }
