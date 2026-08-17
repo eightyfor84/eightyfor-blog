@@ -7,7 +7,7 @@
       "guide"
     ],
     "status": "published",
-    "summary": "data/collections.yml lets you group articles into named sequences with a dedicated navigation panel and overview page. It's the closest thing Chronicle has to…",
+    "summary": "data/collections.yml lets you group articles into named sequences with a dedicated overview page, an article-side navigation panel, and collection-scoped…",
     "font": "sans",
     "author": "Eightyfor",
     "authors": [
@@ -64,7 +64,7 @@
       "setup"
     ],
     "status": "published",
-    "summary": "Node.js 22+ Git A GitHub account (for deployment)",
+    "summary": "Welcome to Chronicle Aurora — a local-first, git-backed Jamstack blog system. No runtime server, no API, no database: content lives as YAML + Markdown on your…",
     "font": "sans",
     "author": null,
     "aiGenerated": false,
@@ -81,7 +81,7 @@
       "featured"
     ],
     "status": "published",
-    "summary": "Chronicle renders Markdown with markdown-it plus a curated set of plugins. This post demonstrates everything you can do.",
+    "summary": "Chronicle renders Markdown with markdown-it plus a curated set of plugins, then sanitizes the output with DOMPurify — content is cleaned at write time in the…",
     "font": "sans",
     "author": null,
     "aiGenerated": false,
@@ -97,7 +97,7 @@
       "profile"
     ],
     "status": "published",
-    "summary": "data/profile.yml defines who you are to your readers. It powers the author card on the homepage, the profile section of the About page, and the fallback author…",
+    "summary": "data/profile.yml defines who owns the site and how you appear to readers. It drives the profile card on the About page and in the sidebar, supplies the site…",
     "font": "sans",
     "author": "Eightyfor",
     "authors": [
@@ -136,7 +136,7 @@
       "featured"
     ],
     "status": "published",
-    "summary": "Every blogging platform wants you to trust their server.",
+    "summary": "This deck is a slides post — everything on screen comes from one Markdown file.",
     "author": null,
     "aiGenerated": false,
     "type": "slides",
@@ -155,6 +155,7 @@
     "summary": "Chronicle is a local-first, git-backed Jamstack blogging platform. No server, no database — just Markdown, YAML, and Git.",
     "font": "sans",
     "author": null,
+    "aiGenerated": false,
     "type": "article",
     "collection": "Chronicle Guide",
     "collectionPath": "Chronicle Guide"
