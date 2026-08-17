@@ -112,3 +112,22 @@
    Reverse media query: visible by default, hidden on desktop (≥769px).
    Matches 768px breakpoint in post.css mobile section. */
 @media (min-width:769px) { .ca-left { display:none; } }
+
+/* ── CornerButton / FloatingToc — prevent in-flow → fixed CLS ──
+   Their position:fixed lives in the async bundle (component styles → _id_.css).
+   Without these, the buttons/TOC render in-flow inside #app on the very first
+   layout (pushing the article up) and jump to the viewport when the async CSS
+   lands — same class of issue the cn-panel rules above guard against.
+   Keep in sync with CornerButton.astro / FloatingToc.astro. */
+.cb__btn {
+  position:fixed; bottom:30px; width:50px; min-height:50px; max-height:50px;
+  z-index:300; display:block; box-sizing:border-box;
+}
+.cb--right .cb__btn { right:30px; left:auto; }
+/* Back-to-top starts hidden (opacity 0) — mirror the async rule so it never
+   flashes visible at first paint. */
+.cb__btn.cb--btt { opacity:0; pointer-events:none; }
+.toc-float {
+  position:fixed; right:calc(10px + 2vw); top:calc(30px + 10vh);
+  z-index:1199; max-height:calc(70vh - 80px); box-sizing:border-box;
+}

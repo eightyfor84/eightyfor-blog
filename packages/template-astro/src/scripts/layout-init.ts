@@ -144,4 +144,14 @@ function initBackgroundLayer() {
   }
 }
 
-initBackgroundLayer();
+// Defer the whole background layer (fallback-image preload + 2MB video
+// fetch/decode) until after first paint / idle. The layer is decorative and
+// starts at opacity 0 over the solid surface (critical-base.css); racing its
+// decode against the first frame delayed FCP on slow devices/runners (PSI:
+// with bg layer observed FCP ~2361ms, without ~504ms on similar content).
+const _deferBg = () => initBackgroundLayer();
+if (typeof requestIdleCallback !== 'undefined') {
+  requestIdleCallback(_deferBg, { timeout: 2500 });
+} else {
+  setTimeout(_deferBg, 1500);
+}
