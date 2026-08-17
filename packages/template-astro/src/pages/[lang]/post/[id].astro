@@ -17,7 +17,6 @@ import AttitudeButtons from '../../../components/AttitudeButtons.astro';
 import Slideshow from '../../../components/Slideshow.astro';
 import 'katex/dist/katex.min.css';
 import '../../../styles/post.css';
-import chronicleMarkdownCssUrl from '@chronicle/shared/src/styles/chronicle-markdown.css?url';
 
 export const prerender = true;
 
@@ -265,13 +264,6 @@ const metaDescription = buildMetaDescription(post, locale);
 </Layout>
 ) : (
 <Layout title={pageTitle} settings={settings} locale={locale} navTitle={post?.title} navBackHref={backToBlogs} navBackLabel={t('inblog.backToBlogs')} meta={{ description: metaDescription, type: 'article' }}>
-  <!-- chronicle-markdown.css render-blocking in <head> on purpose: single source of truth
-       for .chr-md typography metrics (shared with CMS preview). Deferring it reflowed the
-       whole post after first paint → CLS ~0.8. data-render-blocking opts it out of the
-       chronicle-defer-astro-css rewrite (astro.config.mjs). -->
-  <Fragment slot="head">
-    <link rel="stylesheet" href={chronicleMarkdownCssUrl} data-render-blocking />
-  </Fragment>
   <div class="post-detail-container" class:list={[{ "has-collection-nav": hasCollectionNav }, { "always-collapsed": collectionNavCollapsed }, { "reserve-toc-right": tocFloatAlwaysExpanded && tocFloatEnabled }]} id="post-top">
     {error ? (
       <div class="error-container">
