@@ -11,6 +11,7 @@ import criticalPost from '../styles/critical-post.css?raw';
 import criticalBlogs from '../styles/critical-blogs.css?raw';
 import criticalSearch from '../styles/critical-search.css?raw';
 import criticalFriends from '../styles/critical-friends.css?raw';
+import chronicleMarkdownCss from '@chronicle/shared/src/styles/chronicle-markdown.css?raw';
 import '../styles/global.css';
 import '../styles/app.css';
 
@@ -21,13 +22,21 @@ import { hexToRgbString } from '../utils/colorUtils';
 const pathname = Astro.url.pathname;
 const isHome = /^\/(en|zh)\/?$/.test(pathname);
 const isPost = pathname.includes('/post/');
+const isAbout = /^\/(en|zh)\/about\/?$/.test(pathname);
 const isBlogs = /\/(en|zh)\/blogs\/?$/.test(pathname);
 const isSearch = pathname.includes('/search');
 const isFriends = /\/(en|zh)\/friends\/?$/.test(pathname);
+// chronicle-markdown.css is inlined for post/about pages instead of a
+// render-blocking <link>: a separate request for it gated FCP with huge
+// run-to-run variance (observed arrival 138ms–1063ms → lab FCP 1.7s–5.9s).
+// The built file is only ~21KB raw; inlining removes the request entirely.
+// Order: after criticalPost, so its .chr-md rules keep winning the cascade
+// (same as the old link-after-inline-style behavior).
 const criticalCSS = [
   criticalBase,
   isHome    ? criticalHome    : '',
   isPost    ? criticalPost    : '',
+  (isPost || isAbout) ? chronicleMarkdownCss : '',
   isBlogs   ? criticalBlogs   : '',
   isSearch  ? criticalSearch  : '',
   isFriends ? criticalFriends : '',
