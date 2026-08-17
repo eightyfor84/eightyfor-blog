@@ -30,7 +30,7 @@ search:
   fullTextSearch: true
 
 # Comments master switch (Post page → Comments group toggle)
-comments: false
+comments: true
 
 # Page toggles
 collectionPage: true
