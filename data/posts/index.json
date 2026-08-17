@@ -8,6 +8,7 @@
     "status": "published",
     "summary": "\"<p style=\"color: 51a32e\">本技术文档以 6 层方法对当前代码库进行剖析：从战略视角到运行环境，逐层描述产品目标、业务场景、模块划分、核心逻辑架构、技术实现细节与运行/部署要求，便于产品、设计、工程和运维对齐。</p>",
     "font": "sans",
+    "author": null,
     "aiGenerated": false,
     "type": "article",
     "collection": "AuthorDNA",
@@ -24,6 +25,9 @@
     "summary": "IMSB，就是你想的那个意思，\"I am Sha Bi\"，自我攻击者人格，可以表示自嘲，也可以表示做错事或者无用功时的懊恼，我想我在这表达的是后一种意思。",
     "font": "sans",
     "author": "Eightyfor",
+    "authors": [
+      "Eightyfor"
+    ],
     "aiGenerated": false,
     "type": "article",
     "collection": "Stories to tell",
@@ -40,6 +44,7 @@
     "status": "published",
     "summary": "强制 SSG：站点必须整体采用静态站点生成，最终产物为纯静态文件，部署于 CDN 弱服务器：尽可能降低服务端计算压力，优先使用静态托管和边缘缓存 CMS 驱动：内容由后台 CMS 管理，更新时机不可预测",
     "font": "sans",
+    "author": null,
     "aiGenerated": false,
     "type": "article"
   },
@@ -68,6 +73,7 @@
     "status": "published",
     "summary": "乌萨奇",
     "font": "sans",
+    "author": null,
     "aiGenerated": false,
     "type": "article"
   },
@@ -128,6 +134,9 @@
     "summary": "我接触编程不算很早，开始于初中学校社团的 VB 6.0 的课程。那节社团课，看着老社员做的各种小游戏，对编程一窍不通的我，瞬间对 VB 这个老掉牙的新东西来了兴趣。",
     "font": "serif",
     "author": "Vincent Chen",
+    "authors": [
+      "Vincent Chen"
+    ],
     "aiGenerated": false,
     "type": "article"
   },
@@ -143,6 +152,9 @@
     "summary": "Chronicle 2.0.2 — June 14, 2026 / 2026年6月14日 Chronicle 2.0 is a major release bringing a redesigned editor, file management overhaul, CMS dashboard and post-manager redesigns, Electron desktop",
     "font": "sans",
     "author": "Eightyfor",
+    "authors": [
+      "Eightyfor"
+    ],
     "aiGenerated": true,
     "type": "article",
     "collection": "Chronicle Docs",
@@ -159,6 +171,7 @@
     "status": "published",
     "summary": "新功能",
     "font": "sans",
+    "author": null,
     "aiGenerated": false,
     "type": "article",
     "collection": "Chronicle Docs",
@@ -176,6 +189,9 @@
     "summary": "不再需要维护服务器。写完文章，点一下 Sync，内容通过 Git 推送到 GitHub Pages / Cloudflare Pages，自动构建上线。HTTPS、CDN 全免费。",
     "font": "sans",
     "author": "Eightyfor",
+    "authors": [
+      "Eightyfor"
+    ],
     "aiGenerated": true,
     "type": "article",
     "collection": "Chronicle Docs",
@@ -193,6 +209,9 @@
     "summary": "Chronicle 的设计以玻璃为主要 UI 元素，因此半透明和模糊叠层几乎用于所有组件。这对 UI 设计提出了很高的要求。我们需要兼顾：",
     "font": "sans",
     "author": "Eightyfor",
+    "authors": [
+      "Eightyfor"
+    ],
     "aiGenerated": false,
     "type": "article",
     "collection": "Chronicle Docs",
