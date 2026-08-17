@@ -69,6 +69,36 @@ const BG_VIDEO_RE = /\.(mp4|webm|ogg|mov)$/i;
 // it is the <video> poster. Skip it in image discovery so it never "covers" the video.
 const BG_POSTER_RE = /_alt\.(jpg|jpeg|png|gif|webp|avif|svg)$/i;
 
+/** Raster source types the asset pipeline compresses to .webp/.avif siblings. */
+const BG_RASTER_RE = /\.(jpg|jpeg|png|gif)$/i;
+
+/**
+ * Build the compressed-variant candidates for a background file, best first:
+ * [avif, webp, original]. The asset pipeline (astro.config.mjs) emits
+ * `<base>.webp` / `<base>.avif` next to jpg/jpeg/png/gif sources — but ONLY if
+ * the variants actually exist on disk at build time, so a variant that wasn't
+ * generated (e.g. source already webp/avif, or pipeline skipped) is omitted.
+ * JS probes these in order and uses the first that decodes → smallest bytes.
+ */
+function backgroundCandidates(file: string, dir: string): string[] {
+  const base = file.replace(/\.[^.]+$/, '');
+  const cands: string[] = [];
+  if (BG_RASTER_RE.test(file)) {
+    for (const ext of ['avif', 'webp']) {
+      const variant = `${base}.${ext}`;
+      try {
+        if (fs.existsSync(path.join(dir, variant))) {
+          cands.push(`/data/background/${variant}?v=${fileHash(path.join(dir, variant))}`);
+        }
+      } catch { /* ignore */ }
+    }
+  }
+  try {
+    cands.push(`/data/background/${file}?v=${fileHash(path.join(dir, file))}`);
+  } catch { /* ignore */ }
+  return cands;
+}
+
 /** Auto-discover background image from data/background/ (poster files are skipped) */
 function readBackgroundUrl(): string {
   try {
@@ -81,6 +111,17 @@ function readBackgroundUrl(): string {
   } catch { return '' }
 }
 
+/** Candidate list for the bg image (avif > webp > original), empty when no bg. */
+function readBackgroundUrlCandidates(): string[] {
+  try {
+    const bgDir = path.join(DATA_DIR, 'background')
+    if (!fs.existsSync(bgDir)) return []
+    const imgs = fs.readdirSync(bgDir).filter(f => BG_IMAGE_RE.test(f) && !f.startsWith('.') && !BG_POSTER_RE.test(f))
+    if (imgs.length === 0) return []
+    return backgroundCandidates(imgs[0], bgDir)
+  } catch { return [] }
+}
+
 /** Auto-discover the fallback first-frame poster (background_alt.<ext>) for the video. */
 function readBackgroundPoster(): string {
   try {
@@ -91,6 +132,17 @@ function readBackgroundPoster(): string {
     const file = posters[0]
     return `/data/background/${file}?v=${fileHash(path.join(bgDir, file))}`
   } catch { return '' }
+}
+
+/** Candidate list for the poster (avif > webp > original), empty when none. */
+function readBackgroundPosterCandidates(): string[] {
+  try {
+    const bgDir = path.join(DATA_DIR, 'background')
+    if (!fs.existsSync(bgDir)) return []
+    const posters = fs.readdirSync(bgDir).filter(f => BG_POSTER_RE.test(f) && !f.startsWith('.'))
+    if (posters.length === 0) return []
+    return backgroundCandidates(posters[0], bgDir)
+  } catch { return [] }
 }
 
 /** Auto-discover background video from data/background/ (image/poster = above) */
@@ -323,6 +375,10 @@ export interface LocalSettings {
     background?: unknown;
     backgroundVideo?: string;
     backgroundPoster?: string;
+    /** Compressed variants for the bg image, best first (avif > webp > original). */
+    backgroundCandidates?: string[];
+    /** Compressed variants for the poster, best first (avif > webp > original). */
+    backgroundPosterCandidates?: string[];
     backgroundMeta?: string;
     baseColorLight?: string;
     baseColorDark?: string;
@@ -600,6 +656,8 @@ export function getPublicSettings(): LocalSettings {
         background: readBackgroundUrl(),
         backgroundVideo: readBackgroundVideo(),
         backgroundPoster: readBackgroundPoster(),
+        backgroundCandidates: readBackgroundUrlCandidates(),
+        backgroundPosterCandidates: readBackgroundPosterCandidates(),
         backgroundMeta: readBackgroundMeta(),
         // 背景色持久化在 background.yml（3.1.x）；兼容旧键（baseColor* / backgroundColor* / frontend*）
         baseColorLight: raw.baseColorLight ?? raw.backgroundColorLight ?? raw.frontendBackgroundColorLight

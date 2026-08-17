@@ -34,7 +34,16 @@
 .toc-body { overflow:hidden; min-height:0; }
 
 /* ── Content body ── */
-.post-body { line-height:1.7; font-size:1rem; }
+.post-body {
+  line-height:1.7; font-size:1rem;
+  /* content-visibility deliberately REMOVED (was `auto` + contain-intrinsic-size
+     auto 6000px). On desktop the post-body's estimated height (6000px) expands
+     to the real height (~8-15k px) when it first renders; whenever that happens
+     after FCP it shifts every line below the fold → CLS ~0.59, seen ~50% of
+     runs (FCP-vs-expansion race). Removing it keeps CLS flat (~0.08, mostly
+     font-swap which the subset/fallback work already mitigates) at the cost of
+     ~500ms Style & Layout on very long posts — the pre-CV behavior. */
+}
 
 /* ── Post nav (back link) ── */
 .post-nav { margin-bottom:1.5rem; }
@@ -102,3 +111,26 @@
    Reverse media query: visible by default, hidden on desktop (≥769px).
    Matches 768px breakpoint in post.css mobile section. */
 @media (min-width:769px) { .ca-left { display:none; } }
+
+/* ── CornerButton / FloatingToc — prevent in-flow → fixed CLS ──
+   Their position:fixed lives in the async bundle (component styles → _id_.css).
+   Without these, the buttons/TOC render in-flow inside #app on the very first
+   layout (pushing the article up) and jump to the viewport when the async CSS
+   lands — same class of issue the cn-panel rules above guard against.
+   Keep in sync with CornerButton.astro / FloatingToc.astro. */
+.cb__btn {
+  position:fixed; bottom:30px; width:50px; min-height:50px; max-height:50px;
+  z-index:300; display:block; box-sizing:border-box;
+}
+.cb--right .cb__btn { right:30px; left:auto; }
+/* Back-to-top starts hidden (opacity 0) — mirror the async rule so it never
+   flashes visible at first paint. */
+.cb__btn.cb--btt { opacity:0; pointer-events:none; }
+.toc-float {
+  /* 默认隐藏（合并自原 :not(.visible) 规则）：初始无 .visible → 首帧不可见。
+     .toc-float.visible 恢复显示（见 FloatingToc.astro async 规则）。
+     [data-toc-mode]:not(.visible) 的 rail 半透明例外仍可覆盖（specificity 更高）。 */
+  opacity:0; pointer-events:none;
+  position:fixed; right:calc(10px + 2vw); top:calc(30px + 10vh);
+  z-index:1199; max-height:calc(70vh - 80px); box-sizing:border-box;
+}

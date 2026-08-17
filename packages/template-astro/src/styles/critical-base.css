@@ -12,10 +12,31 @@
   margin:0; padding:0;
   background:var(--app-bg-pri); color:var(--app-text-pri);
   font-family:-apple-system,BlinkMacSystemFont,'InterVariable','Inter','Segoe UI',sans-serif;
+  line-height:1.5; /* must match global.css :root — otherwise the deferred full CSS
+                      reflows every line box after first paint → CLS */
   text-rendering:optimizeLegibility; -webkit-font-smoothing:antialiased; color-scheme:dark;
 }
 html { overflow:hidden; }
-body { min-height:100vh; }
+body {
+  min-height:100vh;
+  font-weight:var(--app-text-wght, 400);
+  font-variation-settings:'wght' var(--app-text-wght, 400);
+}
+
+/* Form controls do NOT inherit font by default (UA buttonface/Arial). Layout.css
+   (async) resets them to inherit later — mirror that here so text-bearing
+   buttons/inputs don't resize when the full CSS lands. */
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+/* ── Global heading weight — matches global.css so deferred CSS can't rewrap text ── */
+h1, h2, h3, h4, h5, h6 {
+  font-variation-settings:'wght' var(--app-heading-wght, 570);
+  font-weight:600;
+}
 
 /* ── Shell ── */
 #app { display:flex; flex-direction:column; height:100vh; }

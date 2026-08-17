@@ -652,8 +652,19 @@ export function hydrateCommentSection(): () => void {
           observer.unobserve(entry.target);
           const container = entry.target as HTMLElement;
           if (container.dataset.hydrated !== '1') {
-            container.dataset.hydrated = '1';
-            hydrateContainer(container);
+            // Never hydrate (and thus never fire the Waline fetch) until the
+            // page has fully loaded. On wide viewports the section can be
+            // within rootMargin before `load` — fetching + rendering comments
+            // mid-load reflows the huge article container (CLS ~0.7 on
+            // desktop). After load the fetch can't race first paint.
+            const start = () => {
+              if (container.dataset.hydrated !== '1') {
+                container.dataset.hydrated = '1';
+                hydrateContainer(container);
+              }
+            };
+            if (document.readyState === 'complete') start();
+            else window.addEventListener('load', start, { once: true });
           }
         }
       }

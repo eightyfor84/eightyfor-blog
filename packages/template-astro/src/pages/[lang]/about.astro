@@ -14,7 +14,6 @@ import { resolveFeatureFlags } from '../../utils/featureFlags';
 import { loadSiteSettings } from '../../utils/siteSettings';
 import { renderChronicleMarkdown } from '../../utils/chronicleMarkdown';
 import { getProfile } from '../../data/localDataSource';
-import chronicleMarkdownCssUrl from '@chronicle/shared/src/styles/chronicle-markdown.css?url';
 import fs from 'fs';
 import path from 'path';
 
@@ -58,13 +57,6 @@ const metaDescription = profile?.bio
 ---
 
 <Layout title={pageTitle} settings={settings} locale={locale} meta={{ description: metaDescription }}>
-  <!-- chronicle-markdown.css render-blocking in <head>: single source of truth for
-       .chr-md typography metrics (shared with CMS preview). Deferring it reflowed the
-       page after first paint (CLS). data-render-blocking opts out of the
-       chronicle-defer-astro-css rewrite (astro.config.mjs). -->
-  <Fragment slot="head">
-    <link rel="stylesheet" href={chronicleMarkdownCssUrl} data-render-blocking />
-  </Fragment>
   <main class="about-page">
     <article class="about-article">
       <h1 class="about-title">{pageTitle}</h1>

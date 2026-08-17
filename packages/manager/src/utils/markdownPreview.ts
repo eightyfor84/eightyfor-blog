@@ -422,9 +422,7 @@ function renderCodeChunkHtml(code: string, lang: string): string {
 <div class="code-chunk-container">
   <div class="editor-header">
     <div class="header-left">
-      <select class="language-selector transparent-select" title="${safeLang}" disabled style="font-family: var(--app-font-stack);">
-        <option value="${safeLang}" selected>${safeLang}</option>
-      </select>
+      <span class="language-label" title="${safeLang}">${safeLang}</span>
     </div>
     <div class="toolbar">
       <button class="icon-btn copy-btn" title="Copy" data-code="${safeCode}">
@@ -436,7 +434,6 @@ function renderCodeChunkHtml(code: string, lang: string): string {
   <div class="editor-wrapper" style="height: ${height}px;">
     <div class="editor-content">
       <pre class="syntax-hl" style="padding: 0.7rem 1.5rem 1.2rem 1.5rem; font-size: 13.5px; line-height: 1.3em; font-family: inherit; box-sizing: border-box;"><code>${safeCode}</code></pre>
-      <textarea class="code-textarea" spellcheck="false" placeholder="" readonly>${safeCode}</textarea>
     </div>
   </div>
   <div class="editor-footer" data-chars="${code.length}" data-lines="${lines}"><span><span>${code.length} chars &nbsp;|&nbsp; ${lines} lines</span></span></div>

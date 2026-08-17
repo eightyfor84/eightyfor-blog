@@ -11,6 +11,7 @@ import criticalPost from '../styles/critical-post.css?raw';
 import criticalBlogs from '../styles/critical-blogs.css?raw';
 import criticalSearch from '../styles/critical-search.css?raw';
 import criticalFriends from '../styles/critical-friends.css?raw';
+import chronicleMarkdownCss from '@chronicle/shared/src/styles/chronicle-markdown.css?raw';
 import '../styles/global.css';
 import '../styles/app.css';
 
@@ -21,13 +22,21 @@ import { hexToRgbString } from '../utils/colorUtils';
 const pathname = Astro.url.pathname;
 const isHome = /^\/(en|zh)\/?$/.test(pathname);
 const isPost = pathname.includes('/post/');
+const isAbout = /^\/(en|zh)\/about\/?$/.test(pathname);
 const isBlogs = /\/(en|zh)\/blogs\/?$/.test(pathname);
 const isSearch = pathname.includes('/search');
 const isFriends = /\/(en|zh)\/friends\/?$/.test(pathname);
+// chronicle-markdown.css is inlined for post/about pages instead of a
+// render-blocking <link>: a separate request for it gated FCP with huge
+// run-to-run variance (observed arrival 138ms–1063ms → lab FCP 1.7s–5.9s).
+// The built file is only ~21KB raw; inlining removes the request entirely.
+// Order: after criticalPost, so its .chr-md rules keep winning the cascade
+// (same as the old link-after-inline-style behavior).
 const criticalCSS = [
   criticalBase,
   isHome    ? criticalHome    : '',
   isPost    ? criticalPost    : '',
+  (isPost || isAbout) ? chronicleMarkdownCss : '',
   isBlogs   ? criticalBlogs   : '',
   isSearch  ? criticalSearch  : '',
   isFriends ? criticalFriends : '',
@@ -139,6 +148,18 @@ const fallbackImageUrl = backgroundVideoUrl
   ? (backgroundPosterUrl || backgroundImageUrl)
   : backgroundImageUrl;
 
+// Compressed-variant candidates (avif > webp > original) for whichever fallback
+// image was chosen. Serialized to data-bg-image as JSON; layout-init.ts probes
+// them in order after FCP and uses the first that decodes → smallest bytes.
+const fallbackCandidates = backgroundVideoUrl
+  ? (settings?.backgroundPosterCandidates?.length
+      ? settings.backgroundPosterCandidates
+      : settings?.backgroundCandidates ?? [])
+  : (settings?.backgroundCandidates ?? []);
+const fallbackBgAttr = fallbackCandidates.length > 1
+  ? JSON.stringify(fallbackCandidates)
+  : (fallbackCandidates[0] || fallbackImageUrl || undefined);
+
 const bgMode = backgroundMeta?.mode || 'cover';
 const bgCompression = Number(backgroundMeta?.compressionFactor ?? backgroundMeta?.compression ?? backgroundMeta?.bgCompression ?? backgroundMeta?.scale ?? 1);
 const bgScale = Number(backgroundMeta?.size || 100);
@@ -199,8 +220,12 @@ const hasBackgroundMedia = Boolean(fallbackImageUrl || backgroundVideoUrl);
 
 let backgroundCss = '';
 if (fallbackImageUrl) {
+  // NOTE: background-image URL is intentionally NOT inlined here. A CSS
+  // background-image starts downloading the moment the style is parsed, i.e.
+  // at +0ms on the critical path — measured +13.6x FCP (260ms→3552ms) on a
+  // 188KB bg under contended bandwidth. The URL lives only in data-bg-image
+  // and is applied by JS (layout-init.ts) AFTER first paint, same as the video.
   backgroundCss += '#chr-bg-layer .bg-image {\n';
-  backgroundCss += `  background-image: url("${fallbackImageUrl}") !important;\n`;
   backgroundCss += `  background-size: ${bgImageSize} !important;\n`;
   backgroundCss += `  background-position: ${bgImagePosition} !important;\n`;
   backgroundCss += `  background-repeat: ${bgImageRepeat} !important;\n`;
@@ -455,7 +480,7 @@ const ANALYTICS_GA_ID = String(process.env.GA_MEASUREMENT_ID || analyticsCfg.gaM
       </defs>
     </svg>
     <!-- 背景层 - 使用transition:persist保持跨页面持久化 -->
-    <div id="chr-bg-layer" transition:persist="background-layer" data-bg-image={fallbackImageUrl || undefined}>
+    <div id="chr-bg-layer" transition:persist="background-layer" data-bg-image={fallbackBgAttr}>
       <div class="bg-image"></div>
       <div class="bg-surface"></div>
       {backgroundVideoUrl ? (
