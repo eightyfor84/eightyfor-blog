@@ -516,9 +516,7 @@ function renderCodeChunkHtml(code: string, lang: string): string {
 <div class="code-chunk-container${isMermaid ? ' mermaid' : ''}">
   <div class="editor-header">
     <div class="header-left">
-      <select class="language-selector transparent-select" title="${safeLang}" disabled style="font-family: var(--app-font-stack);">
-        <option value="${safeLang}" selected>${safeLang}</option>
-      </select>
+      <span class="language-label" title="${safeLang}">${safeLang}</span>
     </div>
     <div class="toolbar">
       ${mermaidToolbar}

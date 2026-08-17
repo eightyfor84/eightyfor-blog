@@ -509,30 +509,14 @@
   color: var(--app-text-pri);
 }
 
-.chr-md .transparent-select {
-  background: transparent !important;
-  border: none;
+.chr-md .language-label {
   color: var(--comp-text-pri);
   font-size: 0.91em;
   font-family: var(--app-font-stack);
-  outline: none;
-  box-shadow: none;
-  padding: 0 1.2em 0 0.2em;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  cursor: pointer;
-  min-width: 70px;
-}
-
-.chr-md .transparent-select:focus {
-  outline: none;
-  box-shadow: none;
-}
-
-.chr-md .transparent-select option {
-  background: var(--comp-bg);
-  color: var(--comp-text-pri);
+  padding: 0 0.2em;
+  white-space: nowrap;
+  cursor: default;
+  user-select: none;
 }
 
 .chr-md .editor-footer {

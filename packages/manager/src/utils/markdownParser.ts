@@ -826,9 +826,7 @@ export function convertToHtml(text: any, options?: { wrapBlocks?: boolean, local
         <div class="code-chunk-container">
           <div class="editor-header">
             <div class="header-left">
-              <select class="language-selector transparent-select" title="${safeLang}" disabled style="font-family: var(--app-font-stack);">
-                <option value="${safeLang}" selected>${escapeAttr(displayLabel)}</option>
-              </select>
+              <span class="language-label" title="${safeLang}">${escapeAttr(displayLabel)}</span>
             </div>
             <div class="toolbar">
               <button class="icon-btn copy-btn" title="Copy" data-code="${escapeAttr(codeRaw)}">
