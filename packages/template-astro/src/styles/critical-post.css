@@ -33,8 +33,6 @@
 .toc-body-wrap { display:grid; grid-template-rows:0fr; transition:grid-template-rows 0.2s; }
 .toc-body { overflow:hidden; min-height:0; }
 
-.toc-float:not(.visible){ opacity: 0; pointer-events: none;}
-
 /* ── Content body ── */
 .post-body {
   line-height:1.7; font-size:1rem;
@@ -129,6 +127,10 @@
    flashes visible at first paint. */
 .cb__btn.cb--btt { opacity:0; pointer-events:none; }
 .toc-float {
+  /* 默认隐藏（合并自原 :not(.visible) 规则）：初始无 .visible → 首帧不可见。
+     .toc-float.visible 恢复显示（见 FloatingToc.astro async 规则）。
+     [data-toc-mode]:not(.visible) 的 rail 半透明例外仍可覆盖（specificity 更高）。 */
+  opacity:0; pointer-events:none;
   position:fixed; right:calc(10px + 2vw); top:calc(30px + 10vh);
   z-index:1199; max-height:calc(70vh - 80px); box-sizing:border-box;
 }
