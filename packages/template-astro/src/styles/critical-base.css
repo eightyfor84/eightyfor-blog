@@ -23,6 +23,15 @@ body {
   font-variation-settings:'wght' var(--app-text-wght, 400);
 }
 
+/* Form controls do NOT inherit font by default (UA buttonface/Arial). Layout.css
+   (async) resets them to inherit later — mirror that here so text-bearing
+   buttons/inputs don't resize when the full CSS lands. */
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
 /* ── Global heading weight — matches global.css so deferred CSS can't rewrap text ── */
 h1, h2, h3, h4, h5, h6 {
   font-variation-settings:'wght' var(--app-heading-wght, 570);
