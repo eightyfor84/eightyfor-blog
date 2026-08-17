@@ -90,6 +90,9 @@ function initBackgroundLayer() {
   const video = layer.querySelector<HTMLVideoElement>('.bg-video');
 
   // ── Fallback image: fade in when decoded ──
+  // Starts AFTER first paint (see _runAfterFCP below) so it never competes
+  // with FCP resources. Strategy B: the image may load right after FCP; the
+  // video is deferred to window.load separately (initBackgroundVideo below).
   if (imgEl) {
     // data-bg-image is either a single URL or a JSON array of candidates
     // (avif > webp > original, from Layout.astro). Probe in order, use the
@@ -129,55 +132,63 @@ function initBackgroundLayer() {
       revealImage();
     }
   }
-
-  // ── Background video: fade in over the image once the first frame is ready ──
-  if (video) {
-    const autoplay = video.dataset.autoplay !== '0';
-    const playbackRate = parseFloat(video.dataset.playbackRate || '1');
-
-    let reducedMotion = false;
-    try { reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch {}
-
-    const reveal = () => video.classList.add('is-ready');
-
-    // 加载失败 / 格式不支持 → 隐藏视频，露出下层兜底图 / 底色。
-    video.addEventListener('error', () => {
-      video.style.display = 'none';
-    }, { once: true });
-
-    // 缓存 / 快速刷新：readyState 已 >= 2，loadeddata 早已触发过，直接 reveal。
-    if (video.readyState >= 2) reveal();
-    else video.addEventListener('loadeddata', reveal, { once: true });
-
-    if (Number.isFinite(playbackRate) && playbackRate > 0) {
-      video.playbackRate = playbackRate;
-    }
-
-    // 不自动播放 / 减动效 → 不 play()；懒加载首帧（metadata）作为静态兜底。
-    if (!autoplay || reducedMotion) {
-      if (video.readyState < 2) {
-        video.preload = 'metadata';
-        video.load();
-      }
-      return;
-    }
-
-    // muted + playsinline 自动播放；被拦截时静默忽略。
-    video.play().catch(() => {});
-  }
 }
 
-// Defer the whole background layer (fallback-image preload + 2MB video
-// fetch/decode) until AFTER first paint. The layer is decorative and starts
-// at opacity 0 over the solid surface (critical-base.css); racing its decode
-// against the first frame delayed FCP on slow devices/runners (PSI: with bg
-// layer observed FCP ~2361ms, without ~504ms on similar content).
+// ── Background video: fade in over the image once the first frame is ready ──
+// Strategy B: video is NOT started at FCP — the 2MB fetch/play would race
+// remaining critical resources on slow networks. It starts only after
+// window.load (all critical resources done), then fades in over the image.
+function initBackgroundVideo() {
+  const layer = document.getElementById('chr-bg-layer');
+  if (!layer) return;
+  const video = layer.querySelector<HTMLVideoElement>('.bg-video');
+  if (!video) return;
+
+  const autoplay = video.dataset.autoplay !== '0';
+  const playbackRate = parseFloat(video.dataset.playbackRate || '1');
+
+  let reducedMotion = false;
+  try { reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch {}
+
+  const reveal = () => video.classList.add('is-ready');
+
+  // 加载失败 / 格式不支持 → 隐藏视频，露出下层兜底图 / 底色。
+  video.addEventListener('error', () => {
+    video.style.display = 'none';
+  }, { once: true });
+
+  // 缓存 / 快速刷新：readyState 已 >= 2，loadeddata 早已触发过，直接 reveal。
+  if (video.readyState >= 2) reveal();
+  else video.addEventListener('loadeddata', reveal, { once: true });
+
+  if (Number.isFinite(playbackRate) && playbackRate > 0) {
+    video.playbackRate = playbackRate;
+  }
+
+  // 不自动播放 / 减动效 → 不 play()；懒加载首帧（metadata）作为静态兜底。
+  if (!autoplay || reducedMotion) {
+    if (video.readyState < 2) {
+      video.preload = 'metadata';
+      video.load();
+    }
+    return;
+  }
+
+  // muted + playsinline 自动播放；被拦截时静默忽略。
+  video.play().catch(() => {});
+}
+
+// Defer the bg IMAGE (fallback-image preload/decode) until AFTER first paint.
+// The layer is decorative and starts at opacity 0 over the solid surface
+// (critical-base.css); racing its decode against the first frame delayed FCP
+// on slow devices/runners (PSI: with bg layer observed FCP ~2361ms, without
+// ~504ms on similar content). The video is deferred further to window.load
+// (strategy B) — see initBackgroundVideo + _maybeInitBg.
 //
 // requestIdleCallback is NOT "after FCP" — it fires when the main thread is
 // idle, which on slow networks happens before FCP (HTML parsed, waiting on
 // network). video.play() then starts the 2MB download while FCP resources
 // are still in flight. So gate on the actual first-contentful-paint entry.
-const _deferBg = () => initBackgroundLayer();
 function _runAfterFCP(fn: () => void) {
   try {
     const po = new PerformanceObserver((list) => {
@@ -197,18 +208,24 @@ function _runAfterFCP(fn: () => void) {
   setTimeout(fn, 6000);
 }
 
-// First load only: wait for FCP so the bg layer (image + 2MB video) never
-// competes with first paint. Soft navigations do NOT re-init: the persisted
-// #chr-bg-layer keeps its already-applied background + loaded video across
-// SPA navigations (transition:persist), and the site is same-origin static —
-// re-probing would only re-request already-cached resources. If a navigation
-// ever lands on a page with no background, the layer simply stays hidden
-// (opacity 0) over the solid surface, which is the correct fallback anyway.
+// First load only: wait for FCP so the bg IMAGE never competes with first
+// paint; the bg VIDEO waits for window.load (strategy B) so its 2MB fetch
+// can't race remaining critical resources on slow networks. Soft navigations
+// do NOT re-init: the persisted #chr-bg-layer keeps its already-applied
+// background + loaded video across SPA navigations (transition:persist), and
+// the site is same-origin static — re-probing would only re-request
+// already-cached resources. If a navigation ever lands on a page with no
+// background, the layer simply stays hidden (opacity 0) over the solid
+// surface, which is the correct fallback anyway.
 let _bgLayerStarted = false;
 function _maybeInitBg() {
   if (_bgLayerStarted) return;
   _bgLayerStarted = true;
-  _runAfterFCP(_deferBg);
+  _runAfterFCP(() => {
+    initBackgroundLayer();          // image: after FCP
+    if (document.readyState === 'complete') initBackgroundVideo();
+    else window.addEventListener('load', initBackgroundVideo, { once: true });
+  });
 }
 document.addEventListener('astro:page-load', _maybeInitBg);
 if (document.readyState === 'loading') {

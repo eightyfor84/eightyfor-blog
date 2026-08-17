@@ -87,13 +87,16 @@ const commentsCfg = postCfg.postComments || (settings as Record<string, any>).co
 // ── Comment config ────────────────────────────────────
 const commentBackend = String(commentsCfg.backend || '');
 const commentWalineServerUrl = String(commentsCfg.walineServerUrl || '');
-// Attitude (like/dislike) is a Waline reaction feature — only with the waline backend.
-const attitudeEnabled = commentBackend === 'waline' && commentsCfg.attitude !== false;
-// D2: show geo address (never the raw IP) on comments — waline location when present.
-const showGeoAddress = commentsCfg.showGeoAddress !== false;
-
 // ── Comments feature flag ────────────────────────────────
 const commentsEnabled = (settings as Record<string, any>).comments !== false;
+
+// ── Attitude (like/dislike) is a Waline reaction feature — only with the
+//    waline backend AND comments enabled. Guarding with commentsEnabled
+//    prevents the leak where disabling comments still rendered attitude
+//    buttons and fired Waline API calls. ──
+const attitudeEnabled = commentsEnabled && commentBackend === 'waline' && commentsCfg.attitude !== false;
+// D2: show geo address (never the raw IP) on comments — waline location when present.
+const showGeoAddress = commentsCfg.showGeoAddress !== false;
 
 // ── Collection feature flag (distinct from data result — see getCollections) ──
 const collectionEnabled = (settings as Record<string, any>).collectionPage !== false;
