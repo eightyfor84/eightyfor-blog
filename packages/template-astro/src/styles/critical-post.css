@@ -33,6 +33,8 @@
 .toc-body-wrap { display:grid; grid-template-rows:0fr; transition:grid-template-rows 0.2s; }
 .toc-body { overflow:hidden; min-height:0; }
 
+.toc-float:not(.visible){ opacity: 0; pointer-events: none;}
+
 /* ── Content body ── */
 .post-body {
   line-height:1.7; font-size:1rem;
