@@ -147,8 +147,11 @@ function initMermaidCodeBlocks() {
     const editorFooter = block.querySelector('.editor-footer') as HTMLElement | null;
     if (!(editorWrapper instanceof HTMLElement)) return;
 
-    const textarea = block.querySelector('.code-textarea') as HTMLTextAreaElement | null;
-    const codeText = textarea?.value || '';
+    // Raw source comes from the copy button's data-code (same unescaped text as
+    // the old <textarea>, which no longer exists in the markup). The <pre> only
+    // holds highlighted HTML — not usable as a source for re-rendering.
+    const copyBtn = block.querySelector('.copy-btn') as HTMLElement | null;
+    const codeText = copyBtn?.dataset.code || '';
     if (!codeText.trim()) return;
 
     block.dataset.mermaidEnhanced = '1';

@@ -507,12 +507,10 @@ function renderCodeChunkHtml(code: string, lang: string): string {
     </div>`;
   }
 
-  // The <textarea> duplicates the code purely as the mermaid Code-view / re-render
-  // source. Regular code blocks don't need it (copy uses data-code on the copy
-  // button) — dropping it removes duplicated markup from the HTML (parse cost).
-  const codeTextarea = isMermaid
-    ? `<textarea class="code-textarea" spellcheck="false" placeholder="" readonly>${escapeAttr(code)}</textarea>`
-    : '';
+  // No <textarea> in the markup at all: regular blocks don't need it (copy uses
+  // data-code), and mermaid reads its raw source from the copy button's data-code
+  // too (article.ts initMermaidCodeBlocks) — the Code view is the highlighted
+  // <pre>, which is already the display layer.
 
   return `
 <div class="code-chunk-container${isMermaid ? ' mermaid' : ''}">
@@ -533,7 +531,6 @@ function renderCodeChunkHtml(code: string, lang: string): string {
   <div class="editor-wrapper" style="height: ${height}px;">
     <div class="editor-content">
       <pre class="syntax-hl" style="padding: 0.7rem 1.5rem 1.2rem 1.5rem; font-size: 13.5px; line-height: 1.3em; font-family: inherit; box-sizing: border-box;"><code>${highlighted}</code></pre>
-      ${codeTextarea}
     </div>
   </div>
   ${mermaidPreview}
