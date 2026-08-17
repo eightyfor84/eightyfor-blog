@@ -253,22 +253,54 @@ const clientI18n = {
 </div>
 
 <script>
-  import { hydrateCommentSection } from '../utils/commentAdapter';
-
+  /**
+   * True lazy hydration: commentAdapter (+ its DOMPurify chunk, ~76KB) is only
+   * downloaded when the comment section approaches the viewport. First paint
+   * loads nothing but this tiny observer.
+   *
+   * Dynamic import() makes Astro split commentAdapter into its own chunk, and
+   * DOMPurify (imported only by commentAdapter) rides along in that chunk — it
+   * is no longer part of any first-paint module.
+   */
   let _csCleanup: (() => void) | null = null;
+  let _csObserver: IntersectionObserver | null = null;
 
-  function _csMount() {
+  async function _csHydrate() {
     if (_csCleanup) return;
+    const { hydrateCommentSection } = await import('../utils/commentAdapter');
+    if (_csCleanup) return; // page swapped away while the chunk was loading
     _csCleanup = hydrateCommentSection();
   }
 
+  function _csMount() {
+    if (_csObserver) return;
+    const containers = document.querySelectorAll<HTMLElement>('.comment-section');
+    if (containers.length === 0) return;
+    _csObserver = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            _csObserver?.disconnect();
+            _csObserver = null;
+            _csHydrate();
+            break;
+          }
+        }
+      },
+      { rootMargin: '300px' },
+    );
+    containers.forEach((c) => _csObserver?.observe(c));
+  }
+
   function _csUnmount() {
+    _csObserver?.disconnect();
+    _csObserver = null;
     if (_csCleanup) { _csCleanup(); _csCleanup = null; }
   }
 
   document.addEventListener('astro:page-load', _csMount);
   document.addEventListener('astro:before-swap', _csUnmount);
-  // Run immediately for first paint
+  // Run immediately for first paint (observer only — no heavy imports)
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', _csMount, { once: true });
   } else {
