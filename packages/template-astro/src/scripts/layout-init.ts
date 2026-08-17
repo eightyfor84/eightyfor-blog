@@ -91,17 +91,40 @@ function initBackgroundLayer() {
 
   // ── Fallback image: fade in when decoded ──
   if (imgEl) {
-    const url = layer.dataset.bgImage || '';
+    // data-bg-image is either a single URL or a JSON array of candidates
+    // (avif > webp > original, from Layout.astro). Probe in order, use the
+    // first that decodes — smallest bytes wins. Loading still starts AFTER
+    // first paint (see _runAfterFCP below), so it never competes with FCP.
+    let candidates: string[] = [];
+    const raw = layer.dataset.bgImage || '';
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) candidates = parsed.filter((u) => typeof u === 'string');
+    } catch { /* not JSON → single URL */ }
+    if (candidates.length === 0 && raw) candidates = [raw];
+
     const revealImage = () => layer.classList.add('is-ready');
 
-    if (url) {
-      const probe = new Image();
-      probe.onload = () => {
-        const dec = (probe as any).decode ? (probe as any).decode() : Promise.resolve();
-        dec.then(revealImage, revealImage);
+    if (candidates.length > 0) {
+      let idx = 0;
+      const tryNext = () => {
+        if (idx >= candidates.length) { revealImage(); return; }
+        const url = candidates[idx++];
+        const probe = new Image();
+        probe.onload = () => {
+          // Apply the background AFTER decode so the paint is a single cross-fade
+          // (opacity 0 → 1) with no partial/unstyled flash. Without this the URL
+          // would have to live in critical CSS, which downloads it at +0ms and
+          // blocks FCP (measured 260ms→3552ms with a 188KB bg).
+          imgEl.style.backgroundImage = `url("${url}")`;
+          const dec = (probe as any).decode ? (probe as any).decode() : Promise.resolve();
+          dec.then(revealImage, revealImage);
+        };
+        // Failed variant → try the next candidate (e.g. browser can't do avif).
+        probe.onerror = () => { if (idx >= candidates.length) revealImage(); else tryNext(); };
+        probe.src = url;
       };
-      probe.onerror = revealImage; // 加载失败也别让图层卡在隐藏态
-      probe.src = url;
+      tryNext();
     } else {
       revealImage();
     }
@@ -145,13 +168,51 @@ function initBackgroundLayer() {
 }
 
 // Defer the whole background layer (fallback-image preload + 2MB video
-// fetch/decode) until after first paint / idle. The layer is decorative and
-// starts at opacity 0 over the solid surface (critical-base.css); racing its
-// decode against the first frame delayed FCP on slow devices/runners (PSI:
-// with bg layer observed FCP ~2361ms, without ~504ms on similar content).
+// fetch/decode) until AFTER first paint. The layer is decorative and starts
+// at opacity 0 over the solid surface (critical-base.css); racing its decode
+// against the first frame delayed FCP on slow devices/runners (PSI: with bg
+// layer observed FCP ~2361ms, without ~504ms on similar content).
+//
+// requestIdleCallback is NOT "after FCP" — it fires when the main thread is
+// idle, which on slow networks happens before FCP (HTML parsed, waiting on
+// network). video.play() then starts the 2MB download while FCP resources
+// are still in flight. So gate on the actual first-contentful-paint entry.
 const _deferBg = () => initBackgroundLayer();
-if (typeof requestIdleCallback !== 'undefined') {
-  requestIdleCallback(_deferBg, { timeout: 2500 });
+function _runAfterFCP(fn: () => void) {
+  try {
+    const po = new PerformanceObserver((list) => {
+      const entries = list.getEntries();
+      if (entries.some((e) => e.name === 'first-contentful-paint')) {
+        po.disconnect();
+        fn();
+      }
+    });
+    po.observe({ type: 'paint', buffered: true });
+  } catch {
+    // PerformanceObserver unsupported (very old engines) → best-effort delay.
+    setTimeout(fn, 1500);
+  }
+  // Safety net: if FCP never fires (browser quirk / background tab), still
+  // start the layer eventually so the site never stays bare.
+  setTimeout(fn, 6000);
+}
+
+// First load only: wait for FCP so the bg layer (image + 2MB video) never
+// competes with first paint. Soft navigations do NOT re-init: the persisted
+// #chr-bg-layer keeps its already-applied background + loaded video across
+// SPA navigations (transition:persist), and the site is same-origin static —
+// re-probing would only re-request already-cached resources. If a navigation
+// ever lands on a page with no background, the layer simply stays hidden
+// (opacity 0) over the solid surface, which is the correct fallback anyway.
+let _bgLayerStarted = false;
+function _maybeInitBg() {
+  if (_bgLayerStarted) return;
+  _bgLayerStarted = true;
+  _runAfterFCP(_deferBg);
+}
+document.addEventListener('astro:page-load', _maybeInitBg);
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', _maybeInitBg, { once: true });
 } else {
-  setTimeout(_deferBg, 1500);
+  _maybeInitBg();
 }
