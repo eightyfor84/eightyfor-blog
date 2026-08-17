@@ -813,9 +813,9 @@ export function renderCodeBlockLangLabelsHtml(html: string, locale?: string) {
 
   const map = maps[loc] || maps['en']
 
-  return html.replace(/<select\b[^>]*>\s*<option\b[^>]*value="([^"]+)"[^>]*>([\s\S]*?)<\/option>\s*<\/select>/g, (_full, value, inner) => {
-    const key = String(value || inner || '').trim()
+  return html.replace(/<span\b[^>]*class="[^"]*language-label[^"]*"[^>]*title="([^"]*)"[^>]*>([\s\S]*?)<\/span>/g, (_full, title, inner) => {
+    const key = String(title || inner || '').trim()
     const label = map[key] || key
-    return `<select class="language-selector transparent-select" title="${escapeAttr(key)}" disabled style="font-family: var(--app-font-stack);"><option value="${escapeAttr(key)}" selected>${escapeAttr(label)}</option></select>`
+    return `<span class="language-label" title="${escapeAttr(key)}">${escapeAttr(label)}</span>`
   })
 }

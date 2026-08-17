@@ -507,13 +507,16 @@ function renderCodeChunkHtml(code: string, lang: string): string {
     </div>`;
   }
 
+  // No <textarea> in the markup at all: regular blocks don't need it (copy uses
+  // data-code), and mermaid reads its raw source from the copy button's data-code
+  // too (article.ts initMermaidCodeBlocks) — the Code view is the highlighted
+  // <pre>, which is already the display layer.
+
   return `
 <div class="code-chunk-container${isMermaid ? ' mermaid' : ''}">
   <div class="editor-header">
     <div class="header-left">
-      <select class="language-selector transparent-select" title="${safeLang}" disabled style="font-family: var(--app-font-stack);">
-        <option value="${safeLang}" selected>${safeLang}</option>
-      </select>
+      <span class="language-label" title="${safeLang}">${safeLang}</span>
     </div>
     <div class="toolbar">
       ${mermaidToolbar}
@@ -526,7 +529,6 @@ function renderCodeChunkHtml(code: string, lang: string): string {
   <div class="editor-wrapper" style="height: ${height}px;">
     <div class="editor-content">
       <pre class="syntax-hl" style="padding: 0.7rem 1.5rem 1.2rem 1.5rem; font-size: 13.5px; line-height: 1.3em; font-family: inherit; box-sizing: border-box;"><code>${highlighted}</code></pre>
-      <textarea class="code-textarea" spellcheck="false" placeholder="" readonly>${escapeAttr(code)}</textarea>
     </div>
   </div>
   ${mermaidPreview}
@@ -556,11 +558,18 @@ function renderImageWrapper(src: string, alt?: string, title?: string, width?: s
 
   // Auto-detected ratio → inline aspect-ratio beats the 2:1 placeholder rule in
   // chronicle-markdown.css; the wrapper scales responsively with the real ratio.
+  // Explicit relative hints (e.g. `=70%`, `=x50%`) are inlined alongside it.
   const wrapperStyle = (autoRatio && ratio)
-    ? ` style="aspect-ratio:${ratio};${width ? 'width:' + cssDim(width) + ';' : 'width:100%;'}max-width:100%"`
+    ? ` style="aspect-ratio:${ratio};${width ? 'width:' + cssDim(width) + ';' : 'width:100%;'}${height ? 'height:' + cssDim(height) + ';' : ''}max-width:100%"`
     : (width || height)
       ? ` style="${width ? 'width:' + cssDim(width) + ';' : ''}${height ? 'height:' + cssDim(height) + ';' : ''}max-width:100%"`
       : '';
+  // Intrinsic width/height attributes on the <img> itself — belt-and-suspenders on
+  // top of the wrapper's inline aspect-ratio (both are set at render time from the
+  // real file dimensions; the CSS width/height:100% still controls rendering).
+  const dimAttrs = (autoRatio && ratio)
+    ? (() => { const m = ratio.split('/'); return m.length === 2 ? ` width="${m[0]}" height="${m[1]}"` : ''; })()
+    : '';
 
   // Generate <picture> with WebP/AVIF sources for images with known extensions (not SVG or external)
   const hasExt = /\.(jpg|jpeg|png|gif)(\?|$)/i.test(src);
@@ -568,9 +577,9 @@ function renderImageWrapper(src: string, alt?: string, title?: string, width?: s
     ? `<picture>
       <source srcset="${escapeAttr(src.replace(/\.(jpg|jpeg|png|gif)$/i, '.avif'))}" type="image/avif">
       <source srcset="${escapeAttr(src.replace(/\.(jpg|jpeg|png|gif)$/i, '.webp'))}" type="image/webp">
-      <img src="${escapeAttr(src)}" alt="${escapeAttr(alt || '')}" class="md-image" loading="lazy" decoding="async" onload="this.classList.add('loaded')" onerror="this.closest('.md-image-wrapper').dataset.error='1'" />
+      <img src="${escapeAttr(src)}" alt="${escapeAttr(alt || '')}" class="md-image"${dimAttrs} loading="lazy" decoding="async" onload="this.classList.add('loaded')" onerror="this.closest('.md-image-wrapper').dataset.error='1'" />
     </picture>`
-    : `<img src="${escapeAttr(src)}" alt="${escapeAttr(alt || '')}" class="md-image" loading="lazy" decoding="async" onload="this.classList.add('loaded')" onerror="this.closest('.md-image-wrapper').dataset.error='1'" />`;
+    : `<img src="${escapeAttr(src)}" alt="${escapeAttr(alt || '')}" class="md-image"${dimAttrs} loading="lazy" decoding="async" onload="this.classList.add('loaded')" onerror="this.closest('.md-image-wrapper').dataset.error='1'" />`;
 
   return `<div class="md-image-container">
     <div class="md-image-wrapper" data-placeholder-text="Loading..."${wrapperStyle}>
@@ -670,13 +679,16 @@ function postProcessHtml(html: string): string {
   // 2. Images → image wrapper (title attr → caption, width/height from imsize
   //    hints, plus auto-detected real ratio for local files to reserve space)
   const resolveImageDims = (src: string, hintW: string, hintH: string) => {
-    // Both hints present → legacy fixed-dim behavior (e.g. `=500x300`).
+    // Both hints present → legacy fixed-dim behavior (e.g. `=500x300`, `=70%x50%`).
     if (hintW && hintH) return { width: hintW, height: hintH, autoRatio: false, ratio: undefined };
     const dims = getLocalImageSize(src);
     if (dims) {
+      // Auto ratio + explicit RELATIVE hints are both inlined (e.g. `=70%` keeps
+      // its width; `=x50%` keeps its height) — only the missing dimension is
+      // filled by the real aspect ratio.
       return {
         width: hintW || '100%',
-        height: '',
+        height: hintH || '',
         autoRatio: true,
         ratio: `${dims.width}/${dims.height}`,
       };

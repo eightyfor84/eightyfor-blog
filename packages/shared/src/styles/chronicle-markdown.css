@@ -495,35 +495,28 @@
   color: var(--app-text-pri);
 }
 
+/* Success icon hidden at rest — otherwise the copy button renders both icons
+   (46px) until article.ts's post-load "reset copy buttons" hides it via inline
+   style, shrinking it to 28px → layout shift. Hiding it in CSS makes the
+   first paint the final state; the copy animation still shows it via inline
+   display:block (inline style wins). */
+.chr-md .icon-btn .success-icon {
+  display: none;
+}
+
 .chr-md .icon-btn.active {
   background: var(--active);
   color: var(--app-text-pri);
 }
 
-.chr-md .transparent-select {
-  background: transparent !important;
-  border: none;
+.chr-md .language-label {
   color: var(--comp-text-pri);
   font-size: 0.91em;
   font-family: var(--app-font-stack);
-  outline: none;
-  box-shadow: none;
-  padding: 0 1.2em 0 0.2em;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  cursor: pointer;
-  min-width: 70px;
-}
-
-.chr-md .transparent-select:focus {
-  outline: none;
-  box-shadow: none;
-}
-
-.chr-md .transparent-select option {
-  background: var(--comp-bg);
-  color: var(--comp-text-pri);
+  padding: 0 0.2em;
+  white-space: nowrap;
+  cursor: default;
+  user-select: none;
 }
 
 .chr-md .editor-footer {
