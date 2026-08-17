@@ -17,6 +17,7 @@ import DOMPurify from 'dompurify';
 import { JSDOM } from 'jsdom';
 import { SANITIZE_CONFIG } from '@chronicle/shared/src/utils';
 import { buildTocFromHtml, type TocItem } from './toc';
+import { getLocalImageSize } from './imageSize';
 
 // DOMPurify needs a DOM window at build time (SSG runs in Node.js).
 const purifyWindow = new JSDOM('').window as unknown as Window & typeof globalThis;
@@ -535,8 +536,14 @@ function renderCodeChunkHtml(code: string, lang: string): string {
 
 /**
  * Render images with wrapper + placeholder behavior.
+ *
+ * `autoRatio` + `ratio` = dimensions were auto-detected from the local file at
+ * build time (not `=WxH` hints). The wrapper then reserves the image's *real*
+ * aspect ratio (responsive) instead of the 2:1 placeholder — so the
+ * placeholder → natural-size jump disappears and in-viewport images can't
+ * cause CLS. `width` may still carry an explicit `=70%`-style hint.
  */
-function renderImageWrapper(src: string, alt?: string, title?: string, width?: string, height?: string): string {
+function renderImageWrapper(src: string, alt?: string, title?: string, width?: string, height?: string, autoRatio?: boolean, ratio?: string): string {
   if (!src) {
     return `<div class="md-image-container">
       <div class="md-image-wrapper placeholder" data-placeholder-text="No image">
@@ -546,9 +553,14 @@ function renderImageWrapper(src: string, alt?: string, title?: string, width?: s
   }
   const captionHtml = (title && title.trim()) ? `<div class="md-image-caption">${escapeAttr(title.trim())}</div>` : '';
   const cssDim = (v: string) => v ? v.includes('%') ? v : v + 'px' : '';
-  const wrapperStyle = (width || height)
-    ? ` style="${width ? 'width:' + cssDim(width) + ';' : ''}${height ? 'height:' + cssDim(height) + ';' : ''}max-width:100%"`
-    : '';
+
+  // Auto-detected ratio → inline aspect-ratio beats the 2:1 placeholder rule in
+  // chronicle-markdown.css; the wrapper scales responsively with the real ratio.
+  const wrapperStyle = (autoRatio && ratio)
+    ? ` style="aspect-ratio:${ratio};${width ? 'width:' + cssDim(width) + ';' : 'width:100%;'}max-width:100%"`
+    : (width || height)
+      ? ` style="${width ? 'width:' + cssDim(width) + ';' : ''}${height ? 'height:' + cssDim(height) + ';' : ''}max-width:100%"`
+      : '';
 
   // Generate <picture> with WebP/AVIF sources for images with known extensions (not SVG or external)
   const hasExt = /\.(jpg|jpeg|png|gif)(\?|$)/i.test(src);
@@ -655,12 +667,28 @@ function postProcessHtml(html: string): string {
     }
   );
 
-  // 2. Images → image wrapper (title attr → caption, width/height from imsize)
+  // 2. Images → image wrapper (title attr → caption, width/height from imsize
+  //    hints, plus auto-detected real ratio for local files to reserve space)
+  const resolveImageDims = (src: string, hintW: string, hintH: string) => {
+    // Both hints present → legacy fixed-dim behavior (e.g. `=500x300`).
+    if (hintW && hintH) return { width: hintW, height: hintH, autoRatio: false, ratio: undefined };
+    const dims = getLocalImageSize(src);
+    if (dims) {
+      return {
+        width: hintW || '100%',
+        height: '',
+        autoRatio: true,
+        ratio: `${dims.width}/${dims.height}`,
+      };
+    }
+    return { width: hintW, height: hintH, autoRatio: false, ratio: undefined };
+  };
   result = result.replace(
     /<p><img\s[^>]*src="([^"]+)"[^>]*>\s*(<span[^>]*>[^<]*<\/span>\s*)?(<\/p>)?/g,
     (_m, src) => {
       if (_m.includes('class="md-image"')) return _m;
-      return renderImageWrapper(src, extractAttr(_m, 'alt'), extractAttr(_m, 'title'), extractAttr(_m, 'width'), extractAttr(_m, 'height'));
+      const d = resolveImageDims(src, extractAttr(_m, 'width'), extractAttr(_m, 'height'));
+      return renderImageWrapper(src, extractAttr(_m, 'alt'), extractAttr(_m, 'title'), d.width, d.height, d.autoRatio, d.ratio);
     }
   );
   // Also handle inline images (not wrapped in <p>), skip those inside <picture>
@@ -669,7 +697,8 @@ function postProcessHtml(html: string): string {
     (_m, imgTag, src) => {
       if (!imgTag) return _m; // <picture> block — leave as-is
       if (_m.includes('class="md-image"')) return imgTag;
-      return renderImageWrapper(src, extractAttr(_m, 'alt'), extractAttr(_m, 'title'), extractAttr(_m, 'width'), extractAttr(_m, 'height'));
+      const d = resolveImageDims(src, extractAttr(_m, 'width'), extractAttr(_m, 'height'));
+      return renderImageWrapper(src, extractAttr(_m, 'alt'), extractAttr(_m, 'title'), d.width, d.height, d.autoRatio, d.ratio);
     }
   );
 
