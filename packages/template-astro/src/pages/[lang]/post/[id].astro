@@ -1,4 +1,5 @@
 ---
+import '../../../themes/aurora/styles/pages/post.css';
 import Layout from '../../../layouts/Layout.astro';
 import { getPublishedPosts, getPostById, getPublicSettings, getCollections, getProfile } from '../../../data/localDataSource';
 import { SITE_AUTHOR_PLACEHOLDER } from '@chronicle/shared/src/utils';
@@ -435,32 +436,6 @@ const metaDescription = buildMetaDescription(post, locale);
     <CollectionNav postId={post?.id || id} collections={embeddedCollections} postTitles={embeddedPostTitles} postTypes={embeddedPostTypes} defaultCollapsed={collectionNavCollapsed} />
   )}
 
-  <style is:global>
-    /* Hide desktop CollectionNav on mobile (768px breakpoint, matches html.is-mobile) */
-    html.is-mobile .cn-panel[data-cn-variant="sidebar"] {
-      display: none !important;
-    }
-
-    @media (max-width: 768px) {
-      .post-detail-container {
-        padding: 1rem 0.5rem;
-      }
-
-      .post-title {
-        font-size: 2rem;
-      }
-
-      .post-nav {
-        margin-bottom: .5rem;
-      }
-
-      .scroll-blank {
-        height: 80px;
-      }
-    }
-
-
-  </style>
 
   <script>
     import '../../../scripts/article';

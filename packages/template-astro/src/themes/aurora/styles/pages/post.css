@@ -1,0 +1,26 @@
+/* ── 页面样式：[lang]/post/[id].astro ──
+   自 src/pages/[lang]/post/[id].astro <style is:global> 迁出。 */
+    /* Hide desktop CollectionNav on mobile (768px breakpoint, matches html.is-mobile) */
+    html.is-mobile .cn-panel[data-cn-variant="sidebar"] {
+      display: none !important;
+    }
+
+    @media (max-width: 768px) {
+      .post-detail-container {
+        padding: 1rem 0.5rem;
+      }
+
+      .post-title {
+        font-size: 2rem;
+      }
+
+      .post-nav {
+        margin-bottom: .5rem;
+      }
+
+      .scroll-blank {
+        height: 80px;
+      }
+    }
+
+
