@@ -194,7 +194,8 @@
           },
           "x-group": "postComments"
         }
-      }
+      },
+      "x-widget": "fieldset"
     }
   }
 }

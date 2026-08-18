@@ -306,7 +306,8 @@
           },
           "x-group": "postEndOfArticle"
         }
-      }
+      },
+      "x-widget": "fieldset"
     }
   }
 }

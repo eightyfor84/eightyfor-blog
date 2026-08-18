@@ -56,7 +56,8 @@
           },
           "x-group": "postCollectionNav"
         }
-      }
+      },
+      "x-widget": "fieldset"
     }
   }
 }
