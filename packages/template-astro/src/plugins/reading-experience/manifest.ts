@@ -21,4 +21,5 @@ export const readingExperience: PluginManifest = {
     { slot: 'post-attitude', component: AttitudeButtons, when: { featureFlag: 'comments', capability: 'getComments' } },
   ],
   dataHooks: {},
+  settingsSchema: ['reading-experience'],
 };

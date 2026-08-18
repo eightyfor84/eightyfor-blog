@@ -199,6 +199,16 @@ const plugins: Record<string, PluginMapping> = {
     storage: 'file',
     contentEditor: true,
   },
+  readingExperience: {
+    key: 'reading-experience',
+    schemaId: 'chronicle:reading-experience',
+    filePath: 'data/site.yml',
+    format: 'yaml',
+    name: 'Reading Experience',
+    description: '阅读体验插件：目录 / 文章头部信息 / 文末区块（相关、上下篇、分享、态度、作者卡）',
+    storage: 'site',
+    entries: [{ target: 'chronicle:post-page' }],
+  },
 }
 
 export const TEMPLATE_MANIFEST: TemplateManifest = {
