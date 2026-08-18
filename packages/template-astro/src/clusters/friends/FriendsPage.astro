@@ -1,6 +1,7 @@
 ---
 import './styles/friends.css';
 import Layout from "../../layouts/Layout.astro";
+import friendsCritical from "./styles/critical.css?raw";
 import { getTranslation, getLocale } from "../../utils/i18n";
 import { buildLocalizedPath } from "../../utils/routeLocale";
 import { loadSiteSettings } from "../../utils/siteSettings";
@@ -81,6 +82,7 @@ const metaDescription =
   settings={settings}
   meta={{ description: metaDescription }}
 >
+  <Fragment slot="head"><style is:inline set:html={friendsCritical} /></Fragment>
   <div class="friends-container">
     <main class="friends-main">
       <h1 class="section-title">{t("friends.title")}</h1>

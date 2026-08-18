@@ -65,9 +65,6 @@ const isHome = /^\/(en|zh)\/?$/.test(pathname);
 const isPost = pathname.includes('/post/');
 const isAbout = /^\/(en|zh)\/about\/?$/.test(pathname);
 const isBlogs = /\/(en|zh)\/blogs\/?$/.test(pathname);
-const isSearch = pathname.includes('/search');
-const isFriends = /\/(en|zh)\/friends\/?$/.test(pathname);
-const isCollection = /\/(en|zh)\/collection\/?$/.test(pathname);
 // chronicle-markdown.css is inlined for post/about pages instead of a
 // render-blocking <link>: a separate request for it gated FCP with huge
 // run-to-run variance (observed arrival 138ms–1063ms → lab FCP 1.7s–5.9s).
@@ -82,10 +79,8 @@ const criticalCSS = [
   isPost    ? themeCss(themeManifest.critical.post)    : '',
   (isPost || isAbout) ? chronicleMarkdownCss : '',
   isBlogs   ? themeCss(themeManifest.critical.blogs)   : '',
-  isSearch  ? themeCss(themeManifest.critical.search)  : '',
-  isFriends ? themeCss(themeManifest.critical.friends) : '',
-  isCollection ? themeCss(themeManifest.critical.collection) : '',
   isAbout   ? themeCss(themeManifest.critical.about)    : '',
+  // 模块页型（search/collection/friends）的 critical 由簇页面体经 head slot 注入——内核零预知
 ].join('');
 
 export interface Props {

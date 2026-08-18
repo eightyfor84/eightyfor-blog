@@ -14,9 +14,8 @@ export const theme = {
     home: 'critical-home.css',
     post: 'critical-post.css',
     blogs: 'critical-blogs.css',
-    search: 'critical-search.css',
-    friends: 'critical-friends.css',
-    collection: 'critical-collection.css',
+    // 模块页型（search/collection/friends）的 critical 随簇（clusters/<id>/styles/critical.css），
+    // 不在主题 manifest——主题只管主板预设页型与全站首帧
     about: 'critical-about.css',
   },
 

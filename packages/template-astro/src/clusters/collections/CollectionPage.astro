@@ -1,6 +1,7 @@
 ---
 import './styles/collection.css';
 import Layout from "../../layouts/Layout.astro";
+import collectionCritical from "./styles/critical.css?raw";
 import { getTranslation, getLocale } from "../../utils/i18n";
 import { loadSiteSettings } from "../../utils/siteSettings";
 import { dataSource } from "../../data";
@@ -41,6 +42,7 @@ try {
   settings={settings}
   meta={{ description: metaDescription }}
 >
+  <Fragment slot="head"><style is:inline set:html={collectionCritical} /></Fragment>
   <div class="collection-container">
     <main class="collection-main">
       <section class="layer-list" id="collection-list-layer">

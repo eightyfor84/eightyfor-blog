@@ -4,6 +4,7 @@
 export const prerender = true;
 
 import Layout from "../../layouts/Layout.astro";
+import searchCritical from "./styles/critical.css?raw";
 import SearchExperience from "./SearchExperience.astro";
 import { getTranslation, getLocale } from "../../utils/i18n";
 import { resolveFeatureFlags } from "../../utils/featureFlags";
@@ -25,6 +26,7 @@ const metaDescription = locale === "zh-CN"
 ---
 
 <Layout title={t("nav.search")} settings={settings} scrollable={false} meta={{ description: metaDescription }}>
+  <Fragment slot="head"><style is:inline set:html={searchCritical} /></Fragment>
   <SearchExperience
     mode="page"
     locale={locale}
