@@ -59,6 +59,8 @@ export interface PluginMapping {
   contentEditor?: boolean
   /** 跳转入口：在 target schema 的设置页顶部注入「相关插件」链接（→ plugins/<key> 详情） */
   entries?: { target: string; label?: string }[]
+  /** 附加设置 schemaId（方案 A：设置回 site.yml，数据留插件文件）——插件详情页主 schema 下方并列渲染 */
+  extraSchemaId?: string
 }
 
 /**
@@ -195,10 +197,11 @@ const plugins: Record<string, PluginMapping> = {
     filePath: 'data/collections.yml',
     format: 'yaml',
     name: 'Collections',
-    description: '合集插件：合集树与分组内容（内容编辑）',
+    description: '合集插件：合集树（数据在 collections.yml）+ 合集导航设置（写入 site.yml）',
     featureFlag: 'collectionPage',
     storage: 'file',
     contentEditor: true,
+    extraSchemaId: 'chronicle:collection-nav',
   },
   readingExperience: {
     key: 'reading-experience',

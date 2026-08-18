@@ -45,7 +45,7 @@ const Settings = () => import(/* webpackChunkName: "settings" */ '../pages/Setti
 /** 插件子页 props：pluginKey → schemaId（TEMPLATE_MANIFEST.plugins 映射） */
 function pluginDetailProps(route: { params: { pluginKey?: string } }) {
   const plugin = TEMPLATE_MANIFEST.plugins[route.params.pluginKey || '']
-  return { schemaId: plugin?.schemaId || 'chronicle:homepage' }
+  return { schemaId: plugin?.schemaId || 'chronicle:homepage', extraSchemaId: plugin?.extraSchemaId }
 }
 const TextEditorLazy = () => import(/* webpackChunkName: "text-editor" */ '../pages/TextEditor.vue')
 const EditorPrintPreview = () => import(/* webpackChunkName: "editor-print-preview" */ '../pages/EditorPrintPreview.vue')

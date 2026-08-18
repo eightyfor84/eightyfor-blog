@@ -34,6 +34,9 @@
         </div>
       </div>
 
+      <!-- 插件附加设置（方案 A：设置回 site.yml，数据留插件文件）——主 schema 渲染完成后并列 -->
+      <PluginExtraSettings v-if="extraSchemaId" :schema-id="extraSchemaId" />
+
       <!-- Actions — always interactive, even when the feature is off -->
       <div class="actions-wrapper">
         <div class="actions">
@@ -59,6 +62,7 @@ import { useSchemaForm } from '../composables/useSchemaForm'
 import { resolveLocale } from '../utils/resolveLocale'
 import SchemaForm from '../components/schema/SchemaForm.vue'
 import SchemaField from '../components/schema/SchemaField.vue'
+import PluginExtraSettings from '../components/schema/PluginExtraSettings.vue'
 import CheckRow from '../components/ui/CheckRow.vue'
 import QuarterCircleSpinner from '../components/ui/QuarterCircleSpinner.vue'
 import useToast from '../composables/useToast'
@@ -67,6 +71,8 @@ const props = defineProps<{
   schemaId: string
   /** Pre-select this tab (from route props) */
   tab?: string
+  /** 插件附加设置 schemaId（设置回 site，数据留插件文件）——渲染在主 schema 下方 */
+  extraSchemaId?: string
 }>()
 
 const { t } = useI18n()

@@ -509,7 +509,13 @@ function readFriendsCards(): unknown[] {
 }
 
 function readFriendsGlobalStyle(): string | null {
-    return readFriendsFromFile().globalStyle;
+    // 方案 A：设置回 site.yml（顶层 friendsGlobalStyle 键）；旧 friends.yml globalStyle 回退
+    try {
+        const siteYml = path.join(DATA_DIR, 'site.yml');
+        const site = readDataFile(siteYml) || {};
+        if (typeof site.friendsGlobalStyle === 'string' && site.friendsGlobalStyle) return site.friendsGlobalStyle;
+    } catch { /* ignore */ }
+    return readFriendsFromFile().globalStyle ?? null;
 }
 
 /** Get public-safe settings */

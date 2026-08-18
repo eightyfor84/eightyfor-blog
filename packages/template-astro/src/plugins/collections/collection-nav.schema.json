@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronicle:collection-nav",
+  "title": {
+    "en": "Collection Navigation",
+    "zh-CN": "合集导航"
+  },
+  "description": {
+    "en": "Collection navigation settings (written to site.yml)",
+    "zh-CN": "合集导航设置（写入 site.yml）"
+  },
+  "type": "object",
+  "x-groups": {
+    "postCollectionNav": {
+      "label": {
+        "en": "Collection Navigation",
+        "zh-CN": "合集导航"
+      },
+      "order": 3,
+      "toggle": "enabled"
+    }
+  },
+  "properties": {
+    "post": {
+      "type": "object",
+      "properties": {
+        "collectionNav": {
+          "type": "object",
+          "x-widget": "fieldset",
+          "x-order": 3,
+          "title": {
+            "en": "Collection Navigation",
+            "zh-CN": "合集导航"
+          },
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true,
+              "x-widget": "toggle",
+              "x-order": 0,
+              "title": {
+                "en": "Enable Collection Navigation",
+                "zh-CN": "启用合集导航"
+              }
+            },
+            "alwaysCollapsed": {
+              "type": "boolean",
+              "default": false,
+              "x-widget": "toggle",
+              "x-order": 1,
+              "title": {
+                "en": "Always Collapsed",
+                "zh-CN": "始终折叠"
+              }
+            }
+          },
+          "x-group": "postCollectionNav"
+        }
+      }
+    }
+  }
+}

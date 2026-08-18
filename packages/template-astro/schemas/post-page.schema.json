@@ -21,14 +21,6 @@
         "zh-CN": "标题区域"
       },
       "order": 1
-    },
-    "postCollectionNav": {
-      "label": {
-        "en": "Collection Navigation",
-        "zh-CN": "合集导航"
-      },
-      "order": 3,
-      "toggle": "enabled"
     }
   },
   "properties": {
@@ -92,38 +84,6 @@
             }
           },
           "x-group": "postMeta"
-        },
-        "collectionNav": {
-          "type": "object",
-          "x-widget": "fieldset",
-          "x-order": 3,
-          "title": {
-            "en": "Collection Navigation",
-            "zh-CN": "合集导航"
-          },
-          "properties": {
-            "enabled": {
-              "type": "boolean",
-              "default": true,
-              "x-widget": "toggle",
-              "x-order": 0,
-              "title": {
-                "en": "Enable Collection Navigation",
-                "zh-CN": "启用合集导航"
-              }
-            },
-            "alwaysCollapsed": {
-              "type": "boolean",
-              "default": false,
-              "x-widget": "toggle",
-              "x-order": 1,
-              "title": {
-                "en": "Always Collapsed",
-                "zh-CN": "始终折叠"
-              }
-            }
-          },
-          "x-group": "postCollectionNav"
         }
       }
     }

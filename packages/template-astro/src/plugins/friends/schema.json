@@ -23,46 +23,6 @@
     }
   },
   "properties": {
-    "globalStyle": {
-      "type": "string",
-      "default": "left-sm",
-      "enum": [
-        "left-sm",
-        "left-lg",
-        "top-lg"
-      ],
-      "x-widget": "select",
-      "x-chronicle-class": "card-toggle",
-      "x-preview-type": "card-style",
-      "x-order": 1,
-      "title": {
-        "en": "Card Style",
-        "zh-CN": "卡片样式"
-      },
-      "x-options": [
-        {
-          "value": "left-sm",
-          "label": {
-            "en": "Left Small",
-            "zh-CN": "左小图"
-          }
-        },
-        {
-          "value": "left-lg",
-          "label": {
-            "en": "Left Large",
-            "zh-CN": "左大图"
-          }
-        },
-        {
-          "value": "top-lg",
-          "label": {
-            "en": "Top Large",
-            "zh-CN": "上大图"
-          }
-        }
-      ]
-    },
     "cards": {
       "type": "array",
       "x-widget": "card-list",
@@ -149,6 +109,51 @@
       "description": {
         "en": "Enable the friends page.",
         "zh-CN": "启用友链页面。"
+      }
+    },
+    "friendsGlobalStyle": {
+      "type": "string",
+      "default": "left-sm",
+      "enum": [
+        "left-sm",
+        "left-lg",
+        "top-lg"
+      ],
+      "x-widget": "select",
+      "x-chronicle-class": "card-toggle",
+      "x-preview-type": "card-style",
+      "x-order": 1,
+      "title": {
+        "en": "Card Global Style",
+        "zh-CN": "卡片全局样式"
+      },
+      "x-options": [
+        {
+          "value": "left-sm",
+          "label": {
+            "en": "Left Small",
+            "zh-CN": "左小图"
+          }
+        },
+        {
+          "value": "left-lg",
+          "label": {
+            "en": "Left Large",
+            "zh-CN": "左大图"
+          }
+        },
+        {
+          "value": "top-lg",
+          "label": {
+            "en": "Top Large",
+            "zh-CN": "上大图"
+          }
+        }
+      ],
+      "x-site-flag": true,
+      "description": {
+        "en": "Global card layout (stored in site.yml)",
+        "zh-CN": "卡片全局布局（存入 site.yml）"
       }
     }
   },

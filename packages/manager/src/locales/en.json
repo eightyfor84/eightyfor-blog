@@ -429,7 +429,8 @@
     "storageFile": "Separate data file",
     "storagePost": "Per-post config",
     "relatedPlugins": "Related plugins",
-    "pluginTag": "Plugin"
+    "pluginTag": "Plugin",
+    "pluginSettings": "Plugin Settings"
   },
   "postPicker": {
     "inputPlaceholder": "Search and select a published post",
