@@ -3,6 +3,7 @@
 // 数据：合集读取走主板 DataSource（getCollections/getCollectionPostIds）
 import type { PluginManifest } from '../types';
 import CollectionPage from './CollectionPage.astro';
+import CollectionNav from './CollectionNav.astro';
 
 export const collections: PluginManifest = {
   id: 'collections',
@@ -10,8 +11,8 @@ export const collections: PluginManifest = {
   pages: {
     collection: { route: 'collection', component: CollectionPage, when: { featureFlag: 'collectionPage' } },
   },
-  // 合集导航（CollectionNav）为文章页槽位贡献，随阅读体验插件槽位化时接入
-  slots: [],
+  // 合集导航：文章页侧栏槽位（组件自读数据 + 自判）与 CornerActions 移动端菜单共用
+  slots: [{ slot: 'post-collection-nav', component: CollectionNav }],
   dataHooks: {},
   settingsSchema: ['collections'],
 };

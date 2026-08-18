@@ -12,7 +12,6 @@ import { escapeHtmlText, decodeHtmlEntities, getFileExt, getMediaIcon, toMediaCa
 import { getPluginSlot } from '../../../plugins';
 import { resolveFeatureFlags } from '../../../utils/featureFlags';
 import CornerActions from '../../../components/CornerActions.astro';
-import CollectionNav from '../../../components/CollectionNav.astro';
 import 'katex/dist/katex.min.css';
 
 export const prerender = true;
@@ -111,6 +110,7 @@ const TocSlot = getPluginSlot('post-toc', slotGateCtx);
 const EndOfArticleSlot = getPluginSlot('post-end-of-article', slotGateCtx);
 const AttitudeSlot = getPluginSlot('post-attitude', slotGateCtx);
 const CommentsSlot = getPluginSlot('post-comments', slotGateCtx);
+const CollectionNavSlot = getPluginSlot('post-collection-nav', slotGateCtx);
 const SlidesSlot = getPluginSlot('post-slides-view', slotGateCtx);
 
 // ── Collection feature flag (distinct from data result — see getCollections) ──
@@ -446,10 +446,10 @@ const metaDescription = buildMetaDescription(post, locale);
     </>
   )}
 
-  <CornerActions toc={tocItems} postId={post?.id || id} collections={embeddedCollections} postTitles={embeddedPostTitles} postTypes={embeddedPostTypes} commentsEnabled={commentsEnabled} collectionEnabled={collectionEnabled} mobileToc={mobileTocControlEnabled} />
+  <CornerActions toc={tocItems} postId={post?.id || id} commentsEnabled={commentsEnabled} collectionEnabled={collectionEnabled} hasCollection={!!post?.collection} mobileToc={mobileTocControlEnabled} />
 
-  {hasCollectionNav && (
-    <CollectionNav postId={post?.id || id} collections={embeddedCollections} postTitles={embeddedPostTitles} postTypes={embeddedPostTypes} defaultCollapsed={collectionNavCollapsed} />
+  {hasCollectionNav && CollectionNavSlot && (
+    <CollectionNavSlot postId={post?.id || id} defaultCollapsed={collectionNavCollapsed} />
   )}
 
 
