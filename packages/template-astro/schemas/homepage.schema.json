@@ -30,12 +30,6 @@
         "zh": "主页卡片"
       }
     },
-    "pages": {
-      "label": {
-        "en": "Pages",
-        "zh-CN": "页面"
-      }
-    },
     "syndication": {
       "label": {
         "en": "Syndication",
@@ -243,36 +237,6 @@
         }
       },
       "x-tab": "template-homepage"
-    },
-    "collectionPage": {
-      "type": "boolean",
-      "x-group": "pages",
-      "x-order": 1,
-      "title": {
-        "en": "Collection Page",
-        "zh-CN": "合集页面"
-      },
-      "description": {
-        "en": "Enable the collection browsing page.",
-        "zh-CN": "启用合集浏览页面。"
-      },
-      "default": true,
-      "x-widget": "toggle"
-    },
-    "aboutPage": {
-      "type": "boolean",
-      "x-group": "pages",
-      "x-order": 2,
-      "title": {
-        "en": "About Page",
-        "zh-CN": "关于页面"
-      },
-      "description": {
-        "en": "Enable the about page on the frontend.",
-        "zh-CN": "在前台启用关于页面。"
-      },
-      "default": true,
-      "x-widget": "toggle"
     },
     "rss": {
       "type": "boolean",

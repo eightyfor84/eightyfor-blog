@@ -53,7 +53,6 @@ function storageLabel(storage: 'site' | 'file' | 'post'): string {
 
 <style scoped>
 .plugin-settings { padding: 1rem; max-width: 860px; }
-.plugin-switches { margin-bottom: 1.5rem; padding: 1rem; border-radius: 10px; background: var(--app-bg-sec); border: 1px solid var(--border-color); }
 .plugin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.75rem; }
 .plugin-card { padding: 1rem; border-radius: 10px; background: var(--app-bg-sec); border: 1px solid var(--border-color); cursor: pointer; transition: border-color 0.15s, transform 0.15s; }
 .plugin-card:hover { border-color: var(--accent); transform: translateY(-1px); }
