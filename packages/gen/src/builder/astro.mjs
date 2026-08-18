@@ -13,7 +13,6 @@ import { execSync } from 'node:child_process';
 import { cpSync, existsSync, lstatSync, mkdirSync, rmSync, chmodSync, renameSync, readdirSync } from 'node:fs';
 import { join, resolve, parse, dirname } from 'node:path';
 import { rebuildPostIndex } from './indexer.mjs';
-import { rewriteCriticalInDist } from './critical.mjs';
 
 // ── CLI argument parsing ──────────────────────────────────
 
@@ -162,13 +161,6 @@ export async function runBuild({ dataDir, codeDir, targetDir, granularity }) {
   const distDir = join(codeDir, 'dist');
   if (!existsSync(distDir)) {
     throw new Error(`Build output not found: ${distDir}`);
-  }
-
-  // 3.5 Critical CSS：提取自动生成的子集替换内联（Phase 1 并行——手写 critical 保留至验证通过）
-  try {
-    rewriteCriticalInDist({ distDir });
-  } catch (e) {
-    console.warn('[chronicle-gen] Critical CSS extraction failed, keeping hand-written critical:', e.message);
   }
 
   // 4. Sync output to target
