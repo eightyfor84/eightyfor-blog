@@ -418,7 +418,12 @@
     "preview": "Preview",
     "moduleHint": "Settings modules: click a card to open its detail page",
     "masterSwitch": "Master switch",
-    "plugins": "Plugins"
+    "plugins": "Plugins",
+    "pluginsHint": "Manage all plugins: toggles control on/off (off removes the plugin page/slots from the site); click a card for plugin settings.",
+    "pluginDetail": "Plugin Settings",
+    "contentEditor": "Content editor",
+    "on": "On",
+    "off": "Off"
   },
   "postPicker": {
     "inputPlaceholder": "Search and select a published post",

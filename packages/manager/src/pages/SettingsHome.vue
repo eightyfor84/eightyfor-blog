@@ -43,17 +43,17 @@ const ROUTE_PREFIX: Record<string, string> = {
   'chronicle:appearance': '/settings/appearance',
   'chronicle:plugins': '/settings/plugins',
   'chronicle:system-settings': '/settings/system-appearance',
-  'chronicle:collections': '/settings/collections',
-  'chronicle:friends': '/settings/friends',
   'chronicle:profile': '/settings/profile',
   'chronicle:post-page': '/settings/post-page',
 }
 
-// 插件 → 详情路由（schema 随插件）
+// 插件 → 详情路由（plugins 子页，从总览页进入）
 const PLUGIN_ROUTES: Record<string, string> = {
-  search: '/settings/search',
-  comments: '/settings/comments',
-  friends: '/settings/friends',
+  search: '/settings/plugins/search',
+  comments: '/settings/plugins/comments',
+  friends: '/settings/plugins/friends',
+  collections: '/settings/plugins/collections',
+  slides: '/settings/plugins/slides',
 }
 
 const FALLBACK_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>'

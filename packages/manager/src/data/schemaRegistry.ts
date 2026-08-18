@@ -42,15 +42,17 @@ export interface PluginMapping {
   key: string
   /** 承载该段设置的 schema $id */
   schemaId: string
-  /** schema 内 tab（多 tab schema 的段） */
-  tab?: string
   /** 配置写入位置 */
   filePath: string
   format: 'yaml' | 'json'
-  /** 插件名（模块页显示） */
+  /** 插件名（插件总览页显示） */
   name: string
   /** 说明 */
   description: string
+  /** 插件开关（site.yml featureFlags 键，总览页 toggle；缺省 = 无开关） */
+  featureFlag?: string
+  /** 内容编辑类插件（合集树/友链卡片等重 UI）——总览页标注，编辑在详情页 */
+  contentEditor?: boolean
 }
 
 /**
@@ -148,7 +150,8 @@ const plugins: Record<string, PluginMapping> = {
     filePath: 'data/site.yml',
     format: 'yaml',
     name: 'Search',
-    description: '检索簇：搜索建议 / 全局搜索 / 全文索引',
+    description: '检索插件：搜索建议 / 全局搜索 / 全文索引',
+    featureFlag: 'globalSearch',
   },
   friends: {
     key: 'friends',
@@ -156,7 +159,9 @@ const plugins: Record<string, PluginMapping> = {
     filePath: 'data/friends.yml',
     format: 'yaml',
     name: 'Friends',
-    description: '友链簇：好友卡片与全局样式',
+    description: '友链插件：好友卡片与全局样式',
+    featureFlag: 'friendsPage',
+    contentEditor: true,
   },
   comments: {
     key: 'comments',
@@ -164,7 +169,8 @@ const plugins: Record<string, PluginMapping> = {
     filePath: 'data/site.yml',
     format: 'yaml',
     name: 'Comments',
-    description: '评论簇：主开关（后端配置随 Waline 接入）',
+    description: '评论插件：主开关（后端配置随 Waline 接入）',
+    featureFlag: 'comments',
   },
   slides: {
     key: 'slides',
@@ -172,7 +178,17 @@ const plugins: Record<string, PluginMapping> = {
     filePath: 'data/site.yml',
     format: 'yaml',
     name: 'Slides',
-    description: '幻灯片簇：Marp 渲染（schema 随插件；post 级配置走 frontmatter slideshow 段）',
+    description: '幻灯片插件：Marp 渲染（schema 随插件；post 级配置走 frontmatter slideshow 段）',
+  },
+  collections: {
+    key: 'collections',
+    schemaId: 'chronicle:collections',
+    filePath: 'data/collections.yml',
+    format: 'yaml',
+    name: 'Collections',
+    description: '合集插件：合集树与分组内容（内容编辑）',
+    featureFlag: 'collectionPage',
+    contentEditor: true,
   },
 }
 

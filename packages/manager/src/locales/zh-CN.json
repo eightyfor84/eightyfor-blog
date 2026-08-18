@@ -424,7 +424,12 @@
     "preview": "预览",
     "moduleHint": "设置模块入口：点击卡片进入各模块详细设置",
     "masterSwitch": "主开关",
-    "plugins": "插件开关"
+    "plugins": "插件开关",
+    "pluginsHint": "统一管理所有插件：开关控制启停（关闭即从站点移除插件页面/槽位），点击卡片进入各插件设置。",
+    "pluginDetail": "插件设置",
+    "contentEditor": "内容编辑",
+    "on": "开",
+    "off": "关"
   },
   "postPicker": {
     "inputPlaceholder": "搜索并选择已发布帖子",
