@@ -86,13 +86,6 @@ const commentWalineServerUrl = String(commentsCfg.walineServerUrl || '');
 // ── Comments feature flag ────────────────────────────────
 const commentsEnabled = (settings as Record<string, any>).comments !== false;
 
-// ── Attitude (like/dislike) is a Waline reaction feature — only with the
-//    waline backend AND comments enabled. Guarding with commentsEnabled
-//    prevents the leak where disabling comments still rendered attitude
-//    buttons and fired Waline API calls. ──
-// 粗门控（comments featureFlag + 适配器评论能力）已迁入插件 manifest 的 when，
-// 由 getPluginSlot 评估；此处只留细条件（waline backend + attitude 配置）。
-const attitudeEnabled = commentBackend === 'waline' && commentsCfg.attitude !== false;
 // D2: show geo address (never the raw IP) on comments — waline location when present.
 const showGeoAddress = commentsCfg.showGeoAddress !== false;
 
@@ -412,8 +405,8 @@ const metaDescription = buildMetaDescription(post, locale);
       </>
     ) : null}
 
-    {post && attitudeEnabled && AttitudeSlot && (
-      <AttitudeSlot postId={post?.id || id} walineServerUrl={commentWalineServerUrl} locale={locale} />
+    {post && AttitudeSlot && (
+      <AttitudeSlot postId={post?.id || id} locale={locale} />
     )}
 
     {post && commentsEnabled && CommentsSlot && (
