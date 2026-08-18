@@ -97,14 +97,12 @@ function buildNavTree(schemas: Record<string, any>): NavGroup[] {
   const result = Array.from(groups.values())
   result.sort((a, b) => a.order - b.order)
   for (const g of result) g.items.sort((a, b) => a.order - b.order)
-  // 插件统一管理页（非 schema 驱动，固定导航项——子页不可直达）
-  result.push({
-    group: 'plugins',
-    label: 'Plugins',
-    icon: 'puzzle',
-    order: 99,
-    items: [{ route: '/settings/plugins', label: '插件', icon: 'puzzle', order: 1 }],
-  })
+  // 插件统一管理页（非 schema 驱动）：并入 template 组——侧栏 Homepage/Appearance/Plugins
+  const templateGroup = result.find((g) => g.group === 'template')
+  if (templateGroup) {
+    templateGroup.items.push({ route: '/settings/plugins', label: 'Plugins', icon: 'puzzle', order: 99 })
+    templateGroup.items.sort((a, b) => a.order - b.order)
+  }
   return result
 }
 

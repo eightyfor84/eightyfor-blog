@@ -46,14 +46,6 @@ const ROUTE_PREFIX: Record<string, string> = {
   'chronicle:post-page': '/settings/post-page',
 }
 
-// 插件 → 详情路由（plugins 子页，从总览页进入）
-const PLUGIN_ROUTES: Record<string, string> = {
-  search: '/settings/plugins/search',
-  comments: '/settings/plugins/comments',
-  friends: '/settings/plugins/friends',
-  collections: '/settings/plugins/collections',
-  slides: '/settings/plugins/slides',
-}
 
 const FALLBACK_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>'
 
@@ -83,27 +75,13 @@ const modules = computed<ModuleItem[]>(() => {
     })
   }
 
-  // 2) 插件模块（统一总览入口 + 模板清单 plugins）
+  // 2) 插件统一管理入口（总览页；子页从总览进入，不在模块页独立列出）
   out.push({
     route: '/settings/plugins',
-    label: '插件',
-    description: '统一管理所有插件的开关与设置',
+    label: t('settings.plugins'),
+    description: t('settings.pluginsHint'),
     icon: FALLBACK_ICON,
   })
-  // 2.1) 插件子页不再独立列出（从总览进入）——仅保留模板清单插件元数据
-  // 2) 插件模块（模板清单 plugins，去重：与 settings 同 schema 且已有入口的跳过）
-  const seen = new Set(out.map((m) => m.route))
-  for (const plugin of Object.values(TEMPLATE_MANIFEST.plugins)) {
-    const route = PLUGIN_ROUTES[plugin.key]
-    if (!route || seen.has(route)) continue
-    seen.add(route)
-    out.push({
-      route,
-      label: plugin.name,
-      description: plugin.description,
-      icon: FALLBACK_ICON,
-    })
-  }
 
   return out
 })
