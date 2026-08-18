@@ -16,10 +16,12 @@ export interface ClusterSlotContribution {
   /** 主板槽位 id（如 'post-end-of-article'、'post-toc'、'post-collection-nav'） */
   slot: string;
   component: any;
-  /** 条件渲染：featureFlag 门控 + 能力探测（适配器可选能力） */
+  /** 条件渲染（when 门控）：featureFlag 读 site.yml featureFlags 段（opt-out，!== false 即开）；
+      两条件都通过才渲染；主板经 getClusterSlots(slot, ctx) 统一评估 */
   when?: {
+    /** 站点 featureFlags 键（如 'comments'、'globalSearch'） */
     featureFlag?: string;
-    /** 适配器能力探测：DataSource 方法名存在才渲染 */
+    /** 适配器能力探测：DataSource 方法名存在才渲染（内容源无关验证的关键） */
     capability?: keyof DataSource;
   };
 }

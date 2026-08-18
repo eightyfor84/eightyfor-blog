@@ -17,7 +17,8 @@ export const readingExperience: ClusterManifest = {
   slots: [
     { slot: 'post-toc', component: FloatingToc },
     { slot: 'post-end-of-article', component: EndOfArticle },
-    { slot: 'post-attitude', component: AttitudeButtons },
+    // 态度按钮：评论功能关闭（featureFlags.comments）或适配器无评论能力（T4 内容源无 comments）时不注入
+    { slot: 'post-attitude', component: AttitudeButtons, when: { featureFlag: 'comments', capability: 'getComments' } },
   ],
   dataHooks: {},
 };

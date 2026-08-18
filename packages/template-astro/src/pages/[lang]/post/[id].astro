@@ -10,6 +10,7 @@ import { extractHeadings } from '../../../utils/chronicleMarkdown';
 import { renderCodeBlockStatsHtml, renderCodeBlockLangLabelsHtml } from '../../../utils/markdownParser';
 import { escapeHtmlText, decodeHtmlEntities, getFileExt, getMediaIcon, toMediaCard, rewriteMediaLinks, hydrateLegacyKatexPlaceholders, wrapRenderedKatex } from '../../../utils/contentUtils';
 import { getClusterSlot } from '../../../clusters';
+import { resolveFeatureFlags } from '../../../utils/featureFlags';
 import CornerActions from '../../../components/CornerActions.astro';
 import CollectionNav from '../../../components/CollectionNav.astro';
 import CommentSection from '../../../components/CommentSection.astro';
@@ -92,14 +93,25 @@ const commentsEnabled = (settings as Record<string, any>).comments !== false;
 //    waline backend AND comments enabled. Guarding with commentsEnabled
 //    prevents the leak where disabling comments still rendered attitude
 //    buttons and fired Waline API calls. ──
-const attitudeEnabled = commentsEnabled && commentBackend === 'waline' && commentsCfg.attitude !== false;
+// 粗门控（comments featureFlag + 适配器评论能力）已迁入簇 manifest 的 when，
+// 由 getClusterSlot 评估；此处只留细条件（waline backend + attitude 配置）。
+const attitudeEnabled = commentBackend === 'waline' && commentsCfg.attitude !== false;
 // D2: show geo address (never the raw IP) on comments — waline location when present.
 const showGeoAddress = commentsCfg.showGeoAddress !== false;
 
-// ── 阅读体验簇槽位（主板只留渲染点，组件由簇注册）──
+// ── 阅读体验簇槽位（主板只留渲染点，组件由簇注册；when 门控在此统一评估）──
+// comments 开关：featureFlags 段与 settings.comments（顶层）双源——合并取页面原语义（settings.comments 权威），
+// 保证 when 门控与改动前行为一致（comments=false → 态度按钮不注入）。
+const slotGateCtx = {
+  featureFlags: {
+    ...resolveFeatureFlags((settings as Record<string, any>)?.featureFlags),
+    comments: commentsEnabled,
+  },
+  dataSource,
+};
 const TocSlot = getClusterSlot('post-toc');
 const EndOfArticleSlot = getClusterSlot('post-end-of-article');
-const AttitudeSlot = getClusterSlot('post-attitude');
+const AttitudeSlot = getClusterSlot('post-attitude', slotGateCtx);
 
 // ── Collection feature flag (distinct from data result — see getCollections) ──
 const collectionEnabled = (settings as Record<string, any>).collectionPage !== false;
