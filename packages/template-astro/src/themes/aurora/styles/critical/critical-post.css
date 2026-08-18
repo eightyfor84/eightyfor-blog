@@ -12,7 +12,7 @@
 }
 
 /* ── Header + title ── */
-.post-header { margin-bottom:2rem; border-bottom:1px solid var(--border-color-blur); padding-bottom:1.5rem; }
+.post-header { margin-bottom:2rem; border-bottom:1px solid var(--border-color); padding-bottom:1.5rem; }
 .post-title { font-size:2.5rem; font-weight:700; line-height:1.2; margin:0 0 1rem 0; }
 
 /* ── Metadata rows ── */
@@ -22,9 +22,10 @@
 
 /* ── Post tags ── */
 .post-tags { display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:1rem; grid-column:1/-1; }
+.tag { padding:0.25rem 0.75rem; border-radius:1rem; font-size:0.8rem; border:1px solid var(--border-color-blur); }
 
 /* ── Inline TOC ── */
-.toc-inline { padding:10px 14px; margin-bottom:24px; border-radius:10px; border:1px solid var(--border-color-blur); }
+.toc-inline { padding:10px 14px; margin-bottom:24px; border-radius:10px; border:1px solid var(--border-color); }
 .toc-inline .toc-summary { width:100%; padding:0; border:none; color:inherit; background:transparent; display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:0; }
 .toc-inline .toc-title { font-weight:600; }
 .toc-inline .toc-toggle-icon { width:16px; height:16px; flex:0 0 auto; transform:rotate(-90deg); display:inline-flex; align-items:center; justify-content:center; }
@@ -46,7 +47,7 @@
 }
 
 /* ── Post nav (back link) ── */
-.post-nav { margin-bottom:1.5rem; }
+.post-nav { margin-bottom:2rem; }
 
 /* ── CollectionNav — prevent CLS ──
    Component <style is:global> loads async (Astro CSS bundling).
