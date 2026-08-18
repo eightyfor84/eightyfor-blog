@@ -85,8 +85,19 @@ export interface TemplateManifest {
 // ── 主清单：chronicle（默认模板）────────────────────────
 
 const settings: Record<string, SchemaMapping> = {
-  'chronicle:template-settings': {
-    schemaId: 'chronicle:template-settings',
+  // 模板核心设置：schema 跟随模块拆分（原 template-settings 多 tab → 3 独立模块）
+  'chronicle:homepage': {
+    schemaId: 'chronicle:homepage',
+    filePath: 'data/site.yml',
+    format: 'yaml',
+  },
+  'chronicle:appearance': {
+    schemaId: 'chronicle:appearance',
+    filePath: 'data/site.yml',
+    format: 'yaml',
+  },
+  'chronicle:features': {
+    schemaId: 'chronicle:features',
     filePath: 'data/site.yml',
     format: 'yaml',
   },
@@ -133,8 +144,7 @@ const contentTypes: Record<string, ContentTypeMapping> = {
 const plugins: Record<string, PluginMapping> = {
   search: {
     key: 'search',
-    schemaId: 'chronicle:template-settings',
-    tab: 'template-search',
+    schemaId: 'chronicle:search',
     filePath: 'data/site.yml',
     format: 'yaml',
     name: 'Search',
@@ -150,12 +160,11 @@ const plugins: Record<string, PluginMapping> = {
   },
   comments: {
     key: 'comments',
-    schemaId: 'chronicle:template-settings',
-    tab: 'template-comments',
+    schemaId: 'chronicle:comments',
     filePath: 'data/site.yml',
     format: 'yaml',
     name: 'Comments',
-    description: '评论簇：后端与评论配置',
+    description: '评论簇：主开关（后端配置随 Waline 接入）',
   },
   slides: {
     key: 'slides',
@@ -163,7 +172,7 @@ const plugins: Record<string, PluginMapping> = {
     filePath: 'data/site.yml',
     format: 'yaml',
     name: 'Slides',
-    description: '幻灯片簇：Marp 渲染（站点级配置；post 级走 frontmatter slideshow 段）',
+    description: '幻灯片簇：Marp 渲染（schema 随簇；post 级配置走 frontmatter slideshow 段）',
   },
 }
 

@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronicle:comments",
+  "title": {
+    "en": "Comments",
+    "zh-CN": "评论"
+  },
+  "description": {
+    "en": "Comments cluster settings",
+    "zh-CN": "评论簇设置（chronicle-comments）"
+  },
+  "type": "object",
+  "x-nav": {
+    "group": "template",
+    "icon": "comments",
+    "order": 5
+  },
+  "x-groups": {
+    "pages": {
+      "label": {
+        "en": "Pages",
+        "zh": "页面"
+      }
+    }
+  },
+  "properties": {
+    "comments": {
+      "type": "boolean",
+      "default": true,
+      "x-widget": "toggle",
+      "x-tab": "template-features",
+      "x-group": "pages",
+      "x-order": 4,
+      "title": {
+        "en": "Comments",
+        "zh-CN": "评论"
+      },
+      "description": {
+        "en": "Enable comments on article pages.",
+        "zh-CN": "在文章页启用评论。"
+      }
+    }
+  }
+}

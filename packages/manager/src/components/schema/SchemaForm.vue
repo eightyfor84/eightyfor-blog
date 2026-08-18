@@ -82,7 +82,7 @@ const activeTab = computed(() => {
 // ── Parse schema into tabs → groups → fields ──
 /** 顶层 fieldset 平铺（模块级，getValue/evaluate 共享）：把「分组型」fieldset 的叶子属性
  *  平铺为组字段（post.toc.enabled、homepage.siteName 等）——支持单个根（post 树）或
- *  多个顶层块（template-settings 的 homepage/appearance/search 按 x-tab 分块）。
+ *  模块化 schema（每个模块独立 schema，无 x-tab；插件 schema 随簇）。
  *  UI 与扁平结构完全一致（组卡片 + 组开关），数据读写走点路径。 */
 const expandedRoot = computed<Record<string, any> | null>(() => {
   const raw = (props.schema.properties || {}) as Record<string, any>

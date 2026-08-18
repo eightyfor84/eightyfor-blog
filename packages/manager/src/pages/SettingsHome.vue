@@ -39,7 +39,9 @@ const { t } = useI18n()
 
 // 模块 → 详情路由（与 useSchemaNav 的 SCHEMA_ROUTE_PREFIX 同构；独立维护避免耦合）
 const ROUTE_PREFIX: Record<string, string> = {
-  'chronicle:template-settings': '/settings/template-homepage',
+  'chronicle:homepage': '/settings/homepage',
+  'chronicle:appearance': '/settings/appearance',
+  'chronicle:features': '/settings/features',
   'chronicle:system-settings': '/settings/system-appearance',
   'chronicle:collections': '/settings/collections',
   'chronicle:friends': '/settings/friends',
@@ -47,10 +49,10 @@ const ROUTE_PREFIX: Record<string, string> = {
   'chronicle:post-page': '/settings/post-page',
 }
 
-// 插件 → 详情路由（tab 或独立页）
+// 插件 → 详情路由（schema 随簇）
 const PLUGIN_ROUTES: Record<string, string> = {
-  search: '/settings/template-search',
-  comments: '/settings/template-comments',
+  search: '/settings/search',
+  comments: '/settings/comments',
   friends: '/settings/friends',
 }
 

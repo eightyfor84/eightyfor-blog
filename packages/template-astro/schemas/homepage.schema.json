@@ -1,0 +1,230 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronicle:homepage",
+  "title": {
+    "en": "Homepage",
+    "zh-CN": "主页"
+  },
+  "type": "object",
+  "x-nav": {
+    "group": "template",
+    "icon": "home",
+    "order": 1
+  },
+  "x-groups": {
+    "general": {
+      "label": {
+        "en": "General",
+        "zh": "通用"
+      }
+    },
+    "layout": {
+      "label": {
+        "en": "Layout",
+        "zh": "布局"
+      }
+    },
+    "cards": {
+      "label": {
+        "en": "Cards",
+        "zh": "主页卡片"
+      }
+    }
+  },
+  "properties": {
+    "homepage": {
+      "type": "object",
+      "x-widget": "fieldset",
+      "title": {
+        "en": "Homepage",
+        "zh-CN": "首页"
+      },
+      "properties": {
+        "siteName": {
+          "type": "string",
+          "default": "Chronicle Aurora",
+          "minLength": 1,
+          "maxLength": 100,
+          "x-widget": "input",
+          "x-tab": "template-homepage",
+          "x-group": "general",
+          "x-order": 1,
+          "x-required": true,
+          "title": {
+            "en": "Site Name",
+            "zh-CN": "站点名称"
+          }
+        },
+        "siteDescription": {
+          "type": "string",
+          "default": "Chronicle Aurora — a local-first, git-backed Jamstack blog.",
+          "x-widget": "textarea",
+          "x-tab": "template-homepage",
+          "x-group": "general",
+          "x-order": 3,
+          "title": {
+            "en": "Site Description",
+            "zh-CN": "站点描述"
+          }
+        },
+        "icpNumber": {
+          "type": "string",
+          "default": "",
+          "maxLength": 50,
+          "x-widget": "input",
+          "x-tab": "template-homepage",
+          "x-group": "general",
+          "x-order": 5,
+          "title": {
+            "en": "ICP Filing Number",
+            "zh-CN": "备案号"
+          },
+          "description": {
+            "en": "China ICP filing number. Leave blank to hide.",
+            "zh-CN": "中国大陆ICP备案号，留空则隐藏。"
+          }
+        },
+        "homepageMode": {
+          "type": "string",
+          "default": "split",
+          "enum": [
+            "cover",
+            "split",
+            "cards"
+          ],
+          "x-widget": "radio-group",
+          "x-chronicle-class": "card-toggle",
+          "x-preview-type": "homepage-layout",
+          "x-tab": "template-homepage",
+          "x-group": "layout",
+          "x-order": 1,
+          "title": {
+            "en": "Homepage Mode",
+            "zh-CN": "主页模式"
+          },
+          "x-options": [
+            {
+              "value": "cover",
+              "label": {
+                "en": "Cover",
+                "zh-CN": "封面"
+              }
+            },
+            {
+              "value": "split",
+              "label": {
+                "en": "Split",
+                "zh-CN": "分栏"
+              }
+            },
+            {
+              "value": "cards",
+              "label": {
+                "en": "Cards",
+                "zh-CN": "卡片"
+              }
+            }
+          ]
+        },
+        "singleColumnHomepage": {
+          "type": "boolean",
+          "default": false,
+          "x-widget": "toggle",
+          "x-tab": "template-homepage",
+          "x-group": "cards",
+          "x-order": 10,
+          "title": {
+            "en": "Single Column Layout",
+            "zh-CN": "单列布局"
+          },
+          "description": {
+            "en": "Force the homepage to render as a single column regardless of screen width.",
+            "zh-CN": "强制主页以单列布局显示，不论屏幕宽度。"
+          }
+        },
+        "cardVisibility": {
+          "type": "object",
+          "x-widget": "fieldset",
+          "x-tab": "template-homepage",
+          "x-group": "cards",
+          "x-order": 11,
+          "title": {
+            "en": "Card Visibility",
+            "zh-CN": "卡片显隐"
+          },
+          "properties": {
+            "author": {
+              "type": "boolean",
+              "default": true,
+              "x-widget": "toggle",
+              "title": {
+                "en": "Author Card",
+                "zh-CN": "作者卡片"
+              }
+            },
+            "taxonomy": {
+              "type": "boolean",
+              "default": true,
+              "x-widget": "toggle",
+              "title": {
+                "en": "Quick Navigation Card",
+                "zh-CN": "快速导航卡片"
+              }
+            },
+            "activity": {
+              "type": "boolean",
+              "default": true,
+              "x-widget": "toggle",
+              "title": {
+                "en": "Activity Card",
+                "zh-CN": "动态卡片"
+              }
+            }
+          }
+        },
+        "recentUpdates": {
+          "type": "object",
+          "x-widget": "fieldset",
+          "x-tab": "template-homepage",
+          "x-group": "cards",
+          "x-order": 12,
+          "title": {
+            "en": "Recently Updated Card",
+            "zh-CN": "最近更新卡片"
+          },
+          "properties": {
+            "staleDays": {
+              "type": "number",
+              "default": 30,
+              "minimum": 0,
+              "x-widget": "number",
+              "title": {
+                "en": "Stale threshold (days)",
+                "zh-CN": "久未更新阈值（天）"
+              },
+              "description": {
+                "en": "If the latest commit is older than this many days, show the “no updates for a while” notice instead of update content.",
+                "zh-CN": "最近一次提交距今超过该天数时，改为显示「已有比较长的时间未更新」，不再展示更新内容。"
+              }
+            },
+            "aggregateDays": {
+              "type": "number",
+              "default": 7,
+              "minimum": 1,
+              "x-widget": "number",
+              "title": {
+                "en": "Aggregation window (days)",
+                "zh-CN": "连更聚合阈值（天）"
+              },
+              "description": {
+                "en": "Commits within this many days are aggregated into the “recently updated” content list.",
+                "zh-CN": "该天数窗口内的提交会被聚合成「更新内容」列表。"
+              }
+            }
+          }
+        }
+      },
+      "x-tab": "template-homepage"
+    }
+  }
+}

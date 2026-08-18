@@ -69,12 +69,19 @@ const routes = [
       // ═══════════════════════════════════════════════
       // Schema-driven settings (replaces old hand-coded pages)
       // ═══════════════════════════════════════════════
-      // Template schema tabs — each gets a direct route
-      { path: 'template-homepage',   name: 'SettingsTemplateHomepage',   component: SchemaSettingsPage, props: { schemaId: 'chronicle:template-settings', tab: 'template-homepage' },   meta: { title: 'settings.home' } },
-      { path: 'template-appearance', name: 'SettingsTemplateAppearance', component: SchemaSettingsPage, props: { schemaId: 'chronicle:template-settings', tab: 'template-appearance' }, meta: { title: 'settings.appearance' } },
-      { path: 'template-features',   name: 'SettingsTemplateFeatures',   component: SchemaSettingsPage, props: { schemaId: 'chronicle:template-settings', tab: 'template-features' },   meta: { title: 'settings.features' } },
-      { path: 'template-search',     name: 'SettingsTemplateSearch',     component: SchemaSettingsPage, props: { schemaId: 'chronicle:template-settings', tab: 'template-search' },     meta: { title: 'settings.search' } },
-      { path: 'template', redirect: '/settings/template-homepage' },
+      // Template core modules — schema 跟随模块（T5 拆分，原多 tab → 独立模块）
+      { path: 'homepage',    name: 'SettingsHomepage',    component: SchemaSettingsPage, props: { schemaId: 'chronicle:homepage' },    meta: { title: 'settings.home' } },
+      { path: 'appearance',  name: 'SettingsAppearance',  component: SchemaSettingsPage, props: { schemaId: 'chronicle:appearance' },  meta: { title: 'settings.appearance' } },
+      { path: 'features',    name: 'SettingsFeatures',    component: SchemaSettingsPage, props: { schemaId: 'chronicle:features' },    meta: { title: 'settings.features' } },
+      // Plugin modules — schema 随簇（chronicle-search / chronicle-comments）
+      { path: 'search',      name: 'SettingsSearch',      component: SchemaSettingsPage, props: { schemaId: 'chronicle:search' },      meta: { title: 'settings.search' } },
+      { path: 'comments',    name: 'SettingsComments',    component: SchemaSettingsPage, props: { schemaId: 'chronicle:comments' },    meta: { title: 'settings.comments' } },
+      // Backward-compat: old tab routes → new module routes
+      { path: 'template-homepage',   redirect: '/settings/homepage' },
+      { path: 'template-appearance', redirect: '/settings/appearance' },
+      { path: 'template-features',   redirect: '/settings/features' },
+      { path: 'template-search',     redirect: '/settings/search' },
+      { path: 'template', redirect: '/settings/homepage' },
       // System schema tabs (Build & Deploy removed — Aurora is CI/CD-managed)
       { path: 'system-appearance', name: 'SettingsSystemAppearance', component: SystemAppearance, meta: { title: 'settings.appearance' } },
       { path: 'system-git', name: 'SettingsSystemGit', component: SystemGit, meta: { title: 'settings.git' } },
@@ -86,12 +93,9 @@ const routes = [
       { path: 'profile',     name: 'SettingsProfile',     component: SchemaSettingsPage, props: { schemaId: 'chronicle:profile' },     meta: { title: 'settings.profile' } },
       { path: 'post-page',  name: 'SettingsPostPage',   component: SchemaSettingsPage, props: { schemaId: 'chronicle:post-page' }, meta: { title: 'settings.postPage' } },
       // Backward-compat redirects (old paths → new direct routes)
-      { path: 'homepage',   redirect: '/settings/template-homepage' },
-      { path: 'appearance', redirect: '/settings/template-appearance' },
-      { path: 'features',   redirect: '/settings/template-features' },
       { path: 'about',      redirect: '/settings/profile' },
       { path: 'collection', redirect: '/settings/collections' },
-      { path: 'i18n',       redirect: '/settings/template-appearance' },
+      { path: 'i18n',       redirect: '/settings/appearance' },
     ]
   },
 

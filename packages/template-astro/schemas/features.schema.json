@@ -1,0 +1,284 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronicle:features",
+  "title": {
+    "en": "Features",
+    "zh-CN": "功能开关"
+  },
+  "type": "object",
+  "x-nav": {
+    "group": "template",
+    "icon": "toggle",
+    "order": 3
+  },
+  "x-groups": {
+    "pages": {
+      "label": {
+        "en": "Pages",
+        "zh": "页面"
+      }
+    },
+    "syndication": {
+      "label": {
+        "en": "Syndication",
+        "zh": "订阅"
+      }
+    },
+    "analytics": {
+      "label": {
+        "en": "Analytics",
+        "zh": "统计"
+      }
+    }
+  },
+  "properties": {
+    "collectionPage": {
+      "type": "boolean",
+      "default": true,
+      "x-widget": "toggle",
+      "x-tab": "template-features",
+      "x-group": "pages",
+      "x-order": 1,
+      "title": {
+        "en": "Collection Page",
+        "zh-CN": "合集页面"
+      },
+      "description": {
+        "en": "Enable the collection browsing page.",
+        "zh-CN": "启用合集浏览页面。"
+      }
+    },
+    "aboutPage": {
+      "type": "boolean",
+      "default": true,
+      "x-widget": "toggle",
+      "x-tab": "template-features",
+      "x-group": "pages",
+      "x-order": 2,
+      "title": {
+        "en": "About Page",
+        "zh-CN": "关于页面"
+      },
+      "description": {
+        "en": "Enable the about page on the frontend.",
+        "zh-CN": "在前台启用关于页面。"
+      }
+    },
+    "friendsPage": {
+      "type": "boolean",
+      "default": true,
+      "x-widget": "toggle",
+      "x-tab": "template-features",
+      "x-group": "pages",
+      "x-order": 3,
+      "title": {
+        "en": "Friends Page",
+        "zh-CN": "友链页面"
+      },
+      "description": {
+        "en": "Enable the friends page on the frontend.",
+        "zh-CN": "在前台启用友链页面。"
+      }
+    },
+    "rss": {
+      "type": "boolean",
+      "default": true,
+      "x-widget": "toggle",
+      "x-tab": "template-features",
+      "x-group": "syndication",
+      "x-order": 1,
+      "title": {
+        "en": "RSS Feed",
+        "zh-CN": "RSS 订阅"
+      },
+      "description": {
+        "en": "Enable RSS feed syndication for the blog.",
+        "zh-CN": "为博客启用 RSS 订阅输出。"
+      }
+    },
+    "analytics": {
+      "type": "object",
+      "x-widget": "fieldset",
+      "x-tab": "template-features",
+      "x-group": "analytics",
+      "x-order": 1,
+      "title": {
+        "en": "Traffic Analytics",
+        "zh-CN": "流量统计"
+      },
+      "description": {
+        "en": "Traffic analytics backend (3.1.x). Custom events are only used by Google Analytics; other backends auto-track.",
+        "zh-CN": "流量统计渠道（3.1.x 结构化）。自定义事件仅 Google Analytics 使用，其余渠道自动追踪。"
+      },
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false,
+          "x-widget": "toggle",
+          "x-order": 1,
+          "title": {
+            "en": "Enable Analytics",
+            "zh-CN": "启用流量统计"
+          }
+        },
+        "backend": {
+          "type": "string",
+          "default": "",
+          "x-widget": "select",
+          "x-order": 2,
+          "x-visible-when": {
+            "field": "enabled",
+            "equals": true
+          },
+          "x-options": [
+            {
+              "value": "",
+              "label": {
+                "en": "Disabled",
+                "zh-CN": "关闭"
+              }
+            },
+            {
+              "value": "ga",
+              "label": {
+                "en": "Google Analytics (gtag)",
+                "zh-CN": "Google Analytics (gtag)"
+              }
+            },
+            {
+              "value": "cloudflare",
+              "label": {
+                "en": "Cloudflare Web Analytics",
+                "zh-CN": "Cloudflare Web Analytics"
+              }
+            },
+            {
+              "value": "umami",
+              "label": {
+                "en": "Umami (self-hosted)",
+                "zh-CN": "Umami（自托管）"
+              }
+            },
+            {
+              "value": "plausible",
+              "label": {
+                "en": "Plausible (self-hosted)",
+                "zh-CN": "Plausible（自托管）"
+              }
+            },
+            {
+              "value": "baidu",
+              "label": {
+                "en": "Baidu Analytics",
+                "zh-CN": "百度统计"
+              }
+            }
+          ],
+          "title": {
+            "en": "Backend",
+            "zh-CN": "统计渠道"
+          }
+        },
+        "gaMeasurementId": {
+          "type": "string",
+          "default": "",
+          "pattern": "^(G-[A-Z0-9]+)?$",
+          "x-widget": "input",
+          "x-order": 3,
+          "x-visible-when": {
+            "field": "backend",
+            "equals": "ga"
+          },
+          "title": {
+            "en": "Google Analytics ID",
+            "zh-CN": "Google Analytics ID"
+          }
+        },
+        "cloudflareToken": {
+          "type": "string",
+          "default": "",
+          "x-widget": "input",
+          "x-order": 4,
+          "x-visible-when": {
+            "field": "backend",
+            "equals": "cloudflare"
+          },
+          "title": {
+            "en": "Cloudflare Web Analytics Token",
+            "zh-CN": "Cloudflare Web Analytics Token"
+          }
+        },
+        "umamiServerUrl": {
+          "type": "string",
+          "default": "",
+          "x-widget": "input",
+          "x-order": 5,
+          "x-visible-when": {
+            "field": "backend",
+            "equals": "umami"
+          },
+          "title": {
+            "en": "Umami Server URL",
+            "zh-CN": "Umami 服务地址"
+          }
+        },
+        "umamiWebsiteId": {
+          "type": "string",
+          "default": "",
+          "x-widget": "input",
+          "x-order": 6,
+          "x-visible-when": {
+            "field": "backend",
+            "equals": "umami"
+          },
+          "title": {
+            "en": "Umami Website ID",
+            "zh-CN": "Umami 站点 ID"
+          }
+        },
+        "plausibleServerUrl": {
+          "type": "string",
+          "default": "",
+          "x-widget": "input",
+          "x-order": 7,
+          "x-visible-when": {
+            "field": "backend",
+            "equals": "plausible"
+          },
+          "title": {
+            "en": "Plausible Server URL",
+            "zh-CN": "Plausible 服务地址"
+          }
+        },
+        "plausibleDomain": {
+          "type": "string",
+          "default": "",
+          "x-widget": "input",
+          "x-order": 8,
+          "x-visible-when": {
+            "field": "backend",
+            "equals": "plausible"
+          },
+          "title": {
+            "en": "Plausible Domain",
+            "zh-CN": "Plausible 域名"
+          }
+        },
+        "baiduId": {
+          "type": "string",
+          "default": "",
+          "x-widget": "input",
+          "x-order": 9,
+          "x-visible-when": {
+            "field": "backend",
+            "equals": "baidu"
+          },
+          "title": {
+            "en": "Baidu Analytics ID",
+            "zh-CN": "百度统计 ID（hm.js? 后）"
+          }
+        }
+      }
+    }
+  }
+}

@@ -15,7 +15,9 @@ import { writeYaml, writeJson, writeText, deleteDir, deleteFile, mkdir, readDir 
 import systemSettings from '../../schemas/system-settings.schema.json'
 
 const SCHEMAS: Record<string, any> = {
-  'chronicle:template-settings': () => schemaStore['chronicle:template-settings'],
+  'chronicle:homepage': () => schemaStore['chronicle:homepage'],
+  'chronicle:appearance': () => schemaStore['chronicle:appearance'],
+  'chronicle:features': () => schemaStore['chronicle:features'],
   'chronicle:post-page': () => schemaStore['chronicle:post-page'],
   'chronicle:profile': () => schemaStore['chronicle:profile'],
   'chronicle:friends': () => schemaStore['chronicle:friends'],
@@ -77,14 +79,19 @@ export function useGlobalReset() {
   /** ① 重置模板设置 */
   async function resetSite(): Promise<boolean> {
     await syncSchemas() // schemaStore 静态可用，但同步一次确保全部注册
-    const tsSchema = SCHEMAS['chronicle:template-settings']()
+    const coreSchemas = [
+      SCHEMAS['chronicle:homepage'](),
+      SCHEMAS['chronicle:appearance'](),
+      SCHEMAS['chronicle:features'](),
+    ]
     const ppSchema = SCHEMAS['chronicle:post-page']()
-    if (!tsSchema || !ppSchema) return false
+    if (coreSchemas.some((s) => !s) || !ppSchema) return false
 
-    // site.yml：template-settings 树默认 + post 子树默认
-    const siteDefaults = {
-      ...stripVirtual(buildDefaults(tsSchema), tsSchema),
-    }
+    // site.yml：模板核心模块（homepage/appearance/features）默认树合并 + post 子树默认
+    const siteDefaults = Object.assign(
+      {},
+      ...coreSchemas.map((sc) => stripVirtual(buildDefaults(sc), sc)),
+    )
     const postDefaults = stripVirtual(buildDefaults(ppSchema).post || {}, ppSchema.properties?.post || {})
     siteDefaults.post = postDefaults
     let ok = await writeYaml('data/site.yml', siteDefaults)
