@@ -8,6 +8,7 @@
 // 当前实现为内核 utils/toc.ts（正则），确认 markdown-it 一致后可在插件内替换。
 import type { PluginManifest } from '../types';
 import FloatingToc from './FloatingToc.astro';
+import CollectionNav from './CollectionNav.astro';
 import EndOfArticle from './EndOfArticle.astro';
 import AttitudeButtons from './AttitudeButtons.astro';
 
@@ -18,6 +19,9 @@ export const readingExperience: PluginManifest = {
     // 插件级开关（总览页 featureFlag readingExperience）：关 → 目录与文末区块不注入
     { slot: 'post-toc', component: FloatingToc, when: { featureFlag: 'readingExperience' } },
     { slot: 'post-end-of-article', component: EndOfArticle, when: { featureFlag: 'readingExperience' } },
+    // 交集式：合集导航 UI（阅读场景）——数据经 DataSource.getCollections（collections 插件提供），
+    // capability 探测——内容源无合集能力时不注入
+    { slot: 'post-collection-nav', component: CollectionNav, when: { capability: 'getCollections' } },
     // 态度按钮：评论功能关闭（featureFlags.comments）或适配器无评论能力（T4 内容源无 comments）时不注入
     { slot: 'post-attitude', component: AttitudeButtons, when: { featureFlag: 'comments', capability: 'getComments' } },
   ],
