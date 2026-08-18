@@ -38,11 +38,11 @@ export const SHELL_CLASSES = new Set([
   'nav-header', 'nav-content', 'nav-links', 'nav-actions', 'nav-setting-btn',
   'menu-toggle', 'nav-close', 'nav-home-link', 'nav-link', 'nav-action-link',
   'app-title', 'site-header', 'reading-header', 'reading-title', 'mobile-title-back',
-  'nav-settings-menu', 'popup-item', 'popup-check', 'popup-label',
+  
   // 背景层
   'chr-bg-layer', 'bg-image', 'bg-surface', 'bg-video', 'bg-overlay',
   // 浮层骨架
-  'cb__btn', 'cb__backdrop', 'toc-float', 'toc-inline', 'floating-toc-root',
+  'toc-inline', 'floating-toc-root',
   'file-preview-root', 'global-search-overlay', 'chronicle-slideshow',
   // 页面容器（首屏壳）
   'error-shell', 'home-container', 'home-shell', 'blog-container',
@@ -50,9 +50,8 @@ export const SHELL_CLASSES = new Set([
   'friends-container', 'collection-container', 'page-container',
   'about-page', 'post-detail-container', 'search-box-wrapper',
   'section-title', 'post-title',
-  // 首页 cover（首屏内容，全部内联）
-  'home-cover-deck', 'hero', 'cover-title', 'cover-subtitle', 'cover-cta',
-  'split-hero-stage', 'cover-kicker',
+  // 首页 cover（首屏内容，全部内联；cover 仅指 home-cover-deck 根，子元素走布局属性）
+  'home-cover-deck',
 ]);
 
 /** 布局属性白名单：含这些属性的规则必须进 critical（迟到引发 CLS）；纯视觉属性可异步 */
@@ -215,15 +214,63 @@ export function rewriteCriticalInDist({ distDir, allow = { classes: JS_STATE_CLA
     return assetCache.get(cssPath);
   }
 
+  // 默认隐藏组件：只把隐藏属性（opacity:0 / display:none / visibility:hidden）进 critical，
+  // 其布局属性首帧无关（元素不可见，显示时异步 css 已就绪）——防闪出 + 省首屏体积
+  const isHidingDecl = (d) => {
+    if (d.type !== 'decl') return false;
+    const v = String(d.value).trim().toLowerCase();
+    if (d.prop === 'display' && v === 'none') return true;
+    if (d.prop === 'opacity' && /^0(\.0+)?$/.test(v)) return true;
+    if (d.prop === 'visibility' && v === 'hidden') return true;
+    return false;
+  };
+  const isOutOfFlowDecl = (d) =>
+    d.type === 'decl' && d.prop === 'position' && ['fixed', 'absolute'].includes(String(d.value).trim().toLowerCase());
+
   function pageCritical(html, firstPaintRatio = 0.2) {
     const page = extractPageTokens(html);
     const bodyStart = html.indexOf('<body');
     const bodyLen = html.length - bodyStart;
     const threshold = bodyStart + bodyLen * firstPaintRatio;
-    // 规则命中的类 token 是否都在首屏阈值内（shell/JS 动态态类不受限）
+    // 第一遍：收集候选规则 + 跨规则聚合每个类集的 隐藏/脱流/display:none 标记
+    const rules = [];
+    const setInfo = new Map(); // 类集键 → { hidden, positioned, displayNone }
+    const setKey = (set) => [...set].sort().join('|');
+    const mark = (classes, flags) => {
+      if (classes.size === 0) return; // 元素级选择器（html/body/:root）：不参与组件判定
+      const k = setKey(classes);
+      const cur = setInfo.get(k) || { hidden: false, positioned: false, displayNone: false };
+      Object.assign(cur, flags);
+      setInfo.set(k, cur);
+    };
+    for (const m of html.matchAll(/<link rel="stylesheet" href="([^"]+\.css)"/g)) {
+      const url = m[1];
+      if (url.includes('fonts/')) continue;
+      const p = path.normalize(path.join(distDir, url.replace(/^\//, '')));
+      if (!fs.existsSync(p)) continue;
+      assetRules(p).walk((node) => {
+        if (node.type !== 'rule') return;
+        const sels = node.selector.split(',').map((s) => s.trim()).filter((s) => s && ruleMatches(s, page, allow));
+        if (sels.length === 0) return;
+        rules.push({ node, sels });
+        const classes = new Set(sels.flatMap((s) => [...selectorTokens(s).classes]));
+        mark(classes, {
+          hidden: !!node.nodes && node.nodes.some(isHidingDecl),
+          positioned: !!node.nodes && node.nodes.some(isOutOfFlowDecl),
+          displayNone: !!node.nodes && node.nodes.some((d) => d.type === 'decl' && d.prop === 'display' && String(d.value).trim().toLowerCase() === 'none'),
+        });
+      });
+    }
+    // 默认隐藏组件：仅 display:none（无布局）或 脱流（position:fixed/absolute 不占文档流）——
+    // 其布局属性首帧无关；在流中的 opacity:0 淡入元素仍占空间，布局规则必须首帧保留
+    const flowHidden = [...setInfo.entries()]
+      .filter(([, info]) => info.hidden && (info.displayNone || info.positioned))
+      .map(([k]) => new Set(k.split('|')));
+    const isFlowHiddenDescendant = (selClasses) =>
+      flowHidden.some((hc) => [...hc].every((c) => selClasses.has(c)));
     const isShellRule = (s) => {
       const t = selectorTokens(s);
-      if (t.classes.size === 0) return true; // 元素/伪类规则（h1、:root 等）：壳性质
+      if (t.classes.size === 0) return true;
       for (const c of t.classes) {
         if (!SHELL_CLASSES.has(c) && !allow.classes.has(c)) return false;
       }
@@ -231,38 +278,41 @@ export function rewriteCriticalInDist({ distDir, allow = { classes: JS_STATE_CLA
     };
     const inFirstPaint = (s) => {
       const t = selectorTokens(s);
-      if (isShellRule(s)) return true; // 壳/状态：恒保留
+      if (isShellRule(s)) return true;
       for (const c of t.classes) {
         const off = page.classOffset.get(c);
         if (off === undefined || off > threshold) return false;
       }
       return true;
     };
-    // 布局属性规则：恒进 critical（CLS 防护），不依赖偏移
     const isLayoutRule = (ruleNode) =>
       ruleNode.nodes && ruleNode.nodes.some((d) => d.type === 'decl' && LAYOUT_PROPS.has(d.prop));
+    // svg 尺寸规则恒保留：svg 无显式尺寸时默认 300×150 会撑破布局，宽/高必须首帧生效
+    const isSvgSizingRule = (ruleNode) =>
+      ruleNode.selector.includes('svg') &&
+      ruleNode.nodes && ruleNode.nodes.some((d) => d.type === 'decl' && (d.prop === 'width' || d.prop === 'height'));
+    // flow-relevant：隐藏组件的规则仅当其含隐藏或脱流（position:fixed/absolute）声明才进 critical——
+    // 隐藏属性防闪出、position 防占位 CLS；纯外观布局（padding/width/背景…）等显示时异步加载
+    const flowRelevant = (ruleNode) =>
+      ruleNode.nodes && ruleNode.nodes.some((d) => isHidingDecl(d) || isOutOfFlowDecl(d));
     const keep = [];
-    for (const m of html.matchAll(/<link rel="stylesheet" href="([^"]+\.css)"/g)) {
-      const url = m[1];
-      if (url.includes('fonts/')) continue;
-      const p = path.normalize(path.join(distDir, url.replace(/^\//, '')));
-      if (!fs.existsSync(p)) continue;
-      assetRules(p).walk((node) => {
-        if (node.type === 'atrule') {
-          if (['keyframes', '-webkit-keyframes', 'font-face'].includes(node.name)) keep.push(node.toString());
-          return;
-        }
-        if (node.type === 'rule') {
-          const sels = node.selector.split(',').map((s) => s.trim());
-          const keepThis = isLayoutRule(node)
+    for (const { node, sels } of rules) {
+      const hasHiding = node.nodes && node.nodes.some(isHidingDecl);
+      const hasStateClass = sels.some((s) => [...selectorTokens(s).classes].some((c) => allow.classes.has(c)));
+      const selClasses = new Set(sels.flatMap((s) => [...selectorTokens(s).classes]));
+      const hiddenDesc = isFlowHiddenDescendant(selClasses);
+      const keepThis = (hasHiding || hasStateClass || isSvgSizingRule(node))
+        ? sels.some((s) => ruleMatches(s, page, allow))
+        : hiddenDesc
+          ? (flowRelevant(node) && sels.some((s) => ruleMatches(s, page, allow)))
+          : isLayoutRule(node)
             ? sels.some((s) => ruleMatches(s, page, allow))
             : sels.some((s) => ruleMatches(s, page, allow) && inFirstPaint(s));
-          if (keepThis) keep.push(node.toString());
-        }
-      });
+      if (keepThis) keep.push(node.toString());
     }
     return keep.join('\n');
   }
+
 
   function walk(dir) {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
