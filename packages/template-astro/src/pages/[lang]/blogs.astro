@@ -127,6 +127,15 @@ const metaDescription = locale === 'zh-CN'
     box-sizing: border-box;
     scroll-behavior: smooth;
   }
+
+  /* Mobile — MUST live in the scoped block: the async scoped base rule
+     (0-2-0) would otherwise override critical's @media padding on mobile,
+     reflowing the whole page when the async CSS lands (measured CLS 0.78). */
+  @media (max-width: 768px) {
+    .blog-container {
+      padding: 20px 16px;
+    }
+  }
 </style>
 
 <style is:global>
@@ -357,6 +366,10 @@ const metaDescription = locale === 'zh-CN'
     .featured-grid {
       grid-template-columns: 1fr;
       gap: 10px;
+    }
+
+    h3.year-header {
+      font-size: 2.2em;
     }
 
     .post-card {
