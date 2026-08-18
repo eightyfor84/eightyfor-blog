@@ -10,17 +10,17 @@ export const theme = {
   // 页型 → critical CSS 文件（相对本目录 styles/）
   // 缺省的页型会自动跳过（themeCss 返回 ''），允许主题只声明部分页型。
   critical: {
-    base: 'base.css',
-    home: 'home.css',
-    post: 'post.css',
-    blogs: 'blogs.css',
-    search: 'search.css',
-    friends: 'friends.css',
-    collection: 'collection.css',
+    base: 'critical-base.css',
+    home: 'critical-home.css',
+    post: 'critical-post.css',
+    blogs: 'critical-blogs.css',
+    search: 'critical-search.css',
+    friends: 'critical-friends.css',
+    collection: 'critical-collection.css',
   },
 
   // 首屏令牌：内联 <head>，先于其它 critical 注入
-  tokens: 'tokens.css',
+  tokens: 'critical-tokens.css',
 
   // 全量样式（异步加载，随 bundle）
   global: ['global.css'],
