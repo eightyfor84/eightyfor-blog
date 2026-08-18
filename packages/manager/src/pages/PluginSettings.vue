@@ -14,12 +14,13 @@
       >
         <div class="plugin-card__head">
           <span class="plugin-card__name">{{ plugin.name }}</span>
+          <span v-if="plugin.builtin" class="plugin-card__badge">{{ $t('settings.builtin') }}</span>
           <span v-if="plugin.contentEditor" class="plugin-card__badge">{{ $t('settings.contentEditor') }}</span>
         </div>
         <p class="plugin-card__desc">{{ plugin.description }}</p>
         <div class="plugin-card__foot">
-          <span v-if="plugin.contentEditor" class="plugin-card__enter">{{ $t('settings.edit') }} →</span>
-          <span v-else class="plugin-card__enter">{{ $t('settings.goToPage') }} →</span>
+          <span v-if="plugin.storage" class="plugin-card__storage">{{ storageLabel(plugin.storage) }}</span>
+          <span class="plugin-card__enter">{{ $t('settings.goToPage') }} →</span>
         </div>
       </div>
     </div>
@@ -35,8 +36,19 @@
  * 插件详情是 plugins 的子页，左侧导航不可直达（useSchemaNav 排除插件 schema）。
  */
 import { TEMPLATE_MANIFEST } from '../data/schemaRegistry'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const plugins = Object.values(TEMPLATE_MANIFEST.plugins)
+
+/** 存储归属标注（决定配置写 site.yml / 独立文件 / 文章级） */
+function storageLabel(storage: 'site' | 'file' | 'post'): string {
+  return storage === 'site'
+    ? t('settings.storageSite')
+    : storage === 'file'
+      ? t('settings.storageFile')
+      : t('settings.storagePost')
+}
 </script>
 
 <style scoped>
@@ -52,4 +64,5 @@ const plugins = Object.values(TEMPLATE_MANIFEST.plugins)
 .plugin-card__desc { font-size: 0.8rem; color: var(--comp-text-sec); margin: 0.4rem 0; }
 .plugin-card__foot { display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: var(--comp-text-sec); }
 .plugin-card__enter { color: var(--accent); }
+.plugin-card__storage { font-size: 0.7rem; padding: 2px 8px; border-radius: 999px; background: var(--comp-bg); color: var(--comp-text-sec); }
 </style>

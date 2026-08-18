@@ -423,7 +423,12 @@
     "pluginDetail": "Plugin Settings",
     "contentEditor": "Content editor",
     "on": "On",
-    "off": "Off"
+    "off": "Off",
+    "builtin": "Built-in",
+    "storageSite": "Config in site.yml",
+    "storageFile": "Separate data file",
+    "storagePost": "Per-post config",
+    "relatedPlugins": "Related plugins"
   },
   "postPicker": {
     "inputPlaceholder": "Search and select a published post",

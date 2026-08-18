@@ -3,6 +3,19 @@
     <h2 class="settings-title">{{ pageTitle }}</h2>
     <p v-if="pageHint" class="hint">{{ pageHint }}</p>
 
+    <!-- 相关插件入口：插件 entries.target === 本 schemaId 时注入跳转链接（→ plugins/<key>） -->
+    <div v-if="relatedPlugins.length > 0" class="related-plugins">
+      <span class="related-plugins__label">{{ $t('settings.relatedPlugins') }}:</span>
+      <RouterLink
+        v-for="p in relatedPlugins"
+        :key="p.key"
+        :to="`/settings/plugins/${p.key}`"
+        class="related-plugins__link"
+      >
+        {{ p.name }} →
+      </RouterLink>
+    </div>
+
     <div v-if="loading" class="loading-state">
       <QuarterCircleSpinner />
     </div>
@@ -44,6 +57,7 @@
 import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { TEMPLATE_MANIFEST } from '../data/schemaRegistry'
 import { useSchemaForm } from '../composables/useSchemaForm'
 import { resolveLocale } from '../utils/resolveLocale'
 import SchemaForm from '../components/schema/SchemaForm.vue'
@@ -58,8 +72,16 @@ const props = defineProps<{
   tab?: string
 }>()
 
-const route = useRoute()
 const { t } = useI18n()
+
+/** 相关插件：TEMPLATE_MANIFEST.plugins 中 entries.target === 本 schemaId 的插件 */
+const relatedPlugins = computed(() =>
+  Object.values(TEMPLATE_MANIFEST.plugins).filter((p) =>
+    (p.entries || []).some((e) => e.target === props.schemaId),
+  ),
+)
+
+const route = useRoute()
 const { show } = useToast()
 
 const {
@@ -164,4 +186,8 @@ onMounted(() => { load() })
 h2.settings-title {
   margin-bottom: 1rem;
 }
+.related-plugins { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; padding: 0.5rem 0.75rem; border-radius: 8px; background: var(--accent-bg); font-size: 0.85rem; }
+.related-plugins__label { color: var(--comp-text-sec); }
+.related-plugins__link { color: var(--accent); text-decoration: none; font-weight: 500; }
+.related-plugins__link:hover { text-decoration: underline; }
 </style>

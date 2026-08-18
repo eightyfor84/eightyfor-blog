@@ -42,17 +42,23 @@ export interface PluginMapping {
   key: string
   /** 承载该段设置的 schema $id */
   schemaId: string
-  /** 配置写入位置 */
+  /** 配置写入位置（文件路径） */
   filePath: string
   format: 'yaml' | 'json'
   /** 插件名（插件总览页显示） */
   name: string
   /** 说明 */
   description: string
+  /** 配置存储归属：'site' = 写 site.yml 段；'file' = 独立数据文件（friends.yml/collections.yml）；'post' = 文章级 frontmatter 配置 */
+  storage?: 'site' | 'file' | 'post'
+  /** 内置插件（随模板出厂，无独立配置页）——仅总览页 tag 提示，不影响存储 */
+  builtin?: boolean
   /** 插件开关（site.yml featureFlags 键，总览页 toggle；缺省 = 无开关） */
   featureFlag?: string
   /** 内容编辑类插件（合集树/友链卡片等重 UI）——总览页标注，编辑在详情页 */
   contentEditor?: boolean
+  /** 跳转入口：在 target schema 的设置页顶部注入「相关插件」链接（→ plugins/<key> 详情） */
+  entries?: { target: string; label?: string }[]
 }
 
 /**
@@ -147,6 +153,8 @@ const plugins: Record<string, PluginMapping> = {
     name: 'Search',
     description: '检索插件：搜索建议 / 全局搜索 / 全文索引',
     featureFlag: 'globalSearch',
+    storage: 'site',
+    entries: [{ target: 'chronicle:homepage' }],
   },
   friends: {
     key: 'friends',
@@ -156,6 +164,7 @@ const plugins: Record<string, PluginMapping> = {
     name: 'Friends',
     description: '友链插件：好友卡片与全局样式',
     featureFlag: 'friendsPage',
+    storage: 'file',
     contentEditor: true,
   },
   comments: {
@@ -166,6 +175,8 @@ const plugins: Record<string, PluginMapping> = {
     name: 'Comments',
     description: '评论插件：主开关（后端配置随 Waline 接入）',
     featureFlag: 'comments',
+    storage: 'site',
+    entries: [{ target: 'chronicle:post-page' }],
   },
   slides: {
     key: 'slides',
@@ -174,6 +185,8 @@ const plugins: Record<string, PluginMapping> = {
     format: 'yaml',
     name: 'Slides',
     description: '幻灯片插件：Marp 渲染（schema 随插件；post 级配置走 frontmatter slideshow 段）',
+    storage: 'post',
+    builtin: true,
   },
   collections: {
     key: 'collections',
@@ -183,6 +196,7 @@ const plugins: Record<string, PluginMapping> = {
     name: 'Collections',
     description: '合集插件：合集树与分组内容（内容编辑）',
     featureFlag: 'collectionPage',
+    storage: 'file',
     contentEditor: true,
   },
 }
