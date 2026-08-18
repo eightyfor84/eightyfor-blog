@@ -31,7 +31,7 @@
   html:not(.is-mobile) .cb__btn:not(.cb--open):hover { transform:scale(1.1); box-shadow:var(--glass-shadow-elev-2); }
   html:not(.is-mobile) .cb__btn.cb--pri:not(.cb--open):hover { background:var(--comp-bg-accent-hvr);border-color:var(--comp-bg-accent-hvr);color:var(--comp-text-accent-hvr) }
   
-  html:not(.is-mobile) .cb__btn.cb__btn.is-capsule:not(.cb--open):hover { transform:scale(1.1); box-shadow:var(--glass-shadow-elev-2); }
+  html:not(.is-mobile) .cb__btn.is-capsule:not(.cb--open):hover { transform:scale(1.1); box-shadow:var(--glass-shadow-elev-2); }
 
   
   /* Active — mobile */
@@ -61,7 +61,7 @@
 
   /* === BTT visibility === */
   .cb__btn.cb--btt { opacity:0;pointer-events:none;transform:translateY(20px);transition:opacity .15s ease-out,transform .15s ease-out }
-  .cb__btn.cb--btt.cb--btt-visible { opacity:1;pointer-events:auto;transform:none }
+  .cb__btn.cb--btt-visible { opacity:1;pointer-events:auto;transform:none }
 
   /* === Layers === */
   /* Layer 1 — icon face: absolute for single icon, in-flow for multi (capsule) */

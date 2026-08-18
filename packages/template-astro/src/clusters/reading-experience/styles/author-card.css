@@ -1,11 +1,11 @@
 /* ── 组件样式：AuthorCard ──
    自 src/components/AuthorCard.astro <style> 迁出。 */
-  .author-card.author-card{ display: flex; gap: 1rem; align-items: flex-start; padding: 1rem 1.25rem; border-radius: 12px;
+  .author-card{ display: flex; gap: 1rem; align-items: flex-start; padding: 1rem 1.25rem; border-radius: 12px;
     border: 1px solid var(--border-color); background: var(--comp-bg-blur); }
-  .author-card .author-avatar.author-avatar{ width: 56px; height: 56px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
-  .author-card .author-body.author-body{ display: flex; flex-direction: column; gap: 0.35rem; min-width: 0; }
-  .author-card .author-name.author-name{ margin: 0; font-size: 1rem; }
-  .author-card .author-bio.author-bio{ margin: 0; font-size: 0.85rem; opacity: 0.75; line-height: 1.5; }
-  .author-card .author-links.author-links{ display: flex; flex-wrap: wrap; gap: 0.5rem; }
-  .author-card .author-link.author-link{ font-size: 0.8rem; color: var(--accent); text-decoration: none; }
-  .author-card .author-link.author-link:hover{ text-decoration: underline; }
+  .author-card .author-avatar{ width: 56px; height: 56px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+  .author-card .author-body{ display: flex; flex-direction: column; gap: 0.35rem; min-width: 0; }
+  .author-card .author-name{ margin: 0; font-size: 1rem; }
+  .author-card .author-bio{ margin: 0; font-size: 0.85rem; opacity: 0.75; line-height: 1.5; }
+  .author-card .author-links{ display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .author-card .author-link{ font-size: 0.8rem; color: var(--accent); text-decoration: none; }
+  .author-card .author-link:hover{ text-decoration: underline; }
