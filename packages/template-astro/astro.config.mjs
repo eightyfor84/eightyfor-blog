@@ -128,6 +128,39 @@ export default defineConfig({
                 writeFileSync(filePath, html);
                 console.log(`[chronicle-defer-css] ${relPath}: deferred ${count} CSS file(s)`);
               }
+
+              // ── Minify inlined critical CSS ──
+              // <style> blocks emitted via set:html bypass Vite's cssMinify
+              // pipeline (only /_astro/*.css bundles get minified), so the raw
+              // source with comments + indentation shipped to the parser. Run
+              // them through the same esbuild engine here — ~30% smaller before
+              // the first paint, zero semantic change.
+              const STYLE_RE = /<style([^>]*)>([\s\S]*?)<\/style>/g;
+              let sm;
+              const styleParts = [];
+              let styleLast = 0;
+              while ((sm = STYLE_RE.exec(html))) {
+                styleParts.push(html.slice(styleLast, sm.index));
+                try {
+                  const { transform: minifyInlineCss } = await import('esbuild');
+                  const min = await minifyInlineCss(sm[2], { loader: 'css', minify: true });
+                  if (min.code && min.code.length < sm[2].length) {
+                    styleParts.push(`<style${sm[1]}>${min.code}</style>`);
+                  } else {
+                    styleParts.push(sm[0]);
+                  }
+                } catch {
+                  styleParts.push(sm[0]);
+                }
+                styleLast = sm.index + sm[0].length;
+              }
+              if (styleParts.length > 0) {
+                const minifiedHtml = styleParts.join('') + html.slice(styleLast);
+                if (minifiedHtml.length < html.length) {
+                  html = minifiedHtml;
+                  writeFileSync(filePath, html);
+                }
+              }
             }
           },
         },
