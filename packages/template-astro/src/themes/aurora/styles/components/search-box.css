@@ -12,7 +12,7 @@
     display: flex;
     align-items: center;
     border-radius: 12px;
-    padding: 4px;
+    padding: 2px 4px;
     transition: box-shadow 0.3s ease;
   }
   .search-box-wrapper .search-box:focus-within{
@@ -72,17 +72,12 @@
     font-size: 0.75rem;
     font-weight: 500;
     font-variation-settings: 'wght' 500;
-    padding: 2px 6px;
     border-radius: 10px;
     min-width: 16px;
+    padding: 2px;
     text-align: center;
     line-height: 1;
     align-content: center;
-  }
-
-  .search-box-wrapper .tag-trigger .tag-count{
-    width:16px;
-    height:16px;
   }
 
   .search-box-wrapper .search-btn{
