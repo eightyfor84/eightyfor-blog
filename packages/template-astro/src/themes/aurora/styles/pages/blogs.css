@@ -1,127 +1,14 @@
----
-import '../../themes/aurora/styles/pages/blogs.css';
-import Layout from '../../layouts/Layout.astro';
-import BackToTop from '../../components/BackToTop.astro';
-import BlogPostCard from '../../components/BlogPostCard.astro';
-import { getTranslation } from '../../utils/i18n';
-import { toContentLocale } from '../../utils/routeLocale';
-import { getPublishedPosts } from '../../data/localDataSource';
-import { loadSiteSettings } from '../../utils/siteSettings';
-
-export const prerender = true;
-
-export async function getStaticPaths() {
-  return [{ params: { lang: 'zh' } }, { params: { lang: 'en' } }];
-}
-
-const routeLang = Astro.params.lang === 'en' ? 'en' : 'zh';
-const locale = toContentLocale(routeLang);
-const t = (key: string) => getTranslation(locale, key);
-
-// ── Local data source (fully SSR — no client fetching) ──────
-const allPublished = getPublishedPosts();
-const sorted = [...allPublished].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-// Featured = posts with 'featured' or '精选' tag
-const featured = sorted.filter(p => (p.tags || []).some((t: string) => {
-  const nt = String(t).trim().toLowerCase();
-  return nt === 'featured' || nt === '精选';
-}));
-
-const settings = await loadSiteSettings();
-
-const formatMonthName = (iso: string) => {
-  try {
-    return new Date(iso).toLocaleString(locale, { month: 'short' });
-  } catch (e) {
-    return '';
+/* ── 页面样式：[lang]/blogs.astro ──
+   自 src/pages/[lang]/blogs.astro <style> 迁出（与 critical 同值+附加细化，bundled 后加载赢平局，安全）。 */
+  .blog-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 40px;
+    color: var(--app-text-pri);
+    box-sizing: border-box;
+    scroll-behavior: smooth;
   }
-};
 
-const buildArchiveGroups = (posts: any[]) => {
-  const sortedPosts = [...posts].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  const yearMap = new Map<number, Map<number, { monthName: string; posts: any[] }>>();
-
-  sortedPosts.forEach((post) => {
-    const date = new Date(post.date);
-    const year = date.getFullYear();
-    const monthIndex = date.getMonth();
-    const monthName = formatMonthName(post.date);
-    if (!yearMap.has(year)) yearMap.set(year, new Map());
-    const monthMap = yearMap.get(year)!;
-    if (!monthMap.has(monthIndex)) monthMap.set(monthIndex, { monthName, posts: [] });
-    monthMap.get(monthIndex)!.posts.push(post);
-  });
-
-  return [...yearMap.entries()]
-    .sort(([a], [b]) => b - a)
-    .map(([year, monthMap]) => {
-      const months = [...monthMap.entries()].sort(([a], [b]) => b - a);
-      return { year, months };
-    })
-    ;
-};
-
-const archiveGroups = buildArchiveGroups(sorted);
-const hasFeaturedPosts = featured.length > 0;
-const metaDescription = locale === 'zh-CN'
-  ? '浏览 Chronicle 的全部博客文章、精选内容和归档列表。'
-  : 'Browse Chronicle blog posts, featured content, and the full archive.';
----
-
-<Layout title={t('nav.posts')} settings={settings} locale={locale} meta={{ description: metaDescription }}>
-  <div class="blog-container">
-    <main class="blog-main">
-      <section class="section-block" id="featured-section" style={`display:${hasFeaturedPosts ? 'block' : 'none'};`}>
-        <div class="section-header featured">
-          <h2 class="section-title">{t('blog.featured')}</h2>
-          <button
-            type="button"
-            class="toggle-btn"
-            id="featured-toggle"
-            aria-expanded="false"
-            style={`display:${featured.length > 3 ? 'inline-block' : 'none'};`}
-            data-expand-text={t('blog.expand')}
-            data-collapse-text={t('blog.collapse')}
-          >
-            {t('blog.expand')}
-          </button>
-        </div>
-        <div class="featured-grid" id="featured-grid">
-          {featured.map((post) => <BlogPostCard post={post} locale={locale} routeLang={routeLang} featured={true} />)}
-        </div>
-      </section>
-
-      <section class="section-block">
-        <h2 class="section-title">{t('blog.allPosts')}</h2>
-        <div class="archive-list" id="archive-list">
-          {archiveGroups.map(({ year, months }) => (
-            <div class="year-block" data-year={year}>
-              <h3 class="year-header">{year}</h3>
-              {months.map(([monthIndex, monthInfo]) => (
-                <div class="month-row" data-month={monthInfo.monthName} data-month-index={monthIndex}>
-                  <div class="month-label"><span>{monthInfo.monthName}</span></div>
-                  <div class="month-posts">
-                    {monthInfo.posts.map((post) => <BlogPostCard post={post} locale={locale} routeLang={routeLang} />)}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-        {sorted.length === 0 && (
-          <div class="empty">{t('blog.noPostsStartWriting')}</div>
-        )}
-      </section>
-    </main>
-  </div>
-  <BackToTop />
-  
-</Layout>
-
-
-
-<style is:global>
   .section-block {
     margin-bottom: 60px;
   }
@@ -425,22 +312,3 @@ const metaDescription = locale === 'zh-CN'
       display: none;
     }
   }
-</style>
-
-<script>
-  // Featured expand/collapse — pure client toggle over SSR-rendered DOM (no fetching).
-  // Delegated on document so it survives ViewTransitions client navigation.
-  if (!window.__chronicleBlogsFeaturedToggle) {
-    window.__chronicleBlogsFeaturedToggle = true;
-    document.addEventListener('click', (event) => {
-      const btn = event.target instanceof Element ? event.target.closest<HTMLElement>('#featured-toggle') : null;
-      if (!btn) return;
-      const grid = document.getElementById('featured-grid');
-      if (!grid) return;
-      const expanded = grid.classList.toggle('expanded');
-      btn.textContent = expanded ? (btn.dataset.collapseText ?? '') : (btn.dataset.expandText ?? '');
-      btn.setAttribute('aria-expanded', String(expanded));
-    });
-  }
-</script>
-

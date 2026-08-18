@@ -1,0 +1,119 @@
+/* ── 页面样式：[lang]/about.astro ──
+   自 src/pages/[lang]/about.astro <style> 迁出（与 critical 同值+附加细化，bundled 后加载赢平局，安全）。 */
+.about-page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 48px 24px 64px;
+}
+
+.about-article {
+  color: var(--comp-text-pri);
+}
+
+.about-title {
+  font-size: 2.4rem;
+  font-weight: 700;
+  margin: 0 0 32px;
+  padding: 0 0 16px;
+}
+
+.about-empty {
+  padding: 48px 0;
+  text-align: center;
+  color: var(--comp-text-sec);
+  font-size: 1rem;
+}
+
+/* Profile Card */
+.about-profile-card {
+  display: flex;
+  gap: 20px;
+  padding: 20px 24px;
+  margin: 0 0 36px;
+  background: var(--comp-bg-blur);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  align-items: center;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+.about-avatar {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.about-profile-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.about-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  font-variation-settings: 'wght' 600;
+  margin: 0 0 6px;
+}
+
+.about-bio {
+  font-size: 0.95rem;
+  color: var(--comp-text-sec);
+  margin: 0 0 8px;
+  line-height: 1.55;
+}
+
+.about-location {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--comp-text-sec);
+  margin: 0 0 6px;
+}
+
+.about-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.about-link {
+  display: inline-block;
+  padding: 4px 12px;
+  border: 1px solid var(--comp-border);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  color: var(--comp-text-pri);
+  text-decoration: none;
+  transition: border-color 0.15s;
+}
+
+.about-link:hover {
+  border-color: var(--comp-text-sec);
+}
+
+/* Last Modified */
+.about-last-modified {
+  margin-top: 40px;
+  padding-top: 16px;
+  border-top: 1px solid var(--comp-border);
+  font-size: 0.85rem;
+  color: var(--comp-text-sec);
+}
+
+.about-modified-label {
+  margin-right: 4px;
+}
+
+@media (max-width: 600px) {
+  .about-profile-card {
+    flex-direction: column;
+    text-align: center;
+  }
+  .about-links {
+    justify-content: center;
+  }
+}

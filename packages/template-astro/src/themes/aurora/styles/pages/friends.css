@@ -1,0 +1,263 @@
+/* ── 页面样式：[lang]/friends.astro ──
+   自 src/pages/[lang]/friends.astro <style> 迁出（与 critical 同值+附加细化，bundled 后加载赢平局，安全）。 */
+  .friends-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 40px;
+    color: var(--app-text-pri);
+    box-sizing: border-box;
+  }
+
+  .friends-list {
+    margin-top: 28px;
+    display: grid;
+    gap: 1rem;
+    justify-content: center;
+  }
+
+  .friends-list--left-sm {
+    grid-template-columns: repeat(3, minmax(0, 300px));
+  }
+
+  .friends-list--left-lg,
+  .friends-list--top-lg {
+    grid-template-columns: repeat(2, minmax(0, 500px));
+  }
+
+  .friend-card {
+    display: grid;
+    gap: 0.6rem;
+    padding: 0.8rem;
+    border-radius: 12px;
+    overflow: hidden;
+    transition:
+      transform 0.18s ease,
+      box-shadow 0.18s ease,
+      border-color 0.18s ease;
+    width: 240px;
+    box-sizing: border-box;
+  }
+
+  .friend-card__media {
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+    background: var(--comp-bg);
+  }
+
+  .friend-card__media img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+  }
+
+  .friend-card__media img.is-hidden {
+    display: none;
+  }
+
+  .friend-card__media-placeholder {
+    width: 100%;
+    height: 100%;
+    display: none;
+    background:
+      linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.08) 25%,
+          transparent 25%
+        ) -12px
+        0/24px 24px,
+      linear-gradient(
+          225deg,
+          rgba(255, 255, 255, 0.08) 25%,
+          transparent 25%
+        ) -12px
+        0/24px 24px,
+      linear-gradient(315deg, rgba(255, 255, 255, 0.08) 25%, transparent 25%) 0
+        0/24px 24px,
+      linear-gradient(45deg, rgba(255, 255, 255, 0.08) 25%, transparent 25%) 0
+        0/24px 24px,
+      var(--comp-bg);
+  }
+
+  .friend-card__media.is-empty .friend-card__media-placeholder,
+  .friend-card__media.is-broken .friend-card__media-placeholder {
+    display: block;
+  }
+
+  .friend-card__body {
+    display: grid;
+    gap: 0.85rem;
+    align-self: start;
+    align-content: start;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .friend-card__name-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .friend-card__name-wrap h3 {
+    margin: 0;
+    font-size: 1.35rem;
+  }
+
+  .friend-card__home {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid var(--border-color);
+    color: var(--comp-text-sec);
+    text-decoration: none;
+    font-size: 0.88rem;
+    background: var(--comp-bg);
+  }
+
+  .friend-card__copy {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    justify-items: start;
+    gap: .4rem;
+    min-height: 3.8rem;
+    padding: 0 1px;
+    overflow: hidden;
+  }
+
+  .friend-card__intro,
+  .friend-card__story {
+    margin: 0;
+    color: var(--comp-text-sec);
+  }
+
+  .friend-card__story{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-variation-settings: 'wght' 600;
+    text-decoration: none;
+    color: #fff;
+    background: var(--accent-dark);
+    border-radius: 999px;
+    padding: 0.4rem 1rem;
+  }
+
+  .friend-card--left-sm {
+    width: 100%;
+    max-width: 300px;
+    height: 150px;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+  }
+
+  .friend-card--left-sm .friend-card__media {
+    width: 120px;
+    height: 120px;
+    border-radius: 12px;
+  }
+
+  .friend-card--left-sm .friend-card__copy {
+    height: 85px;
+  }
+
+  .friend-card--left-sm .friend-card__heading {
+    font-size: 1.2rem;
+  }
+
+  .friend-card--left-sm .friend-card__body {
+    gap: 0.5rem;
+  }
+
+  .friend-card--left-sm .friend-card__intro,
+  .friend-card--left-sm .friend-card__story {
+    line-height: 1.4;
+    font-size: 0.95rem;
+  }
+
+  .friend-card--left-lg {
+    width: 100%;
+    max-width: 500px;
+    height: 250px;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+  }
+
+  .friend-card--left-lg .friend-card__media {
+    width: 200px;
+    height: 200px;
+    border-radius: 12px;
+  }
+
+  .friend-card--left-lg .friend-card__copy {
+    height: 168px;
+  }
+
+  .friend-card--top-lg {
+    width: 100%;
+    max-width: 500px;
+    height: 600px;
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .friend-card--top-lg .friend-card__media {
+    width: 100%;
+    height: 360px;
+    max-height: 360px;
+    border-radius: 12px;
+  }
+
+  .friend-card--top-lg .friend-card__copy {
+    min-height: 170px;
+    gap: .7rem;
+  }
+
+  @media (max-width: 760px) {
+    .friends-list--left-sm {
+      grid-template-columns: repeat(1, minmax(0, 300px));
+    }
+
+    .friends-list--left-lg,
+    .friends-list--top-lg {
+      grid-template-columns: repeat(1, minmax(0, 500px));
+    }
+
+    .friend-card--left-sm .friend-card__media,
+    .friend-card--left-lg .friend-card__media,
+    .friend-card--top-lg .friend-card__media {
+      width: 100%;
+    }
+
+    .friend-card--left-sm,
+    .friend-card--left-lg,
+    .friend-card--top-lg {
+      height: auto;
+      grid-template-columns: 1fr;
+    }
+
+    .friend-card--left-sm,
+    .friend-card--left-lg,
+    .friend-card--top-lg {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 980px) {
+    .friends-list--left-sm {
+      grid-template-columns: repeat(2, minmax(0, 300px));
+    }
+  }
+
+  @media (max-width: 1040px) {
+    .friends-list--left-lg,
+    .friends-list--top-lg {
+      grid-template-columns: repeat(1, minmax(0, 500px));
+    }
+  }
