@@ -45,7 +45,7 @@ const Settings = () => import(/* webpackChunkName: "settings" */ '../pages/Setti
 /** 插件子页 props：pluginKey → schemaId（TEMPLATE_MANIFEST.plugins 映射） */
 function pluginDetailProps(route: { params: { pluginKey?: string } }) {
   const plugin = TEMPLATE_MANIFEST.plugins[route.params.pluginKey || '']
-  return { schemaId: plugin?.schemaId || 'chronicle:plugins' }
+  return { schemaId: plugin?.schemaId || 'chronicle:homepage' }
 }
 const TextEditorLazy = () => import(/* webpackChunkName: "text-editor" */ '../pages/TextEditor.vue')
 const EditorPrintPreview = () => import(/* webpackChunkName: "editor-print-preview" */ '../pages/EditorPrintPreview.vue')
@@ -80,7 +80,6 @@ const routes = [
       // Template core modules — schema 跟随模块（T5 拆分，原多 tab → 独立模块）
       { path: 'homepage',    name: 'SettingsHomepage',    component: SchemaSettingsPage, props: { schemaId: 'chronicle:homepage' },    meta: { title: 'settings.home' } },
       { path: 'appearance',  name: 'SettingsAppearance',  component: SchemaSettingsPage, props: { schemaId: 'chronicle:appearance' },  meta: { title: 'settings.appearance' } },
-      { path: 'plugins',     name: 'SettingsPlugins',     component: SchemaSettingsPage, props: { schemaId: 'chronicle:plugins' },     meta: { title: 'settings.plugins' } },
       // Plugins: 总览页（导航可达）+ 子页详情（导航不可直达，从总览进入）
       { path: 'plugins', name: 'SettingsPlugins', component: PluginSettings, meta: { title: 'settings.plugins' } },
       { path: 'plugins/:pluginKey', name: 'SettingsPluginDetail', component: SchemaSettingsPage, props: pluginDetailProps, meta: { title: 'settings.pluginDetail' } },

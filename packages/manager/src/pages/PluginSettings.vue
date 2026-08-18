@@ -3,14 +3,6 @@
     <h2 class="settings-title">{{ $t('settings.plugins') }}</h2>
     <p class="hint">{{ $t('settings.pluginsHint') }}</p>
 
-    <!-- 插件开关（chronicle:plugins schema——site.yml featureFlags） -->
-    <div v-if="!loading && switchSchema" class="plugin-switches">
-      <SchemaForm :schema="switchSchema" :data="switchData" @update:data="onSwitchData" />
-      <div class="actions-wrapper">
-        <button class="primary" :disabled="saving" @click="saveSwitches">{{ $t('settings.save') }}</button>
-      </div>
-    </div>
-
     <!-- 插件列表：点击进入各插件详情（plugins 子页，左侧导航不可直达） -->
     <div class="plugin-grid">
       <div
@@ -26,11 +18,8 @@
         </div>
         <p class="plugin-card__desc">{{ plugin.description }}</p>
         <div class="plugin-card__foot">
-          <span v-if="plugin.featureFlag" class="plugin-card__flag">
-            {{ $t('settings.featureToggle') }}:
-            <strong>{{ flagStates[plugin.featureFlag] === false ? $t('settings.off') : $t('settings.on') }}</strong>
-          </span>
-          <span class="plugin-card__enter">{{ $t('settings.goToPage') }} →</span>
+          <span v-if="plugin.contentEditor" class="plugin-card__enter">{{ $t('settings.edit') }} →</span>
+          <span v-else class="plugin-card__enter">{{ $t('settings.goToPage') }} →</span>
         </div>
       </div>
     </div>
@@ -40,39 +29,14 @@
 <script setup lang="ts">
 /**
  * 插件统一管理页（/settings/plugins）：
- * - 顶部：插件开关表单（chronicle:plugins schema → site.yml featureFlags）
- * - 列表：所有插件（TEMPLATE_MANIFEST.plugins）卡片 → 点击进入 /settings/plugins/<key> 详情
+ * 所有插件（TEMPLATE_MANIFEST.plugins）卡片 → 点击进入 /settings/plugins/<key> 详情。
+ * 插件开关分散在各自插件 schema（friends/search/comments）与站点基础（homepage 的
+ * collectionPage/aboutPage/rss/analytics）——不在本页承载表单。
  * 插件详情是 plugins 的子页，左侧导航不可直达（useSchemaNav 排除插件 schema）。
  */
-import { computed, onMounted, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { TEMPLATE_MANIFEST } from '../data/schemaRegistry'
-import { useSchemaForm } from '../composables/useSchemaForm'
-import SchemaForm from '../components/schema/SchemaForm.vue'
-import useToast from '../composables/useToast'
-
-const { t } = useI18n()
-const toast = useToast()
 
 const plugins = Object.values(TEMPLATE_MANIFEST.plugins)
-
-const { data: switchData, schema: switchSchemaRef, loading, saving, load, save } = useSchemaForm('chronicle:plugins')
-const switchSchema = computed(() => switchSchemaRef.value)
-
-const flagStates = computed(() => (switchData.value as Record<string, any>) || {})
-
-function onSwitchData(v: any) {
-  switchData.value = v
-}
-
-async function saveSwitches() {
-  const ok = await save()
-  if (ok) toast.show(t('settings.saveSuccess'))
-}
-
-onMounted(() => {
-  load()
-})
 </script>
 
 <style scoped>

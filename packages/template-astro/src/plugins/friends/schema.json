@@ -134,6 +134,30 @@
         "zh-CN": "友链卡片"
       },
       "default": []
+    },
+    "friendsPage": {
+      "type": "boolean",
+      "default": true,
+      "x-widget": "toggle",
+      "x-site-flag": true,
+      "x-group": "pages",
+      "x-order": 0,
+      "title": {
+        "en": "Friends Page",
+        "zh-CN": "友链页"
+      },
+      "description": {
+        "en": "Enable the friends page.",
+        "zh-CN": "启用友链页面。"
+      }
+    }
+  },
+  "x-groups": {
+    "pages": {
+      "label": {
+        "en": "Pages",
+        "zh-CN": "页面"
+      }
     }
   }
 }

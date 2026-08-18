@@ -29,6 +29,24 @@
         "en": "Cards",
         "zh": "主页卡片"
       }
+    },
+    "pages": {
+      "label": {
+        "en": "Pages",
+        "zh-CN": "页面"
+      }
+    },
+    "syndication": {
+      "label": {
+        "en": "Syndication",
+        "zh-CN": "订阅"
+      }
+    },
+    "analytics": {
+      "label": {
+        "en": "Analytics",
+        "zh-CN": "统计"
+      }
     }
   },
   "properties": {
@@ -225,6 +243,64 @@
         }
       },
       "x-tab": "template-homepage"
+    },
+    "collectionPage": {
+      "type": "boolean",
+      "x-group": "pages",
+      "x-order": 1,
+      "title": {
+        "en": "Collection Page",
+        "zh-CN": "合集页面"
+      },
+      "description": {
+        "en": "Enable the collection browsing page.",
+        "zh-CN": "启用合集浏览页面。"
+      },
+      "default": true,
+      "x-widget": "toggle"
+    },
+    "aboutPage": {
+      "type": "boolean",
+      "x-group": "pages",
+      "x-order": 2,
+      "title": {
+        "en": "About Page",
+        "zh-CN": "关于页面"
+      },
+      "description": {
+        "en": "Enable the about page on the frontend.",
+        "zh-CN": "在前台启用关于页面。"
+      },
+      "default": true,
+      "x-widget": "toggle"
+    },
+    "rss": {
+      "type": "boolean",
+      "x-group": "syndication",
+      "x-order": 3,
+      "title": {
+        "en": "RSS Feed",
+        "zh-CN": "RSS 订阅"
+      },
+      "description": {
+        "en": "Enable RSS feed syndication for the blog.",
+        "zh-CN": "为博客启用 RSS 订阅输出。"
+      },
+      "default": true,
+      "x-widget": "toggle"
+    },
+    "analytics": {
+      "type": "object",
+      "x-group": "analytics",
+      "x-order": 4,
+      "title": {
+        "en": "Traffic Analytics",
+        "zh-CN": "流量统计"
+      },
+      "description": {
+        "en": "Traffic analytics backend (3.1.x). Custom events are only used by Google Analytics; other backends auto-track.",
+        "zh-CN": "流量统计渠道（3.1.x 结构化）。自定义事件仅 Google Analytics 使用，其余渠道自动追踪。"
+      }
     }
   }
 }

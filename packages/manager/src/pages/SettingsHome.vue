@@ -41,7 +41,6 @@ const { t } = useI18n()
 const ROUTE_PREFIX: Record<string, string> = {
   'chronicle:homepage': '/settings/homepage',
   'chronicle:appearance': '/settings/appearance',
-  'chronicle:plugins': '/settings/plugins',
   'chronicle:system-settings': '/settings/system-appearance',
   'chronicle:profile': '/settings/profile',
   'chronicle:post-page': '/settings/post-page',
@@ -84,6 +83,14 @@ const modules = computed<ModuleItem[]>(() => {
     })
   }
 
+  // 2) 插件模块（统一总览入口 + 模板清单 plugins）
+  out.push({
+    route: '/settings/plugins',
+    label: '插件',
+    description: '统一管理所有插件的开关与设置',
+    icon: FALLBACK_ICON,
+  })
+  // 2.1) 插件子页不再独立列出（从总览进入）——仅保留模板清单插件元数据
   // 2) 插件模块（模板清单 plugins，去重：与 settings 同 schema 且已有入口的跳过）
   const seen = new Set(out.map((m) => m.route))
   for (const plugin of Object.values(TEMPLATE_MANIFEST.plugins)) {

@@ -98,11 +98,6 @@ const settings: Record<string, SchemaMapping> = {
     filePath: 'data/site.yml',
     format: 'yaml',
   },
-  'chronicle:plugins': {
-    schemaId: 'chronicle:plugins',
-    filePath: 'data/site.yml',
-    format: 'yaml',
-  },
   'chronicle:system-settings': {
     schemaId: 'chronicle:system-settings',
     filePath: '.chronicle/workspace.json',

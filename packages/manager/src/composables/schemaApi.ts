@@ -14,7 +14,6 @@ import systemSettings from '../../schemas/system-settings.schema.json'
 // Schema 跟随模块（T5）：模板核心（schemas/）+ 插件 schema（src/plugins/<id>/schema.json）
 import homepage from '../../../template-astro/schemas/homepage.schema.json'
 import appearance from '../../../template-astro/schemas/appearance.schema.json'
-import plugins from '../../../template-astro/schemas/plugins.schema.json'
 import profile from '../../../template-astro/schemas/profile.schema.json'
 import postPage from '../../../template-astro/schemas/post-page.schema.json'
 import collections from '../../../template-astro/src/plugins/collections/schema.json'
@@ -28,7 +27,6 @@ export const schemaStore = reactive<Record<string, any>>({
   'chronicle:system-settings': systemSettings,
   'chronicle:homepage': homepage,
   'chronicle:appearance': appearance,
-  'chronicle:plugins': plugins,
   'chronicle:profile': profile,
   'chronicle:post-page': postPage,
   'chronicle:collections': collections,

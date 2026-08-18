@@ -17,7 +17,6 @@ import systemSettings from '../../schemas/system-settings.schema.json'
 const SCHEMAS: Record<string, any> = {
   'chronicle:homepage': () => schemaStore['chronicle:homepage'],
   'chronicle:appearance': () => schemaStore['chronicle:appearance'],
-  'chronicle:plugins': () => schemaStore['chronicle:plugins'],
   'chronicle:post-page': () => schemaStore['chronicle:post-page'],
   'chronicle:profile': () => schemaStore['chronicle:profile'],
   'chronicle:friends': () => schemaStore['chronicle:friends'],
@@ -82,7 +81,6 @@ export function useGlobalReset() {
     const coreSchemas = [
       SCHEMAS['chronicle:homepage'](),
       SCHEMAS['chronicle:appearance'](),
-      SCHEMAS['chronicle:plugins'](),
     ]
     const ppSchema = SCHEMAS['chronicle:post-page']()
     if (coreSchemas.some((s) => !s) || !ppSchema) return false

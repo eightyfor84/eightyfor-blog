@@ -36,7 +36,6 @@ export interface NavGroup {
 const SCHEMA_ROUTE_PREFIX: Record<string, string> = {
   'chronicle:homepage': '/settings/homepage',
   'chronicle:appearance': '/settings/appearance',
-  'chronicle:plugins': '/settings/plugins',
   'chronicle:system-settings': '/settings/',
   'chronicle:profile': '/settings/profile',
   'chronicle:post-page': '/settings/post-page',
@@ -98,6 +97,14 @@ function buildNavTree(schemas: Record<string, any>): NavGroup[] {
   const result = Array.from(groups.values())
   result.sort((a, b) => a.order - b.order)
   for (const g of result) g.items.sort((a, b) => a.order - b.order)
+  // 插件统一管理页（非 schema 驱动，固定导航项——子页不可直达）
+  result.push({
+    group: 'plugins',
+    label: 'Plugins',
+    icon: 'puzzle',
+    order: 99,
+    items: [{ route: '/settings/plugins', label: '插件', icon: 'puzzle', order: 1 }],
+  })
   return result
 }
 
