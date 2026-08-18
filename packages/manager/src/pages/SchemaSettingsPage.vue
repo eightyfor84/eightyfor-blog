@@ -27,12 +27,14 @@
       <!-- 相关插件入口（独立于表单：schema 一块、plugin entries 一块；非表单字段，天然不受保存/重置/恢复影响） -->
       <section v-if="relatedPlugins.length > 0" class="group-card plugin-entries">
         <h3 class="group-title">{{ $t('settings.relatedPlugins') }}</h3>
-        <div class="group-fields">
-          <div v-for="p in relatedPlugins" :key="p.key" class="plugin-entry-row">
-            <span class="plugin-entry-tag">{{ $t('settings.pluginTag') }}</span>
-            <span class="plugin-entry-name">{{ p.name }}</span>
-            <span class="plugin-entry-desc">{{ p.description }}</span>
-            <RouterLink :to="`/settings/plugins/${p.key}`" class="plugin-entry-link">{{ $t('settings.goToPage') }} →</RouterLink>
+        <div class="plugin-entries-grid">
+          <div v-for="p in relatedPlugins" :key="p.key" class="plugin-entry-card">
+            <div class="plugin-entry-card__head">
+              <span class="plugin-entry-tag">{{ $t('settings.pluginTag') }}</span>
+              <span class="plugin-entry-card__name">{{ p.name }}</span>
+            </div>
+            <p class="plugin-entry-card__desc">{{ p.description }}</p>
+            <RouterLink :to="`/settings/plugins/${p.key}`" class="plugin-entry-card__link">{{ $t('settings.goToPage') }} →</RouterLink>
           </div>
         </div>
       </section>
@@ -203,11 +205,13 @@ h2.settings-title {
   margin-bottom: 1rem;
 }
 .plugin-entries { margin-top: 1rem; }
-.plugin-entry-row { display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 0; border-bottom: 1px solid var(--border-color); }
-.plugin-entry-row:last-child { border-bottom: none; }
+.plugin-entries-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.75rem; }
+.plugin-entry-card { display: flex; flex-direction: column; gap: 0.4rem; padding: 1rem; border-radius: 10px; background: var(--app-bg-sec); border: 1px solid var(--border-color); transition: border-color 0.15s, transform 0.15s; }
+.plugin-entry-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+.plugin-entry-card__head { display: flex; align-items: center; gap: 0.5rem; }
 .plugin-entry-tag { flex-shrink: 0; font-size: 0.65rem; padding: 2px 6px; border-radius: 999px; background: var(--accent-bg); color: var(--accent); font-weight: 600; }
-.plugin-entry-name { font-weight: 500; white-space: nowrap; }
-.plugin-entry-desc { flex: 1; min-width: 0; font-size: 0.8rem; color: var(--comp-text-sec); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.plugin-entry-link { flex-shrink: 0; color: var(--accent); text-decoration: none; font-size: 0.85rem; }
-.plugin-entry-link:hover { text-decoration: underline; }
+.plugin-entry-card__name { font-weight: 600; }
+.plugin-entry-card__desc { flex: 1; margin: 0; font-size: 0.8rem; color: var(--comp-text-sec); }
+.plugin-entry-card__link { align-self: flex-start; color: var(--accent); text-decoration: none; font-size: 0.85rem; }
+.plugin-entry-card__link:hover { text-decoration: underline; }
 </style>
