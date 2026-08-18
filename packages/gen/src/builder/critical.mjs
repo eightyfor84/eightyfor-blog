@@ -52,17 +52,22 @@ export const JS_STATE_ATTRS = new Set([
 
 export function extractPageTokens(html) {
   const classes = new Set();
+  const classOffset = new Map(); // 首次出现偏移（首屏启发式用）
   const ids = new Set();
   const elements = new Set();
   const attrs = new Set();
   for (const m of html.matchAll(/\sclass="([^"]*)"/g)) {
-    for (const c of m[1].split(/\s+/)) if (c) classes.add(c);
+    for (const c of m[1].split(/\s+/)) {
+      if (!c) continue;
+      classes.add(c);
+      if (!classOffset.has(c)) classOffset.set(c, m.index);
+    }
   }
   for (const m of html.matchAll(/\sid="([^"]*)"/g)) ids.add(m[1]);
   for (const m of html.matchAll(/<([a-zA-Z][a-zA-Z0-9-]*)/g)) elements.add(m[1].toLowerCase());
   for (const m of html.matchAll(/\s([a-zA-Z][\w-]*)=/g)) attrs.add(m[1]);
   // 内联 style 里的 class 引用（极少，忽略）
-  return { classes, ids, elements, attrs };
+  return { classes, ids, elements, attrs, classOffset };
 }
 
 export function selectorTokens(selector) {
@@ -172,8 +177,21 @@ export function rewriteCriticalInDist({ distDir, allow = { classes: JS_STATE_CLA
     return assetCache.get(cssPath);
   }
 
-  function pageCritical(html) {
+  function pageCritical(html, firstPaintRatio = 0.2) {
     const page = extractPageTokens(html);
+    const bodyStart = html.indexOf('<body');
+    const bodyLen = html.length - bodyStart;
+    const threshold = bodyStart + bodyLen * firstPaintRatio;
+    // 规则命中的类 token 是否都在首屏阈值内（shell/JS 动态态类不受限）
+    const inFirstPaint = (s) => {
+      const t = selectorTokens(s);
+      for (const c of t.classes) {
+        if (allow.classes.has(c)) continue; // JS 动态态：恒保留
+        const off = page.classOffset.get(c);
+        if (off === undefined || off > threshold) return false;
+      }
+      return true;
+    };
     const keep = [];
     for (const m of html.matchAll(/<link rel="stylesheet" href="([^"]+\.css)"/g)) {
       const url = m[1];
@@ -187,7 +205,7 @@ export function rewriteCriticalInDist({ distDir, allow = { classes: JS_STATE_CLA
         }
         if (node.type === 'rule') {
           const sels = node.selector.split(',').map((s) => s.trim());
-          if (sels.some((s) => ruleMatches(s, page, allow))) keep.push(node.toString());
+          if (sels.some((s) => ruleMatches(s, page, allow) && inFirstPaint(s))) keep.push(node.toString());
         }
       });
     }
