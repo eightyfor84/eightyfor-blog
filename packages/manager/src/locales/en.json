@@ -430,7 +430,11 @@
     "storagePost": "Per-post config",
     "relatedPlugins": "Related plugins",
     "pluginTag": "Plugin",
-    "pluginSettings": "Plugin Settings"
+    "pluginSettings": "Plugin Settings",
+    "pluginRemove": "Remove",
+    "pluginRestore": "Restore",
+    "pluginRemoved": "Removed",
+    "pluginBuiltinHint": "Built-in plugins cannot be removed, but can be disabled"
   },
   "postPicker": {
     "inputPlaceholder": "Search and select a published post",

@@ -2,6 +2,7 @@
 // 主板路由壳经 getPluginPage / getPluginSlots 查表渲染。
 // 注册发生在 src/plugins/index.ts（静态 import 各插件 manifest）。
 import type { PluginManifest, PluginSlotContribution } from './types';
+export type { PluginManifest } from './types';
 import type { DataSource } from '../data/types';
 
 /** 槽位门控评估上下文（主板页面传入；不传 = 不过滤，全量返回） */

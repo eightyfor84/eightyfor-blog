@@ -3,24 +3,43 @@
     <h2 class="settings-title">{{ $t('settings.plugins') }}</h2>
     <p class="hint">{{ $t('settings.pluginsHint') }}</p>
 
-    <!-- 插件列表：点击进入各插件详情（plugins 子页，左侧导航不可直达） -->
-    <div class="plugin-grid">
-      <div
-        v-for="plugin in plugins"
-        :key="plugin.key"
-        class="plugin-card"
-        :class="{ 'plugin-card--editor': plugin.contentEditor }"
-        @click="$router.push(`/settings/plugins/${plugin.key}`)"
-      >
-        <div class="plugin-card__head">
-          <span class="plugin-card__name">{{ plugin.name }}</span>
-          <span v-if="plugin.builtin" class="plugin-card__badge">{{ $t('settings.builtin') }}</span>
-          <span v-if="plugin.contentEditor" class="plugin-card__badge">{{ $t('settings.contentEditor') }}</span>
+    <!-- 插件列表：一行一个扩展——启用/禁用（featureFlag）+ 删除（内置不可删） -->
+    <div class="plugin-list">
+      <div v-for="p in rows" :key="p.key" class="plugin-row" :class="{ 'plugin-row--removed': p.removed }">
+        <div class="plugin-row__main">
+          <div class="plugin-row__head">
+            <span v-if="p.builtin" class="plugin-tag">{{ $t('settings.builtin') }}</span>
+            <span v-if="p.contentEditor" class="plugin-tag plugin-tag--editor">{{ $t('settings.contentEditor') }}</span>
+            <RouterLink :to="`/settings/plugins/${p.key}`" class="plugin-row__name">{{ p.name }}</RouterLink>
+          </div>
+          <span class="plugin-row__desc">{{ p.description }}</span>
         </div>
-        <p class="plugin-card__desc">{{ plugin.description }}</p>
-        <div class="plugin-card__foot">
-          <span v-if="plugin.storage" class="plugin-card__storage">{{ storageLabel(plugin.storage) }}</span>
-          <span class="plugin-card__enter">{{ $t('settings.goToPage') }} →</span>
+
+        <div class="plugin-row__actions">
+          <span v-if="p.removed" class="plugin-row__removed">{{ $t('settings.pluginRemoved') }}</span>
+          <SwitchToggle
+            v-else-if="p.featureFlag"
+            :model-value="p.on"
+            @update:model-value="(v: boolean) => toggleFlag(p, v)"
+          />
+          <button
+            v-if="p.removed"
+            class="plugin-row__icon-btn"
+            :title="$t('settings.pluginRestore')"
+            @click="restorePlugin(p)"
+          ><span v-html="ShellIcons.undo" /></button>
+          <button
+            v-else-if="!p.builtin"
+            class="plugin-row__icon-btn plugin-row__icon-btn--danger"
+            :title="$t('settings.pluginRemove')"
+            @click="removePlugin(p)"
+          ><span v-html="ShellIcons.trash" /></button>
+          <button
+            v-else
+            class="plugin-row__icon-btn"
+            disabled
+            :title="$t('settings.pluginBuiltinHint')"
+          ><span v-html="ShellIcons.trash" /></button>
         </div>
       </div>
     </div>
@@ -30,38 +49,100 @@
 <script setup lang="ts">
 /**
  * 插件统一管理页（/settings/plugins）：
- * 所有插件（TEMPLATE_MANIFEST.plugins）卡片 → 点击进入 /settings/plugins/<key> 详情。
- * 插件开关分散在各自插件 schema（friends/search/comments）与站点基础（homepage 的
- * collectionPage/aboutPage/rss/analytics）——不在本页承载表单。
- * 插件详情是 plugins 的子页，左侧导航不可直达（useSchemaNav 排除插件 schema）。
+ * 一行一个扩展——启用/禁用（site.yml featureFlags）+ 删除（site.yml plugins.removed，
+ * 构建期注册过滤，彻底移除）；内置插件（builtin）不可删除，但可禁用。
  */
-import { TEMPLATE_MANIFEST } from '../data/schemaRegistry'
+import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { TEMPLATE_MANIFEST } from '../data/schemaRegistry'
+import { readYaml, writeYaml } from '../data/dataAccess'
+import SwitchToggle from '../components/ui/SwitchToggle.vue'
+import { ShellIcons } from '../utils/shellIcons'
+import useToast from '../composables/useToast'
 
 const { t } = useI18n()
-const plugins = Object.values(TEMPLATE_MANIFEST.plugins)
+const toast = useToast()
 
-/** 存储归属标注（决定配置写 site.yml / 独立文件 / 文章级） */
-function storageLabel(storage: 'site' | 'file' | 'post'): string {
-  return storage === 'site'
-    ? t('settings.storageSite')
-    : storage === 'file'
-      ? t('settings.storageFile')
-      : t('settings.storagePost')
+interface Row {
+  key: string
+  name: string
+  description: string
+  featureFlag?: string
+  builtin?: boolean
+  contentEditor?: boolean
+  on: boolean
+  removed: boolean
 }
+
+const rows = ref<Row[]>([])
+
+async function load() {
+  const site = (await readYaml<Record<string, any>>('data/site.yml')) || {}
+  const removed = new Set<string>(site.plugins?.removed ?? [])
+  rows.value = Object.values(TEMPLATE_MANIFEST.plugins).map((p) => ({
+    key: p.key,
+    name: p.name,
+    description: p.description,
+    featureFlag: p.featureFlag,
+    builtin: p.builtin,
+    contentEditor: p.contentEditor,
+    on: p.featureFlag ? site[p.featureFlag!] !== false : true,
+    removed: removed.has(p.key),
+  }))
+}
+
+async function mutate(fn: (site: Record<string, any>) => void) {
+  const site = (await readYaml<Record<string, any>>('data/site.yml')) || {}
+  fn(site)
+  const ok = await writeYaml('data/site.yml', site)
+  if (ok) {
+    toast.show(t('settings.saveSuccess'))
+    await load()
+  }
+}
+
+async function toggleFlag(p: Row, on: boolean) {
+  if (!p.featureFlag) return
+  await mutate((site) => { site[p.featureFlag!] = on })
+}
+
+async function removePlugin(p: Row) {
+  if (p.builtin) return
+  await mutate((site) => {
+    const removed = new Set<string>(site.plugins?.removed ?? [])
+    removed.add(p.key)
+    site.plugins = { removed: Array.from(removed) }
+  })
+}
+
+async function restorePlugin(p: Row) {
+  await mutate((site) => {
+    const removed = new Set<string>(site.plugins?.removed ?? [])
+    removed.delete(p.key)
+    site.plugins = { removed: Array.from(removed) }
+  })
+}
+
+onMounted(load)
 </script>
 
 <style scoped>
-.plugin-settings { padding: 1rem; max-width: 860px; }
-.plugin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.75rem; }
-.plugin-card { padding: 1rem; border-radius: 10px; background: var(--app-bg-sec); border: 1px solid var(--border-color); cursor: pointer; transition: border-color 0.15s, transform 0.15s; }
-.plugin-card:hover { border-color: var(--accent); transform: translateY(-1px); }
-.plugin-card--editor { border-left: 3px solid var(--featured); }
-.plugin-card__head { display: flex; align-items: center; gap: 0.5rem; }
-.plugin-card__name { font-weight: 600; }
-.plugin-card__badge { font-size: 0.65rem; padding: 2px 6px; border-radius: 999px; background: var(--featured-bg); color: var(--featured); }
-.plugin-card__desc { font-size: 0.8rem; color: var(--comp-text-sec); margin: 0.4rem 0; }
-.plugin-card__foot { display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: var(--comp-text-sec); }
-.plugin-card__enter { color: var(--accent); }
-.plugin-card__storage { font-size: 0.7rem; padding: 2px 8px; border-radius: 999px; background: var(--comp-bg); color: var(--comp-text-sec); }
+.plugin-settings { padding: 1rem; max-width: 900px; }
+.plugin-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.plugin-row { display: flex; align-items: center; gap: 1rem; padding: 0.75rem 1rem; border-radius: 10px; background: var(--app-bg-sec); border: 1px solid var(--border-color); transition: border-color 0.15s, opacity 0.15s; }
+.plugin-row:hover { border-color: var(--accent); }
+.plugin-row--removed { opacity: 0.55; }
+.plugin-row__main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.2rem; }
+.plugin-row__head { display: flex; align-items: center; gap: 0.5rem; }
+.plugin-tag { font-size: 0.65rem; padding: 2px 6px; border-radius: 999px; background: var(--accent-bg); color: var(--accent); font-weight: 600; white-space: nowrap; }
+.plugin-tag--editor { background: var(--featured-bg); color: var(--featured); }
+.plugin-row__name { font-weight: 600; color: var(--app-text-pri); text-decoration: none; }
+.plugin-row__name:hover { color: var(--accent); }
+.plugin-row__desc { font-size: 0.8rem; color: var(--comp-text-sec); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.plugin-row__actions { display: flex; align-items: center; gap: 0.6rem; flex-shrink: 0; }
+.plugin-row__removed { font-size: 0.75rem; color: var(--warning); }
+.plugin-row__icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; padding: 0; border-radius: 8px; border: 1px solid var(--border-color); background: transparent; color: var(--comp-text-sec); cursor: pointer; }
+.plugin-row__icon-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.plugin-row__icon-btn--danger:hover:not(:disabled) { border-color: var(--warning); color: var(--warning); }
+.plugin-row__icon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 </style>

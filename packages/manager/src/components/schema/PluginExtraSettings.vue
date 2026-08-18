@@ -19,7 +19,7 @@
 import { onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSchemaForm } from '../../composables/useSchemaForm'
-import SchemaForm from '../components/schema/SchemaForm.vue'
+import SchemaForm from './SchemaForm.vue'
 import useToast from '../../composables/useToast'
 
 const props = defineProps<{ schemaId: string }>()

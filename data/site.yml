@@ -40,6 +40,10 @@ friendsPage: true
 # RSS feed toggle
 rss: true
 
+# 插件移除（构建期注册过滤——被列出的插件彻底不在站点；默认空）
+plugins:
+  removed: []
+
 # Analytics (multi-backend)
 analytics:
   enabled: false
