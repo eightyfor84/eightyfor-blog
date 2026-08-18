@@ -85,7 +85,7 @@ export interface TemplateManifest {
 // ── 主清单：chronicle（默认模板）────────────────────────
 
 const settings: Record<string, SchemaMapping> = {
-  // 模板核心设置：schema 跟随模块拆分（原 template-settings 多 tab → 3 独立模块）
+  // 模板核心设置：schema 跟随模块拆分（原 template-settings 多 tab → 3 独立模块；功能开关模块 = 插件开关）
   'chronicle:homepage': {
     schemaId: 'chronicle:homepage',
     filePath: 'data/site.yml',
@@ -96,8 +96,8 @@ const settings: Record<string, SchemaMapping> = {
     filePath: 'data/site.yml',
     format: 'yaml',
   },
-  'chronicle:features': {
-    schemaId: 'chronicle:features',
+  'chronicle:plugins': {
+    schemaId: 'chronicle:plugins',
     filePath: 'data/site.yml',
     format: 'yaml',
   },

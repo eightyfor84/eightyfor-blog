@@ -41,7 +41,7 @@ const { t } = useI18n()
 const ROUTE_PREFIX: Record<string, string> = {
   'chronicle:homepage': '/settings/homepage',
   'chronicle:appearance': '/settings/appearance',
-  'chronicle:features': '/settings/features',
+  'chronicle:plugins': '/settings/plugins',
   'chronicle:system-settings': '/settings/system-appearance',
   'chronicle:collections': '/settings/collections',
   'chronicle:friends': '/settings/friends',

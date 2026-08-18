@@ -35,7 +35,7 @@ export interface NavGroup {
 const SCHEMA_ROUTE_PREFIX: Record<string, string> = {
   'chronicle:homepage': '/settings/homepage',
   'chronicle:appearance': '/settings/appearance',
-  'chronicle:features': '/settings/features',
+  'chronicle:plugins': '/settings/plugins',
   'chronicle:search': '/settings/search',
   'chronicle:comments': '/settings/comments',
   'chronicle:system-settings': '/settings/',

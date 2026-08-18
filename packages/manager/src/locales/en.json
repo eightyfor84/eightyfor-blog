@@ -417,7 +417,8 @@
     "serif": "Serif",
     "preview": "Preview",
     "moduleHint": "Settings modules: click a card to open its detail page",
-    "masterSwitch": "Master switch"
+    "masterSwitch": "Master switch",
+    "plugins": "Plugins"
   },
   "postPicker": {
     "inputPlaceholder": "Search and select a published post",

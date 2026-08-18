@@ -423,7 +423,8 @@
     "serif": "衬线体",
     "preview": "预览",
     "moduleHint": "设置模块入口：点击卡片进入各模块详细设置",
-    "masterSwitch": "主开关"
+    "masterSwitch": "主开关",
+    "plugins": "插件开关"
   },
   "postPicker": {
     "inputPlaceholder": "搜索并选择已发布帖子",
