@@ -6,6 +6,9 @@ import GlobalSearchOverlay from '../components/GlobalSearchOverlay.astro';
 import { getLocale, getTranslation } from '../utils/i18n';
 import { resolveFeatureFlags } from '../utils/featureFlags';
 import { theme as themeManifest } from '../themes/aurora/manifest';
+import ThemeInit from '../themes/aurora/components/ThemeInit.astro';
+import ThemeVars from '../themes/aurora/components/ThemeVars.astro';
+import ThemeRuntime from '../themes/aurora/components/ThemeRuntime.astro';
 import chronicleMarkdownCss from '@chronicle/shared/src/styles/chronicle-markdown.css?raw';
 import '../themes/aurora/styles/global.css';
 import '../themes/aurora/styles/app.css';
@@ -357,13 +360,6 @@ const ANALYTICS_GA_ID = String(process.env.GA_MEASUREMENT_ID || analyticsCfg.gaM
         </script>
     ) : null}
 
-    <!-- Always clear html.focus on any navigation so present-mode black bg never leaks -->
-    <script is:inline>
-      document.documentElement.classList.remove('focus');
-      document.addEventListener('astro:page-load', () => document.documentElement.classList.remove('focus'));
-      document.addEventListener('astro:after-swap', () => document.documentElement.classList.remove('focus'));
-    </script>
-    
     <!-- Legacy SW cleanup (non-blocking) -->
     <script async>
       (function(){if(typeof window==='undefined'||!('serviceWorker' in navigator))return;
@@ -375,71 +371,18 @@ const ANALYTICS_GA_ID = String(process.env.GA_MEASUREMENT_ID || analyticsCfg.gaM
       }catch(e){}})()})();
     </script>
 
-    <!-- font-display:swap ensures text is visible immediately with fallback.
-         media="print" onload removes this from the render-blocking critical path. -->
-    <link rel="stylesheet" href="/fonts/inter.css" media="print" onload="this.media='all'" data-astro-transition-persist="font-inter" />
-    <noscript><link rel="stylesheet" href="/fonts/inter.css" /></noscript>
     <ClientRouter />
 
-    <!-- Theme init MUST run before any CSS that depends on data-theme -->
-    <script is:inline>
-      (function() {
-        try {
-          const settings = JSON.parse(localStorage.getItem('chronicle.settings') || '{}');
-          const theme = settings.theme || 'follow';
-          if (theme === 'follow' || theme === 'system') {
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
-          } else if (theme === 'light') {
-            document.documentElement.setAttribute('data-theme', 'light');
-          } else if (theme === 'dark') {
-            document.documentElement.setAttribute('data-theme', 'dark');
-          }
-        } catch (e) {
-          document.documentElement.setAttribute('data-theme', 'dark');
-        }
-      })();
-    </script>
+    <!-- 主题首帧初始化（FOUC 防护）：focus 清除 + 字体 + data-theme 首帧应用。
+         必须早于任何依赖 data-theme 的 CSS（critical tokens 之前）。 -->
+    <ThemeInit />
 
     <!-- Critical tokens: inlined to eliminate network RTT.
          Tokens must resolve before the skeleton CSS below paints. -->
     <style is:inline set:html={criticalTokens}></style>
 
-    <!-- Custom properties from SSR (before skeleton so var() refs resolve first-paint) -->
-    <style define:vars={{
-      accentColor: accent,
-      fontStack: font === 'serif' ? "var(--app-font-stack-serif)" : "var(--app-font-stack-inter)"
-    }}>
-      .frontend-body {
-        margin: 0;
-        padding: 0;
-        background-color: var(--frontend-body-bg-color, var(--app-bg-pri));
-        color: var(--app-text-pri);
-        font-family: var(--fontStack);
-      }
-      #app { display: flex; flex-direction: column; min-height: 100vh; }
-      .app-title { font-size: 1.5rem; font-weight: bold; }
-
-      /* 应用accent颜色 */
-      :root {
-        --accent: var(--accentColor);
-      }
-
-      html.home-transition-disabled::view-transition-group(root),
-      html.home-transition-disabled::view-transition-old(root),
-      html.home-transition-disabled::view-transition-new(root) {
-        animation: none !important;
-      }
-
-      html.home-transition-disabled .main-content {
-        view-transition-name: none !important;
-      }
-
-      html.home-transition-disabled .home-container::before,
-      html.home-transition-disabled .home-container::after {
-        animation: none !important;
-      }
-    </style>
+    <!-- 主题 SSR 变量（accent / 字体栈 / 视图过渡辅助） -->
+    <ThemeVars accent={accent} font={font} />
 
     <!-- Critical CSS skeleton (geometry + colours — tokens are inline above) -->
     <style is:inline set:html={criticalCSS}></style>
@@ -466,9 +409,8 @@ const ANALYTICS_GA_ID = String(process.env.GA_MEASUREMENT_ID || analyticsCfg.gaM
       window.__CHRONICLE_MEDIA_BASE_URL__ = mediaBaseUrl;
     </script>
 
-    <script>
-      import '../scripts/layout-init';
-    </script>
+    <!-- 主题运行时：移动端类 / 性能模式 / 背景层淡入 / 软路由主题恢复 -->
+    <ThemeRuntime />
 
     <!-- Named slot: pages can inject head content (e.g. render-blocking stylesheets
          that must apply before first paint, like chronicle-markdown.css on post pages). -->
@@ -513,157 +455,6 @@ const ANALYTICS_GA_ID = String(process.env.GA_MEASUREMENT_ID || analyticsCfg.gaM
 
     {featureFlags.globalSearch === true ? <GlobalSearchOverlay locale={locale} routePrefix={routePrefix} t={t} searchSuggestionsEnabled={featureFlags.searchSuggestions !== false} fullTextSearchEnabled={featureFlags.fullTextSearch === true} /> : null}
 
-    <script>
-      import { applyTheme } from '../utils/themeUtils';
-
-      // 系统主题变化监听（follow/system 模式）
-      function initThemeListener() {
-        try {
-          const settings = JSON.parse(localStorage.getItem('chronicle.settings') || '{}');
-          const theme = settings.theme || 'follow';
-
-          if (theme === 'follow' || theme === 'system') {
-            // Listen for system theme changes
-            const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-
-            const handleThemeChange = (e: { matches: boolean }) => {
-              if (e.matches) {
-                document.documentElement.setAttribute('data-theme', 'dark');
-              } else {
-                document.documentElement.setAttribute('data-theme', 'light');
-              }
-            };
-
-            // Use modern API or fallback
-            if (mediaQuery.addEventListener) {
-              mediaQuery.addEventListener('change', handleThemeChange);
-            } else if (mediaQuery.addListener) {
-              mediaQuery.addListener(handleThemeChange);
-            }
-          }
-        } catch (e) {
-          console.error('Theme listener error:', e);
-        }
-      }
-
-      function applySettings() {
-        const settings = { ...(window as any).__CHRONICLE_SETTINGS__ };
-        if (!settings) return;
-
-        // 本地保存的主题覆盖 SSR 设置
-        try {
-          const localSettings = JSON.parse(localStorage.getItem('chronicle.settings') || '{}');
-          if (localSettings.theme) {
-            settings.theme = localSettings.theme;
-          }
-        } catch (e) {}
-
-        try {
-          // 主题：设置 <html data-theme>，背景/遮罩/底色均由 CSS 变量按主题解析
-          applyTheme(settings.theme);
-
-          // 应用accent颜色
-          if (settings.accent) {
-            document.documentElement.style.setProperty('--accent', settings.accent);
-          }
-
-          // 应用字体
-          if (settings.font === 'serif') {
-            document.documentElement.style.setProperty('--app-font-stack', 'var(--app-font-stack-serif)');
-          } else {
-            document.documentElement.style.setProperty('--app-font-stack', 'var(--app-font-stack-inter)');
-          }
-        } catch (e) {
-          console.error('[Layout] Error applying settings:', e);
-        }
-      }
-
-      let initialized = false;
-
-      function init() {
-        if (!initialized) {
-          // 首次硬加载：完整初始化（主题、监听器）
-          applySettings();
-          initThemeListener();
-          initialized = true;
-        } else {
-          // 软路由：重新应用主题/accent/字体到新的 <html>
-          applySettings();
-        }
-      }
-
-      // Astro 每次路由切换完毕会抛出 page-load 事件 (包含首次加载)
-      document.addEventListener('astro:page-load', init);
-
-      document.addEventListener('astro:after-swap', () => {
-        document.documentElement.classList.remove('home-transition-disabled');
-      });
-
-      // ── iOS WebKit backdrop-filter + View Transition workaround ──
-      // WebKit bug 302256: backdrop-filter is not composited into View Transition
-      // snapshots, so the bg-overlay blur "pops" out and back in during soft
-      // routing. Chrome/Android composite it correctly. Workaround: turn the blur
-      // off before the old snapshot is captured, fade it back in after the swap.
-      // https://wiki.webkit.org/show_bug.cgi?id=302256
-      if (typeof document !== 'undefined' && 'startViewTransition' in document
-        && /^((?!chrome|android).)*safari/i.test(navigator.userAgent)) {
-        let _bgOverlayBlur: { filter: string; webkitFilter: string } | null = null;
-        const _bgOverlayEl = () => {
-          const layer = document.getElementById('chr-bg-layer');
-          return layer ? (layer.querySelector('.bg-overlay') as HTMLElement | null) : null;
-        };
-
-        document.addEventListener('astro:after-preparation', () => {
-          const overlay = _bgOverlayEl();
-          if (!overlay) return;
-          _bgOverlayBlur = {
-            filter: overlay.style.backdropFilter || '',
-            webkitFilter: overlay.style.webkitBackdropFilter || '',
-          };
-          // Instant off — the old snapshot is captured right after this event,
-          // so the change must not animate into the snapshot.
-          overlay.style.transition = 'none';
-          overlay.style.backdropFilter = 'none';
-          overlay.style.webkitBackdropFilter = 'none';
-          void overlay.offsetHeight; // commit the style change before snapshot
-        });
-
-        document.addEventListener('astro:after-swap', () => {
-          const overlay = _bgOverlayEl();
-          if (!overlay || !_bgOverlayBlur) return;
-          // Restore the CSS transition first, then re-apply the blur so it
-          // fades in (backdrop-filter 0.3s ease) after the transition ends.
-          overlay.style.transition = '';
-          void overlay.offsetHeight; // commit the transition property first
-          overlay.style.backdropFilter = _bgOverlayBlur.filter;
-          overlay.style.webkitBackdropFilter = _bgOverlayBlur.webkitFilter;
-          _bgOverlayBlur = null;
-        });
-      }
-
-      // 监听页面DOM替换后，立即恢复主题，防止浅色模式和独立主题配置在SPA切换时丢失
-      document.addEventListener('astro:after-swap', () => {
-        try {
-          const settings = JSON.parse(localStorage.getItem('chronicle.settings') || '{}');
-          const theme = settings.theme || 'follow';
-
-          if (theme === 'follow' || theme === 'system') {
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            if (prefersDark) {
-              document.documentElement.setAttribute('data-theme', 'dark');
-            } else {
-              document.documentElement.setAttribute('data-theme', 'light');
-            }
-          } else if (theme === 'light') {
-            document.documentElement.setAttribute('data-theme', 'light');
-          } else if (theme === 'dark') {
-            document.documentElement.setAttribute('data-theme', 'dark');
-          }
-        } catch (e) {
-          document.documentElement.setAttribute('data-theme', 'dark');
-        }
-      });
-    </script>
 
     <!-- Deferred link prefetch: activates only after the page is idle.
          Kept out of the initial bundle to preserve FCP — Astro's built-in

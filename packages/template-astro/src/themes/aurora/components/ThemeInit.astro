@@ -1,0 +1,35 @@
+---
+// ── 主题初始化（head 内联，FOUC 防护）────────────────────
+// 必须早于任何依赖 data-theme 的 CSS（Layout 在 critical tokens 之前渲染本组件）。
+// 由主题拥有：focus 清除、字体加载、主题首帧应用。
+---
+<!-- 任何导航后清除 html.focus（present 模式黑底不泄漏） -->
+<script is:inline>
+  document.documentElement.classList.remove('focus');
+  document.addEventListener('astro:page-load', () => document.documentElement.classList.remove('focus'));
+  document.addEventListener('astro:after-swap', () => document.documentElement.classList.remove('focus'));
+</script>
+
+<!-- font-display:swap 保证文本立即可见；media="print" onload 移出渲染阻塞关键路径 -->
+<link rel="stylesheet" href="/fonts/inter.css" media="print" onload="this.media='all'" data-astro-transition-persist="font-inter" />
+<noscript><link rel="stylesheet" href="/fonts/inter.css" /></noscript>
+
+<!-- 主题首帧应用：MUST run before any CSS that depends on data-theme -->
+<script is:inline>
+  (function() {
+    try {
+      const settings = JSON.parse(localStorage.getItem('chronicle.settings') || '{}');
+      const theme = settings.theme || 'follow';
+      if (theme === 'follow' || theme === 'system') {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+      } else if (theme === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+      } else if (theme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    } catch (e) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  })();
+</script>
