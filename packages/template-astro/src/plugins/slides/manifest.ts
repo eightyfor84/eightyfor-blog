@@ -13,7 +13,7 @@ export const slides: PluginManifest = {
   slots: [
     // 文章页 slides 形态：主板 post 页 isSlidesView 分支渲染
     // （槽位契约 props：{ id, locale, config, collectionEnabled }）
-    { slot: 'post-slides-view', component: Slideshow },
+    { slot: 'post-slides-view', component: Slideshow, when: { featureFlag: 'slides' } },
   ],
   dataHooks: {},
   settingsSchema: ['slides'],

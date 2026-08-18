@@ -571,6 +571,8 @@ export function getPublicSettings(): LocalSettings {
             fullTextSearch: raw.fullTextSearch ?? raw.featureFlags?.fullTextSearch ?? true,
             traffic: raw.traffic ?? raw.featureFlags?.traffic ?? raw.analytics?.enabled ?? false,
             comments: raw.comments ?? raw.featureFlags?.comments ?? true,
+            readingExperience: raw.readingExperience ?? raw.featureFlags?.readingExperience ?? true,
+            slides: raw.slides ?? raw.featureFlags?.slides ?? true,
         },
         friendsCards: readFriendsCards(),
         friendsGlobalStyle: readFriendsGlobalStyle(),

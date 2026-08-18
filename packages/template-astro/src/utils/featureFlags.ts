@@ -6,7 +6,9 @@ export type FeatureFlagKey =
   | 'aboutPage'
   | 'friendsPage'
   | 'traffic'
-  | 'comments';
+  | 'comments'
+  | 'readingExperience'
+  | 'slides';
 
 export type FeatureFlags = Record<FeatureFlagKey, boolean>;
 
@@ -31,6 +33,8 @@ export function normalizeFeatureFlags(input: any): FeatureFlags {
     aboutPage: input?.aboutPage !== false,
     friendsPage: input?.friendsPage !== false,
     comments: input?.comments !== false,
+    readingExperience: input?.readingExperience !== false,
+    slides: input?.slides !== false,
     traffic: input?.traffic !== false,
   };
 }

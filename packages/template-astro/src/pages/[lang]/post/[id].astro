@@ -107,11 +107,11 @@ const slotGateCtx = {
   },
   dataSource,
 };
-const TocSlot = getPluginSlot('post-toc');
-const EndOfArticleSlot = getPluginSlot('post-end-of-article');
+const TocSlot = getPluginSlot('post-toc', slotGateCtx);
+const EndOfArticleSlot = getPluginSlot('post-end-of-article', slotGateCtx);
 const AttitudeSlot = getPluginSlot('post-attitude', slotGateCtx);
 const CommentsSlot = getPluginSlot('post-comments', slotGateCtx);
-const SlidesSlot = getPluginSlot('post-slides-view');
+const SlidesSlot = getPluginSlot('post-slides-view', slotGateCtx);
 
 // ── Collection feature flag (distinct from data result — see getCollections) ──
 const collectionEnabled = (settings as Record<string, any>).collectionPage !== false;

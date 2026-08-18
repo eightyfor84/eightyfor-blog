@@ -15,8 +15,9 @@ export const readingExperience: PluginManifest = {
   id: 'reading-experience',
   name: '阅读体验插件（reading-experience）',
   slots: [
-    { slot: 'post-toc', component: FloatingToc },
-    { slot: 'post-end-of-article', component: EndOfArticle },
+    // 插件级开关（总览页 featureFlag readingExperience）：关 → 目录与文末区块不注入
+    { slot: 'post-toc', component: FloatingToc, when: { featureFlag: 'readingExperience' } },
+    { slot: 'post-end-of-article', component: EndOfArticle, when: { featureFlag: 'readingExperience' } },
     // 态度按钮：评论功能关闭（featureFlags.comments）或适配器无评论能力（T4 内容源无 comments）时不注入
     { slot: 'post-attitude', component: AttitudeButtons, when: { featureFlag: 'comments', capability: 'getComments' } },
   ],
