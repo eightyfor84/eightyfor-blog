@@ -46,6 +46,7 @@ export const SHELL_CLASSES = new Set([
   'file-preview-root', 'global-search-overlay', 'chronicle-slideshow',
   // 页面容器（首屏壳）
   'error-shell', 'home-container', 'home-shell', 'blog-container',
+  'u-svg-defs',
   'friends-container', 'collection-container', 'page-container',
   'about-page', 'post-detail-container', 'search-box-wrapper',
   'section-title', 'post-title',

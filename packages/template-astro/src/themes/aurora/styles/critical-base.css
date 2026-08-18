@@ -43,6 +43,9 @@ h1, h2, h3, h4, h5, h6 {
 
 /* ── Shell ── */
 #app { display:flex; flex-direction:column; height:100vh; }
+/* SVG sprite（body 级符号容器）：首帧必须隐藏，否则在文档流占位挤开 #app。
+   与 utilities.css 的 .u-svg-defs 同值（critical/异步两处一致，防首帧漂移）。 */
+.u-svg-defs { position:absolute; width:0; height:0; overflow:hidden; pointer-events:none; }
 #chr-bg-layer { position:fixed; inset:0; z-index:0; pointer-events:none; }
 /* 背景媒体首帧隐藏，layout-init.ts 在可解码后逐个淡入（图：decode，视频：loadeddata）。
    防止扫描式加载与缓存刷新时的闪烁；完整规则与过渡在 global.css。 */
