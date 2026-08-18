@@ -534,13 +534,12 @@ const yearLabel = new Date().getFullYear();
                 <ChronicleImage
                   src={authorAvatar}
                   alt={authorName}
-                  class="author-avatar"
+                  class="author-avatar u-zoomable"
                   width="64"
                   height="64"
                   loading="eager"
                   decoding="async"
                   fetchpriority="auto"
-                  style="cursor:zoom-in"
                   data-source={authorAvatarSource}
                   onclick="window.__openFilePreview?.({ url: event.target.dataset.source || event.target.src, title: event.target.alt, type: 'image' })"
                 />
@@ -557,7 +556,7 @@ const yearLabel = new Date().getFullYear();
             {authorBio ? (
               <p class="author-bio">{authorBio}</p>
             ) : (
-              <p style="margin-bottom:0;">{cardAuthorLine}</p>
+              <p class="u-mb-0">{cardAuthorLine}</p>
             )}
           </article>
         )
@@ -566,7 +565,7 @@ const yearLabel = new Date().getFullYear();
       {
         showTaxonomyCard && (
           <section class="panel-card mtl-container taxonomy-card">
-            <div class="section-head" style="margin-bottom: 0;">
+            <div class="section-head flush">
               <div>
                 <h2 class="panel-kicker">{t("home.topicNavigation")}</h2>
               </div>
@@ -642,7 +641,7 @@ const yearLabel = new Date().getFullYear();
       {
         showActivityCard && (
           <section class="panel-card mtl-container activity-card">
-            <div class="section-head" style="margin-bottom: 0;">
+            <div class="section-head flush">
               <div>
                 <h2 class="panel-kicker">{t("home.recentUpdates")}</h2>
               </div>
@@ -1089,6 +1088,11 @@ const yearLabel = new Date().getFullYear();
     justify-content: space-between;
     gap: 1rem;
     margin-bottom: 1rem;
+  }
+
+  /* 信息卡内嵌区块标题：去底部外边距（原内联样式迁出） */
+  .section-head.flush {
+    margin-bottom: 0;
   }
 
   .section-head a {

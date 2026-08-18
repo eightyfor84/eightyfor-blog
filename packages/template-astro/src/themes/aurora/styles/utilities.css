@@ -1,0 +1,32 @@
+/* ── 主题通用工具类（utilities）───────────────────────────
+   静态视觉样式从框架文件的内联 style 属性迁出后的归宿。
+   仅放通用、无冲突的原子工具；组件专属样式进各自组件样式文件。 */
+
+/* 隐藏 SVG defs（<use> 引用符号）：绝对定位 + 零尺寸 + 不响应指针 */
+.u-svg-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* 可点击（头像/预览触发） */
+.u-clickable { cursor: pointer; }
+
+/* 可放大（点击查看大图） */
+.u-zoomable { cursor: zoom-in; }
+
+/* 小图标尺寸（SVG 覆盖 width/height 属性） */
+.u-icon-sm { height: 16px; width: 16px; }
+
+/* 去底部外边距 */
+.u-mb-0 { margin-bottom: 0; }
+
+/* 固定右上角（浮层头部动作区） */
+.u-fixed-corner {
+  position: fixed;
+  top: 30px;
+  right: 30px;
+  z-index: 20002;
+}

@@ -65,7 +65,7 @@ const metaDescription = profile?.bio
         showProfileCard && (profile?.name || profile?.avatar || profile?.bio) ? (
           <div class="about-profile-card">
             {profile.avatar ? (
-              <ChronicleImage src={profile.avatar} alt={profile.name || ''} class="about-avatar" loading="lazy" decoding="async" style="cursor:pointer" onclick="window.__openFilePreview?.({ url: event.target.src, title: event.target.alt, type: 'image' })" />
+              <ChronicleImage src={profile.avatar} alt={profile.name || ''} class="about-avatar u-clickable" loading="lazy" decoding="async" onclick="window.__openFilePreview?.({ url: event.target.src, title: event.target.alt, type: 'image' })" />
             ) : null}
             <div class="about-profile-body">
               {profile.name ? <h2 class="about-name">{profile.name}</h2> : null}

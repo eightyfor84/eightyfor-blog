@@ -12,6 +12,7 @@ import ThemeRuntime from '../themes/aurora/components/ThemeRuntime.astro';
 import chronicleMarkdownCss from '@chronicle/shared/src/styles/chronicle-markdown.css?raw';
 import '../themes/aurora/styles/global.css';
 import '../themes/aurora/styles/app.css';
+import '../themes/aurora/styles/utilities.css';
 
 import { hexToRgbString } from '../utils/colorUtils';
 
@@ -418,7 +419,7 @@ const ANALYTICS_GA_ID = String(process.env.GA_MEASUREMENT_ID || analyticsCfg.gaM
   </head>
   <body class="frontend-body">
     <!-- 全局隐藏的 SVG defs，放在 body 开头 -->
-    <svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden;pointer-events:none;">
+    <svg aria-hidden="true" class="u-svg-defs">
       <defs>
         <!-- 线形小箭头：stroke-only, 更小尺寸 -->
         <marker id="chronicle-mermaid-arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">

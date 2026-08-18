@@ -96,10 +96,7 @@ const searchConfig = {
       </div>
       <div class="content-scroll-area">
         <div class="tags-grid" id="tags-grid"></div>
-        <div
-          class="cloud-btm-barrier"
-          style="display:block; height:40px; background:transparent;"
-        >
+        <div class="cloud-btm-barrier">
         </div>
       </div>
     </div>
@@ -138,6 +135,13 @@ const searchConfig = {
     overflow: hidden;
     position: relative;
     transition: all 0.3s ease;
+  }
+
+  /* 云标签底部滚动屏障（原内联样式迁出） */
+  .cloud-btm-barrier {
+    display: block;
+    height: 40px;
+    background: transparent;
   }
 
   html.is-mobile .page-container {

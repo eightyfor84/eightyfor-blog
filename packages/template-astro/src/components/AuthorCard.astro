@@ -23,7 +23,7 @@ const lang = locale === 'zh-CN' ? 'zh' : 'en';
 {showAuthorCard && (
 <section class="author-card">
   {profile.avatar && (
-  <ChronicleImage src={profile.avatar} alt={profile.name || 'author'} class="author-avatar" loading="lazy" decoding="async" style="cursor:pointer" onclick="window.__openFilePreview?.({ url: event.target.src, title: event.target.alt, type: 'image' })" />
+  <ChronicleImage src={profile.avatar} alt={profile.name || 'author'} class="author-avatar u-clickable" loading="lazy" decoding="async" onclick="window.__openFilePreview?.({ url: event.target.src, title: event.target.alt, type: 'image' })" />
 )}
   <div class="author-body">
     <h3 class="author-name">{profile.name || t('inblog.anonymousAuthor')}</h3>
