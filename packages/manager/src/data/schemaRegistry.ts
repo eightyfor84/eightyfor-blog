@@ -176,6 +176,8 @@ const plugins: Record<string, PluginMapping> = {
     description: '评论插件：主开关与评论配置（后端/态度/图床）',
     featureFlag: 'comments',
     storage: 'site',
+    // 评论显示在文章页——入口留在 post-page（文章页设置页），点击进入评论插件详情
+    entries: [{ target: 'chronicle:post-page' }],
   },
   slides: {
     key: 'slides',
