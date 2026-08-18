@@ -73,7 +73,7 @@ const routes = [
       { path: 'homepage',    name: 'SettingsHomepage',    component: SchemaSettingsPage, props: { schemaId: 'chronicle:homepage' },    meta: { title: 'settings.home' } },
       { path: 'appearance',  name: 'SettingsAppearance',  component: SchemaSettingsPage, props: { schemaId: 'chronicle:appearance' },  meta: { title: 'settings.appearance' } },
       { path: 'features',    name: 'SettingsFeatures',    component: SchemaSettingsPage, props: { schemaId: 'chronicle:features' },    meta: { title: 'settings.features' } },
-      // Plugin modules — schema 随簇（chronicle-search / chronicle-comments）
+      // Plugin modules — schema 随插件（chronicle-search / chronicle-comments）
       { path: 'search',      name: 'SettingsSearch',      component: SchemaSettingsPage, props: { schemaId: 'chronicle:search' },      meta: { title: 'settings.search' } },
       { path: 'comments',    name: 'SettingsComments',    component: SchemaSettingsPage, props: { schemaId: 'chronicle:comments' },    meta: { title: 'settings.comments' } },
       // Backward-compat: old tab routes → new module routes

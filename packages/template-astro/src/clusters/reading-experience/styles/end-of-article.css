@@ -1,3 +1,0 @@
-/* ── 组件样式：EndOfArticle ──
-   自 src/clusters/EndOfArticle.astro <style> 迁出。 */
-  .end-of-article{ display: flex; flex-direction: column; gap: 1.5rem; margin-top: 2rem; padding: 0 max(20px,min((6vw - 10px),60px)); }

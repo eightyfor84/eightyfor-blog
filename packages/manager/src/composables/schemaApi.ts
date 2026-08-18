@@ -11,17 +11,17 @@ import systemSettings from '../../schemas/system-settings.schema.json'
 
 // Known schema $ids — for now these are bundled directly
 // In the future, they'd be loaded from packages/template-astro/schemas/ via IPC
-// Schema 跟随模块（T5）：模板核心（schemas/）+ 插件 schema（src/clusters/<id>/schema.json）
+// Schema 跟随模块（T5）：模板核心（schemas/）+ 插件 schema（src/plugins/<id>/schema.json）
 import homepage from '../../../template-astro/schemas/homepage.schema.json'
 import appearance from '../../../template-astro/schemas/appearance.schema.json'
 import features from '../../../template-astro/schemas/features.schema.json'
 import profile from '../../../template-astro/schemas/profile.schema.json'
 import postPage from '../../../template-astro/schemas/post-page.schema.json'
-import collections from '../../../template-astro/src/clusters/collections/schema.json'
-import friends from '../../../template-astro/src/clusters/friends/schema.json'
-import search from '../../../template-astro/src/clusters/search/schema.json'
-import comments from '../../../template-astro/src/clusters/comments/schema.json'
-import slideshow from '../../../template-astro/src/clusters/slides/schema.json'
+import collections from '../../../template-astro/src/plugins/collections/schema.json'
+import friends from '../../../template-astro/src/plugins/friends/schema.json'
+import search from '../../../template-astro/src/plugins/search/schema.json'
+import comments from '../../../template-astro/src/plugins/comments/schema.json'
+import slideshow from '../../../template-astro/src/plugins/slides/schema.json'
 
 // Reactive schema store — populated with bundled schemas on first access
 export const schemaStore = reactive<Record<string, any>>({

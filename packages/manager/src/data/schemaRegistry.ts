@@ -36,9 +36,9 @@ export interface ContentTypeMapping {
   format: 'yaml' | 'markdown' | 'json'
 }
 
-/** 插件配置位置（簇 settingsSchema 声明的逻辑段 → schema 文件 + 配置落点） */
+/** 插件配置位置（插件 settingsSchema 声明的逻辑段 → schema 文件 + 配置落点） */
 export interface PluginMapping {
-  /** 插件逻辑段（簇 manifest.settingsSchema 声明的值） */
+  /** 插件逻辑段（插件 manifest.settingsSchema 声明的值） */
   key: string
   /** 承载该段设置的 schema $id */
   schemaId: string
@@ -76,7 +76,7 @@ export interface TemplateManifest {
   settings: Record<string, SchemaMapping>
   /** 内容类型与文件约定 */
   contentTypes: Record<string, ContentTypeMapping>
-  /** 插件配置位置（簇 settingsSchema → schema + 落点） */
+  /** 插件配置位置（插件 settingsSchema → schema + 落点） */
   plugins: Record<string, PluginMapping>
   /** background 双位置声明 */
   background: BackgroundMapping
@@ -139,7 +139,7 @@ const contentTypes: Record<string, ContentTypeMapping> = {
   friends: { dir: 'data', idFrom: 'filename', file: 'friends.yml', format: 'yaml' },
 }
 
-// 插件配置位置：簇 settingsSchema 声明的逻辑段 → schema + 落点。
+// 插件配置位置：插件 settingsSchema 声明的逻辑段 → schema + 落点。
 // 现状模式：search/comments 段在 template-settings.schema.json（site.yml）；friends 独立文件。
 const plugins: Record<string, PluginMapping> = {
   search: {
@@ -172,7 +172,7 @@ const plugins: Record<string, PluginMapping> = {
     filePath: 'data/site.yml',
     format: 'yaml',
     name: 'Slides',
-    description: '幻灯片簇：Marp 渲染（schema 随簇；post 级配置走 frontmatter slideshow 段）',
+    description: '幻灯片簇：Marp 渲染（schema 随插件；post 级配置走 frontmatter slideshow 段）',
   },
 }
 

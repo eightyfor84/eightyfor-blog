@@ -49,7 +49,7 @@ const ROUTE_PREFIX: Record<string, string> = {
   'chronicle:post-page': '/settings/post-page',
 }
 
-// 插件 → 详情路由（schema 随簇）
+// 插件 → 详情路由（schema 随插件）
 const PLUGIN_ROUTES: Record<string, string> = {
   search: '/settings/search',
   comments: '/settings/comments',

@@ -1,6 +1,6 @@
 // ── T4 内容无关验证适配器：Content Collections ───────────
 // 消费 Astro Content Collections 约定目录（src/content/posts/*.md）作为内容源，
-// 证明渲染层与内容源解耦——换内容源 = 换适配器，主板/主题/簇零改动。
+// 证明渲染层与内容源解耦——换内容源 = 换适配器，主板/主题/插件零改动。
 //
 // 刻意不实现 getComments / getCollections / getCollectionPostIds：
 // when.capability 探测使评论/态度/合集槽位自动收敛（内容源能力驱动 UI）。

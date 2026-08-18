@@ -1,0 +1,529 @@
+/* ── 组件样式：CommentSection ──
+   自 src/plugins/CommentSection.astro <style> 迁出（与 critical 同值+附加细化，bundled 后加载赢平局，安全）。 */
+  /* ═══════════════════════════════════════════════════════════
+     CommentSection — Chronicle design system
+     NOTE: is:global because commentAdapter.ts injects HTML dynamically
+     (client-side rendering for the waline backend),
+     and scoped styles won't match JS-generated DOM.
+     All selectors are namespaced inside .comment-section to avoid leaks.
+     ═══════════════════════════════════════════════════════════ */
+
+  .comment-section {
+    padding: 0 max(20px,min((6vw - 10px),60px)) 40vh;
+  }
+
+  /* The `hidden` attribute is neutralized when a class also sets `display`
+     (e.g. .cs-reply-indicator's inline-flex, .cs-attachments' flex), because
+     author styles override the UA's `[hidden] { display:none }`. Force it back
+     so reply-indicator / attachments / notes actually disappear when hidden. */
+  .comment-section [hidden] {
+    display: none !important;
+  }
+
+  .cs-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .cs-title {
+    font-size: 1.35rem;
+    font-weight: 600;
+    font-variation-settings: "wght" 600;
+    color: var(--app-text-pri);
+    margin: 0;
+  }
+
+  .cs-count {
+    font-size: 0.85rem;
+    color: var(--app-text-sec);
+    background: var(--comp-bg);
+    padding: 0.15em 0.6em;
+    border-radius: 1em;
+  }
+
+  .cs-empty {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--app-text-sec);
+  }
+
+  .cs-empty-icon {
+    width: 48px;
+    height: 48px;
+    opacity: 0.35;
+    margin-bottom: 0.75rem;
+  }
+
+  .cs-empty-text {
+    font-size: 0.95rem;
+    margin: 0;
+  }
+
+  .cs-loading {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--app-text-sec);
+    font-size: 0.9rem;
+  }
+
+  .cs-thread {
+    margin-bottom: 0.75rem;
+  }
+
+  .cs-comment {
+    display: flex;
+    gap: 0.85rem;
+    padding: 1rem 1.1rem;
+    background: transparent;
+    border-radius: 10px;
+    transition: background 0.15s;
+  }
+
+  .cs-comment:hover {
+    background: var(--hover);
+  }
+
+  .cs-comment--reply {
+    margin-left: 3rem;
+    border-radius: 8px;
+    padding: 0.85rem 1rem;
+  }
+
+  .cs-avatar {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+  }
+
+  .cs-avatar-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--comp-bg-alt);
+  }
+
+  .cs-avatar-img--sm {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--comp-bg-alt);
+  }
+
+  .cs-avatar-initial {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--accent-bg);
+    color: var(--accent);
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  .cs-avatar-initial--sm {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+  }
+
+  .cs-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .cs-meta {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    margin-bottom: 0.35rem;
+    flex-wrap: wrap;
+  }
+
+  .cs-author {
+    font-size: 0.9rem;
+    font-weight: 600;
+    font-variation-settings: "wght" 600;
+    color: var(--app-text-sec);
+  }
+
+  .cs-author a {
+    color: var(--accent);
+    font-weight: 600;
+    font-variation-settings: "wght" 600;
+    text-decoration: none;
+  }
+
+  .cs-author a:hover {
+    text-decoration: underline;
+  }
+
+  .cs-reply-to {
+    font-size: 0.78rem;
+    color: var(--comp-text-pri);
+    opacity: 0.8;
+  }
+
+  .cs-pinned-badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--accent-bg);
+    padding: 0.1em 0.55em;
+    border-radius: 0.5em;
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+
+  .cs-location {
+    font-size: 0.72rem;
+    color: var(--comp-text-sec, var(--app-text-sec));
+    background: var(--comp-bg, rgba(128,128,128,0.08));
+    padding: 0.1em 0.55em;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  .cs-date {
+    font-size: 0.78rem;
+    color: var(--app-text-sec);
+    white-space: nowrap;
+    opacity: 0.5;
+  }
+
+  .cs-content {
+    font-size: 0.93rem;
+    line-height: 1.6;
+    color: var(--app-text-pri);
+    word-break: break-word;
+  }
+
+  .cs-content p {
+    margin: 0 0 0.5rem;
+  }
+
+  .cs-content p:last-child {
+    margin-bottom: 0;
+  }
+
+  .cs-content img {
+    max-width: 100%;
+    max-height: 240px;
+    border-radius: 4px;
+  }
+
+  .cs-replies {
+    margin-top: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .cs-reply-btn {
+    border: none;
+    background: transparent;
+    color: var(--app-text-sec);
+    font-size: 0.78rem;
+    cursor: pointer;
+    padding: 0;
+    margin-top: 0.35rem;
+    opacity: 0.7;
+    transition: opacity 0.15s, color 0.15s;
+  }
+
+  .cs-load-more {
+    display: block;
+    margin: 1rem auto 0;
+    padding: 0.45rem 1.2rem;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--app-text-sec);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .cs-load-more:hover { border-color: var(--accent); color: var(--accent); }
+
+  .cs-reply-btn:hover {
+    opacity: 1;
+    color: var(--accent);
+  }
+
+  /* ── Comment form (Waline backend) ─────────────────────── */
+
+  .cs-form {
+    margin-bottom: 2rem;
+  }
+
+  .cs-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.6rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .cs-form-input,
+  .cs-form-textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.6rem 0.85rem;
+    font-size: 0.9rem;
+    font-family: inherit;
+    color: var(--app-text-pri);
+    background: var(--comp-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .cs-form-input::placeholder,
+  .cs-form-textarea::placeholder {
+    color: var(--app-text-sec);
+    opacity: 0.6;
+  }
+
+  .cs-form-input:focus,
+  .cs-form-textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-bg);
+  }
+
+  .cs-form-textarea {
+    min-height: 6rem;
+    resize: vertical;
+    line-height: 1.6;
+  }
+
+  .cs-attachments {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+  }
+
+  .cs-attachment {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.3rem 0.45rem;
+    background: var(--comp-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.82rem;
+    color: var(--app-text-sec);
+    max-width: 100%;
+  }
+
+  .cs-attachment-thumb {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: var(--comp-bg-alt);
+  }
+
+  .cs-attachment-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 12rem;
+  }
+
+  .cs-attachment-remove {
+    border: none;
+    background: transparent;
+    color: var(--app-text-sec);
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0 0.15rem;
+    flex-shrink: 0;
+  }
+
+  .cs-attachment-remove:hover {
+    color: var(--app-text-pri);
+  }
+
+  .cs-form-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 0.6rem;
+    flex-wrap: wrap;
+  }
+
+  .cs-form-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+  }
+
+  .cs-reply-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.82rem;
+    color: var(--app-text-sec);
+    background: var(--comp-bg-alt);
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+  }
+
+  .cs-reply-cancel {
+    border: none;
+    background: transparent;
+    color: var(--app-text-sec);
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0;
+  }
+
+  .cs-reply-cancel:hover {
+    color: var(--app-text-pri);
+  }
+
+  .cs-image-btn,
+  .cs-preview-toggle,
+  .cs-submit-btn {
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--app-text-sec);
+    padding: 0.45rem 0.9rem;
+    font-size: 0.85rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, filter 0.15s;
+  }
+
+  .cs-image-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.45rem 0.6rem;
+  }
+
+  .cs-image-btn svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .cs-image-btn:hover,
+  .cs-preview-toggle:hover {
+    background: var(--hover);
+    color: var(--app-text-pri);
+  }
+
+  .cs-submit-btn {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .cs-submit-btn:hover:not(:disabled) {
+    filter: brightness(1.05);
+  }
+
+  .cs-submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .cs-form-preview {
+    margin-top: 0.6rem;
+    padding: 0.75rem 0.9rem;
+    background: var(--comp-bg);
+    border: 1px dashed var(--border-color);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--app-text-pri);
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .cs-form-preview :where(p, ul, ol, blockquote, pre) {
+    margin: 0 0 0.5rem;
+  }
+
+  .cs-form-preview :where(p, ul, ol, blockquote, pre):last-child {
+    margin-bottom: 0;
+  }
+
+  .cs-form-preview :where(ul, ol) {
+    padding-left: 1.25rem;
+  }
+
+  .cs-form-preview :where(img) {
+    max-width: 100%;
+    border-radius: 6px;
+  }
+
+  .cs-form-preview :where(pre) {
+    padding: 0.5rem 0.7rem;
+    background: var(--comp-bg-alt);
+    border-radius: 6px;
+    overflow-x: auto;
+  }
+
+  .cs-form-preview :where(code) {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.85em;
+  }
+
+  .cs-form-note {
+    margin-top: 0.6rem;
+    font-size: 0.85rem;
+    color: var(--app-text-sec);
+  }
+
+  .cs-form-note--error {
+    color: #e5484d;
+  }
+
+  .cs-form-placeholder {
+    text-align: center;
+    padding: 2rem 1rem;
+    margin-bottom: 2rem;
+    color: var(--app-text-sec);
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 600px) {
+    .cs-form-row {
+      grid-template-columns: 1fr;
+    }
+
+    .cs-comment--reply {
+      margin-left: 1.5rem;
+    }
+  }
+
+  @media (max-width: 500px) {
+    .cs-comment {
+      padding: 0.85rem;
+    }
+
+    .cs-avatar {
+      width: 34px;
+      height: 34px;
+    }
+
+    .cs-avatar-img,
+    .cs-avatar-initial {
+      width: 34px;
+      height: 34px;
+    }
+  }
