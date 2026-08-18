@@ -48,9 +48,9 @@ post:
   endOfArticle:
     share: true
     shareChannels:
-    - twitter
-    - linkedin
-    - weibo
+      - twitter
+      - linkedin
+      - weibo
     prevNextMode: both
     prevNextScope: collection
     prevNext: true
@@ -67,3 +67,4 @@ post:
     imageUploadToken: ''
 globalSearch: true
 aboutPage: true
+collectionPage: true
