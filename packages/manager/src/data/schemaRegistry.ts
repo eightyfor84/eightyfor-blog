@@ -173,10 +173,9 @@ const plugins: Record<string, PluginMapping> = {
     filePath: 'data/site.yml',
     format: 'yaml',
     name: 'Comments',
-    description: '评论插件：主开关（后端配置随 Waline 接入）',
+    description: '评论插件：主开关与评论配置（后端/态度/图床）',
     featureFlag: 'comments',
     storage: 'site',
-    entries: [{ target: 'chronicle:post-page' }],
   },
   slides: {
     key: 'slides',
