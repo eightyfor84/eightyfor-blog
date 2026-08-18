@@ -38,6 +38,33 @@ export function getClusterPage(clusterId: string, pageKey: string): any {
   return getCluster(clusterId)?.pages?.[pageKey]?.component;
 }
 
+/** 全部簇注册的页面（动态壳 getStaticPaths 用）：route → 页面体 + 门控 */
+export function getAllClusterPages(): { route: string; clusterId: string; pageKey: string; component: any; when?: { featureFlag?: string } }[] {
+  const out: { route: string; clusterId: string; pageKey: string; component: any; when?: { featureFlag?: string } }[] = [];
+  for (const cluster of registry.values()) {
+    for (const [pageKey, contrib] of Object.entries(cluster.pages ?? {})) {
+      out.push({
+        route: contrib.route,
+        clusterId: cluster.id,
+        pageKey,
+        component: contrib.component,
+        when: contrib.when,
+      });
+    }
+  }
+  return out;
+}
+
+/** 按路由段取页面体（动态壳渲染用） */
+export function getClusterPageByRoute(route: string): { component: any; when?: { featureFlag?: string } } | undefined {
+  for (const cluster of registry.values()) {
+    for (const contrib of Object.values(cluster.pages ?? {})) {
+      if (contrib.route === route) return { component: contrib.component, when: contrib.when };
+    }
+  }
+  return undefined;
+}
+
 /** 取某槽位的贡献组件列表（主板页面槽渲染用）；经 when 门控过滤 */
 export function getClusterSlots(slot: string, ctx?: SlotGateCtx): any[] {
   const out: any[] = [];

@@ -1,0 +1,29 @@
+---
+// ── 主板动态模块壳：/{lang}/{module} ────────────────────
+// 内核不预知任何模块：路由段由簇 manifest.pages 声明（route），
+// getStaticPaths 遍历全部注册簇生成页面；featureFlag 门控关闭 → 不生成（自然 404）。
+// 静态页（blogs/index/about/post 等主板预设）不受影响——模块 route 不得与之冲突。
+import { getAllClusterPages, getClusterPageByRoute } from '../../clusters';
+import { resolveFeatureFlags } from '../../utils/featureFlags';
+import { loadSiteSettings } from '../../utils/siteSettings';
+
+export const prerender = true;
+
+export async function getStaticPaths() {
+  const settings = await loadSiteSettings();
+  const featureFlags = resolveFeatureFlags(settings?.featureFlags);
+  const paths: { params: { lang: string; module: string } }[] = [];
+  for (const page of getAllClusterPages()) {
+    if (page.when?.featureFlag && featureFlags[page.when.featureFlag] === false) continue;
+    for (const lang of ['en', 'zh']) {
+      paths.push({ params: { lang, module: page.route } });
+    }
+  }
+  return paths;
+}
+
+const { lang, module } = Astro.params;
+const page = getClusterPageByRoute(String(module));
+const PageComponent = page?.component;
+---
+{PageComponent ? <PageComponent /> : null}

@@ -10,7 +10,7 @@ export const friends: ClusterManifest = {
   id: 'friends',
   name: '友链簇（friends）',
   pages: {
-    friends: { route: 'friends', component: FriendsPage },
+    friends: { route: 'friends', component: FriendsPage, when: { featureFlag: 'friendsPage' } },
   },
   slots: [],
   dataHooks: {},

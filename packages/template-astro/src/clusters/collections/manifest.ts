@@ -8,7 +8,7 @@ export const collections: ClusterManifest = {
   id: 'collections',
   name: '合集簇（collections）',
   pages: {
-    collection: { route: 'collection', component: CollectionPage },
+    collection: { route: 'collection', component: CollectionPage, when: { featureFlag: 'collectionPage' } },
   },
   // 合集导航（CollectionNav）为文章页槽位贡献，随阅读体验簇槽位化时接入
   slots: [],

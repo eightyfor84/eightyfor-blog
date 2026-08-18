@@ -3,12 +3,14 @@
 // 主板只保留：路由壳 + 数据契约 + 预设；功能按簇注册，一单元一 manifest。
 import type { DataSource } from '../data/types';
 
-/** 页面级贡献：主板路由壳（pages/[lang]/<route>.astro）渲染的页面体组件 */
+/** 页面级贡献：主板动态壳（pages/[lang]/[module].astro）按 route 渲染的页面体组件 */
 export interface ClusterPageContribution {
-  /** 主板路由名（pages/[lang]/<route>.astro 的壳文件） */
+  /** 主板路由段（/zh/<route>/）——内核不预知，由簇声明 */
   route: string;
   /** 页面体组件（自含 Layout 包裹与数据读取） */
   component: any;
+  /** 页面门控：featureFlag 关闭 → 动态壳 getStaticPaths 不生成该页（与静态壳门控同语义） */
+  when?: { featureFlag?: string };
 }
 
 /** 槽位级贡献：注入主板页面预置的渲染槽（如文章页文末/评论位） */
