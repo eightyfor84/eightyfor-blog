@@ -206,7 +206,7 @@ const plugins: Record<string, PluginMapping> = {
     filePath: 'data/site.yml',
     format: 'yaml',
     name: 'Reading Experience',
-    description: '阅读体验插件：目录 / 文章头部信息 / 文末区块（相关、上下篇、分享、态度、作者卡）',
+    description: '阅读体验插件：目录与文末区块（相关、上下篇、分享、态度、作者卡）',
     storage: 'site',
     entries: [{ target: 'chronicle:post-page' }],
   },
@@ -229,9 +229,14 @@ export const TEMPLATE_MANIFEST: TemplateManifest = {
 export const SCHEMA_REGISTRY: Record<string, SchemaMapping> = settings
 
 export function getMapping(schemaId: string): SchemaMapping | undefined {
-  return settings[schemaId]
+  if (settings[schemaId]) return settings[schemaId]
+  // 插件 schema（chronicle:search/comments/…）的 mapping 在 plugins 映射里——合并查找，
+  // 否则插件详情页（/settings/plugins/<key>）useSchemaForm 拿不到 filePath
+  const plugin = Object.values(plugins).find((p) => p.schemaId === schemaId)
+  if (plugin) return { schemaId, filePath: plugin.filePath, format: plugin.format }
+  return undefined
 }
 
 export function hasMapping(schemaId: string): boolean {
-  return schemaId in settings
+  return schemaId in settings || Object.values(plugins).some((p) => p.schemaId === schemaId)
 }

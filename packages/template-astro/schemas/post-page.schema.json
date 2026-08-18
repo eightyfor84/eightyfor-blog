@@ -15,6 +15,13 @@
     "order": 2
   },
   "x-groups": {
+    "postMeta": {
+      "label": {
+        "en": "Header & Meta",
+        "zh-CN": "标题区域"
+      },
+      "order": 1
+    },
     "postCollectionNav": {
       "label": {
         "en": "Collection Navigation",
@@ -34,6 +41,58 @@
         "zh-CN": "文章页"
       },
       "properties": {
+        "meta": {
+          "type": "object",
+          "x-widget": "fieldset",
+          "x-order": 1,
+          "title": {
+            "en": "Header & Meta",
+            "zh-CN": "标题区域"
+          },
+          "properties": {
+            "metaUpdated": {
+              "type": "boolean",
+              "default": true,
+              "x-widget": "toggle",
+              "x-order": 1,
+              "title": {
+                "en": "Show Updated Date",
+                "zh-CN": "显示更新时间"
+              }
+            },
+            "metaStats": {
+              "type": "boolean",
+              "default": true,
+              "x-widget": "toggle",
+              "x-order": 2,
+              "title": {
+                "en": "Word Count & Reading Time",
+                "zh-CN": "字数与阅读时间"
+              }
+            },
+            "metaAiBadge": {
+              "type": "boolean",
+              "default": true,
+              "x-widget": "toggle",
+              "x-order": 3,
+              "title": {
+                "en": "Show AI Badge",
+                "zh-CN": "显示 AI 标记"
+              }
+            },
+            "showTags": {
+              "type": "boolean",
+              "default": true,
+              "x-widget": "toggle",
+              "x-order": 4,
+              "title": {
+                "en": "Show Tags",
+                "zh-CN": "显示标签"
+              }
+            }
+          },
+          "x-group": "postMeta"
+        },
         "collectionNav": {
           "type": "object",
           "x-widget": "fieldset",
