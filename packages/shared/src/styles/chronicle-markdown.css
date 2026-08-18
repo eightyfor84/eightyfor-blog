@@ -1165,7 +1165,7 @@
   font-size: 1rem;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 768px) {
   .post-detail-container { padding: 1rem; }
   .post-title { font-size: 1.5rem; }
 }
@@ -1446,7 +1446,7 @@
 .image-preview-content.is-dragging { transition: none !important; }
 .image-preview-content:active { cursor: grabbing; }
 
-@media (max-width: 720px) {
+@media (max-width: 768px) {
   .file-preview-header { height: 70px; }
   .file-preview-overlay { backdrop-filter: none; }
 
