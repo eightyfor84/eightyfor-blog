@@ -22,7 +22,6 @@ import search from '../../../template-astro/src/plugins/search/schema.json'
 import comments from '../../../template-astro/src/plugins/comments/schema.json'
 import slideshow from '../../../template-astro/src/plugins/slides/schema.json'
 import readingExperience from '../../../template-astro/src/plugins/reading-experience/schema.json'
-import collectionNav from '../../../template-astro/src/plugins/collections/collection-nav.schema.json'
 
 // Reactive schema store — populated with bundled schemas on first access
 export const schemaStore = reactive<Record<string, any>>({
@@ -37,7 +36,6 @@ export const schemaStore = reactive<Record<string, any>>({
   'chronicle:comments': comments,
   'chronicle:slideshow': slideshow,
   'chronicle:reading-experience': readingExperience,
-  'chronicle:collection-nav': collectionNav,
 })
 
 /**

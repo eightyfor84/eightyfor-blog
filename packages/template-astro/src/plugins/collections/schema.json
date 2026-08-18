@@ -8,7 +8,7 @@
   "x-lang": "en",
   "x-version": "2.0.2",
   "x-migrations": [],
-  "type": "array",
+  "type": "object",
   "x-chronicle-class": "collection-tree",
   "x-nav": {
     "group": "template",
@@ -23,113 +23,177 @@
       }
     }
   },
-  "items": {
-    "type": "object",
-    "required": [
-      "name",
-      "slug"
-    ],
-    "properties": {
-      "name": {
-        "type": "string",
-        "minLength": 1,
-        "maxLength": 60,
-        "x-widget": "input",
-        "x-order": 1,
-        "title": {
-          "en": "Name",
-          "zh": "名称"
-        }
+  "x-groups": {
+    "collectionsTree": {
+      "label": {
+        "en": "Collections",
+        "zh-CN": "合集树"
       },
-      "slug": {
-        "type": "string",
-        "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
-        "minLength": 1,
-        "maxLength": 60,
-        "x-widget": "input",
-        "x-order": 2,
-        "title": {
-          "en": "Slug",
-          "zh": "别名"
-        }
+      "order": 1
+    },
+    "postCollectionNav": {
+      "label": {
+        "en": "Collection Navigation",
+        "zh-CN": "合集导航"
+      },
+      "order": 2,
+      "toggle": "enabled"
+    }
+  },
+  "properties": {
+    "collections": {
+      "type": "array",
+      "x-widget": "collection-tree",
+      "x-group": "collectionsTree",
+      "x-order": 1,
+      "title": {
+        "en": "Collections",
+        "zh-CN": "合集"
       },
       "description": {
-        "type": "string",
-        "maxLength": 300,
-        "x-widget": "textarea",
-        "x-order": 3,
-        "title": {
-          "en": "Description",
-          "zh": "描述"
-        }
+        "en": "Collection tree (data in collections.yml)",
+        "zh-CN": "合集树（数据存 collections.yml）"
       },
-      "cover": {
-        "type": "string",
-        "x-widget": "image-picker",
-        "x-order": 4,
-        "title": {
-          "en": "Cover",
-          "zh": "封面"
-        }
-      },
-      "nodes": {
-        "type": "array",
-        "x-widget": "node-tree",
-        "x-order": 5,
-        "items": {
-          "oneOf": [
-            {
-              "type": "object",
-              "required": [
-                "type",
-                "id"
-              ],
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "const": "post",
-                  "x-widget": "hidden"
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "slug"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60,
+            "x-widget": "input",
+            "x-order": 1,
+            "title": {
+              "en": "Name",
+              "zh": "名称"
+            }
+          },
+          "slug": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "minLength": 1,
+            "maxLength": 60,
+            "x-widget": "input",
+            "x-order": 2,
+            "title": {
+              "en": "Slug",
+              "zh": "别名"
+            }
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 300,
+            "x-widget": "textarea",
+            "x-order": 3,
+            "title": {
+              "en": "Description",
+              "zh": "描述"
+            }
+          },
+          "cover": {
+            "type": "string",
+            "x-widget": "image-picker",
+            "x-order": 4,
+            "title": {
+              "en": "Cover",
+              "zh": "封面"
+            }
+          },
+          "nodes": {
+            "type": "array",
+            "x-widget": "node-tree",
+            "x-order": 5,
+            "items": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "type",
+                    "id"
+                  ],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "const": "post",
+                      "x-widget": "hidden"
+                    },
+                    "id": {
+                      "type": "string",
+                      "x-widget": "post-picker"
+                    }
+                  }
                 },
-                "id": {
-                  "type": "string",
-                  "x-widget": "post-picker"
-                }
-              }
-            },
-            {
-              "type": "object",
-              "required": [
-                "type",
-                "title"
-              ],
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "const": "group",
-                  "x-widget": "hidden"
-                },
-                "title": {
-                  "type": "string",
-                  "minLength": 1,
-                  "x-widget": "input"
-                },
-                "children": {
-                  "type": "array",
-                  "x-widget": "node-tree",
-                  "items": {
-                    "$ref": "#/items/properties/nodes/items"
+                {
+                  "type": "object",
+                  "required": [
+                    "type",
+                    "title"
+                  ],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "const": "group",
+                      "x-widget": "hidden"
+                    },
+                    "title": {
+                      "type": "string",
+                      "minLength": 1,
+                      "x-widget": "input"
+                    },
+                    "children": {
+                      "type": "array",
+                      "x-widget": "node-tree",
+                      "items": {
+                        "$ref": "#/items/properties/nodes/items"
+                      }
+                    }
                   }
                 }
+              ]
+            },
+            "title": {
+              "en": "Nodes",
+              "zh": "节点"
+            }
+          }
+        }
+      }
+    },
+    "post": {
+      "type": "object",
+      "x-widget": "fieldset",
+      "x-order": 2,
+      "properties": {
+        "collectionNav": {
+          "type": "object",
+          "x-widget": "fieldset",
+          "x-group": "postCollectionNav",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true,
+              "x-widget": "toggle",
+              "title": {
+                "en": "Enable Collection Navigation",
+                "zh-CN": "启用合集导航"
+              }
+            },
+            "alwaysCollapsed": {
+              "type": "boolean",
+              "default": false,
+              "x-widget": "toggle",
+              "title": {
+                "en": "Always Collapsed",
+                "zh-CN": "始终折叠"
               }
             }
-          ]
-        },
-        "title": {
-          "en": "Nodes",
-          "zh": "节点"
+          }
         }
       }
     }
-  },
-  "default": []
+  }
 }

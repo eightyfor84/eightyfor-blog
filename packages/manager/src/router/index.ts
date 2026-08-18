@@ -46,7 +46,7 @@ const Settings = () => import(/* webpackChunkName: "settings" */ '../pages/Setti
 function pluginDetailProps(route: { params: { pluginKey?: string } }) {
   // 按 key 字段查找（对象属性名可能驼峰，如 readingExperience——不依赖属性名约定）
   const plugin = Object.values(TEMPLATE_MANIFEST.plugins).find((p) => p.key === route.params.pluginKey)
-  return { schemaId: plugin?.schemaId || 'chronicle:homepage', extraSchemaId: plugin?.extraSchemaId }
+  return { schemaId: plugin?.schemaId || 'chronicle:homepage' }
 }
 const TextEditorLazy = () => import(/* webpackChunkName: "text-editor" */ '../pages/TextEditor.vue')
 const EditorPrintPreview = () => import(/* webpackChunkName: "editor-print-preview" */ '../pages/EditorPrintPreview.vue')
