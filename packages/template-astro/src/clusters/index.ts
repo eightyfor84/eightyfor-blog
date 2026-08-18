@@ -5,11 +5,13 @@ import { collections } from './collections/manifest';
 import { readingExperience } from './reading-experience/manifest';
 import { search } from './search/manifest';
 import { friends } from './friends/manifest';
+import { comments } from './comments/manifest';
 
 registerCluster(collections);
 registerCluster(readingExperience);
 registerCluster(search);
 registerCluster(friends);
+registerCluster(comments);
 
 export * from './registry';
 export * from './types';

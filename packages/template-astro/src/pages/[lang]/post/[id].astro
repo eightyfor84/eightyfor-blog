@@ -13,7 +13,6 @@ import { getClusterSlot } from '../../../clusters';
 import { resolveFeatureFlags } from '../../../utils/featureFlags';
 import CornerActions from '../../../components/CornerActions.astro';
 import CollectionNav from '../../../components/CollectionNav.astro';
-import CommentSection from '../../../components/CommentSection.astro';
 import Slideshow from '../../../components/Slideshow.astro';
 import 'katex/dist/katex.min.css';
 
@@ -112,6 +111,7 @@ const slotGateCtx = {
 const TocSlot = getClusterSlot('post-toc');
 const EndOfArticleSlot = getClusterSlot('post-end-of-article');
 const AttitudeSlot = getClusterSlot('post-attitude', slotGateCtx);
+const CommentsSlot = getClusterSlot('post-comments', slotGateCtx);
 
 // ── Collection feature flag (distinct from data result — see getCollections) ──
 const collectionEnabled = (settings as Record<string, any>).collectionPage !== false;
@@ -416,8 +416,8 @@ const metaDescription = buildMetaDescription(post, locale);
       <AttitudeSlot postId={post?.id || id} walineServerUrl={commentWalineServerUrl} locale={locale} />
     )}
 
-    {post && commentsEnabled && (
-      <CommentSection
+    {post && commentsEnabled && CommentsSlot && (
+      <CommentsSlot
         postId={post?.id || id}
         locale={locale}
         backend={commentBackend}

@@ -1,5 +1,5 @@
 ---
-import '../themes/aurora/styles/components/comment-section.css';
+import '../../themes/aurora/styles/components/comment-section.css';
 /**
  * CommentSection — client:visible island, backend-agnostic.
  *
@@ -20,8 +20,8 @@ import '../themes/aurora/styles/components/comment-section.css';
  *   third-party SDK or UI is ever loaded.
  */
 import { createHash } from 'node:crypto';
-import { getTranslation } from '../utils/i18n';
-import { dataSource, buildCommentTree, type ChronicleComment } from '../data';
+import { getTranslation } from '../../utils/i18n';
+import { dataSource, buildCommentTree, type ChronicleComment } from '../../data';
 
 interface Props {
   postId?: string;
@@ -275,7 +275,7 @@ const clientI18n = {
 
   async function _csHydrate() {
     if (_csCleanup) return;
-    const { hydrateCommentSection } = await import('../utils/commentAdapter');
+    const { hydrateCommentSection } = await import('./commentAdapter');
     if (_csCleanup) return; // page swapped away while the chunk was loading
     _csCleanup = hydrateCommentSection();
   }
