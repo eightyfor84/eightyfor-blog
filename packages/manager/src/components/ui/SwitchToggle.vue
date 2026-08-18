@@ -48,8 +48,8 @@ defineEmits<{ (e: 'update:modelValue', v: boolean): void }>()
 }
 .switch-toggle__thumb {
   position: absolute;
-  top: 2px;
-  left: 2px;
+  top: 3px;
+  left: 3px;
   width: 16px;
   height: 16px;
   border-radius: 50%;
