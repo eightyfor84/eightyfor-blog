@@ -4,10 +4,12 @@ import { registerCluster } from './registry';
 import { collections } from './collections/manifest';
 import { readingExperience } from './reading-experience/manifest';
 import { search } from './search/manifest';
+import { friends } from './friends/manifest';
 
 registerCluster(collections);
 registerCluster(readingExperience);
 registerCluster(search);
+registerCluster(friends);
 
 export * from './registry';
 export * from './types';
