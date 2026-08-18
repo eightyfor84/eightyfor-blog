@@ -43,7 +43,7 @@
   "properties": {
     "collections": {
       "type": "array",
-      "x-widget": "collection-tree",
+      "x-widget": "collection-editor",
       "x-group": "collectionsTree",
       "x-order": 1,
       "title": {
