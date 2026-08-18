@@ -16,3 +16,6 @@ export const friends: PluginManifest = {
   dataHooks: {},
   settingsSchema: ['friends'],
 };
+
+// 注册式约定：manifest 默认导出（plugins/index.ts glob 收集）
+export default friends;

@@ -4,13 +4,16 @@ import { buildLocalizedPath } from "../utils/routeLocale";
 import { loadSiteSettings } from "../utils/siteSettings";
 import { loadSiteProfile } from "../utils/siteProfile";
 import { getTranslation, getLocale } from "../utils/i18n";
-import SearchBox from "../plugins/search/SearchBox.astro";
+import { getPluginSlot } from '../plugins';
 import ChronicleImage from "./ChronicleImage.astro";
 
 const { locale, featureFlags } = Astro.props || {
   locale: "zh-CN",
   featureFlags: {},
 };
+
+// 首页搜索框槽位：search 插件贡献（when globalSearch）——removed search 后首页无搜索框
+const HomeSearchBoxSlot = getPluginSlot('home-search-box', { featureFlags });
 const t = (key: string) => getTranslation(locale, key);
 const routeLang = locale;
 const blogsPath = buildLocalizedPath(locale, "/blogs");
@@ -573,15 +576,17 @@ const yearLabel = new Date().getFullYear();
 
             <div class="taxonomy-block">
               <h3>{t("home.quickSearch")}</h3>
-              <SearchBox
-                instanceId="home-searchbox"
-                searchSuggestionsEnabled={false}
-                showTagTrigger={false}
-                placeholder={t("search.placeholder")}
-                featuredLabel={t("tag.featured")}
-                searchOnEnter={true}
-                t={t}
-              />
+              {HomeSearchBoxSlot ? (
+                <HomeSearchBoxSlot
+                  instanceId="home-searchbox"
+                  searchSuggestionsEnabled={false}
+                  showTagTrigger={false}
+                  placeholder={t("search.placeholder")}
+                  featuredLabel={t("tag.featured")}
+                  searchOnEnter={true}
+                  t={t}
+                />
+              ) : null}
             </div>
 
             {isCollectionEnabled && (

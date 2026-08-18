@@ -18,3 +18,6 @@ export const comments: PluginManifest = {
   dataHooks: {},
   settingsSchema: ['comments'],
 };
+
+// 注册式约定：manifest 默认导出（plugins/index.ts glob 收集）
+export default comments;

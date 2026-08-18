@@ -24,3 +24,6 @@ export const readingExperience: PluginManifest = {
   dataHooks: {},
   settingsSchema: ['reading-experience'],
 };
+
+// 注册式约定：manifest 默认导出（plugins/index.ts glob 收集）
+export default readingExperience;

@@ -1,21 +1,19 @@
-// ── 插件静态收集（构建期）──────────────────────────────────
-// 主板入口 import 本模块即注册全部插件。新增插件 = 在此加一行静态 import。
-// 「删除」插件 = manager 的专用接口 deletePlugin 物理删除源码目录（src/plugins/<key>），
-// 文件不存在 → 自然不注册（页面 404 + 槽位空 + 样式不进 bundle）。
-import { registerPlugin } from './registry';
-import { collections } from './collections/manifest';
-import { readingExperience } from './reading-experience/manifest';
-import { search } from './search/manifest';
-import { friends } from './friends/manifest';
-import { comments } from './comments/manifest';
-import { slides } from './slides/manifest';
+// ── 插件注册入口（注册式：目录即注册）──────────────────────
+// import.meta.glob 静态发现 src/plugins/*/manifest.*（构建期，SSG 友好）——
+// 新增插件 = 放入目录（自动注册，core 零改动）；
+// 删除插件 = 物理删除目录（glob 不含 → 不注册 → 页面 404/槽位空/样式不进 bundle）。
+import { registerPlugin, type PluginManifest } from './registry';
 
-registerPlugin(collections);
-registerPlugin(readingExperience);
-registerPlugin(search);
-registerPlugin(friends);
-registerPlugin(comments);
-registerPlugin(slides);
+const manifests = import.meta.glob<PluginManifest>('./*/manifest.*', {
+  eager: true,
+  import: 'default',
+});
+
+for (const manifest of Object.values(manifests)) {
+  if (manifest && typeof manifest === 'object' && (manifest as PluginManifest).id) {
+    registerPlugin(manifest as PluginManifest);
+  }
+}
 
 export * from './registry';
 export * from './types';
