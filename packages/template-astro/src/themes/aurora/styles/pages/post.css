@@ -359,4 +359,11 @@ html.is-mobile .cn-panel[data-cn-variant="sidebar"] {
   .scroll-blank {
     height: 80px;
   }
+
+  /* 自 global.css 下沉：移动端隐藏内联/浮动 TOC（critical-post 首帧同值，此处为异步层规则；
+     post.css 不设置 .toc-inline/.toc-float 根 display，无需 !important） */
+  .toc-inline,
+  .toc-float {
+    display: none;
+  }
 }

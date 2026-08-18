@@ -344,11 +344,6 @@
 
 
 
-i,
-em {
-  font-style: italic;
-}
-
 a {
   font-weight: 500;
   font-variation-settings: 'wght' 500;
@@ -603,132 +598,6 @@ button.secondary {
 }
 
 
-/* Hide desktop inline/floating TOC on mobile */
-@media (max-width: 768px) {
-  .toc-inline {
-    display: none !important;
-  }
-
-  .toc-float {
-    display: none !important;
-  }
-}
-
-
-
-.card {
-  padding: 2em;
-  background: var(--comp-bg-blur);
-}
-
-.inline-select {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
-  background: transparent;
-  color: var(--app-text-pri);
-  font-size: 0.95rem;
-  transition: all 0.2s ease;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='var(--app-text-pri) text' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 20px;
-  padding-right: 48px;
-  /* reserve more space for larger arrow */
-}
-
-.inline-select:hover {
-  border-color: var(--border-color-blur);
-  background: var(--hover);
-}
-
-.inline-select:focus {
-  outline: none;
-  background-color: var(--active);
-  box-shadow: var(--shadow-elev-2);
-  border-color: var(--accent);
-}
-
-/* Hide native IE arrow */
-.inline-select::-ms-expand {
-  display: none;
-}
-
-/* Option styles (browser support varies) */
-.inline-select option {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  border: 2px solid var(--select-option-border-color);
-  border-radius: 8px;
-  padding: 8px 12px;
-  background: var(--comp-bg);
-  color: var(--app-text-pri);
-}
-
-/* Compact variant */
-.inline-select.compact {
-  padding: 6px 32px 6px 8px;
-  border-radius: 8px;
-  font-size: 0.9rem;
-}
-
-/* Transparent variant keeps background transparent but preserves arrow */
-.transparent-select {
-  background-color: transparent;
-  border-color: transparent;
-  box-shadow: none;
-}
-
-.inline-select:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.inline-select[disabled] {
-  background-image: none;
-  border-color: var(--border-color-blur);
-  color: var(--comp-text-sec-disabled);
-}
-
-/* Wrapper for select so we can draw arrow via pseudo-element (select doesn't support ::after) */
-.select-wrap {
-  display: inline-block;
-  position: relative;
-}
-
-.select-wrap .inline-select {
-  display: block;
-  /* fill the wrapper */
-  width: 100%;
-  position: relative;
-  z-index: 1;
-  /* keep select below the arrow pseudo-element */
-  box-sizing: border-box;
-}
-
-/* Arrow via pseudo-element using mask so color can be controlled by CSS variable */
-.select-wrap::after {
-  content: '';
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 22px;
-  height: 18px;
-  pointer-events: none;
-  background-color: var(--select-arrow-color);
-  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M6 9 L12 15 L18 9' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>") no-repeat center;
-  -webkit-mask-size: 18px 18px;
-  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M6 9 L12 15 L18 9' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>") no-repeat center;
-  mask-size: 18px 18px;
-  z-index: 3;
-  /* ensure arrow is above the select */
-}
-
 #app {
   width: 100vw;
   /* Prefer dynamic viewport unit on supporting browsers (iOS Safari).
@@ -864,10 +733,7 @@ html {
   overflow: hidden;
 }
 
-/* Responsive images for legacy containers (chronicle-markdown handles its own via shared CSS) */
-.markdown-body img,
-.parsed-html-content img,
-.file-media-content img,
+/* Responsive images (file-preview body only; chronicle-markdown handles its own via shared CSS) */
 .file-preview-body img {
   max-width: 100%;
   height: auto;
@@ -894,8 +760,10 @@ select option {
     padding: 0.6rem;
   }
 
-  .responsive-title {
-    padding-left: 40px;
+  .main-content {
+    padding-top: 50px;
+    --top-fade-length: 50px;
+    --toc-scroll-offset: 70px;
   }
 }
 /* ── 自 app.css 迁入（app.css 弃用后的独有规则）── */
