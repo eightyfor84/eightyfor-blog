@@ -5,28 +5,59 @@ import FilePreviewModal from '../components/FilePreviewModal.astro';
 import GlobalSearchOverlay from '../components/GlobalSearchOverlay.astro';
 import { getLocale, getTranslation } from '../utils/i18n';
 import { resolveFeatureFlags } from '../utils/featureFlags';
-import { theme as themeManifest } from '../themes/aurora/manifest';
-import ThemeInit from '../themes/aurora/components/ThemeInit.astro';
-import ThemeVars from '../themes/aurora/components/ThemeVars.astro';
-import ThemeRuntime from '../themes/aurora/components/ThemeRuntime.astro';
+// ── 主题发现：目录即选定，aurora 恒作后备 ────────────────
+// themes/ 下非 aurora 的主题目录按字典序首个为活动主题；无则回退默认主题 aurora。
+// 换主题 = 移入主题目录（manifest + components/ + styles/），零配置零改码。
+// aurora 以静态 import 常驻后备位——活动主题缺失/异常时站点永远可渲染。
+import { theme as auroraTheme } from '../themes/aurora/manifest';
+import AuroraThemeInit from '../themes/aurora/components/ThemeInit.astro';
+import AuroraThemeVars from '../themes/aurora/components/ThemeVars.astro';
+import AuroraThemeRuntime from '../themes/aurora/components/ThemeRuntime.astro';
 import chronicleMarkdownCss from '@chronicle/shared/src/styles/chronicle-markdown.css?raw';
-import '../themes/aurora/styles/global.css';
-
-import '../themes/aurora/styles/utilities.css';
 
 import { hexToRgbString } from '../utils/colorUtils';
+
+const DEFAULT_THEME = 'aurora';
+const themeManifests = import.meta.glob('../themes/*/manifest.*', {
+  eager: true,
+  import: 'default',
+});
+const themeName =
+  Object.keys(themeManifests)
+    .map((k) => k.match(/themes\/([^/]+)\/manifest/)?.[1])
+    .filter((n): n is string => !!n && n !== DEFAULT_THEME)
+    .sort()[0] ?? DEFAULT_THEME;
+const themeManifest = themeName === DEFAULT_THEME
+  ? auroraTheme
+  : (themeManifests[Object.keys(themeManifests).find((k) => k.includes(`/themes/${themeName}/manifest`)) ?? ''] ?? auroraTheme) as typeof auroraTheme;
+
+const themeComponents = import.meta.glob('../themes/*/components/*.astro', {
+  eager: true,
+  import: 'default',
+});
+const ThemeInit = (themeComponents[`../themes/${themeName}/components/ThemeInit.astro`] ?? AuroraThemeInit) as any;
+const ThemeVars = (themeComponents[`../themes/${themeName}/components/ThemeVars.astro`] ?? AuroraThemeVars) as any;
+const ThemeRuntime = (themeComponents[`../themes/${themeName}/components/ThemeRuntime.astro`] ?? AuroraThemeRuntime) as any;
 
 // ── Critical CSS：由主题 manifest 驱动（自动识别）────────────
 // 页型 → CSS 文件的映射在 themes/<name>/manifest.ts 声明；
 // 这里通过 glob 按 manifest 里的文件名取 raw 内容。
 // 主题缺省的页型自动跳过（返回 ''），允许主题只声明部分页型。
-const criticalRaw = import.meta.glob<string>('../themes/aurora/styles/critical/*.css', {
+const criticalRaw = import.meta.glob<string>('../themes/*/styles/critical/*.css', {
   query: '?raw',
   import: 'default',
   eager: true,
 });
-const themeCss = (name: string) => criticalRaw[`../themes/aurora/styles/critical/${name}`] ?? '';
-const criticalTokens = themeCss(themeManifest.tokens);
+const themeCss = (name: string) => criticalRaw[`../themes/${themeName}/styles/critical/${name}`] ?? '';
+
+// ── 主题异步样式（global/utilities）：?url → <link>，defer-css 集成改写为异步加载 ──
+const themeStyleUrls = import.meta.glob<string>('../themes/*/styles/{global,utilities}.css', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+});
+const globalCssUrl = themeStyleUrls[`../themes/${themeName}/styles/global.css`];
+const utilitiesCssUrl = themeStyleUrls[`../themes/${themeName}/styles/utilities.css`];
 
 // Assemble critical CSS based on page type — only inject what this page needs.
 const pathname = Astro.url.pathname;
@@ -43,6 +74,8 @@ const isCollection = /\/(en|zh)\/collection\/?$/.test(pathname);
 // The built file is only ~21KB raw; inlining removes the request entirely.
 // Order: after criticalPost, so its .chr-md rules keep winning the cascade
 // (same as the old link-after-inline-style behavior).
+const criticalTokens = themeCss(themeManifest.tokens);
+
 const criticalCSS = [
   themeCss(themeManifest.critical.base),
   isHome    ? themeCss(themeManifest.critical.home)    : '',
@@ -390,6 +423,10 @@ const ANALYTICS_GA_ID = String(process.env.GA_MEASUREMENT_ID || analyticsCfg.gaM
 
     <!-- Critical CSS skeleton (geometry + colours — tokens are inline above) -->
     <style is:inline set:html={criticalCSS}></style>
+
+    <!-- 主题异步样式（global/utilities）：独立 <link>，defer-css 集成改写为异步加载 -->
+    {globalCssUrl ? <link rel="stylesheet" href={globalCssUrl} /> : null}
+    {utilitiesCssUrl ? <link rel="stylesheet" href={utilitiesCssUrl} /> : null}
 
     <!-- Background layer CSS: image + mode + blur + overlay/surface colors resolved at build time -->
     {backgroundCss ? <style is:inline set:html={backgroundCss}></style> : null}

@@ -26,3 +26,7 @@ export const theme = {
   // 全量样式（异步加载，随 bundle）
   global: ['global.css'],
 }
+
+// 主题接口约定：manifest 默认导出主题对象（Layout 经 glob 发现主题时取 default）。
+// 命名导出 theme 保留兼容（Layout 后备静态 import 用）。
+export default theme;
