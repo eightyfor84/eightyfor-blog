@@ -11,7 +11,10 @@
 :root, html, body {
   margin:0; padding:0;
   background:var(--app-bg-pri); color:var(--app-text-pri);
-  font-family:-apple-system,BlinkMacSystemFont,'InterVariable','Inter','Segoe UI',sans-serif;
+  /* MUST resolve to the same stack as global.css (var(--app-font-stack-inter)) —
+     a hardcoded shorter stack made the resolved font-family change when the
+     async CSS landed, reflowing every text box (measured CLS on /blogs). */
+  font-family:var(--app-font-stack-inter);
   line-height:1.5; /* must match global.css :root — otherwise the deferred full CSS
                       reflows every line box after first paint → CLS */
   text-rendering:optimizeLegibility; -webkit-font-smoothing:antialiased; color-scheme:dark;
@@ -58,6 +61,37 @@ h1, h2, h3, h4, h5, h6 {
 .mtl-container {
   background: var(--comp-bg-blur);
   border: 1px solid var(--border-color-blur);
+}
+
+
+/* ── Scrollbar (universal) — mirror global.css: default 15px→8px at async
+     CSS arrival reflows every centered container (measured CLS on desktop). ── */
+::-webkit-scrollbar { width:8px; height:8px; }
+::-webkit-scrollbar-corner { background:transparent; }
+::-webkit-scrollbar-thumb { background-color:color-mix(in srgb, var(--comp-text-sec) 50%, transparent); border-radius:9999px; }
+::-webkit-scrollbar-thumb:hover { background-color:color-mix(in srgb, var(--comp-text-pri) 50%, transparent); }
+::-webkit-scrollbar-track { background:transparent; }
+
+/* ── CornerButton shell ──
+   position:fixed must exist at first paint: without it the button is in-flow
+   (occupies ~50px at page bottom) until its async CSS lands → collapse shift.
+   Rest of the face (bg/border/shadow) arrives with async CSS — paint only. */
+.cb__btn {
+  position: fixed;
+  bottom: 30px;
+  width: 50px;
+  min-height: 50px;
+  max-height: 50px;
+  display: block;
+  box-sizing: border-box;
+}
+/* BTT idle = hidden at first paint (mirror CornerButton.astro): appears only
+   via .cb--btt-visible (JS, scroll > 300px). Hiding it in critical stops the
+   async CSS from switching the button's state when it lands → no shift. */
+.cb__btn.cb--btt {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(20px);
 }
 
 /* ── Nav header (fixed) ── */
