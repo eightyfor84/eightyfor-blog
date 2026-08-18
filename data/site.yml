@@ -1,6 +1,3 @@
-# Chronicle Aurora site configuration — written by the CMS settings pages; hand-written comments and untouched keys are preserved
-
-# Homepage settings (Template settings → Homepage)
 homepage:
   siteName: Chronicle Aurora
   siteDescription: Chronicle Aurora — a local-first, git-backed Jamstack blog.
@@ -14,28 +11,18 @@ homepage:
   recentUpdates:
     aggregateDays: 7
     staleDays: 30
-
-# Appearance settings (Template settings → Appearance: theme/accent/font/locale)
 appearance:
   theme: follow
   accent: '#36a32e'
   font: sans
   locale: follow
   defaultPerformanceMode: auto
-
-# Search settings (Template settings → Search)
 search:
   searchSuggestions: true
   globalSearch: true
   fullTextSearch: true
-
-# Comments master switch (Post page → Comments group toggle)
 comments: true
-
-# RSS feed toggle
 rss: true
-
-# Analytics (multi-backend)
 analytics:
   enabled: false
   backend: ''
@@ -46,25 +33,24 @@ analytics:
   plausibleServerUrl: ''
   plausibleDomain: ''
   baiduId: ''
-
-# Post page settings (Post page tab: header/meta, TOC, collection nav, end-of-article, comments)
 post:
-  meta: { metaUpdated: true, metaStats: true, metaAiBadge: true, showTags: true }
+  meta:
+    metaUpdated: true
+    metaStats: true
+    metaAiBadge: true
+    showTags: true
   toc:
     enabled: true
     tocFloatAlwaysExpanded: false
     inlineToc: true
     tocFloat: true
     mobileTocControl: true
-  collectionNav:
-    enabled: true
-    alwaysCollapsed: false
   endOfArticle:
     share: true
     shareChannels:
-      - twitter
-      - linkedin
-      - weibo
+    - twitter
+    - linkedin
+    - weibo
     prevNextMode: both
     prevNextScope: collection
     prevNext: true
@@ -73,10 +59,11 @@ post:
     prevNextOrder: desc
   comments:
     backend: ''
-    walineServerUrl: ""
+    walineServerUrl: ''
     imageUploadEnabled: false
     attitude: true
     showGeoAddress: true
-    imageUploadEndpoint: ""
-    imageUploadToken: ""
+    imageUploadEndpoint: ''
+    imageUploadToken: ''
 globalSearch: true
+aboutPage: true

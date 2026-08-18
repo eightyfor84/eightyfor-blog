@@ -299,6 +299,15 @@ const POST_PAGE_DEFAULTS: Required<PostPageConfig> = {
 function normalizePostConfig(raw: unknown): PostPageConfig {
   const src = raw && typeof raw === 'object' ? (raw as Record<string, any>) : {};
   const legacy = src.post && typeof src.post === 'object' ? (src.post as Record<string, any>) : {};
+  // postCollectionNav 内置在 collections.yml（post.collectionNav——单 schema 同文件，
+  // manager 保存时一并写入）；site.yml 旧值回退
+  try {
+    const collData = readDataFile(COLLECTION_FILE) || {};
+    if (collData.post?.collectionNav && typeof collData.post.collectionNav === 'object') {
+      const merged = { ...legacy.collectionNav, ...collData.post.collectionNav };
+      legacy.collectionNav = merged;
+    }
+  } catch { /* 读取失败则回退 site.yml */ }
   const out: Record<string, any> = {};
   for (const key of Object.keys(POST_PAGE_DEFAULTS)) {
     const def = (POST_PAGE_DEFAULTS as Record<string, any>)[key];
