@@ -3,19 +3,6 @@
     <h2 class="settings-title">{{ pageTitle }}</h2>
     <p v-if="pageHint" class="hint">{{ pageHint }}</p>
 
-    <!-- 相关插件入口：插件 entries.target === 本 schemaId 时注入跳转链接（→ plugins/<key>） -->
-    <div v-if="relatedPlugins.length > 0" class="related-plugins">
-      <span class="related-plugins__label">{{ $t('settings.relatedPlugins') }}:</span>
-      <RouterLink
-        v-for="p in relatedPlugins"
-        :key="p.key"
-        :to="`/settings/plugins/${p.key}`"
-        class="related-plugins__link"
-      >
-        {{ p.name }} →
-      </RouterLink>
-    </div>
-
     <div v-if="loading" class="loading-state">
       <QuarterCircleSpinner />
     </div>
@@ -36,6 +23,19 @@
       <SchemaForm v-else :schema="schema" :data="data" :active-tab="tab" :disabled="isDisabled"
         :field-meta-map="metaRefs"
         @update:data="onUpdateData" @update:meta="(key, val) => setMeta(key, val)" />
+
+      <!-- 相关插件入口（独立于表单：schema 一块、plugin entries 一块；非表单字段，天然不受保存/重置/恢复影响） -->
+      <section v-if="relatedPlugins.length > 0" class="group-card plugin-entries">
+        <h3 class="group-title">{{ $t('settings.relatedPlugins') }}</h3>
+        <div class="group-fields">
+          <div v-for="p in relatedPlugins" :key="p.key" class="plugin-entry-row">
+            <span class="plugin-entry-tag">{{ $t('settings.pluginTag') }}</span>
+            <span class="plugin-entry-name">{{ p.name }}</span>
+            <span class="plugin-entry-desc">{{ p.description }}</span>
+            <RouterLink :to="`/settings/plugins/${p.key}`" class="plugin-entry-link">{{ $t('settings.goToPage') }} →</RouterLink>
+          </div>
+        </div>
+      </section>
 
       <!-- Actions — always interactive, even when the feature is off -->
       <div class="actions-wrapper">
@@ -149,6 +149,22 @@ onMounted(() => { load() })
 </script>
 
 <style scoped>
+.group-card {
+  background: var(--comp-bg-blur);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  margin-bottom: 1rem;
+}
+.group-title {
+  margin: 0 0 1rem 0;
+  font-size: 0.95rem;
+  font-weight: 500;
+  font-variation-settings: 'wght' 500;
+  color: var(--comp-text-sec);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
 .schema-settings-page {
   max-width: 900px;
   margin: 0 auto;
@@ -186,8 +202,12 @@ onMounted(() => { load() })
 h2.settings-title {
   margin-bottom: 1rem;
 }
-.related-plugins { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; padding: 0.5rem 0.75rem; border-radius: 8px; background: var(--accent-bg); font-size: 0.85rem; }
-.related-plugins__label { color: var(--comp-text-sec); }
-.related-plugins__link { color: var(--accent); text-decoration: none; font-weight: 500; }
-.related-plugins__link:hover { text-decoration: underline; }
+.plugin-entries { margin-top: 1rem; }
+.plugin-entry-row { display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 0; border-bottom: 1px solid var(--border-color); }
+.plugin-entry-row:last-child { border-bottom: none; }
+.plugin-entry-tag { flex-shrink: 0; font-size: 0.65rem; padding: 2px 6px; border-radius: 999px; background: var(--accent-bg); color: var(--accent); font-weight: 600; }
+.plugin-entry-name { font-weight: 500; white-space: nowrap; }
+.plugin-entry-desc { flex: 1; min-width: 0; font-size: 0.8rem; color: var(--comp-text-sec); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.plugin-entry-link { flex-shrink: 0; color: var(--accent); text-decoration: none; font-size: 0.85rem; }
+.plugin-entry-link:hover { text-decoration: underline; }
 </style>

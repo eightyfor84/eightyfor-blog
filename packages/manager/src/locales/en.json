@@ -428,7 +428,8 @@
     "storageSite": "Config in site.yml",
     "storageFile": "Separate data file",
     "storagePost": "Per-post config",
-    "relatedPlugins": "Related plugins"
+    "relatedPlugins": "Related plugins",
+    "pluginTag": "Plugin"
   },
   "postPicker": {
     "inputPlaceholder": "Search and select a published post",

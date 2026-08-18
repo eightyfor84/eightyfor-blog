@@ -434,7 +434,8 @@
     "storageSite": "配置在 site.yml",
     "storageFile": "独立数据文件",
     "storagePost": "文章级配置",
-    "relatedPlugins": "相关插件"
+    "relatedPlugins": "相关插件",
+    "pluginTag": "插件"
   },
   "postPicker": {
     "inputPlaceholder": "搜索并选择已发布帖子",
