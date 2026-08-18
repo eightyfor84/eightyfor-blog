@@ -158,3 +158,67 @@ export function verifySuperset({ extractedCss, criticalFiles }) {
   }
   return missing;
 }
+
+/** 遍历 dist，把每个 HTML 的 critical 标记区间替换为自动提取的子集（Phase 1 并行） */
+export function rewriteCriticalInDist({ distDir, allow = { classes: JS_STATE_CLASSES, attrs: JS_STATE_ATTRS }, log = console.log } = {}) {
+  const MARK_START = '<!-- chronicle:critical:start -->';
+  const MARK_END = '<!-- chronicle:critical:end -->';
+  const assetCache = new Map(); // css 资产路径 → postcss root
+
+  function assetRules(cssPath) {
+    if (!assetCache.has(cssPath)) {
+      assetCache.set(cssPath, postcss.parse(fs.readFileSync(cssPath, 'utf-8')));
+    }
+    return assetCache.get(cssPath);
+  }
+
+  function pageCritical(html) {
+    const page = extractPageTokens(html);
+    const keep = [];
+    for (const m of html.matchAll(/<link rel="stylesheet" href="([^"]+\.css)"/g)) {
+      const url = m[1];
+      if (url.includes('fonts/')) continue;
+      const p = path.normalize(path.join(distDir, url.replace(/^\//, '')));
+      if (!fs.existsSync(p)) continue;
+      assetRules(p).walk((node) => {
+        if (node.type === 'atrule') {
+          if (['keyframes', '-webkit-keyframes', 'font-face'].includes(node.name)) keep.push(node.toString());
+          return;
+        }
+        if (node.type === 'rule') {
+          const sels = node.selector.split(',').map((s) => s.trim());
+          if (sels.some((s) => ruleMatches(s, page, allow))) keep.push(node.toString());
+        }
+      });
+    }
+    return keep.join('\n');
+  }
+
+  function walk(dir) {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const p = path.join(dir, entry.name);
+      if (entry.isDirectory()) { walk(p); continue; }
+      if (!entry.name.endsWith('.html')) continue;
+      const html = fs.readFileSync(p, 'utf-8');
+      // 标记注释含说明文本，前缀匹配
+      const start = html.indexOf('<!-- chronicle:critical:start');
+      const end = html.indexOf(MARK_END);
+      if (start === -1 || end === -1) continue; // 无标记（非 Layout 包裹页）
+      const startTagEnd = html.indexOf('-->', start) + 3;
+      const critical = pageCritical(html);
+      // 体积预算：提取集不得超过原手写集 2 倍（Phase 2 做视口裁剪前不放大首屏）
+      const origLen = end - startTagEnd;
+      const budget = Math.max(origLen * 2, origLen + 40 * 1024);
+      if (critical.length > budget) {
+        log(`[critical] ${path.relative(distDir, p)}: 提取 ${(critical.length / 1024).toFixed(1)} KB > 预算 ${(budget / 1024).toFixed(1)} KB，保留手写 critical`);
+        continue;
+      }
+      const next = html.slice(end + MARK_END.length);
+      fs.writeFileSync(p, html.slice(0, startTagEnd) + '\n<style>' + critical + '</style>\n' + next);
+      log(`[critical] ${path.relative(distDir, p)}: 提取 ${(critical.length / 1024).toFixed(1)} KB 内联（原 ${(origLen / 1024).toFixed(1)} KB）`);
+    }
+  }
+
+  walk(distDir);
+  return true;
+}

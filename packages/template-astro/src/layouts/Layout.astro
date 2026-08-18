@@ -378,6 +378,7 @@ const ANALYTICS_GA_ID = String(process.env.GA_MEASUREMENT_ID || analyticsCfg.gaM
          必须早于任何依赖 data-theme 的 CSS（critical tokens 之前）。 -->
     <ThemeInit />
 
+    <!-- chronicle:critical:start —— 构建期由 gen 提取器替换为自动生成的 critical 子集（Phase 1 并行；手写集保留至验证通过） -->
     <!-- Critical tokens: inlined to eliminate network RTT.
          Tokens must resolve before the skeleton CSS below paints. -->
     <style is:inline set:html={criticalTokens}></style>
@@ -387,6 +388,7 @@ const ANALYTICS_GA_ID = String(process.env.GA_MEASUREMENT_ID || analyticsCfg.gaM
 
     <!-- Critical CSS skeleton (geometry + colours — tokens are inline above) -->
     <style is:inline set:html={criticalCSS}></style>
+    <!-- chronicle:critical:end -->
 
     <!-- Background layer CSS: image + mode + blur + overlay/surface colors resolved at build time -->
     {backgroundCss ? <style is:inline set:html={backgroundCss}></style> : null}
