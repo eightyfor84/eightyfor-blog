@@ -1,6 +1,6 @@
 /* ── 页面样式：[lang]/blogs.astro ──
    自 src/pages/[lang]/blogs.astro <style> 迁出（与 critical 同值+附加细化，bundled 后加载赢平局，安全）。 */
-  .blog-container {
+  .blog-container{
     max-width: 1000px;
     margin: 0 auto;
     padding: 40px;
@@ -9,11 +9,11 @@
     scroll-behavior: smooth;
   }
 
-  .section-block {
+  .blog-container .section-block{
     margin-bottom: 60px;
   }
 
-  .section-header {
+  .blog-container .section-header{
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -22,11 +22,11 @@
     padding-bottom: 10px;
   }
 
-  .section-header.featured {
+  .blog-container .section-header.featured{
     border-bottom: 2px solid var(--featured);
   }
 
-  .section-title {
+  .blog-container .section-title{
     font-size: 1.8em;
     margin: 0;
     color: var(--app-text-pri);
@@ -35,7 +35,7 @@
     display: inline-block;
   }
 
-  .toggle-btn {
+  .blog-container .toggle-btn{
     background: transparent;
     border: none;
     color: var(--comp-text-sec);
@@ -46,39 +46,39 @@
     transition: all 0.3s;
   }
 
-  .toggle-btn:hover {
+  .blog-container .toggle-btn:hover{
     color: var(--comp-text-pri-hvr);
     border: none;
   }
 
-  .featured-grid {
+  .blog-container .featured-grid{
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 16px;
   }
 
   /* Featured collapse: show the first 3, reveal the rest when expanded */
-  #featured-grid > :nth-child(n+4) { display: none; }
-  #featured-grid.expanded > :nth-child(n+4) { display: block; }
+  .blog-container #featured-grid > :nth-child(n+4){ display: none; }
+  .blog-container #featured-grid.expanded > :nth-child(n+4){ display: block; }
 
-  .featured-card .card-post-title {
+  .blog-container .featured-card .card-post-title{
     font-size: 1.1em;
     margin-bottom: 0;
   }
 
-  .featured-card .tag {
+  .blog-container .featured-card .tag{
     font-size: 0.7em;
   }
 
-  .archive-list {
+  .blog-container .archive-list{
     margin-top: 20px;
   }
 
-  .year-block {
+  .blog-container .year-block{
     margin-bottom: 40px;
   }
 
-  h3.year-header  {
+  .blog-container h3.year-header{
     font-size: 3em;
     font-weight: 800 !important;
     font-variation-settings: 'wght' 800;
@@ -90,12 +90,12 @@
     line-height: 1;
   }
 
-  .month-row {
+  .blog-container .month-row{
     display: flex;
     margin-bottom: 20px;
   }
 
-  .month-label {
+  .blog-container .month-label{
     width: 60px;
     flex-shrink: 0;
     text-align: right;
@@ -107,14 +107,14 @@
     font-size: 1.1em;
   }
 
-  .month-posts {
+  .blog-container .month-posts{
     flex-grow: 1;
     display: flex;
     flex-direction: column;
     gap: 12px;
   }
 
-  .post-card {
+  .blog-container .post-card{
     padding: 16px;
     border-radius: 12px;
     cursor: pointer;
@@ -122,14 +122,14 @@
   }
 
 
-  .compact-card {
+  .blog-container .compact-card{
     padding: 14px 16px;
     margin-bottom: 0;
     border-radius: 12px;
     transition: all 0.2s;
   }
 
-  .post-card-line {
+  .blog-container .post-card-line{
     display: flex;
     justify-content: flex-start;
     align-items: center;
@@ -137,20 +137,20 @@
     min-width: 0;
   }
 
-  .featured-card-layout {
+  .blog-container .featured-card-layout{
     display: grid;
     gap: 10px;
     min-width: 0;
   }
 
-  .featured-card-date {
+  .blog-container .featured-card-date{
     color: var(--comp-text-sec);
     font-size: 0.85em;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
 
-  .card-post-title {
+  .blog-container .card-post-title{
     font-size: 1.1em;
     margin: 0;
     font-weight: 600;
@@ -165,7 +165,7 @@
     line-height: 1.4;
   }
 
-  .post-card-time {
+  .blog-container .post-card-time{
     font-size: 0.85em;
     color: var(--comp-text-sec);
     flex-shrink: 0;
@@ -174,7 +174,7 @@
     font-variant-numeric: tabular-nums;
   }
 
-  .compact-card .post-featured-star {
+  .blog-container .compact-card .post-featured-star{
     display: none;
     color: var(--featured);
     font-size: 0.95em;
@@ -182,7 +182,7 @@
     flex-shrink: 0;
   }
 
-  .compact-card .post-tags {
+  .blog-container .compact-card .post-tags{
     margin-top: 6px;
     margin-left: 30px;
     display: flex;
@@ -190,14 +190,14 @@
     flex-wrap: wrap;
   }
 
-  .post-tags {
+  .blog-container .post-tags{
     display: flex;
     gap: 6px;
     flex-wrap: nowrap;
     overflow-x: hidden;
   }
 
-  .tag {
+  .blog-container .tag{
     background: var(--accent-bg);
     padding: 2px 6px;
     border-radius: 4px;
@@ -209,56 +209,56 @@
     word-break: break-word;
   }
 
-  .tag.featured {
+  .blog-container .tag.featured{
     font-weight: 500;
     font-variation-settings: 'wght' 500;
     background: var(--featured-bg);
     color: var(--featured);
   }
 
-  .empty {
+  .blog-container .empty{
     text-align: center;
     padding: 60px;
     color: var(--comp-text-sec);
   }
 
   @media (max-width: 768px) {
-    .month-label {
+    .blog-container .month-label{
       width: 38px;
       padding-right: 12px;
       padding-top: 10px;
     }
 
-    .card-post-title {
+    .blog-container .card-post-title{
       width: 0;
     }
 
-    .featured-grid {
+    .blog-container .featured-grid{
       grid-template-columns: 1fr;
       gap: 10px;
     }
 
-    h3.year-header {
+    .blog-container h3.year-header{
       font-size: 2.2em;
     }
 
-    .post-card {
+    .blog-container .post-card{
       padding: 12px 14px;
     }
 
-    .featured-card {
+    .blog-container .featured-card{
       border-radius: 12px;
       transition: all 0.3s ease;
     }
 
     .featured-card .card-post-title,
-    .compact-card .card-post-title {
+    .blog-container .compact-card .card-post-title{
       font-size: 0.98rem;
       font-weight: 500;
       font-variation-settings: 'wght' 500;
     }
 
-    .featured-card-layout {
+    .blog-container .featured-card-layout{
       display: flex;
       flex-direction: row;
       align-items: center;
@@ -266,57 +266,57 @@
       gap: 10px;
     }
 
-    .featured-card-date {
+    .blog-container .featured-card-date{
       order: 2;
       font-size: 0.75rem;
     }
 
     .featured-card .card-post-title,
-    .compact-card .card-post-title {
+    .blog-container .compact-card .card-post-title{
       order: 1;
       white-space: nowrap;
     }
 
-    .featured-card .post-tags {
+    .blog-container .featured-card .post-tags{
       display: none;
     }
 
-    .post-card-line {
+    .blog-container .post-card-line{
       gap: 10px;
     }
 
-    .post-card-line .post-card-time {
+    .blog-container .post-card-line .post-card-time{
       order: 1;
       margin-right: 0;
     }
 
-    .compact-card .post-featured-star {
+    .blog-container .compact-card .post-featured-star{
       order: 2;
       display: inline-flex;
     }
 
-    .post-card-line .card-post-title {
+    .blog-container .post-card-line .card-post-title{
       order: 3;
       flex: 1 1 0;
       min-width: 0;
     }
 
-    .post-card-time {
+    .blog-container .post-card-time{
       font-size: 0.76rem;
       min-width: 16px;
       color: var(--comp-text-sec);
     }
 
     /* 0-2-0: must beat .compact-card .post-tags (0-2-0, earlier) — plain .post-tags would lose */
-    .post-card .post-tags {
+    .blog-container .post-card .post-tags{
       display: none;
     }
   }
-  .section-block {
+  .blog-container .section-block{
     margin-bottom: 60px;
   }
 
-  .section-header {
+  .blog-container .section-header{
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -325,11 +325,11 @@
     padding-bottom: 10px;
   }
 
-  .section-header.featured {
+  .blog-container .section-header.featured{
     border-bottom: 2px solid var(--featured);
   }
 
-  .section-title {
+  .blog-container .section-title{
     font-size: 1.8em;
     margin: 0;
     color: var(--app-text-pri);
@@ -338,7 +338,7 @@
     display: inline-block;
   }
 
-  .toggle-btn {
+  .blog-container .toggle-btn{
     background: transparent;
     border: none;
     color: var(--comp-text-sec);
@@ -349,39 +349,39 @@
     transition: all 0.3s;
   }
 
-  .toggle-btn:hover {
+  .blog-container .toggle-btn:hover{
     color: var(--comp-text-pri-hvr);
     border: none;
   }
 
-  .featured-grid {
+  .blog-container .featured-grid{
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 16px;
   }
 
   /* Featured collapse: show the first 3, reveal the rest when expanded */
-  #featured-grid > :nth-child(n+4) { display: none; }
-  #featured-grid.expanded > :nth-child(n+4) { display: block; }
+  .blog-container #featured-grid > :nth-child(n+4){ display: none; }
+  .blog-container #featured-grid.expanded > :nth-child(n+4){ display: block; }
 
-  .featured-card .card-post-title {
+  .blog-container .featured-card .card-post-title{
     font-size: 1.1em;
     margin-bottom: 0;
   }
 
-  .featured-card .tag {
+  .blog-container .featured-card .tag{
     font-size: 0.7em;
   }
 
-  .archive-list {
+  .blog-container .archive-list{
     margin-top: 20px;
   }
 
-  .year-block {
+  .blog-container .year-block{
     margin-bottom: 40px;
   }
 
-  h3.year-header  {
+  .blog-container h3.year-header{
     font-size: 3em;
     font-weight: 800 !important;
     font-variation-settings: 'wght' 800;
@@ -393,12 +393,12 @@
     line-height: 1;
   }
 
-  .month-row {
+  .blog-container .month-row{
     display: flex;
     margin-bottom: 20px;
   }
 
-  .month-label {
+  .blog-container .month-label{
     width: 60px;
     flex-shrink: 0;
     text-align: right;
@@ -410,14 +410,14 @@
     font-size: 1.1em;
   }
 
-  .month-posts {
+  .blog-container .month-posts{
     flex-grow: 1;
     display: flex;
     flex-direction: column;
     gap: 12px;
   }
 
-  .post-card {
+  .blog-container .post-card{
     padding: 16px;
     border-radius: 12px;
     cursor: pointer;
@@ -425,14 +425,14 @@
   }
 
 
-  .compact-card {
+  .blog-container .compact-card{
     padding: 14px 16px;
     margin-bottom: 0;
     border-radius: 12px;
     transition: all 0.2s;
   }
 
-  .post-card-line {
+  .blog-container .post-card-line{
     display: flex;
     justify-content: flex-start;
     align-items: center;
@@ -440,20 +440,20 @@
     min-width: 0;
   }
 
-  .featured-card-layout {
+  .blog-container .featured-card-layout{
     display: grid;
     gap: 10px;
     min-width: 0;
   }
 
-  .featured-card-date {
+  .blog-container .featured-card-date{
     color: var(--comp-text-sec);
     font-size: 0.85em;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
 
-  .card-post-title {
+  .blog-container .card-post-title{
     font-size: 1.1em;
     margin: 0;
     font-weight: 600;
@@ -468,7 +468,7 @@
     line-height: 1.4;
   }
 
-  .post-card-time {
+  .blog-container .post-card-time{
     font-size: 0.85em;
     color: var(--comp-text-sec);
     flex-shrink: 0;
@@ -477,7 +477,7 @@
     font-variant-numeric: tabular-nums;
   }
 
-  .compact-card .post-featured-star {
+  .blog-container .compact-card .post-featured-star{
     display: none;
     color: var(--featured);
     font-size: 0.95em;
@@ -485,7 +485,7 @@
     flex-shrink: 0;
   }
 
-  .compact-card .post-tags {
+  .blog-container .compact-card .post-tags{
     margin-top: 6px;
     margin-left: 30px;
     display: flex;
@@ -493,14 +493,14 @@
     flex-wrap: wrap;
   }
 
-  .post-tags {
+  .blog-container .post-tags{
     display: flex;
     gap: 6px;
     flex-wrap: nowrap;
     overflow-x: hidden;
   }
 
-  .tag {
+  .blog-container .tag{
     background: var(--accent-bg);
     padding: 2px 6px;
     border-radius: 4px;
@@ -512,56 +512,56 @@
     word-break: break-word;
   }
 
-  .tag.featured {
+  .blog-container .tag.featured{
     font-weight: 500;
     font-variation-settings: 'wght' 500;
     background: var(--featured-bg);
     color: var(--featured);
   }
 
-  .empty {
+  .blog-container .empty{
     text-align: center;
     padding: 60px;
     color: var(--comp-text-sec);
   }
 
   @media (max-width: 768px) {
-    .month-label {
+    .blog-container .month-label{
       width: 38px;
       padding-right: 12px;
       padding-top: 10px;
     }
 
-    .card-post-title {
+    .blog-container .card-post-title{
       width: 0;
     }
 
-    .featured-grid {
+    .blog-container .featured-grid{
       grid-template-columns: 1fr;
       gap: 10px;
     }
 
-    h3.year-header {
+    .blog-container h3.year-header{
       font-size: 2.2em;
     }
 
-    .post-card {
+    .blog-container .post-card{
       padding: 12px 14px;
     }
 
-    .featured-card {
+    .blog-container .featured-card{
       border-radius: 12px;
       transition: all 0.3s ease;
     }
 
     .featured-card .card-post-title,
-    .compact-card .card-post-title {
+    .blog-container .compact-card .card-post-title{
       font-size: 0.98rem;
       font-weight: 500;
       font-variation-settings: 'wght' 500;
     }
 
-    .featured-card-layout {
+    .blog-container .featured-card-layout{
       display: flex;
       flex-direction: row;
       align-items: center;
@@ -569,49 +569,49 @@
       gap: 10px;
     }
 
-    .featured-card-date {
+    .blog-container .featured-card-date{
       order: 2;
       font-size: 0.75rem;
     }
 
     .featured-card .card-post-title,
-    .compact-card .card-post-title {
+    .blog-container .compact-card .card-post-title{
       order: 1;
       white-space: nowrap;
     }
 
-    .featured-card .post-tags {
+    .blog-container .featured-card .post-tags{
       display: none;
     }
 
-    .post-card-line {
+    .blog-container .post-card-line{
       gap: 10px;
     }
 
-    .post-card-line .post-card-time {
+    .blog-container .post-card-line .post-card-time{
       order: 1;
       margin-right: 0;
     }
 
-    .compact-card .post-featured-star {
+    .blog-container .compact-card .post-featured-star{
       order: 2;
       display: inline-flex;
     }
 
-    .post-card-line .card-post-title {
+    .blog-container .post-card-line .card-post-title{
       order: 3;
       flex: 1 1 0;
       min-width: 0;
     }
 
-    .post-card-time {
+    .blog-container .post-card-time{
       font-size: 0.76rem;
       min-width: 16px;
       color: var(--comp-text-sec);
     }
 
     /* 0-2-0: must beat .compact-card .post-tags (0-2-0, earlier) — plain .post-tags would lose */
-    .post-card .post-tags {
+    .blog-container .post-card .post-tags{
       display: none;
     }
   }

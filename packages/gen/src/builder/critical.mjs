@@ -31,6 +31,26 @@ export const JS_STATE_CLASSES = new Set([
   'katex-interactive-block', 'math-tooltip', 'mobile-menu-overlay',
 ]);
 
+/** 壳骨架类：布局结构规则恒保留（HTML 偏移≠视口顺序，壳规则必须首帧在内） */
+export const SHELL_CLASSES = new Set([
+  'app', 'main-content', 'frontend-body',
+  // 导航骨架
+  'nav-header', 'nav-content', 'nav-links', 'nav-actions', 'nav-setting-btn',
+  'menu-toggle', 'nav-close', 'nav-home-link', 'nav-link', 'nav-action-link',
+  'app-title', 'site-header', 'reading-header', 'reading-title', 'mobile-title-back',
+  'nav-settings-menu', 'popup-item', 'popup-check', 'popup-label',
+  // 背景层
+  'chr-bg-layer', 'bg-image', 'bg-surface', 'bg-video', 'bg-overlay',
+  // 浮层骨架
+  'cb__btn', 'cb__backdrop', 'toc-float', 'toc-inline', 'floating-toc-root',
+  'file-preview-root', 'global-search-overlay', 'chronicle-slideshow',
+  // 页面容器（首屏壳）
+  'error-shell', 'home-container', 'home-shell', 'blog-container',
+  'friends-container', 'collection-container', 'page-container',
+  'about-page', 'post-detail-container', 'search-box-wrapper',
+  'section-title', 'post-title',
+]);
+
 /** JS 动态属性：客户端 setAttribute 的状态（选择器 [data-*] 引用且 SSG 未必有） */
 export const JS_STATE_ATTRS = new Set([
   'data-toc-mode', 'data-perf', 'data-theme', 'data-cn-variant', 'data-state', 'data-action',
@@ -183,10 +203,18 @@ export function rewriteCriticalInDist({ distDir, allow = { classes: JS_STATE_CLA
     const bodyLen = html.length - bodyStart;
     const threshold = bodyStart + bodyLen * firstPaintRatio;
     // 规则命中的类 token 是否都在首屏阈值内（shell/JS 动态态类不受限）
+    const isShellRule = (s) => {
+      const t = selectorTokens(s);
+      if (t.classes.size === 0) return true; // 元素/伪类规则（h1、:root 等）：壳性质
+      for (const c of t.classes) {
+        if (!SHELL_CLASSES.has(c) && !allow.classes.has(c)) return false;
+      }
+      return true;
+    };
     const inFirstPaint = (s) => {
       const t = selectorTokens(s);
+      if (isShellRule(s)) return true; // 壳/状态：恒保留
       for (const c of t.classes) {
-        if (allow.classes.has(c)) continue; // JS 动态态：恒保留
         const off = page.classOffset.get(c);
         if (off === undefined || off > threshold) return false;
       }
