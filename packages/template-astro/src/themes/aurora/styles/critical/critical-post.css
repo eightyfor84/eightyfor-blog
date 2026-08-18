@@ -101,6 +101,7 @@
   .post-meta { grid-template-columns:repeat(3,auto); }
   .meta-item:not(.warning) .meta-label { display:none; }
   .post-nav { margin-bottom:0.5rem; }
+  .scroll-blank { height:80px; }
   .toc-inline {display:none;}
   .toc-float { display:none; }
   .cn-panel[data-cn-variant="sidebar"] { display:none; }
@@ -134,3 +135,18 @@
   position:fixed; right:calc(10px + 2vw); top:calc(30px + 10vh);
   z-index:1199; max-height:calc(70vh - 80px); box-sizing:border-box;
 }
+
+/* ── 文章导航返回链接（首帧）── */
+.nav-back, .back-link { font-size:0.9rem; display:inline-flex; align-items:center; gap:0.5rem; }
+
+/* ── 内联目录列表（首帧布局）── */
+.toc-inline .toc-list { list-style:none; padding:0; margin:0; }
+.toc-inline .toc-list li { margin:1px 0; }
+.toc-inline .toc-list li a { display:block; box-sizing:border-box; }
+.toc-inline .toc-list li .toc-text { --padding-h-base:10px; display:block; width:100%; padding:4px var(--padding-h-base); box-sizing:border-box; }
+.toc-inline .toc-list .toc-level-1 span { padding-left:var(--padding-h-base); }
+.toc-inline .toc-list .toc-level-2 span { padding-left:calc(8px + var(--padding-h-base)); }
+.toc-inline .toc-list .toc-level-3 span { padding-left:calc(16px + var(--padding-h-base)); }
+.toc-inline .toc-list .toc-level-4 span { padding-left:calc(24px + var(--padding-h-base)); }
+.toc-inline .toc-list .toc-level-5 span { padding-left:calc(32px + var(--padding-h-base)); }
+.toc-inline .toc-list .toc-level-6 span { padding-left:calc(40px + var(--padding-h-base)); }
