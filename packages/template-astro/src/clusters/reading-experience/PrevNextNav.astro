@@ -26,7 +26,7 @@ if (scope === 'collection' && !post.collection) return;
 let prev: any = null;
 let next: any = null;
 if (scope === 'collection') {
-  const seq = dataSource.getCollectionPostIds(String(post.collection || ''))
+  const seq = (dataSource.getCollectionPostIds?.(String(post.collection || '')) || [])
     .map((id) => published.find((p: any) => String(p.id) === id))
     .filter(Boolean);
   if (seq.length === 0) return;
