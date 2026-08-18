@@ -1,5 +1,5 @@
 /* ── 阅读体验簇样式：FloatingToc ──
-   自 src/components/FloatingToc.astro <style> 迁出（与 critical-post 的 .toc-float 重叠值一致，安全；已剔除硬编码 data-astro-cid 哈希死选择器）。 */
+   自 src/clusters/FloatingToc.astro <style> 迁出（与 critical-post 的 .toc-float 重叠值一致，安全；已剔除硬编码 data-astro-cid 哈希死选择器）。 */
   /* ── 基础定位 ── */
   #floating-toc-root .toc-float{ font-size: 0.8em; backdrop-filter: blur(10px); background-clip: padding-box; margin-right: 10px; }
   #floating-toc-root .toc-float{ right: calc(10px + 2vw); position: fixed; top: calc(30px + 10vh); z-index: 1199; overflow-x: hidden; transition: transform 0.25s ease, width 0.25s ease, background-color 0.25s ease, opacity 0.25s ease; box-sizing: border-box; border-radius: 8px; max-height: calc(70vh - 80px); height: auto; will-change: width; contain: layout style; }

@@ -1,5 +1,5 @@
 /* ── 组件样式：RelatedPosts（相关文章）──
-   自 src/components/RelatedPosts.astro <style> 迁出（类名唯一，全局化安全）。 */
+   自 src/clusters/RelatedPosts.astro <style> 迁出（类名唯一，全局化安全）。 */
 .related-posts{ margin-top: 0.25rem; }
 .related-posts .related-title{ font-size: 1.05rem; margin: 0 0 0.75rem; }
 .related-posts .related-grid{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }

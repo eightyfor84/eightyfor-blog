@@ -1,5 +1,5 @@
 /* ── 组件样式：CommentSection ──
-   自 src/components/CommentSection.astro <style> 迁出（与 critical 同值+附加细化，bundled 后加载赢平局，安全）。 */
+   自 src/clusters/CommentSection.astro <style> 迁出（与 critical 同值+附加细化，bundled 后加载赢平局，安全）。 */
   /* ═══════════════════════════════════════════════════════════
      CommentSection — Chronicle design system
      NOTE: is:global because commentAdapter.ts injects HTML dynamically

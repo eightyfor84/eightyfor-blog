@@ -1,5 +1,5 @@
 /* ── 组件样式：AuthorCard ──
-   自 src/components/AuthorCard.astro <style> 迁出。 */
+   自 src/clusters/AuthorCard.astro <style> 迁出。 */
   .author-card{ display: flex; gap: 1rem; align-items: flex-start; padding: 1rem 1.25rem; border-radius: 12px;
     border: 1px solid var(--border-color); background: var(--comp-bg-blur); }
   .author-card .author-avatar{ width: 56px; height: 56px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }

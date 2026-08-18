@@ -1,5 +1,5 @@
 /* ── 组件样式：ShareButtons（分享按钮）──
-   自 src/components/ShareButtons.astro <style> 迁出（类名唯一，全局化安全）。 */
+   自 src/clusters/ShareButtons.astro <style> 迁出（类名唯一，全局化安全）。 */
 .share-btns{ display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.25rem; align-items: center; justify-content: center;}
 .share-btns .share-btn{ display: inline-flex; align-items: center; justify-content: center; padding: 0.8rem; border-radius: 8px;
   background: transparent; color: var(--app-text-sec); border: none;

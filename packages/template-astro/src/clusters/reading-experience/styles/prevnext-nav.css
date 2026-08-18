@@ -1,5 +1,5 @@
 /* ── 组件样式：PrevNextNav（上一篇/下一篇）──
-   自 src/components/PrevNextNav.astro <style> 迁出（类名唯一，全局化安全）。 */
+   自 src/clusters/PrevNextNav.astro <style> 迁出（类名唯一，全局化安全）。 */
 .prevnext-nav{ display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.25rem; }
 /* next-only：单列，只渲染 next 侧 */
 .prevnext-nav .prevnext-nav--next-only{ grid-template-columns: 1fr; }
