@@ -20,12 +20,12 @@ import { hexToRgbString } from '../utils/colorUtils';
 // 页型 → CSS 文件的映射在 themes/<name>/manifest.ts 声明；
 // 这里通过 glob 按 manifest 里的文件名取 raw 内容。
 // 主题缺省的页型自动跳过（返回 ''），允许主题只声明部分页型。
-const criticalRaw = import.meta.glob<string>('../themes/aurora/styles/*.css', {
+const criticalRaw = import.meta.glob<string>('../themes/aurora/styles/critical/*.css', {
   query: '?raw',
   import: 'default',
   eager: true,
 });
-const themeCss = (name: string) => criticalRaw[`../themes/aurora/styles/${name}`] ?? '';
+const themeCss = (name: string) => criticalRaw[`../themes/aurora/styles/critical/${name}`] ?? '';
 const criticalTokens = themeCss(themeManifest.tokens);
 
 // Assemble critical CSS based on page type — only inject what this page needs.

@@ -78,7 +78,7 @@ document.addEventListener('astro:after-swap', () => applyPerfMode(resolvePerfMod
 
 // ── Background layer: ready-driven cross-fade ─────────────
 // The fallback image (.bg-image) and background video (.bg-video) both start at
-// opacity 0 (critical-base.css). Each fades in only once its pixels are actually
+// opacity 0 (critical/base.css). Each fades in only once its pixels are actually
 // decodable — the image after preload+decode, the video after its first frame
 // (loadeddata). The video sits above the image (z-index 3 > 2), so it cross-fades
 // over the fallback; on error it hides, revealing the fallback underneath.
@@ -180,7 +180,7 @@ function initBackgroundVideo() {
 
 // Defer the bg IMAGE (fallback-image preload/decode) until AFTER first paint.
 // The layer is decorative and starts at opacity 0 over the solid surface
-// (critical-base.css); racing its decode against the first frame delayed FCP
+// (critical/base.css); racing its decode against the first frame delayed FCP
 // on slow devices/runners (PSI: with bg layer observed FCP ~2361ms, without
 // ~504ms on similar content). The video is deferred further to window.load
 // (strategy B) — see initBackgroundVideo + _maybeInitBg.
