@@ -9,12 +9,10 @@ import { buildTocItems, injectHeadingIds } from '../../../utils/toc';
 import { extractHeadings } from '../../../utils/chronicleMarkdown';
 import { renderCodeBlockStatsHtml, renderCodeBlockLangLabelsHtml } from '../../../utils/markdownParser';
 import { escapeHtmlText, decodeHtmlEntities, getFileExt, getMediaIcon, toMediaCard, rewriteMediaLinks, hydrateLegacyKatexPlaceholders, wrapRenderedKatex } from '../../../utils/contentUtils';
-import DesktopFloatingToc from '../../../components/FloatingToc.astro';
+import { getClusterSlot } from '../../../clusters';
 import CornerActions from '../../../components/CornerActions.astro';
 import CollectionNav from '../../../components/CollectionNav.astro';
 import CommentSection from '../../../components/CommentSection.astro';
-import EndOfArticle from '../../../components/EndOfArticle.astro';
-import AttitudeButtons from '../../../components/AttitudeButtons.astro';
 import Slideshow from '../../../components/Slideshow.astro';
 import 'katex/dist/katex.min.css';
 import '../../../themes/aurora/styles/post.css';
@@ -98,6 +96,11 @@ const commentsEnabled = (settings as Record<string, any>).comments !== false;
 const attitudeEnabled = commentsEnabled && commentBackend === 'waline' && commentsCfg.attitude !== false;
 // D2: show geo address (never the raw IP) on comments — waline location when present.
 const showGeoAddress = commentsCfg.showGeoAddress !== false;
+
+// ── 阅读体验簇槽位（主板只留渲染点，组件由簇注册）──
+const TocSlot = getClusterSlot('post-toc');
+const EndOfArticleSlot = getClusterSlot('post-end-of-article');
+const AttitudeSlot = getClusterSlot('post-attitude');
 
 // ── Collection feature flag (distinct from data result — see getCollections) ──
 const collectionEnabled = (settings as Record<string, any>).collectionPage !== false;
@@ -392,14 +395,14 @@ const metaDescription = buildMetaDescription(post, locale);
         </div>
       </article>
 
-      {post && (
-        <EndOfArticle post={post} locale={locale} lang={routeLang} cfg={endOfArticleCfg} />
+      {post && EndOfArticleSlot && (
+        <EndOfArticleSlot post={post} locale={locale} lang={routeLang} cfg={endOfArticleCfg} />
       )}
       </>
     ) : null}
 
-    {post && attitudeEnabled && (
-      <AttitudeButtons postId={post?.id || id} walineServerUrl={commentWalineServerUrl} locale={locale} />
+    {post && attitudeEnabled && AttitudeSlot && (
+      <AttitudeSlot postId={post?.id || id} walineServerUrl={commentWalineServerUrl} locale={locale} />
     )}
 
     {post && commentsEnabled && (
@@ -420,13 +423,15 @@ const metaDescription = buildMetaDescription(post, locale);
   {tocItems.length > 0 && tocFloatEnabled && (
     <>
       <script id="chronicle-toc-data" type="application/json" set:html={JSON.stringify(tocItems)}></script>
-      <DesktopFloatingToc
+      {TocSlot && (
+      <TocSlot
         toc={tocItems}
         navLabel={t('inblog.toc-title')}
         mountToBody={true}
         collapsed={!tocFloatAlwaysExpanded}
         alwaysExpanded={tocFloatAlwaysExpanded}
       />
+      )}
     </>
   )}
 

@@ -1,0 +1,172 @@
+---
+import './styles/floating-toc.css';
+import type { TocItem } from '../../utils/toc';
+
+interface Props {
+  toc?: TocItem[];
+  navLabel?: string;
+  containerSelector?: string;
+  inlineSelector?: string;
+  baselineOffset?: number;
+  mountToBody?: boolean;
+  /** 3.1.x — collapse-by-default. When false the panel starts expanded (CSS-only). */
+  collapsed?: boolean;
+  /** 3.1.x — always-expanded mode: never collapses, no background/blur. */
+  alwaysExpanded?: boolean;
+}
+
+const {
+  toc = [],
+  navLabel = 'Table of contents',
+  containerSelector = '.main-content',
+  inlineSelector = '.toc-inline',
+  baselineOffset = 85,
+  mountToBody = false,
+  collapsed = true,
+  alwaysExpanded = false,
+} = Astro.props as Props;
+---
+
+<div id="floating-toc-root" data-mount-to-body={String(mountToBody)}>
+  {toc.length > 0 && (
+    <nav
+      class="toc-float collapsed"
+      class:list={{ visible: false }}
+      data-toc-mode={collapsed ? undefined : (alwaysExpanded ? 'always' : 'default')}
+      aria-label={navLabel}
+      data-container-selector={containerSelector}
+      data-inline-selector={inlineSelector}
+      data-baseline-offset={String(baselineOffset)}
+    >
+      <ul>
+        {toc.map((item) => (
+          <li class={`toc-float-item toc-level-${item.level}`} data-toc-id={item.id}>
+            <a href={`#${item.id}`} class="toc-link">
+              <span class="toc-text">{item.text}</span>
+              <span class="toc-line"></span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )}
+</div>
+
+<script>
+  // Per-navigation setup: re-read DOM, re-bind events, init controller fresh
+  let _unsub: (() => void) | null = null;
+  let _floatTimer: number | undefined;
+
+  function setupFloatingToc() {
+    const root = document.getElementById('floating-toc-root');
+    if (!root) return;
+    const nav = root.querySelector('.toc-float') as HTMLElement;
+    if (!nav) return;
+
+    if (root.dataset.mountToBody === 'true' && root.parentElement !== document.body) {
+      document.body.appendChild(root);
+    }
+
+    import('../../utils/tocController').then(({ default: tc, initController, destroyController, setTocGetter }) => {
+      // Destroy previous controller state before re-initializing
+      destroyController();
+      const containerSelector = nav.dataset.containerSelector || '.main-content';
+      const inlineSelector = nav.dataset.inlineSelector || '.toc-inline';
+      const baselineOffset = parseInt(nav.dataset.baselineOffset || '85');
+
+      setTocGetter(() => JSON.parse(document.getElementById('chronicle-toc-data')?.textContent || '[]'));
+      initController({ containerSelector, inlineSelector, baselineOffset });
+
+      // Unsubscribe previous callback
+      if (_unsub) _unsub();
+      let syncPending = false;
+      _unsub = tc.subscribe(() => {
+        if (syncPending) return;
+        syncPending = true;
+        requestAnimationFrame(() => {
+          syncPending = false;
+          const s = tc.state;
+
+          // Update active class first so scroll calc targets the right item.
+          nav.querySelectorAll('li').forEach(li => {
+            const shouldBe = (li as HTMLElement).dataset.tocId === s.liveActiveId;
+            if (li.classList.contains('active') !== shouldBe) li.classList.toggle('active', shouldBe);
+          });
+          nav.classList.toggle('visible', s.showTOCandBTT);
+
+          // Auto-scroll TOC to center the active item — but only on page
+          // scroll, not on hashtag navigation (clicking a TOC link).
+          if (!s.liveSyncPaused) {
+            const activeItem = nav.querySelector('li.active') as HTMLElement;
+            if (activeItem) {
+              const nr = nav.getBoundingClientRect();
+              const ar = activeItem.getBoundingClientRect();
+              const scrollTarget = Math.min(
+                Math.max(0, nav.scrollHeight - nav.clientHeight),
+                Math.max(0, nav.scrollTop + (ar.top - nr.top) - nav.clientHeight / 2 + ar.height / 2),
+              );
+              // Cancel any in-progress smooth scroll before starting a new one
+              nav.scrollTo({ top: nav.scrollTop, behavior: 'instant' });
+              nav.scrollTo({ top: scrollTarget, behavior: 'smooth' });
+            }
+          }
+        });
+      });
+
+      // ── helpers ──
+      function tocScrollPercent(nav: HTMLElement) {
+        const max = nav.scrollHeight - nav.clientHeight;
+        return max > 0 ? nav.scrollTop / max : 0;
+      }
+      function applyTocScrollPercent(nav: HTMLElement, pct: number) {
+        const max = nav.scrollHeight - nav.clientHeight;
+        if (max > 0) nav.scrollTo({ top: pct * max, behavior: 'instant' });
+      }
+
+      // 模式外观全部由 CSS 处理（@media(min-width:900px) + data-toc-mode）；
+      // JS 只保留必须用 JS 的延迟折叠（光标离开计时）。
+      // Mouse collapse — sync scroll position by percentage so expanded
+      // and collapsed views stay aligned despite different item heights.
+      nav.addEventListener('mouseenter', () => {
+        if (_floatTimer) { clearTimeout(_floatTimer); _floatTimer = undefined; }
+        const pct = tocScrollPercent(nav);
+        nav.classList.remove('collapsed');
+        tc.state.floatCollapsed = false;
+        requestAnimationFrame(() => applyTocScrollPercent(nav, pct));
+      });
+      nav.addEventListener('mouseleave', () => {
+        if (_floatTimer) clearTimeout(_floatTimer);
+        _floatTimer = window.setTimeout(() => {
+          const pct = tocScrollPercent(nav);
+          nav.classList.add('collapsed');
+          tc.state.floatCollapsed = true;
+          requestAnimationFrame(() => applyTocScrollPercent(nav, pct));
+        }, 1000);
+      });
+
+      // Click navigation
+      nav.querySelectorAll('a').forEach(a => {
+        a.addEventListener('click', (e) => {
+          e.preventDefault();
+          const id = (a.parentElement as HTMLElement).dataset.tocId!;
+          tc.lockActiveId(id);
+          try { history.pushState(null, '', `#${id}`); } catch { window.location.hash = id; }
+          tc.scrollToHeading(id);
+        });
+      });
+    }).catch(() => {});
+  }
+
+  // ── Lifecycle: run on every navigation ──
+  document.addEventListener('astro:page-load', setupFloatingToc);
+  document.addEventListener('astro:before-swap', () => {
+    if (_floatTimer) clearTimeout(_floatTimer);
+    if (_unsub) { _unsub(); _unsub = null; }
+    const c = document.querySelector('.post-detail-container');
+    if (c) c.classList.remove('reserve-toc-right');
+    import('../../utils/tocController').then(({ destroyController }) => destroyController());
+    const root = document.getElementById('floating-toc-root');
+    if (root?.parentElement) root.parentElement.removeChild(root);
+  });
+</script>
+

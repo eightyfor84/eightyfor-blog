@@ -31,3 +31,8 @@ export function getClusterSlots(slot: string): any[] {
   }
   return out;
 }
+
+/** 取某槽位的首个贡献组件（主板槽渲染用；未注册 → undefined） */
+export function getClusterSlot(slot: string): any {
+  return getClusterSlots(slot)[0];
+}

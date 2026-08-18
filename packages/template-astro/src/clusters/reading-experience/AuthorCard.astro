@@ -1,8 +1,8 @@
 ---
-import '../themes/aurora/styles/components/author-card.css';
-import { dataSource } from '../data';
-import ChronicleImage from './ChronicleImage.astro';
-import { getTranslation, type Locale } from '../utils/i18n';
+import './styles/author-card.css';
+import { dataSource } from '../../data';
+import ChronicleImage from '../../components/ChronicleImage.astro';
+import { getTranslation, type Locale } from '../../utils/i18n';
 import { isSiteAuthor } from '@chronicle/shared/src/utils';
 
 interface Props { locale: Locale; post?: any }

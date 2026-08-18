@@ -1,7 +1,7 @@
 ---
-import '../themes/aurora/styles/components/related-posts.css';
-import { dataSource } from '../data';
-import { getTranslation, type Locale } from '../utils/i18n';
+import './styles/related-posts.css';
+import { dataSource } from '../../data';
+import { getTranslation, type Locale } from '../../utils/i18n';
 
 interface Props { post: any; locale: Locale; lang: string }
 const { post, locale, lang } = Astro.props as Props;
