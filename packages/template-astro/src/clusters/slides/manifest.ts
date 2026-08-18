@@ -16,5 +16,5 @@ export const slides: ClusterManifest = {
     { slot: 'post-slides-view', component: Slideshow },
   ],
   dataHooks: {},
-  settingsSchema: [],
+  settingsSchema: ['slides'],
 };

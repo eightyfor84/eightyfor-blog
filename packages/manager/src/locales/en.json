@@ -415,7 +415,9 @@
     "add": "Add",
     "sansSerif": "Sans-serif",
     "serif": "Serif",
-    "preview": "Preview"
+    "preview": "Preview",
+    "moduleHint": "Settings modules: click a card to open its detail page",
+    "masterSwitch": "Master switch"
   },
   "postPicker": {
     "inputPlaceholder": "Search and select a published post",

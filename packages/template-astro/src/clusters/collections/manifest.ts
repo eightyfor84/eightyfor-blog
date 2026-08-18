@@ -13,4 +13,5 @@ export const collections: ClusterManifest = {
   // 合集导航（CollectionNav）为文章页槽位贡献，随阅读体验簇槽位化时接入
   slots: [],
   dataHooks: {},
+  settingsSchema: ['collections'],
 };
