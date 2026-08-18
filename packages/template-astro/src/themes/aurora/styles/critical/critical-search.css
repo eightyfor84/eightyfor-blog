@@ -4,7 +4,8 @@
    then JS animates it upward when a search is active. This prevents a
    visible jump on first paint.
 
-   Update in sync with: search.astro <style> block. */
+   Update in sync with: components/search-box.css + search-experience.css
+   （search.astro 无 <style> 块，布局源在组件层；bundled 后异步赢平局，安全）。 */
 
 .page-container {
   max-width: 800px;
@@ -33,7 +34,7 @@
   display: flex;
   align-items: center;
   border-radius: 12px;
-  padding: 4px;
+  padding: 2px 4px;
 }
 
 .search-input {
@@ -42,4 +43,51 @@
   font-size: 1rem;
   padding: 6px 0;
   outline: none;
+}
+
+/* ── Box 内部布局（首帧锁定，防异步 CSS 到达时搜索框内部重排）──
+   镜像 search-box.css / search-experience.css 的 scoped 规则（同值）。 */
+.input-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 4px 10px;
+  gap: 6px;
+  cursor: text;
+  min-width: 100px !important;
+}
+
+.search-btn {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+}
+
+.tag-trigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  position: relative;
+}
+
+/* tag-count 徽标（首帧可见于 tag-trigger 旁，镜像 search-box.css 同值） */
+.tag-count {
+  min-width: 16px;
+  padding: 2px;
+  font-size: 0.75rem;
+  line-height: 1;
+  border-radius: 10px;
+  text-align: center;
+  align-content: center;
+}
+
+/* 移动端（镜像 search-experience.css 的 html.is-mobile 规则） */
+html.is-mobile .page-container {
+  padding: 10px 15px 0;
 }
