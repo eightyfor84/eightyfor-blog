@@ -128,14 +128,6 @@ const metaDescription = locale === 'zh-CN'
     scroll-behavior: smooth;
   }
 
-  /* Mobile — MUST live in the scoped block: the async scoped base rule
-     (0-2-0) would otherwise override critical's @media padding on mobile,
-     reflowing the whole page when the async CSS lands (measured CLS 0.78). */
-  @media (max-width: 768px) {
-    .blog-container {
-      padding: 20px 16px;
-    }
-  }
 </style>
 
 <style is:global>

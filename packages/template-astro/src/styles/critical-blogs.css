@@ -69,7 +69,6 @@ h3.year-header { font-size:3em; font-weight:800; font-variation-settings:'wght' 
 
 /* ── Mobile (≤768px) — mirror blogs.astro @media block ── */
 @media (max-width:768px) {
-  .blog-container { padding:20px 16px; }
   .featured-grid { grid-template-columns:1fr; gap:10px; }
   .post-card { padding:12px 14px; border-radius:12px; }
   .month-label { width:38px; padding-right:12px; padding-top:10px; }
