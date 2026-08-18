@@ -1,4 +1,5 @@
 ---
+import '../themes/aurora/styles/components/corner-actions.css';
 import BackToTop from './BackToTop.astro';
 import CornerButton from './CornerButton.astro';
 import CollectionNav from './CollectionNav.astro';
@@ -32,7 +33,4 @@ const hasToc=mobileToc&&toc.length>0, hasComment=commentsEnabled, btnCount=(hasT
   </CornerButton>
 </div>
 
-<style is:global>
-  .ca-left{display:none}
-  html.is-mobile .ca-left{display:block}
-</style>
+

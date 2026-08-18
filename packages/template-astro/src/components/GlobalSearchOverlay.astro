@@ -1,4 +1,5 @@
 ---
+import '../themes/aurora/styles/components/global-search-overlay.css';
 import SearchExperience from "./SearchExperience.astro";
 
 interface Props {
@@ -35,95 +36,7 @@ const {
   </div>
 </div>
 
-<style is:global>
-  .global-search-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 11000;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    background: color-mix(in srgb, var(--overlay) 80%, transparent);
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s ease, visibility 0.2s ease;
-  }
-  .global-search-overlay[hidden] {
-    display: none;
-  }
-  .global-search-overlay.is-open {
-    opacity: 1;
-    visibility: visible;
-  }
-  @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
-    .global-search-overlay {
-      -webkit-backdrop-filter: blur(16px);
-      backdrop-filter: blur(16px);
-    }
-  }
 
-  .global-search-backdrop {
-    position: absolute;
-    inset: 0;
-  }
-
-  .global-search-panel {
-    position: relative;
-    width: min(720px, calc(100vw - 40px));
-    margin-top: 15vh;
-    /* Solid backing panel + a definite height so the inner flex column
-       (.overlay-experience → .content-wrapper flex:1) gets real space for
-       the tag cloud / suggestions / results panels to fill. */
-    height: min(70vh, 640px);
-    display: flex;
-    flex-direction: column;
-    border-radius: 16px;
-    overflow: hidden;
-    background: transparent;
-    /* Enter/exit: slide down + slight scale (fade is inherited from the
-       overlay shell's opacity transition). */
-    transform: translateY(-16px) scale(0.98);
-    transition: transform 0.2s cubic-bezier(0.19, 1, 0.22, 1), margin-top 0.2s ease, height 0.2s ease;
-  }
-  .global-search-overlay.is-open .global-search-panel {
-    transform: translateY(0) scale(1);
-  }
-
-  @media (max-width: 768px){
-    .global-search-panel {
-      margin-top: 60px;
-      height: calc(100vh - 120px);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .global-search-overlay,
-    .global-search-panel {
-      transition: none;
-    }
-  }
-
-  /* Overlay SearchExperience layout — no page-container chrome */
-  .overlay-experience {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    /* Fill the panel so .content-wrapper's flex:1 gets real height — without
-       this the absolute-positioned tag-cloud/suggestion/results panels collapse
-       to 0 height and never appear. */
-    height: 100%;
-    min-height: 0;
-    padding: 16px;
-    box-sizing: border-box;
-    color: var(--app-text-pri);
-  }
-  .overlay-experience .search-box-wrapper {
-    margin-bottom: 1rem;
-  }
-  .overlay-experience .content-wrapper {
-    margin-bottom: 0;
-  }
-</style>
 
 <script>
   let _overlayOpen = false;
