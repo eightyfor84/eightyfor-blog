@@ -1,14 +1,14 @@
 /* ── 组件样式：HomeCoverDeck ──
    自 src/components/HomeCoverDeck.astro <style> 迁出（与 critical 同值+附加细化，bundled 后加载赢平局，安全）。 */
   /* Shell — layout & positioning */
-  .home-cover-deck--split { transform-origin: left bottom; will-change: transform, opacity; }
-  .hero { position: relative; left: 15vw; }
-  @media (max-width:760px) { .hero { left: 60px; } }
+  .home-cover-deck .home-cover-deck--split.home-cover-deck--split{ transform-origin: left bottom; will-change: transform, opacity; }
+  .home-cover-deck .hero.hero{ position: relative; left: 15vw; }
+  @media (max-width:760px) { .home-cover-deck .hero.hero{ left: 60px; } }
 
   /* Cover content */
-  .cover-title { font-size:3.5rem; font-weight:600; font-variation-settings:"wght" 600; color:var(--app-text-pri); margin:0 0 1rem 0; line-height:1.1; }
-  .cover-subtitle { font-size:1.15rem; color:var(--app-text-sec); margin:0 0 2.5rem 0; line-height:1.5; max-width:480px; }
-  .cover-cta { display:inline-flex; align-items:center; gap:8px; padding:12px 28px; background:var(--accent-dark); color:#fff; border:none; border-radius:8px; font-size:1rem; font-weight:500; cursor:pointer; text-decoration:none; transition:filter 0.2s, transform 0.2s; }
-  .cover-cta:hover { filter: brightness(1.8); transform: scale(1.05); color: #000;}
-  .cover-cta svg { width:20px; height:20px; }
-  @media (max-width:760px) { .cover-title { font-size:2.2rem; } .cover-subtitle { font-size:1rem; margin-bottom:2rem; } }
+  .home-cover-deck .cover-title.cover-title{ font-size:3.5rem; font-weight:600; font-variation-settings:"wght" 600; color:var(--app-text-pri); margin:0 0 1rem 0; line-height:1.1; }
+  .home-cover-deck .cover-subtitle.cover-subtitle{ font-size:1.15rem; color:var(--app-text-sec); margin:0 0 2.5rem 0; line-height:1.5; max-width:480px; }
+  .home-cover-deck .cover-cta.cover-cta{ display:inline-flex; align-items:center; gap:8px; padding:12px 28px; background:var(--accent-dark); color:#fff; border:none; border-radius:8px; font-size:1rem; font-weight:500; cursor:pointer; text-decoration:none; transition:filter 0.2s, transform 0.2s; }
+  .home-cover-deck .cover-cta.cover-cta:hover{ filter: brightness(1.8); transform: scale(1.05); color: #000;}
+  .home-cover-deck .cover-cta.cover-cta svg{ width:20px; height:20px; }
+  @media (max-width:760px) { .home-cover-deck .cover-title.cover-title{ font-size:2.2rem; } .home-cover-deck .cover-subtitle.cover-subtitle{ font-size:1rem; margin-bottom:2rem; } }

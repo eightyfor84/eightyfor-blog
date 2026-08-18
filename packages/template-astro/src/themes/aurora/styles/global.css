@@ -898,3 +898,56 @@ select option {
     padding-left: 40px;
   }
 }
+/* ── 自 app.css 迁入（app.css 弃用后的独有规则）── */
+.math-tooltip {
+  display: none;
+  visibility: hidden;
+}
+
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-top: 70px;
+  height: 100vh;
+  box-sizing: border-box;
+  --toc-scroll-offset: 70px;
+  position: relative;
+  /* 使用 mask-image 在主内容顶部实现渐隐（支持 -webkit- 前缀）
+     透明到可见的渐变位置使用可配置变量（--top-fade-length/--top-fade-opacity） */
+  --top-fade-length: 70px;
+  --top-fade-opacity: 1;
+  scroll-behavior: smooth;
+  scroll-padding-top: var(--toc-scroll-offset);
+}
+
+/* 仅当 html 上有 .immersive 类时启用 mask 渐隐效果 */
+html.immersive:not(.focus) .main-content {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0) 0px,
+    rgba(0,0,0,0.1) calc(var(--top-fade-length) * 0.4),
+    rgba(0,0,0,0.3) calc(var(--top-fade-length) * 0.7),
+    rgba(0,0,0,1) var(--top-fade-length),
+    rgba(0,0,0,1) 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0) 0px,
+    rgba(0,0,0,0.1) calc(var(--top-fade-length) * 0.4),
+    rgba(0,0,0,0.3) calc(var(--top-fade-length) * 0.7),
+    rgba(0,0,0,1) var(--top-fade-length),
+    rgba(0,0,0,1) 100%
+  );
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+}
+
+.main-content.unscrollable { overflow: hidden; }
+.main-content.no-nav {
+  padding-top: 0;
+  overflow: hidden;
+  z-index: 0;
+}

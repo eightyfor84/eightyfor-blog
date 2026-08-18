@@ -1,6 +1,6 @@
 /* ── 组件样式：NavHeader ──
    自 src/components/NavHeader.astro <style> 迁出（与 critical 同值+附加细化，bundled 后加载赢平局，安全）。 */
-  .nav-header {
+  .nav-header.nav-header{
     background: var(--comp-bg-blur);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
@@ -18,30 +18,30 @@
       backdrop-filter 0.3s ease;
   }
 
-  html.immersive:not(.focus) .nav-header{
+  html.immersive:not(.focus) .nav-header.nav-header{
     background: transparent;
     border-bottom: none;
     backdrop-filter: blur(1px);
   }
 
-  html.focus .nav-header{
+  html.focus .nav-header.nav-header{
     background: transparent;
     border-bottom: none;
     backdrop-filter: none;
     
   }
 
-  html.focus .app-title{
+  .nav-header html.focus .app-title.app-title{
     display: none;
   }
 
-  .nav-header.at-top {
+  .nav-header.at-top.at-top{
     background: transparent;
     border-bottom-color: transparent;
     backdrop-filter: none;
   }
 
-  .nav-content {
+  .nav-header .nav-content.nav-content{
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -51,7 +51,7 @@
     margin: 0 auto;
   }
 
-  .header-swap {
+  .nav-header .header-swap.header-swap{
     position: relative;
     display: flex;
     align-items: center;
@@ -61,32 +61,32 @@
   }
 
   .site-header,
-  .reading-header {
+  .nav-header .reading-header.reading-header{
     align-items: center;
     min-width: 0;
   }
 
-  .site-header {
+  .nav-header .site-header.site-header{
     display: flex;
     opacity: 1;
     pointer-events: auto;
     transition: opacity 0.28s ease;
   }
 
-  .nav-header.nav-collapsed .site-header {
+  .nav-header.nav-collapsed .site-header.site-header{
     opacity: 0;
     pointer-events: none;
   }
 
-  html.is-mobile .nav-header.swap-enabled .reading-header {
+  html.is-mobile .nav-header.swap-enabled .reading-header.reading-header{
     display: flex;
   }
 
-  .reading-header {
+  .nav-header .reading-header.reading-header{
     display: none;
   }
 
-  html.is-mobile .nav-header.swap-enabled .header-swap {
+  html.is-mobile .nav-header.swap-enabled .header-swap.header-swap{
     position: relative;
     min-width: 0;
     flex: 1 1 auto;
@@ -94,7 +94,7 @@
   }
 
   html.is-mobile .nav-header.swap-enabled .site-header,
-  html.is-mobile .nav-header.swap-enabled .reading-header {
+  html.is-mobile .nav-header.swap-enabled .reading-header.reading-header{
     position: absolute;
     inset: 0 auto 0 0;
     opacity: 0;
@@ -106,57 +106,57 @@
     will-change: transform, opacity;
   }
 
-  html.is-mobile .nav-header.swap-enabled .site-header.entering-up {
+  html.is-mobile .nav-header.swap-enabled .site-header.entering-up.entering-up{
     transform: translateY(-8px);
   }
 
-  html.is-mobile .nav-header.swap-enabled .reading-header.entering-down {
+  html.is-mobile .nav-header.swap-enabled .reading-header.entering-down.entering-down{
     transform: translateY(8px);
   }
 
-  html.is-mobile .nav-header.swap-enabled.at-top .site-header {
+  html.is-mobile .nav-header.swap-enabled.at-top .site-header.site-header{
     opacity: 1;
     transform: translateY(0);
     pointer-events: auto;
   }
 
-  html.is-mobile .nav-header.swap-enabled.at-top .reading-header {
+  html.is-mobile .nav-header.swap-enabled.at-top .reading-header.reading-header{
     opacity: 0;
     transform: translateY(8px);
     pointer-events: none;
   }
 
-  html.is-mobile .nav-header.swap-enabled:not(.at-top) .site-header {
+  html.is-mobile .nav-header.swap-enabled:not(.at-top) .site-header.site-header{
     opacity: 0;
     transform: translateY(-8px);
     pointer-events: none;
   }
 
-  html.is-mobile .nav-header.swap-enabled:not(.at-top) .reading-header {
+  html.is-mobile .nav-header.swap-enabled:not(.at-top) .reading-header.reading-header{
     opacity: 1;
     transform: translateY(0);
     pointer-events: auto;
   }
 
-  html:not(.is-mobile) .nav-header.nav-collapsed .nav-links{
+  html:not(.is-mobile) .nav-header.nav-collapsed .nav-links.nav-links{
     gap: 0.75rem;
   }
 
 
-  .nav-actions {
+  .nav-header .nav-actions.nav-actions{
     display: flex;
     align-items: center;
     gap: 0.75rem;
     transition: gap 0.2s ease;
   }
 
-  .nav-links {
+  .nav-header .nav-links.nav-links{
     display: flex;
     align-items: center;
     gap: 2rem;
   }
 
-  .nav-link {
+  .nav-header .nav-link.nav-link{
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -172,7 +172,7 @@
     white-space: nowrap;
   }
 
-  .nav-link-swap {
+  .nav-header .nav-link-swap.nav-link-swap{
     position: relative;
     display: inline-flex;
     align-items: center;
@@ -180,17 +180,17 @@
     min-width: 18px;
   }
 
-  .nav-link.router-link-active {
+  .nav-header .nav-link.router-link-active.router-link-active{
     background: var(--active);
     color: var(--comp-text-pri-active);
   }
 
-  .nav-link:hover {
+  .nav-header .nav-link.nav-link:hover{
     background: var(--hover);
     color: var(--comp-text-pri-hvr);
   }
 
-  .nav-link-full {
+  .nav-header .nav-link-full.nav-link-full{
     position: relative;
     display: inline-block;
     overflow: hidden;
@@ -203,7 +203,7 @@
       transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  .nav-link-collapsed {
+  .nav-header .nav-link-collapsed.nav-link-collapsed{
     position: absolute;
     inset: 0;
     display: inline-flex;
@@ -220,7 +220,7 @@
       transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  .nav-link-collapsed svg {
+  .nav-header .nav-link-collapsed.nav-link-collapsed svg{
     width: 18px;
     height: 18px;
     min-width: 18px;
@@ -229,36 +229,36 @@
     flex: 0 0 auto;
   }
 
-  .nav-header.nav-collapsed .nav-link-full {
+  .nav-header.nav-collapsed .nav-link-full.nav-link-full{
     max-width: 0;
     opacity: 0;
     transform: translateX(-4px);
   }
 
-  .nav-header.nav-collapsed .nav-link-collapsed {
+  .nav-header.nav-collapsed .nav-link-collapsed.nav-link-collapsed{
     max-width: 18px;
     opacity: 1;
     transform: translateX(0);
   }
 
-  .nav-header.nav-collapsed .nav-link.router-link-active .nav-link-full {
+  .nav-header.nav-collapsed .nav-link.router-link-active .nav-link-full.nav-link-full{
     max-width: 12rem;
     opacity: 1;
     transform: translateX(0);
   }
 
-  .nav-header.nav-collapsed .nav-link.router-link-active .nav-link-collapsed {
+  .nav-header.nav-collapsed .nav-link.router-link-active .nav-link-collapsed.nav-link-collapsed{
     max-width: 0;
     opacity: 0;
     transform: translateX(4px);
   }
 
-  .nav-link-search {
+  .nav-header .nav-link-search.nav-link-search{
     display: none;
   }
 
   /* Settings Button */
-  .nav-action-link {
+  .nav-header .nav-action-link.nav-action-link{
     display: flex;
     align-items: center;
     justify-content: center;
@@ -272,29 +272,29 @@
   }
 
   .nav-action-link:hover,
-  .nav-action-link.router-link-active {
+  .nav-header .nav-action-link.router-link-active.router-link-active{
     background: var(--hover);
     color: var(--comp-text-pri-hvr);
   }
 
   /* 首页标题链接：去掉全局链接默认装饰 */
-  .nav-home-link {
+  .nav-header .nav-home-link.nav-home-link{
     text-decoration: none;
     color: inherit;
   }
 
   /* 页脚版本行 */
-  .nav-footer-version {
+  .nav-header .nav-footer-version.nav-footer-version{
     font-size: 0.8em;
     padding: 2px 10px 0 10px;
     color: var(--comp-text-sec);
   }
 
-  .nav-search-btn {
+  .nav-header .nav-search-btn.nav-search-btn{
     display: flex;
   }
 
-  .nav-setting-btn {
+  .nav-header .nav-setting-btn.nav-setting-btn{
     background: transparent;
     border: none;
     color: var(--app-text-sec);
@@ -308,12 +308,12 @@
     anchor-name: --settings-anchor;
   }
 
-  .nav-setting-btn:hover {
+  .nav-header .nav-setting-btn.nav-setting-btn:hover{
     color: var(--app-text-pri);
   }
 
   /* Settings Menu — JS appends it to <body> once; position is pure CSS. */
-  .nav-settings-menu {
+  .nav-header .nav-settings-menu.nav-settings-menu{
     position: fixed;
     display: flex;
     flex-direction: column;
@@ -336,27 +336,27 @@
     right: 2rem;
   }
   @supports (anchor-name: none) {
-    .nav-settings-menu {
+    .nav-header .nav-settings-menu.nav-settings-menu{
       position-anchor: --settings-anchor;
       top: calc(anchor(bottom) + 8px);
       right: anchor(right);
     }
   }
 
-  .nav-settings-menu.is-open {
+  .nav-header .nav-settings-menu.is-open.is-open{
     transform: translateY(0);
     opacity: 1;
     pointer-events: auto;
   }
 
-  .nav-settings-menu hr {
+  .nav-header .nav-settings-menu.nav-settings-menu hr{
     margin:2px 4px; 
     border:none; 
     border-top:1px solid var(--comp-text-sec); 
     opacity: 0.4;     
   }
 
-  .popup-item {
+  .nav-header .popup-item.popup-item{
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -371,38 +371,38 @@
     transition: all 0.2s;
   }
 
-  .popup-item.active {
+  .nav-header .popup-item.active.active{
     background: var(--highlight);
     color: var(--comp-text-pri-hl);
   }
 
-  .popup-item:not(.active):hover {
+  .nav-header .popup-item.popup-item:not(.active):hover{
     background: var(--hover);
     color: var(--comp-text-pri-hvr);
   }
 
-  .popup-item-link {
+  .nav-header .popup-item-link.popup-item-link{
     text-decoration: none;
     box-sizing: border-box;
   }
 
-  .popup-label {
+  .nav-header .popup-label.popup-label{
     flex: 1;
     text-align: left;
   }
 
-  .popup-check {
+  .nav-header .popup-check.popup-check{
     color: var(--comp-text-pri-hl);
     display: none;
     align-items: center;
   }
 
-  .popup-item.active .popup-check {
+  .nav-header .popup-item.active .popup-check.popup-check{
     display: flex;
   }
 
   /* ── Perf toggle switch ── */
-  .popup-switch {
+  .nav-header .popup-switch.popup-switch{
     width: 36px;
     height: 20px;
     border-radius: 10px;
@@ -411,7 +411,7 @@
     transition: background .2s;
     flex-shrink: 0;
   }
-  .popup-switch-knob {
+  .nav-header .popup-switch-knob.popup-switch-knob{
     position: absolute;
     top: 2px;
     left: 2px;
@@ -421,28 +421,28 @@
     background: #fff;
     transition: transform .2s;
   }
-  [data-perf="full"] .popup-switch {
+  .nav-header [data-perf="full"] .popup-switch.popup-switch{
     background: var(--accent);
   }
-  [data-perf="full"] .popup-switch-knob {
+  .nav-header [data-perf="full"] .popup-switch-knob.popup-switch-knob{
     transform: translateX(16px);
   }
 
-  [data-perf="reduced"] .popup-switch {
+  .nav-header [data-perf="reduced"] .popup-switch.popup-switch{
     background: var(--border-color);
   }
-  [data-perf="reduced"] .popup-switch-knob {
+  .nav-header [data-perf="reduced"] .popup-switch-knob.popup-switch-knob{
     transform: none;
   }
 
-  .popup-divider {
+  .nav-header .popup-divider.popup-divider{
     height: 1px;
     background: var(--border-color);
     margin: 6px 0;
   }
 
   /* Mobile Menu Toggle */
-  .menu-toggle {
+  .nav-header .menu-toggle.menu-toggle{
     display: none;
     background: transparent;
     border: none;
@@ -458,7 +458,7 @@
   }
 
   .menu-toggle .menu-icon,
-  .menu-toggle .close-icon {
+  .nav-header .menu-toggle .close-icon.close-icon{
     position: absolute;
     width: 22px;
     height: 22px;
@@ -467,23 +467,23 @@
       transform 0.15s ease;
   }
 
-  .menu-toggle .close-icon {
+  .nav-header .menu-toggle .close-icon.close-icon{
     opacity: 0;
     transform: rotate(-90deg);
   }
 
-  .menu-toggle.active .menu-icon {
+  .nav-header .menu-toggle.active .menu-icon.menu-icon{
     opacity: 0;
     transform: rotate(90deg);
   }
 
-  .menu-toggle.active .close-icon {
+  .nav-header .menu-toggle.active .close-icon.close-icon{
     opacity: 1;
     transform: rotate(0deg);
   }
 
   /* Mobile Close Button */
-  .nav-close {
+  .nav-header .nav-close.nav-close{
     display: none;
     position: absolute;
     top: 12px;
@@ -501,15 +501,15 @@
 
   /* Mobile Styles */
   @media (max-width: 768px) {
-    .nav-actions {
+    .nav-header .nav-actions.nav-actions{
       gap: 0.5rem;
     }
 
-    .nav-link-search {
+    .nav-header .nav-link-search.nav-link-search{
       display: inline-flex;
     }
 
-    .nav-link-full {
+    .nav-header .nav-link-full.nav-link-full{
       display: inline;
       position: static;
       max-width: none;
@@ -517,17 +517,17 @@
       transform: none;
     }
 
-    .nav-link-collapsed {
+    .nav-header .nav-link-collapsed.nav-link-collapsed{
       display: none;
       position: static;
     }
 
-    .menu-toggle {
+    .nav-header .menu-toggle.menu-toggle{
       display: flex;
       z-index: 102;
     }
 
-    .nav-links {
+    .nav-header .nav-links.nav-links{
       position: fixed;
       top: 0;
       left: 0;
@@ -547,7 +547,7 @@
     }
 
 
-    .nav-links.mobile-open {
+    .nav-header .nav-links.mobile-open.mobile-open{
       transform: translateY(0);
       position: fixed;
       inset: 0;
@@ -559,19 +559,19 @@
       border: none;
     }
 
-    .nav-links .nav-close {
+    .nav-header .nav-links .nav-close.nav-close{
       display: flex;
     }
 
-    .nav-link {
+    .nav-header .nav-link.nav-link{
       font-size: 1.5em;
     }
 
-    .nav-setting-btn {
+    .nav-header .nav-setting-btn.nav-setting-btn{
       z-index: 102;
     }
 
-    .popup-item {
+    .nav-header .popup-item.popup-item{
       padding: 8px 14px;
     }
   }
@@ -590,8 +590,83 @@
   }
 
   @media (min-width: 769px) {
-    .nav-header:not(.nav-expanded) .nav-link:not(.router-link-active) {
+    .nav-header:not(.nav-expanded) .nav-link.nav-link:not(.router-link-active){
       padding-left: 0.7rem;
       padding-right: 0.7rem;
     }
   }
+
+/* ── 自 app.css 迁入（app.css 弃用后的独有规则）── */
+.mobile-title-back {
+  background: transparent;
+  border: none;
+  color: var(--app-text-pri);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-right: 12px;
+  padding: 0;
+}
+.mobile-title-back:hover { color: var(--app-text-pri); }
+.mobile-title-back span {
+  display: inline-flex;
+  transform: rotate(-90deg);
+  width: 24px;
+  height: 24px;
+}
+.reading-title {
+  cursor: default;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: calc(100vw - 240px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--app-text-pri);
+  font-size: 1rem;
+  font-weight: 600;
+  font-variation-settings: 'wght' 600;
+  line-height: 1.1;
+  transform: translateY(0.1rem);
+}
+.locale-icon {
+  width: 14px;
+  height: 14px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* ── 移动端补缺（自 app.css 迁入；nav-links 基座/mobile-open/nav-link 字号已在 scoped 源）── */
+@media (max-width: 768px) {
+  .nav-header .nav-links .nav-close.nav-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: transparent;
+    border: none;
+    color: var(--app-text-pri);
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 110;
+  }
+  .nav-header .nav-links .nav-close .nav-close-icon.nav-close-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .nav-header .nav-links .nav-close .nav-close-icon svg {
+    width: 32px;
+    height: 32px;
+    display: block;
+    stroke: currentColor;
+  }
+  .nav-header .app-title.app-title {
+    transform: translateY(0.1rem);
+    vertical-align: middle;
+  }
+}

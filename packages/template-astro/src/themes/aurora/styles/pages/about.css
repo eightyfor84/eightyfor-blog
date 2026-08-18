@@ -1,23 +1,23 @@
 /* ── 页面样式：[lang]/about.astro ──
    自 src/pages/[lang]/about.astro <style> 迁出（与 critical 同值+附加细化，bundled 后加载赢平局，安全）。 */
-.about-page {
+.about-page.about-page{
   max-width: 860px;
   margin: 0 auto;
   padding: 48px 24px 64px;
 }
 
-.about-article {
+.about-page .about-article.about-article{
   color: var(--comp-text-pri);
 }
 
-.about-title {
+.about-page .about-title.about-title{
   font-size: 2.4rem;
   font-weight: 700;
   margin: 0 0 32px;
   padding: 0 0 16px;
 }
 
-.about-empty {
+.about-page .about-empty.about-empty{
   padding: 48px 0;
   text-align: center;
   color: var(--comp-text-sec);
@@ -25,7 +25,7 @@
 }
 
 /* Profile Card */
-.about-profile-card {
+.about-page .about-profile-card.about-profile-card{
   display: flex;
   gap: 20px;
   padding: 20px 24px;
@@ -37,7 +37,7 @@
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
 }
 
-.about-avatar {
+.about-page .about-avatar.about-avatar{
   width: 88px;
   height: 88px;
   border-radius: 50%;
@@ -45,26 +45,26 @@
   flex-shrink: 0;
 }
 
-.about-profile-body {
+.about-page .about-profile-body.about-profile-body{
   flex: 1;
   min-width: 0;
 }
 
-.about-name {
+.about-page .about-name.about-name{
   font-size: 1.25rem;
   font-weight: 600;
   font-variation-settings: 'wght' 600;
   margin: 0 0 6px;
 }
 
-.about-bio {
+.about-page .about-bio.about-bio{
   font-size: 0.95rem;
   color: var(--comp-text-sec);
   margin: 0 0 8px;
   line-height: 1.55;
 }
 
-.about-location {
+.about-page .about-location.about-location{
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -73,14 +73,14 @@
   margin: 0 0 6px;
 }
 
-.about-links {
+.about-page .about-links.about-links{
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 8px;
 }
 
-.about-link {
+.about-page .about-link.about-link{
   display: inline-block;
   padding: 4px 12px;
   border: 1px solid var(--comp-border);
@@ -91,12 +91,12 @@
   transition: border-color 0.15s;
 }
 
-.about-link:hover {
+.about-page .about-link.about-link:hover{
   border-color: var(--comp-text-sec);
 }
 
 /* Last Modified */
-.about-last-modified {
+.about-page .about-last-modified.about-last-modified{
   margin-top: 40px;
   padding-top: 16px;
   border-top: 1px solid var(--comp-border);
@@ -104,16 +104,16 @@
   color: var(--comp-text-sec);
 }
 
-.about-modified-label {
+.about-page .about-modified-label.about-modified-label{
   margin-right: 4px;
 }
 
 @media (max-width: 600px) {
-  .about-profile-card {
+  .about-page .about-profile-card.about-profile-card{
     flex-direction: column;
     text-align: center;
   }
-  .about-links {
+  .about-page .about-links.about-links{
     justify-content: center;
   }
 }

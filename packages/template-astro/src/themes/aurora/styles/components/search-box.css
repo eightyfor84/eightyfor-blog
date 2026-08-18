@@ -1,6 +1,6 @@
 /* ── 组件样式：SearchBox ──
    自 src/components/SearchBox.astro <style> 迁出（与 critical 同值+附加细化，bundled 后加载赢平局，安全）。 */
-  .search-box-wrapper {
+  .search-box-wrapper.search-box-wrapper{
     flex-shrink: 0;
     margin-bottom: 2rem;
     z-index: 50;
@@ -8,26 +8,26 @@
     transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
   }
 
-  .search-box {
+  .search-box-wrapper .search-box.search-box{
     display: flex;
     align-items: center;
     border-radius: 12px;
     padding: 4px;
     transition: box-shadow 0.3s ease;
   }
-  .search-box:focus-within {
+  .search-box-wrapper .search-box.search-box:focus-within{
     border-color: var(--accent);
     box-shadow: 0 0 0 2px var(--comp-bg-accent-blur);
   }
 
-  .divider {
+  .search-box-wrapper .divider.divider{
     width: 1px;
     height: 28px;
     background-color: var(--border-color-blur);
     margin: 0 2px;
   }
 
-  .tag-trigger {
+  .search-box-wrapper .tag-trigger.tag-trigger{
     background: transparent;
     border: none;
     cursor: pointer;
@@ -41,32 +41,32 @@
     border-radius: 8px;
     position: relative;
   }
-  .tag-trigger.active:not(.featured) {
+  .search-box-wrapper .tag-trigger.active.active:not(.featured){
     color: var(--accent);
   }
 
-  .tag-trigger.selected {
+  .search-box-wrapper .tag-trigger.selected.selected{
     background: var(--comp-bg-accent-blur);
     color: var(--accent);
   }
 
-  .tag-trigger.selected.featured {
+  .search-box-wrapper .tag-trigger.selected.featured.featured{
     background: var(--featured-bg);
     color: var(--featured);
   }
 
-  .tag-trigger.selected:hover {
+  .search-box-wrapper .tag-trigger.selected.selected:hover{
     filter: brightness(1.1);
   }
-  .tag-trigger.selected.featured:hover {
+  .search-box-wrapper .tag-trigger.selected.featured.featured:hover{
     filter: brightness(1.1);
   }
 
-  .tag-trigger:not(.featured):hover {
+  .search-box-wrapper .tag-trigger.tag-trigger:not(.featured):hover{
     color: var(--accent);
   }
 
-  .tag-count {
+  .search-box-wrapper .tag-count.tag-count{
     background: var(--app-bg-pri);
     color: var(--comp-text-sec);
     font-size: 0.75rem;
@@ -80,12 +80,12 @@
     align-content: center;
   }
 
-  .tag-trigger .tag-count{
+  .search-box-wrapper .tag-trigger .tag-count.tag-count{
     width:16px;
     height:16px;
   }
 
-  .search-btn {
+  .search-box-wrapper .search-btn.search-btn{
     background: transparent;
     border: none;
     cursor: pointer;
@@ -101,22 +101,22 @@
     border-radius: 8px;
   }
 
-  .search-btn--static {
+  .search-box-wrapper .search-btn--static.search-btn--static{
     cursor: default;
     pointer-events: none;
     opacity: 0.7;
   }
 
-  .search-btn:not(.active) {
+  .search-box-wrapper .search-btn.search-btn:not(.active){
     opacity: 0.7;
     cursor: default;
   }
-  .search-btn.active {
+  .search-box-wrapper .search-btn.active.active{
     background-color: var(--accent);
     color: var(--recommended-accent-text);
   }
 
-  .input-area {
+  .search-box-wrapper .input-area.input-area{
     flex: 1;
     display: flex;
     align-items: center;
@@ -126,7 +126,7 @@
     min-width: 100px !important;
   }
 
-  .search-input {
+  .search-box-wrapper .search-input.search-input{
     flex: 1;
     background: transparent;
     border: none;
@@ -136,7 +136,7 @@
     outline: none;
   }
 
-  .clear-btn {
+  .search-box-wrapper .clear-btn.clear-btn{
     background: transparent;
     border: none;
     cursor: pointer;
@@ -150,7 +150,7 @@
     opacity: 0.7;
   }
 
-  .clear-btn:hover {
+  .search-box-wrapper .clear-btn.clear-btn:hover{
     color: var(--comp-text-pri-hvr);
     opacity: 1;
   }

@@ -1,6 +1,6 @@
 /* ── 页面样式：[lang]/friends.astro ──
    自 src/pages/[lang]/friends.astro <style> 迁出（与 critical 同值+附加细化，bundled 后加载赢平局，安全）。 */
-  .friends-container {
+  .friends-container.friends-container{
     max-width: 1000px;
     margin: 0 auto;
     padding: 40px;
@@ -8,23 +8,23 @@
     box-sizing: border-box;
   }
 
-  .friends-list {
+  .friends-container .friends-list.friends-list{
     margin-top: 28px;
     display: grid;
     gap: 1rem;
     justify-content: center;
   }
 
-  .friends-list--left-sm {
+  .friends-container .friends-list--left-sm.friends-list--left-sm{
     grid-template-columns: repeat(3, minmax(0, 300px));
   }
 
   .friends-list--left-lg,
-  .friends-list--top-lg {
+  .friends-container .friends-list--top-lg.friends-list--top-lg{
     grid-template-columns: repeat(2, minmax(0, 500px));
   }
 
-  .friend-card {
+  .friends-container .friend-card.friend-card{
     display: grid;
     gap: 0.6rem;
     padding: 0.8rem;
@@ -38,25 +38,25 @@
     box-sizing: border-box;
   }
 
-  .friend-card__media {
+  .friends-container .friend-card__media.friend-card__media{
     position: relative;
     overflow: hidden;
     border-radius: 12px;
     background: var(--comp-bg);
   }
 
-  .friend-card__media img {
+  .friends-container .friend-card__media.friend-card__media img{
     width: 100%;
     height: 100%;
     display: block;
     object-fit: cover;
   }
 
-  .friend-card__media img.is-hidden {
+  .friends-container .friend-card__media img.is-hidden.is-hidden{
     display: none;
   }
 
-  .friend-card__media-placeholder {
+  .friends-container .friend-card__media-placeholder.friend-card__media-placeholder{
     width: 100%;
     height: 100%;
     display: none;
@@ -81,11 +81,11 @@
   }
 
   .friend-card__media.is-empty .friend-card__media-placeholder,
-  .friend-card__media.is-broken .friend-card__media-placeholder {
+  .friends-container .friend-card__media.is-broken .friend-card__media-placeholder.friend-card__media-placeholder{
     display: block;
   }
 
-  .friend-card__body {
+  .friends-container .friend-card__body.friend-card__body{
     display: grid;
     gap: 0.85rem;
     align-self: start;
@@ -94,7 +94,7 @@
     overflow: hidden;
   }
 
-  .friend-card__name-wrap {
+  .friends-container .friend-card__name-wrap.friend-card__name-wrap{
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -102,12 +102,12 @@
     flex-wrap: wrap;
   }
 
-  .friend-card__name-wrap h3 {
+  .friends-container .friend-card__name-wrap.friend-card__name-wrap h3{
     margin: 0;
     font-size: 1.35rem;
   }
 
-  .friend-card__home {
+  .friends-container .friend-card__home.friend-card__home{
     display: inline-flex;
     align-items: center;
     padding: 0.4rem 0.7rem;
@@ -119,7 +119,7 @@
     background: var(--comp-bg);
   }
 
-  .friend-card__copy {
+  .friends-container .friend-card__copy.friend-card__copy{
     display: flex;
     flex-direction: column;
     align-items: start;
@@ -131,12 +131,12 @@
   }
 
   .friend-card__intro,
-  .friend-card__story {
+  .friends-container .friend-card__story.friend-card__story{
     margin: 0;
     color: var(--comp-text-sec);
   }
 
-  .friend-card__story{
+  .friends-container .friend-card__story.friend-card__story{
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -149,7 +149,7 @@
     padding: 0.4rem 1rem;
   }
 
-  .friend-card--left-sm {
+  .friends-container .friend-card--left-sm.friend-card--left-sm{
     width: 100%;
     max-width: 300px;
     height: 150px;
@@ -157,31 +157,31 @@
     align-items: center;
   }
 
-  .friend-card--left-sm .friend-card__media {
+  .friends-container .friend-card--left-sm .friend-card__media.friend-card__media{
     width: 120px;
     height: 120px;
     border-radius: 12px;
   }
 
-  .friend-card--left-sm .friend-card__copy {
+  .friends-container .friend-card--left-sm .friend-card__copy.friend-card__copy{
     height: 85px;
   }
 
-  .friend-card--left-sm .friend-card__heading {
+  .friends-container .friend-card--left-sm .friend-card__heading.friend-card__heading{
     font-size: 1.2rem;
   }
 
-  .friend-card--left-sm .friend-card__body {
+  .friends-container .friend-card--left-sm .friend-card__body.friend-card__body{
     gap: 0.5rem;
   }
 
   .friend-card--left-sm .friend-card__intro,
-  .friend-card--left-sm .friend-card__story {
+  .friends-container .friend-card--left-sm .friend-card__story.friend-card__story{
     line-height: 1.4;
     font-size: 0.95rem;
   }
 
-  .friend-card--left-lg {
+  .friends-container .friend-card--left-lg.friend-card--left-lg{
     width: 100%;
     max-width: 500px;
     height: 250px;
@@ -189,17 +189,17 @@
     align-items: center;
   }
 
-  .friend-card--left-lg .friend-card__media {
+  .friends-container .friend-card--left-lg .friend-card__media.friend-card__media{
     width: 200px;
     height: 200px;
     border-radius: 12px;
   }
 
-  .friend-card--left-lg .friend-card__copy {
+  .friends-container .friend-card--left-lg .friend-card__copy.friend-card__copy{
     height: 168px;
   }
 
-  .friend-card--top-lg {
+  .friends-container .friend-card--top-lg.friend-card--top-lg{
     width: 100%;
     max-width: 500px;
     height: 600px;
@@ -207,57 +207,57 @@
     align-items: start;
   }
 
-  .friend-card--top-lg .friend-card__media {
+  .friends-container .friend-card--top-lg .friend-card__media.friend-card__media{
     width: 100%;
     height: 360px;
     max-height: 360px;
     border-radius: 12px;
   }
 
-  .friend-card--top-lg .friend-card__copy {
+  .friends-container .friend-card--top-lg .friend-card__copy.friend-card__copy{
     min-height: 170px;
     gap: .7rem;
   }
 
   @media (max-width: 760px) {
-    .friends-list--left-sm {
+    .friends-container .friends-list--left-sm.friends-list--left-sm{
       grid-template-columns: repeat(1, minmax(0, 300px));
     }
 
     .friends-list--left-lg,
-    .friends-list--top-lg {
+    .friends-container .friends-list--top-lg.friends-list--top-lg{
       grid-template-columns: repeat(1, minmax(0, 500px));
     }
 
     .friend-card--left-sm .friend-card__media,
     .friend-card--left-lg .friend-card__media,
-    .friend-card--top-lg .friend-card__media {
+    .friends-container .friend-card--top-lg .friend-card__media.friend-card__media{
       width: 100%;
     }
 
     .friend-card--left-sm,
     .friend-card--left-lg,
-    .friend-card--top-lg {
+    .friends-container .friend-card--top-lg.friend-card--top-lg{
       height: auto;
       grid-template-columns: 1fr;
     }
 
     .friend-card--left-sm,
     .friend-card--left-lg,
-    .friend-card--top-lg {
+    .friends-container .friend-card--top-lg.friend-card--top-lg{
       grid-template-columns: 1fr;
     }
   }
 
   @media (max-width: 980px) {
-    .friends-list--left-sm {
+    .friends-container .friends-list--left-sm.friends-list--left-sm{
       grid-template-columns: repeat(2, minmax(0, 300px));
     }
   }
 
   @media (max-width: 1040px) {
     .friends-list--left-lg,
-    .friends-list--top-lg {
+    .friends-container .friends-list--top-lg.friends-list--top-lg{
       grid-template-columns: repeat(1, minmax(0, 500px));
     }
   }

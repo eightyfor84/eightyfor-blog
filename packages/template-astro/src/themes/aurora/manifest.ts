@@ -22,5 +22,5 @@ export const theme = {
   tokens: 'critical-tokens.css',
 
   // 全量样式（异步加载，随 bundle）
-  global: ['global.css', 'app.css'],
+  global: ['global.css'],
 }

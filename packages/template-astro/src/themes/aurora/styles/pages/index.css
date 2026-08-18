@@ -1,6 +1,6 @@
 /* ── 页面样式：[lang]/index.astro ──
    自 src/pages/[lang]/index.astro <style> 迁出（与 critical 同值+附加细化，bundled 后加载赢平局，安全）。 */
-  .home-container {
+  .home-container.home-container{
     margin: 0;
     top: 0;
     min-height: 100vh;
@@ -14,7 +14,7 @@
     overflow: visible;
   }
 
-  .home-container--cover {
+  .home-container .home-container--cover.home-container--cover{
     top: -70px;
     height: 100vh;
     justify-content: center;
@@ -23,26 +23,26 @@
   }
 
   .home-container--split,
-  .home-container--cards {
+  .home-container .home-container--cards.home-container--cards{
     --split-hero-min: clamp(118px, 18vh, 170px);
     --split-peek: clamp(24px, 4vh, 40px);
     --split-cards-offset: 0px; /* cards visual offset controlled by JS */
   }
 
-  .home-container--split {
+  .home-container .home-container--split.home-container--split{
     align-items: stretch;
     justify-content: flex-start;
     overflow: visible;
     overflow-anchor: none;
   }
 
-  .home-container--cards {
+  .home-container .home-container--cards.home-container--cards{
     align-items: stretch;
     justify-content: flex-start;
     padding-top: clamp(2.5rem, 10vh, 6rem);
   }
 
-  .split-hero-stage {
+  .home-container .split-hero-stage.split-hero-stage{
     position: sticky;
     top: 0;
     z-index: 10;
@@ -55,7 +55,7 @@
     will-change: filter, opacity;
   }
 
-  .split-cards-stage {
+  .home-container .split-cards-stage.split-cards-stage{
     position: relative;
     z-index: 20;
     /* overlap hero by peek amount; further visual offset is applied by JS via transform */
@@ -64,12 +64,12 @@
   }
 
   .home-container--split .card-home-shell,
-  .home-container--cards .card-home-shell {
+  .home-container .home-container--cards .card-home-shell.card-home-shell{
     width: 100%;
     min-height: 0;
   }
 
-  .hero--compact {
+  .home-container .hero--compact.hero--compact{
     max-width: 1280px;
   }
 
