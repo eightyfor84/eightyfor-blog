@@ -50,6 +50,23 @@ export const SHELL_CLASSES = new Set([
   'friends-container', 'collection-container', 'page-container',
   'about-page', 'post-detail-container', 'search-box-wrapper',
   'section-title', 'post-title',
+  // 首页 cover（首屏内容，全部内联）
+  'home-cover-deck', 'hero', 'cover-title', 'cover-subtitle', 'cover-cta',
+  'split-hero-stage', 'cover-kicker',
+]);
+
+/** 布局属性白名单：含这些属性的规则必须进 critical（迟到引发 CLS）；纯视觉属性可异步 */
+export const LAYOUT_PROPS = new Set([
+  'display', 'position', 'top', 'right', 'bottom', 'left', 'inset',
+  'width', 'height', 'min-width', 'min-height', 'max-width', 'max-height',
+  'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
+  'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
+  'box-sizing', 'flex', 'flex-direction', 'flex-wrap', 'flex-basis',
+  'flex-grow', 'flex-shrink', 'gap', 'row-gap', 'column-gap',
+  'grid', 'grid-template', 'grid-template-columns', 'grid-template-rows',
+  'grid-gap', 'overflow', 'overflow-x', 'overflow-y', 'float', 'clear',
+  'font-size', 'line-height', 'white-space', 'word-break', 'aspect-ratio',
+  'columns', 'column-count', 'vertical-align', 'object-fit',
 ]);
 
 /** JS 动态属性：客户端 setAttribute 的状态（选择器 [data-*] 引用且 SSG 未必有） */
@@ -221,6 +238,9 @@ export function rewriteCriticalInDist({ distDir, allow = { classes: JS_STATE_CLA
       }
       return true;
     };
+    // 布局属性规则：恒进 critical（CLS 防护），不依赖偏移
+    const isLayoutRule = (ruleNode) =>
+      ruleNode.nodes && ruleNode.nodes.some((d) => d.type === 'decl' && LAYOUT_PROPS.has(d.prop));
     const keep = [];
     for (const m of html.matchAll(/<link rel="stylesheet" href="([^"]+\.css)"/g)) {
       const url = m[1];
@@ -234,7 +254,10 @@ export function rewriteCriticalInDist({ distDir, allow = { classes: JS_STATE_CLA
         }
         if (node.type === 'rule') {
           const sels = node.selector.split(',').map((s) => s.trim());
-          if (sels.some((s) => ruleMatches(s, page, allow) && inFirstPaint(s))) keep.push(node.toString());
+          const keepThis = isLayoutRule(node)
+            ? sels.some((s) => ruleMatches(s, page, allow))
+            : sels.some((s) => ruleMatches(s, page, allow) && inFirstPaint(s));
+          if (keepThis) keep.push(node.toString());
         }
       });
     }
