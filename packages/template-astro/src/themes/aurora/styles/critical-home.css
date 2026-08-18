@@ -29,6 +29,7 @@
 /* ── Hero deck ── */
 .home-cover-deck { position:relative; z-index:3; }
 .home-cover-deck--split { width:100%; display:block; }
+.hero { position:relative; left:15vw; }
 .cover-title { font-size:3.5rem; font-weight:600; font-variation-settings:"wght" 600; margin:0 0 1rem 0; line-height:1.1; }
 .cover-subtitle { font-size:1.15rem; margin:0 0 2.5rem 0; line-height:1.5; max-width:480px; }
 .cover-cta {
