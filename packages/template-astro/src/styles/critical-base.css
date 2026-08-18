@@ -46,6 +46,20 @@ h1, h2, h3, h4, h5, h6 {
 #chr-bg-layer .bg-image,
 #chr-bg-layer .bg-video { opacity:0; }
 
+
+/* ── Materials (idle state) — bg + border only, NO box-shadow ──
+   Mirrors global.css .mtl-surface/.mtl-container idle rules (shadow arrives
+   with async CSS — paint-only, no layout shift). Kept variable-driven so
+   theme/settings overrides still apply. */
+.mtl-surface {
+  background: var(--comp-bg-glass);
+  border: 1px solid var(--border-color-blur);
+}
+.mtl-container {
+  background: var(--comp-bg-blur);
+  border: 1px solid var(--border-color-blur);
+}
+
 /* ── Nav header (fixed) ── */
 .nav-header {
   position:fixed; top:0; left:0; right:0; z-index:9999;
