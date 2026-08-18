@@ -1,16 +1,14 @@
 /**
- * Chronicle Template — Local Data Source
+ * Chronicle Template — Local Fs Adapter
  *
- * Reads content directly from the filesystem at build time.
- * No API backend — data/ is the primary source.
+ * DataSource 的默认实现：构建期直接读 data/ 文件系统（YAML/JSON/Markdown）。
+ * 无 API 后端——data/ 是唯一数据源（本地优先，见 CLAUDE.md）。
+ * 注册点：src/data/index.ts（渲染层只 import 那里）。
  */
-
-/** Unified data-source mode. Always local in Aurora (no API backend). */
-export const isLocalMode = process.env.DATA_SOURCE !== 'api';
 
 // Emit data-source info at build time (dev only)
 if (import.meta.env.DEV) {
-  console.info('[Chronicle] 📦 数据源: 本地文件系统 (localDataSource)');
+  console.info('[Chronicle] 📦 数据源: 本地文件系统 (localFs adapter)');
 }
 
 /**
@@ -27,8 +25,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import YAML from 'yaml';
 import crypto from 'node:crypto';
-import { renderChronicleMarkdown, setRenderPostId } from '../utils/chronicleMarkdown';
+import { renderChronicleMarkdown, setRenderPostId } from '../../utils/chronicleMarkdown';
 import { normalizeAuthors } from '@chronicle/shared/src/utils';
+import type { DataSource, PostMeta, LocalPost, LocalSettings, ChronicleComment, CommentTreeNode, PostPageConfig } from '../types';
 
 /** Resolve asset:// protocol to /assets/ (public URL) */
 function resolveAssetUrl(url: string): string {
@@ -280,51 +279,8 @@ const COMMENTS_DIR = path.join(DATA_DIR, 'comments');
 // Markdown rendering centralized in src/utils/chronicleMarkdown.ts
 // Uses markdown-it with custom rules for katex, code chunks, file cards, images.
 
-// ── Types ────────────────────────────────────────────────
-
-export interface PostMeta {
-    id: string;
-    title: string;
-    date: string;
-    updatedAt?: string;
-    filename: string;
-    summary: string;
-    tags: string[];
-    status: string;
-    font?: string;
-    collection?: string;
-    collectionPath?: string;
-    author?: string;
-    authors?: string[];
-    aiGenerated?: boolean;
-    dir: string;
-    toc: { id: string; text: string; level: number }[];
-    hasHtml?: boolean;
-    type?: string;
-    slideshow?: any;
-}
-
-export interface LocalPost extends PostMeta {
-    content: string;
-    compiledHtml: string;
-}
-
-export interface CommentConfig {
-  backend: '' | 'waline';
-  walineServerUrl?: string;
-}
-
-
 // ── Post page config (3.1.x) — flat top-level groups from site.yml ──
-export interface PostPageConfig {
-  postMeta?: { metaUpdated?: boolean; metaStats?: boolean; metaAiBadge?: boolean; showTags?: boolean };
-  postTocEnabled?: boolean;
-  postToc?: { inlineToc?: boolean; tocFloat?: boolean; tocFloatAlwaysExpanded?: boolean; mobileTocControl?: boolean };
-  postCollectionNavEnabled?: boolean;
-  postCollectionNav?: { alwaysCollapsed?: boolean };
-  postEndOfArticle?: { relatedPosts?: boolean; prevNext?: boolean; prevNextMode?: 'both' | 'next-only'; prevNextScope?: 'global' | 'collection'; prevNextOrder?: 'asc' | 'desc'; authorCard?: boolean; share?: boolean; shareChannels?: string[] };
-  postComments?: { backend?: string; walineServerUrl?: string; attitude?: boolean; showGeoAddress?: boolean; imageUploadEnabled?: boolean; imageUploadEndpoint?: string; imageUploadToken?: string };
-}
+// （类型定义见 src/data/types.ts；此处仅保留合并逻辑）
 
 const POST_PAGE_DEFAULTS: Required<PostPageConfig> = {
   postMeta: { metaUpdated: true, metaStats: true, metaAiBadge: true, showTags: true },
@@ -366,52 +322,6 @@ function normalizePostConfig(raw: unknown): PostPageConfig {
     }
   }
   return out as PostPageConfig;
-}
-export interface LocalSettings {
-    siteName?: string;
-    siteDescription?: string;
-    theme?: string;
-    accent?: string;
-    background?: unknown;
-    backgroundVideo?: string;
-    backgroundPoster?: string;
-    /** Compressed variants for the bg image, best first (avif > webp > original). */
-    backgroundCandidates?: string[];
-    /** Compressed variants for the poster, best first (avif > webp > original). */
-    backgroundPosterCandidates?: string[];
-    backgroundMeta?: string;
-    baseColorLight?: string;
-    baseColorDark?: string;
-    /** @deprecated 旧名——兼容读取 */
-    backgroundColorLight?: string;
-    backgroundColorDark?: string;
-    font?: string;
-    locale?: string;
-    featureFlags?: Record<string, boolean>;
-    friendsCards?: unknown;
-    friendsGlobalStyle?: unknown;
-    homepageMode?: string;
-    singleColumnHomepage?: boolean;
-    cardVisibility?: { author?: boolean; taxonomy?: boolean; activity?: boolean };
-    recentUpdates?: { staleDays?: number; aggregateDays?: number };
-    gaMeasurementId?: string;
-    /** 3.1.x — analytics backend config (site.yml analytics: block). */
-    analytics?: Record<string, any>;
-    icpNumber?: string;
-    defaultPerformanceMode?: string;
-    comment?: CommentConfig;
-    /** 3.1.x — nested post-page config (data/site.yml post: block). */
-    post?: PostPageConfig;
-    // Feature toggles
-    collectionPage?: boolean;
-    aboutPage?: boolean;
-    friendsPage?: boolean;
-    rss?: boolean;
-    searchSuggestions?: boolean;
-    globalSearch?: boolean;
-    fullTextSearch?: boolean;
-    traffic?: boolean;
-    comments?: boolean;
 }
 
 // ── Post Access ──────────────────────────────────────────
@@ -504,7 +414,7 @@ function scanPostsFromDisk(): PostMeta[] {
 }
 
 /** Load all post metadata — index.json first, fall back to scanning directories */
-export function getAllPosts(): PostMeta[] {
+function getAllPosts(): PostMeta[] {
     // In dev mode, check if cache is stale (index.json was rewritten)
     if (_postCache && !isCacheStale()) return _postCache;
 
@@ -544,13 +454,6 @@ export function getAllPosts(): PostMeta[] {
     return _postCache;
 }
 
-/** Invalidate the post cache (call after content changes) */
-export function invalidatePostCache(): void {
-    _postCache = null;
-    _postCacheMtime = 0;
-    _htmlCache.clear();
-}
-
 /** Get published posts only */
 export function getPublishedPosts(): PostMeta[] {
     return getAllPosts().filter(p => p.status === 'published');
@@ -583,30 +486,6 @@ export function getPostById(id: string, locale?: string): LocalPost | null {
     // Collection info is already on meta from index.json (set by rebuildPostIndex).
     // For breadcrumb navigation (multiple collections), use getPostCollections().
     return { ...meta, content, compiledHtml };
-}
-
-/** Search posts by keyword */
-export function searchPosts(keyword: string, tags?: string[]): PostMeta[] {
-    let posts = getPublishedPosts();
-    const kw = keyword.trim().toLowerCase();
-
-    if (kw) {
-        posts = posts.filter(p => {
-            if ((p.title || '').toLowerCase().includes(kw)) return true;
-            if ((p.summary || '').toLowerCase().includes(kw)) return true;
-            if ((p.tags || []).some(t => String(t).toLowerCase().includes(kw))) return true;
-            return false;
-        });
-    }
-
-    if (tags && tags.length > 0) {
-        posts = posts.filter(p =>
-            tags.every(t => (p.tags || []).map(x => String(x).trim()).includes(t))
-        );
-    }
-
-    posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    return posts;
 }
 
 // ── Settings ─────────────────────────────────────────────
@@ -752,76 +631,7 @@ export function getCollectionPostIds(collectionName: string): string[] {
     return ids
 }
 
-// ── Collection Reverse Index ──────────────────────────────
-
-interface CollectionRef {
-    slug: string;
-    name: string;
-    /** Path within the collection tree, e.g. ["Tech", "Frontend"] */
-    path: string[];
-}
-
-/** Walk collection children to find posts matching the given id */
-function findPostInNodes(nodes: unknown[], targetId: string, ancestors: string[], collector: CollectionRef[]): void {
-    for (const node of nodes) {
-        if (!node || typeof node !== 'object') continue;
-        const n = node as Record<string, unknown>;
-        if (n.type === 'post' && String(n.id || '') === targetId) {
-            collector.push({ slug: '', name: '', path: [...ancestors] });
-        }
-        if (n.type === 'group') {
-            const title = String(n.title || '');
-            const children = Array.isArray(n.children) ? n.children : [];
-            findPostInNodes(children, targetId, title ? [...ancestors, title] : ancestors, collector);
-        }
-    }
-}
-
-/**
- * Find all collections that contain the given post ID.
- * Returns list of { slug, name, path } for breadcrumb navigation in post pages.
- */
-export function getPostCollections(postId: string): CollectionRef[] {
-    const result: CollectionRef[] = [];
-    const data = getCollections();
-    const collections = Array.isArray((data as Record<string, unknown>).collections)
-        ? (data as Record<string, unknown>).collections as Record<string, unknown>[]
-        : [];
-
-    for (const col of collections) {
-        const slug = String(col.slug || '');
-        const name = String(col.name || slug);
-        const nodes = Array.isArray(col.nodes) ? col.nodes : [];
-        const refs: CollectionRef[] = [];
-        findPostInNodes(nodes, postId, [], refs);
-        for (const ref of refs) {
-            ref.slug = slug;
-            ref.name = name;
-            result.push(ref);
-        }
-    }
-
-    return result;
-}
-
 // ── Comments ──────────────────────────────────────────────
-
-export interface ChronicleComment {
-  id: string;
-  author: string;
-  email?: string;
-  website?: string;
-  content: string;
-  date: string;
-  /** Flat parent reference — null for top-level, commentId for replies (Staticman format). */
-  parent?: string | null;
-  /** Root comment ID of this thread. Set at creation, never changes. */
-  rootId?: string;
-  /** Only on approved comments — hide from public display. Default false. */
-  hidden?: boolean;
-  /** 3.1.x — commenter geo address (country/province), never the raw IP. */
-  location?: string;
-}
 
 /** Read comments for a post from data/comments/{postId}.json */
 export function getComments(postId: string): ChronicleComment[] {
@@ -841,10 +651,6 @@ export function getComments(postId: string): ChronicleComment[] {
  * Top-level comments have parent === null or undefined.
  * Each returned comment has its children in a `replies` array.
  */
-export interface CommentTreeNode extends ChronicleComment {
-  replies: CommentTreeNode[];
-}
-
 export function buildCommentTree(flat: ChronicleComment[]): CommentTreeNode[] {
   const byParent = new Map<string, CommentTreeNode[]>();
 
@@ -871,6 +677,18 @@ export function buildCommentTree(flat: ChronicleComment[]): CommentTreeNode[] {
 // ── Debug ────────────────────────────────────────────────
 
 if (import.meta.env.DEV) {
-  console.log('[localDataSource] DATA_DIR:', DATA_DIR);
-  console.log('[localDataSource] Posts:', getAllPosts().length, '| Published:', getPublishedPosts().length);
+  console.log('[localFs] DATA_DIR:', DATA_DIR);
+  console.log('[localFs] Posts:', getAllPosts().length, '| Published:', getPublishedPosts().length);
 }
+
+// ── Adapter 出口 ─────────────────────────────────────────
+// DataSource 契约实现（src/data/index.ts 为唯一注册点）。
+export const localFsAdapter: DataSource = {
+  getPublishedPosts,
+  getPostById,
+  getProfile,
+  getPublicSettings,
+  getComments,
+  getCollections,
+  getCollectionPostIds,
+};

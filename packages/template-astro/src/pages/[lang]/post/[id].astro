@@ -1,7 +1,7 @@
 ---
 import '../../../themes/aurora/styles/pages/post.css';
 import Layout from '../../../layouts/Layout.astro';
-import { getPublishedPosts, getPostById, getPublicSettings, getCollections, getProfile } from '../../../data/localDataSource';
+import { dataSource } from '../../../data';
 import { SITE_AUTHOR_PLACEHOLDER } from '@chronicle/shared/src/utils';
 import { getTranslation, getLocale } from '../../../utils/i18n';
 import { buildLocalizedPath, toContentLocale } from '../../../utils/routeLocale';
@@ -26,7 +26,7 @@ export const prerender = true;
 
 
 export async function getStaticPaths() {
-  const posts = getPublishedPosts();
+  const posts = dataSource.getPublishedPosts();
   return posts.flatMap((post) => ([
     { params: { lang: 'zh', id: String(post.id) } },
     { params: { lang: 'en', id: String(post.id) } },
@@ -52,7 +52,7 @@ let error = null;
 let settings: Record<string, any> = {};
 
 // ── Local data source ──────────────────────────────────
-const localPost = getPostById(id, routeLang);
+const localPost = dataSource.getPostById(id, routeLang);
 if (localPost) {
   post = {
     id: localPost.id,
@@ -75,7 +75,7 @@ if (localPost) {
     slideshow: localPost.slideshow,
   };
 }
-settings = getPublicSettings() as Record<string, any>;
+settings = dataSource.getPublicSettings() as Record<string, any>;
 
 // ── Post page config (3.1.x — flat top-level groups from site.yml) ──
 const postCfg = ((settings as Record<string, any>).post || {}) as any;
@@ -119,9 +119,9 @@ let embeddedCollections: any[] = [];
 let embeddedPostTitles: Record<string, string> = {};
 let embeddedPostTypes: Record<string, string> = {};
 try {
-  const collectionsData = getCollections();
+  const collectionsData = dataSource.getCollections();
   embeddedCollections = (collectionsData as any)?.collections || [];
-  const allPosts = getPublishedPosts();
+  const allPosts = dataSource.getPublishedPosts();
   for (const p of allPosts) {
     embeddedPostTitles[String(p.id)] = String(p.title || '').trim();
     embeddedPostTypes[String(p.id)] = String(p.type || 'article').trim();
@@ -175,7 +175,7 @@ const authorList = Array.isArray(post?.authors) && post.authors.length > 0
   ? post.authors
   : (post?.author ? [post.author] : []);
 // 占位符（$site$）→ 显示网站作者名；空 author 走「匿名」回退
-const siteProfile = getProfile() as Record<string, any>;
+const siteProfile = dataSource.getProfile() as Record<string, any>;
 const authorName = (authorList.length === 1 && authorList[0] === SITE_AUTHOR_PLACEHOLDER)
   ? (siteProfile?.name || authorList[0])
   : (authorList[0] || t('inblog.anonymousAuthor'));

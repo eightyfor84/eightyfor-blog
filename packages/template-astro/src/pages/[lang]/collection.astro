@@ -4,7 +4,7 @@ import Layout from "../../layouts/Layout.astro";
 import { getTranslation, getLocale } from "../../utils/i18n";
 import { resolveFeatureFlags } from "../../utils/featureFlags";
 import { loadSiteSettings } from "../../utils/siteSettings";
-import { getCollections, getPublishedPosts } from "../../data/localDataSource";
+import { dataSource } from "../../data";
 
 export const prerender = true;
 
@@ -31,9 +31,9 @@ let embeddedCollections: any[] = [];
 let embeddedPostTitles: Record<string, string> = {};
 let embeddedPostTypes: Record<string, string> = {};
 try {
-  const collectionsData = getCollections();
+  const collectionsData = dataSource.getCollections();
   embeddedCollections = (collectionsData as any)?.collections || [];
-  const posts = getPublishedPosts();
+  const posts = dataSource.getPublishedPosts();
   for (const p of posts) {
     embeddedPostTitles[String(p.id)] = String(p.title || "").trim();
     embeddedPostTypes[String(p.id)] = String(p.type || "article").trim();

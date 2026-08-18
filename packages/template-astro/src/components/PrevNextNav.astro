@@ -1,6 +1,6 @@
 ---
 import '../themes/aurora/styles/components/prevnext-nav.css';
-import { getPublishedPosts, getCollectionPostIds } from '../data/localDataSource';
+import { dataSource } from '../data';
 import { getTranslation, type Locale } from '../utils/i18n';
 
 interface Props {
@@ -17,7 +17,7 @@ const t = (key: string) => getTranslation(locale, key);
 
 // ── 规则 1：导航忽略 slides——当前页是 slides 或候选是 slides 都不参与 prev/next ──
 if (post?.type === 'slides') return;
-const published = (getPublishedPosts() as any[]).filter((p: any) => p.type !== 'slides');
+const published = (dataSource.getPublishedPosts() as any[]).filter((p: any) => p.type !== 'slides');
 
 // ── 规则 2：collection 内导航开启时，不属于任何 collection 的文章不显示 prev/next ──
 if (scope === 'collection' && !post.collection) return;
@@ -26,7 +26,7 @@ if (scope === 'collection' && !post.collection) return;
 let prev: any = null;
 let next: any = null;
 if (scope === 'collection') {
-  const seq = getCollectionPostIds(String(post.collection || ''))
+  const seq = dataSource.getCollectionPostIds(String(post.collection || ''))
     .map((id) => published.find((p: any) => String(p.id) === id))
     .filter(Boolean);
   if (seq.length === 0) return;

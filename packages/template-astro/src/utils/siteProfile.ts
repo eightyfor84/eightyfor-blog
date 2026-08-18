@@ -2,7 +2,7 @@
  * Unified profile loader — reads directly from the local data/ filesystem.
  */
 
-import { getProfile } from '../data/localDataSource';
+import { dataSource } from '../data';
 
 export interface SiteProfile {
   name: string;
@@ -15,7 +15,7 @@ export interface SiteProfile {
 
 export function loadSiteProfile(): SiteProfile {
   try {
-    return getProfile() as unknown as SiteProfile;
+    return dataSource.getProfile() as unknown as SiteProfile;
   } catch {
     return { name: '', avatar: '', bio: '', location: '', links: [] };
   }

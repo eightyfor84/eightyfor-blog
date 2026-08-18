@@ -1,13 +1,13 @@
 ---
 import '../themes/aurora/styles/components/related-posts.css';
-import { getPublishedPosts } from '../data/localDataSource';
+import { dataSource } from '../data';
 import { getTranslation, type Locale } from '../utils/i18n';
 
 interface Props { post: any; locale: Locale; lang: string }
 const { post, locale, lang } = Astro.props as Props;
 const t = (key: string) => getTranslation(locale, key);
 
-const all = getPublishedPosts() as any[];
+const all = dataSource.getPublishedPosts() as any[];
 const others = all.filter((p: any) => String(p.id) !== String(post.id));
 const myTags = new Set((post.tags || []).map((x: string) => String(x)));
 const scored = others

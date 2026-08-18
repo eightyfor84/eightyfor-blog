@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getPublishedPosts, getPublicSettings } from '../data/localDataSource';
+import { dataSource } from '../data';
 
 export const prerender = true;
 
@@ -11,7 +11,7 @@ export const prerender = true;
 export const GET: APIRoute = async ({ site }) => {
   // Base URL comes from the deploy-time astro `site` config, not content data.
   const base = site ? site.origin : '';
-  const posts = getPublishedPosts() as any[];
+  const posts = dataSource.getPublishedPosts() as any[];
 
   const escapeXml = (s: unknown) => String(s ?? '')
     .replace(/&/g, '&amp;')

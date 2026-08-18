@@ -21,7 +21,7 @@ import '../themes/aurora/styles/components/comment-section.css';
  */
 import { createHash } from 'node:crypto';
 import { getTranslation } from '../utils/i18n';
-import { getComments, buildCommentTree, type ChronicleComment } from '../data/localDataSource';
+import { dataSource, buildCommentTree, type ChronicleComment } from '../data';
 
 interface Props {
   postId?: string;
@@ -69,7 +69,7 @@ function formatDate(iso: string): string {
 // Load comments: prop > localDataSource > empty
 let comments: ChronicleComment[] = propComments || [];
 if (!propComments && postId) {
-  comments = getComments(postId);
+  comments = dataSource.getComments(postId);
 }
 
 /** 评论内容图懒加载（静态渲染路径——客户端动态拉取已由 applyMediaLazyLoad 处理） */

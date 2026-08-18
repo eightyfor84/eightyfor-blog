@@ -1,6 +1,6 @@
 ---
 import '../themes/aurora/styles/components/author-card.css';
-import { getProfile, getPublicSettings } from '../data/localDataSource';
+import { dataSource } from '../data';
 import ChronicleImage from './ChronicleImage.astro';
 import { getTranslation, type Locale } from '../utils/i18n';
 import { isSiteAuthor } from '@chronicle/shared/src/utils';
@@ -8,7 +8,7 @@ import { isSiteAuthor } from '@chronicle/shared/src/utils';
 interface Props { locale: Locale; post?: any }
 const { locale, post } = Astro.props as Props;
 const t = (key: string) => getTranslation(locale, key);
-const profile = getProfile() as Record<string, any>;
+const profile = dataSource.getProfile() as Record<string, any>;
 
 // 作者卡片只展示网站作者本人：唯一作者 且 是本人（占位符 $site$ 或与 profile.name 匹配）
 // 多作者（含其他作者）或空 author 一律不显示
@@ -17,7 +17,7 @@ const authorList = Array.isArray(post?.authors) && post.authors.length > 0
   : (post?.author ? [post.author] : []);
 const showAuthorCard = authorList.length === 1 && isSiteAuthor(authorList[0], profile?.name);
 // 关于页跳转：aboutPage 开关关（site.yml aboutPage: false）则不显示
-const aboutEnabled = (getPublicSettings() as Record<string, any>)?.aboutPage !== false;
+const aboutEnabled = (dataSource.getPublicSettings() as Record<string, any>)?.aboutPage !== false;
 const lang = locale === 'zh-CN' ? 'zh' : 'en';
 ---
 

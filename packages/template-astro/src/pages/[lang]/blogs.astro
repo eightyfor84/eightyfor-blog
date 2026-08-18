@@ -5,7 +5,7 @@ import BackToTop from '../../components/BackToTop.astro';
 import BlogPostCard from '../../components/BlogPostCard.astro';
 import { getTranslation } from '../../utils/i18n';
 import { toContentLocale } from '../../utils/routeLocale';
-import { getPublishedPosts } from '../../data/localDataSource';
+import { dataSource } from '../../data';
 import { loadSiteSettings } from '../../utils/siteSettings';
 
 export const prerender = true;
@@ -19,7 +19,7 @@ const locale = toContentLocale(routeLang);
 const t = (key: string) => getTranslation(locale, key);
 
 // ── Local data source (fully SSR — no client fetching) ──────
-const allPublished = getPublishedPosts();
+const allPublished = dataSource.getPublishedPosts();
 const sorted = [...allPublished].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
 // Featured = posts with 'featured' or '精选' tag

@@ -269,14 +269,13 @@ let collections: any[] = [];
 
 // Local/filesystem mode: read directly from data/ (single source of truth)
 try {
-  const { getPublishedPosts, getCollections } =
-    await import("../data/localDataSource");
-  posts = getPublishedPosts().map((p: any) => ({
+  const { dataSource } = await import("../data");
+  posts = dataSource.getPublishedPosts().map((p: any) => ({
     ...p,
     content: undefined,
     compiledHtml: undefined,
   }));
-  collections = (getCollections() as any) || [];
+  collections = (dataSource.getCollections() as any) || [];
   // unwrap legacy collection format
   if (
     !Array.isArray(collections) &&
