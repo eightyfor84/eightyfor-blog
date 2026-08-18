@@ -6,12 +6,14 @@ import { readingExperience } from './reading-experience/manifest';
 import { search } from './search/manifest';
 import { friends } from './friends/manifest';
 import { comments } from './comments/manifest';
+import { slides } from './slides/manifest';
 
 registerCluster(collections);
 registerCluster(readingExperience);
 registerCluster(search);
 registerCluster(friends);
 registerCluster(comments);
+registerCluster(slides);
 
 export * from './registry';
 export * from './types';

@@ -1,5 +1,5 @@
 /* ── 组件样式：Slideshow ──
-   自 src/components/Slideshow.astro 两个静态 <style> 块迁出（is:global 877-1144 + scoped 1145-1301；set:html 动态块保留）。 */
+   自 src/clusters/slides/Slideshow.astro 两个静态 <style> 块迁出（is:global 877-1144 + scoped 1145-1301；set:html 动态块保留）。 */
   @import "@chronicle/shared/src/styles/chronicle-slides.css";
 
   /* ── Controls visual styling ─────────────────── */
