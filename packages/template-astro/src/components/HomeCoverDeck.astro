@@ -1,5 +1,9 @@
 ---
+// 封面 = 自包含渲染单元：data/homepage-cover.html（站点覆盖）→ themes/aurora/default-cover.html（主题默认，?raw 打包）。
+// 约定：封面片段自带 <style>，随 set:html 注入 body → 首帧生效，不依赖 critical 覆盖（防 CLS）。
+// 占位符（统一替换）：{{siteTitle}} {{siteDescription}} {{themePostPath}} {{locale}}
 import '../themes/aurora/styles/components/home-cover-deck.css';
+import defaultCoverHtml from '../themes/aurora/default-cover.html?raw';
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -7,40 +11,23 @@ const { locale, themePostPath, mode = 'cover', siteName, siteDescription } = Ast
 const isSplit = mode === 'split';
 
 const dataDir = process.env.CHRONICLE_DATA_DIR || join(process.cwd(), '..', '..', 'data');
-const coverHtmlPath = join(dataDir, 'homepage-cover.html');
-const raw = existsSync(coverHtmlPath) ? readFileSync(coverHtmlPath, 'utf-8') : '';
-const coverHtml = raw
-  ? raw
-      .replace(/\{\{themePostPath\}\}/g, themePostPath || '')
-      .replace(/\{\{locale\}\}/g, locale || '')
-  : '';
 
 const siteTitle = siteName || 'Chronicle';
 const siteDesc = siteDescription || 'A personal blog';
 
-// 默认封面：自包含（内联 <style>，随 set:html 渲染进 body → 首帧生效）。
-// 不依赖 critical 覆盖——hero 定位（left:15vw）等首帧规则随标记走，防 CLS。
-const FALLBACK_COVER_HTML = `
-<style>
-  .hero{ position:relative; left:15vw; }
-  .cover-title{ font-size:3.5rem; font-weight:600; font-variation-settings:"wght" 600; color:var(--app-text-pri); margin:0 0 1rem 0; line-height:1.1; }
-  .cover-subtitle{ font-size:1.15rem; color:var(--app-text-sec); margin:0 0 2.5rem 0; line-height:1.5; max-width:480px; }
-  .cover-cta{ display:inline-flex; align-items:center; gap:8px; padding:12px 28px; background:var(--accent-dark); color:#fff; border:none; border-radius:8px; font-size:1rem; font-weight:500; cursor:pointer; text-decoration:none; transition:filter 0.2s, transform 0.2s; }
-  .cover-cta:hover{ filter:brightness(1.8); transform:scale(1.05); color:#000; }
-  .cover-cta svg{ width:20px; height:20px; }
-  @media (max-width:760px){ .hero{ left:60px; } .cover-title{ font-size:2.2rem; } .cover-subtitle{ font-size:1rem; margin-bottom:2rem; } }
-</style>
-<div class="hero">
-  <h1 class="cover-title">${siteTitle}</h1>
-  <p class="cover-subtitle">${siteDesc}</p>
-  <a href="blogs/" class="cover-cta">
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
-    View Posts
-  </a>
-</div>`;
+// 站点覆盖优先，缺省用主题默认（构建期打包，免疫路径解析）
+const siteCoverPath = join(dataDir, 'homepage-cover.html');
+const raw = existsSync(siteCoverPath) ? readFileSync(siteCoverPath, 'utf-8') : defaultCoverHtml;
+
+const coverHtml = raw
+  ? raw
+      .replace(/\{\{siteTitle\}\}/g, siteTitle)
+      .replace(/\{\{siteDescription\}\}/g, siteDesc)
+      .replace(/\{\{themePostPath\}\}/g, themePostPath || '')
+      .replace(/\{\{locale\}\}/g, locale || '')
+  : '';
 ---
 
 <div class:list={['home-cover-deck', isSplit ? 'home-cover-deck--split' : '']} id={isSplit ? 'split-hero' : undefined} data-locale={locale}>
-    <Fragment set:html={coverHtml || FALLBACK_COVER_HTML} />
+    <Fragment set:html={coverHtml} />
 </div>
-
