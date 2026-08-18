@@ -1,5 +1,5 @@
 /* ── 组件样式：GlobalSearchOverlay ──
-   自 src/components/GlobalSearchOverlay.astro <style> 迁出。 */
+   自 src/clusters/search/GlobalSearchOverlay.astro <style> 迁出。 */
   .global-search-overlay {
     position: fixed;
     inset: 0;

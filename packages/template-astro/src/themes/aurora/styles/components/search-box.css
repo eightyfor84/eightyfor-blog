@@ -1,5 +1,5 @@
 /* ── 组件样式：SearchBox ──
-   自 src/components/SearchBox.astro <style> 迁出（与 critical 同值+附加细化，bundled 后加载赢平局，安全）。 */
+   自 src/clusters/search/SearchBox.astro <style> 迁出（与 critical 同值+附加细化，bundled 后加载赢平局，安全）。 */
   .search-box-wrapper{
     flex-shrink: 0;
     margin-bottom: 2rem;

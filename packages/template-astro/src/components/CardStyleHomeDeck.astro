@@ -4,7 +4,7 @@ import { buildLocalizedPath } from "../utils/routeLocale";
 import { loadSiteSettings } from "../utils/siteSettings";
 import { loadSiteProfile } from "../utils/siteProfile";
 import { getTranslation, getLocale } from "../utils/i18n";
-import SearchBox from "./SearchBox.astro";
+import SearchBox from "../clusters/search/SearchBox.astro";
 import ChronicleImage from "./ChronicleImage.astro";
 
 const { locale, featureFlags } = Astro.props || {

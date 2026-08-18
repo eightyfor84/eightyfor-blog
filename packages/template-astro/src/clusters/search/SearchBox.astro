@@ -1,5 +1,5 @@
 ---
-import '../themes/aurora/styles/components/search-box.css';
+import '../../themes/aurora/styles/components/search-box.css';
 const props = (Astro.props || {}) as {
   instanceId?: string;
   searchSuggestionsEnabled?: boolean;
@@ -109,7 +109,7 @@ const searchBtnAsButton = props.searchBtnAsButton ?? true;
 </div>
 
 <script>
-  import '../scripts/search-bootstrap';
+  import './scripts/search-bootstrap';
 </script>
 
 

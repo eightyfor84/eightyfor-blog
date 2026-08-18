@@ -2,7 +2,7 @@
 import { ClientRouter } from 'astro:transitions';
 import NavHeader from '../components/NavHeader.astro';
 import FilePreviewModal from '../components/FilePreviewModal.astro';
-import GlobalSearchOverlay from '../components/GlobalSearchOverlay.astro';
+import { getClusterSlot } from '../clusters';
 import { getLocale, getTranslation } from '../utils/i18n';
 import { resolveFeatureFlags } from '../utils/featureFlags';
 // ── 主题发现：目录即选定，aurora 恒作后备 ────────────────
@@ -113,6 +113,9 @@ export interface Props {
 const { title, settings, locale: propLocale, meta, navTitle, navBackHref, navBackLabel, scrollable, disableMainContentTransition } = Astro.props;
 const pageMeta = typeof meta === 'string' ? { description: meta } : (meta || {});
 const featureFlags = resolveFeatureFlags(settings?.featureFlags || Astro.props.featureFlags);
+// 全局搜索弹层槽位：search 簇注册；when.featureFlag='globalSearch' 由 getClusterSlot 门控
+// （与 NavHeader 搜索按钮同 flag，配置关闭 → 弹层与入口一起消失）
+const OverlaySlot = getClusterSlot('global-search-overlay', { featureFlags });
 const mediaDomain = String(process.env.MEDIA_DOMAIN || '').replace(/\/$/, '');
 
 function resolveMediaUrl(value: any) {
@@ -494,7 +497,7 @@ const ANALYTICS_GA_ID = String(process.env.GA_MEASUREMENT_ID || analyticsCfg.gaM
 
     <FilePreviewModal />
 
-    {featureFlags.globalSearch === true ? <GlobalSearchOverlay locale={locale} routePrefix={routePrefix} t={t} searchSuggestionsEnabled={featureFlags.searchSuggestions !== false} fullTextSearchEnabled={featureFlags.fullTextSearch === true} /> : null}
+    {OverlaySlot ? <OverlaySlot locale={locale} routePrefix={routePrefix} t={t} searchSuggestionsEnabled={featureFlags.searchSuggestions !== false} fullTextSearchEnabled={featureFlags.fullTextSearch === true} /> : null}
 
 
     <!-- Deferred link prefetch: activates only after the page is idle.

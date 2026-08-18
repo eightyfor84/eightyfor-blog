@@ -3,9 +3,11 @@
 import { registerCluster } from './registry';
 import { collections } from './collections/manifest';
 import { readingExperience } from './reading-experience/manifest';
+import { search } from './search/manifest';
 
 registerCluster(collections);
 registerCluster(readingExperience);
+registerCluster(search);
 
 export * from './registry';
 export * from './types';
