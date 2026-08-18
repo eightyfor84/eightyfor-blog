@@ -1,4 +1,5 @@
 ---
+import '../themes/aurora/styles/components/share-buttons.css';
 interface Props {
   post: any;
   locale: string;
@@ -116,11 +117,4 @@ const COPY_ICON = '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" s
   })();
 </script>
 
-<style>
-  .share-btns { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.25rem; align-items: center; justify-content: center;}
-  .share-btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.8rem; border-radius: 8px;
-    background: transparent; color: var(--app-text-sec); border: none;
-    cursor: pointer; transition: background 0.15s ease, color 0.15s ease; }
-  .share-btn span { width: 24px; height: 24px; }
-  .share-btn:hover { background: var(--hover);color: var(--app-text-pri); }
-</style>
+

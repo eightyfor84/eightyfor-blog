@@ -1,4 +1,5 @@
 ---
+import '../themes/aurora/styles/components/attitude-buttons.css';
 import { getTranslation, type Locale } from '../utils/i18n';
 
 interface Props {
@@ -111,19 +112,3 @@ const t = (key: string) => getTranslation(locale, key);
   })();
 </script>
 
-<style>
-  /* share-btn 同款：大 SVG 图标在上、较淡小字计数在下、透明背景 hover 高亮 */
-  .attitude { display: flex; flex-direction: column; align-items: center; gap: 1rem; margin: 2rem 0; }
-  .attitude-prompt { margin: 0; font-size: 1rem; opacity: 0.72; }
-  .attitude-btns { display: flex; gap: 1.5rem; }
-  .attitude-btn { display: inline-flex; flex-direction: column; align-items: center; gap: 0.5rem;
-    padding: 0.5rem 0.9rem; border-radius: 8px; border: none; background: transparent;
-    color: var(--app-text-sec); cursor: pointer; transition: background 0.15s ease, color 0.15s ease, opacity 0.15s ease; }
-  .attitude-btn:hover:not(:disabled) { background: var(--hover); color: var(--app-text-pri); }
-  .attitude-btn.voted { color: var(--accent); opacity: 1 !important; }
-  .attitude-btn.voted.dislike { color: var(--bg-offset); }
-  .attitude-btn.voted .attitude-icon { fill: currentColor; }
-  .attitude-btn:disabled { opacity: 0.55; cursor: default; }
-  .attitude-icon { width: 36px; height: 36px; }
-  .attitude-count { font-size: 0.85rem; opacity: 0.6; font-variant-numeric: tabular-nums; }
-</style>
