@@ -170,32 +170,34 @@ const isActive = (path: string) => {
         )}
       </div>
 
-      <a
-        href={searchHref}
-        class:list={[
-          "nav-action-link",
-          "nav-search-btn",
-          { "router-link-active": isActive("/search") },
-        ]}
-        data-global-search={showGlobalSearch ? 'true' : undefined}
-        aria-label={t("nav.search")}
-        title={t("nav.search")}
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+      {showGlobalSearch && (
+        <a
+          href={searchHref}
+          class:list={[
+            "nav-action-link",
+            "nav-search-btn",
+            { "router-link-active": isActive("/search") },
+          ]}
+          data-global-search="true"
+          aria-label={t("nav.search")}
+          title={t("nav.search")}
         >
-          <circle cx="11" cy="11" r="7"></circle>
-          <line x1="16.65" y1="16.65" x2="21" y2="21"></line>
-        </svg>
-      </a>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="11" cy="11" r="7"></circle>
+            <line x1="16.65" y1="16.65" x2="21" y2="21"></line>
+          </svg>
+        </a>
+      )}
 
       <!-- Settings Button -->
       <button
