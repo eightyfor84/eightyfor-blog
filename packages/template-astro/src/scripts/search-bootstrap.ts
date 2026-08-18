@@ -70,11 +70,18 @@ if (hasPageSearch()) {
   initAllEngines();
   initAllBoxes();
 } else {
-  scheduleIdle(() => {
+  // Pre-warm only AFTER window.load: the 2s idle timeout can otherwise fire
+  // before first paint on slow networks, and the 3-module search chain +
+  // index fetch then occupies the main thread at the worst moment (measured
+  // ~360ms of real FCP on a throttled 4G link). After load, every critical
+  // resource is done, so the pre-warm is free.
+  const prewarm = () => scheduleIdle(() => {
     initAllEngines();
     initAllBoxes();
   });
-  // Fallback: the user opened the overlay before idle fired — load now.
+  if (document.readyState === 'complete') prewarm();
+  else window.addEventListener('load', prewarm, { once: true });
+  // Fallback: the user opened the overlay before load/prewarm fired — load now.
   document.addEventListener('chronicle:global-search-open', () => {
     initAllEngines();
     initAllBoxes();
