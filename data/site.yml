@@ -32,11 +32,6 @@ search:
 # Comments master switch (Post page → Comments group toggle)
 comments: true
 
-# Page toggles
-collectionPage: true
-aboutPage: true
-friendsPage: true
-
 # RSS feed toggle
 rss: true
 
@@ -88,3 +83,4 @@ post:
     showGeoAddress: true
     imageUploadEndpoint: ""
     imageUploadToken: ""
+globalSearch: true
