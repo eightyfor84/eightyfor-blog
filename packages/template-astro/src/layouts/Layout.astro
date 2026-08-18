@@ -5,18 +5,24 @@ import FilePreviewModal from '../components/FilePreviewModal.astro';
 import GlobalSearchOverlay from '../components/GlobalSearchOverlay.astro';
 import { getLocale, getTranslation } from '../utils/i18n';
 import { resolveFeatureFlags } from '../utils/featureFlags';
-import criticalBase from '../styles/critical-base.css?raw';
-import criticalHome from '../styles/critical-home.css?raw';
-import criticalPost from '../styles/critical-post.css?raw';
-import criticalBlogs from '../styles/critical-blogs.css?raw';
-import criticalSearch from '../styles/critical-search.css?raw';
-import criticalFriends from '../styles/critical-friends.css?raw';
+import { theme as themeManifest } from '../themes/aurora/manifest';
 import chronicleMarkdownCss from '@chronicle/shared/src/styles/chronicle-markdown.css?raw';
-import '../styles/global.css';
-import '../styles/app.css';
+import '../themes/aurora/styles/global.css';
+import '../themes/aurora/styles/app.css';
 
-import criticalTokens from '../styles/critical-tokens.css?raw';
 import { hexToRgbString } from '../utils/colorUtils';
+
+// ── Critical CSS：由主题 manifest 驱动（自动识别）────────────
+// 页型 → CSS 文件的映射在 themes/<name>/manifest.ts 声明；
+// 这里通过 glob 按 manifest 里的文件名取 raw 内容。
+// 主题缺省的页型自动跳过（返回 ''），允许主题只声明部分页型。
+const criticalRaw = import.meta.glob<string>('../themes/aurora/styles/*.css', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+});
+const themeCss = (name: string) => criticalRaw[`../themes/aurora/styles/${name}`] ?? '';
+const criticalTokens = themeCss(themeManifest.tokens);
 
 // Assemble critical CSS based on page type — only inject what this page needs.
 const pathname = Astro.url.pathname;
@@ -33,13 +39,13 @@ const isFriends = /\/(en|zh)\/friends\/?$/.test(pathname);
 // Order: after criticalPost, so its .chr-md rules keep winning the cascade
 // (same as the old link-after-inline-style behavior).
 const criticalCSS = [
-  criticalBase,
-  isHome    ? criticalHome    : '',
-  isPost    ? criticalPost    : '',
+  themeCss(themeManifest.critical.base),
+  isHome    ? themeCss(themeManifest.critical.home)    : '',
+  isPost    ? themeCss(themeManifest.critical.post)    : '',
   (isPost || isAbout) ? chronicleMarkdownCss : '',
-  isBlogs   ? criticalBlogs   : '',
-  isSearch  ? criticalSearch  : '',
-  isFriends ? criticalFriends : '',
+  isBlogs   ? themeCss(themeManifest.critical.blogs)   : '',
+  isSearch  ? themeCss(themeManifest.critical.search)  : '',
+  isFriends ? themeCss(themeManifest.critical.friends) : '',
 ].join('');
 
 export interface Props {
