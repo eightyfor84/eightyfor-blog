@@ -8,6 +8,7 @@ import CommentSection from './CommentSection.astro';
 
 export const comments: PluginManifest = {
   id: 'comments',
+  featureFlag: 'comments',
   name: '评论插件（comments）',
   pages: {},
   slots: [

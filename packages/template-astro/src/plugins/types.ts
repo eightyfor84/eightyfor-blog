@@ -31,6 +31,8 @@ export interface PluginSlotContribution {
 /** 插件 manifest：一单元注册（页面 + 槽位 + 数据钩子 + 设置 schema） */
 export interface PluginManifest {
   id: string;
+  /** 插件级开关键（site.yml featureFlags/顶层布尔）：构建期 false → 不注册（禁用=构建时忽略，与删除同效果） */
+  featureFlag?: string;
   name: string;
   pages?: Record<string, PluginPageContribution>;
   slots?: PluginSlotContribution[];
