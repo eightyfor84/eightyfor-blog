@@ -25,6 +25,8 @@
 .friend-card__body { display:grid; gap:0.85rem; align-self:start; min-height:0; overflow:hidden; }
 .friend-card__name-wrap { display:flex; align-items:center; gap:0.75rem; }
 .friend-card__name-wrap h3 { margin:0; }
+.friend-card__intro { margin:0; color:var(--comp-text-sec); }
+.friend-card--left-sm .friend-card__intro { line-height:1.4; font-size:0.95rem; }
 
 /* ── Card variants: fixed geometry (the CLS-critical part) ── */
 .friend-card--left-sm {

@@ -35,6 +35,9 @@ button, input, select, textarea {
   line-height: inherit;
 }
 
+/* ── 页面标题（friends/blogs 等共用；global.css 同值，首帧锁定防标题位移）── */
+.section-title { font-size:1.8em; margin:0 0 24px; color:var(--app-text-pri); border-bottom:2px solid transparent; padding-bottom:10px; }
+
 /* ── Global heading weight — matches global.css so deferred CSS can't rewrap text ── */
 h1, h2, h3, h4, h5, h6 {
   font-variation-settings:'wght' var(--app-heading-wght, 570);
