@@ -16,6 +16,7 @@ export const theme = {
     blogs: 'critical-blogs.css',
     search: 'critical-search.css',
     friends: 'critical-friends.css',
+    collection: 'critical-collection.css',
   },
 
   // 首屏令牌：内联 <head>，先于其它 critical 注入
