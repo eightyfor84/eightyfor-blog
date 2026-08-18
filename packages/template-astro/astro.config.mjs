@@ -229,6 +229,26 @@ export default defineConfig({
     },
     plugins: [
 
+      // ── Build cache 根治：每次构建强制全量新鲜输出 ──
+      // Astro 增量输出会复用旧 dist 产物（改 critical/manifest 后 HTML 不重写 → 产物过期，
+      // 必须手动 rm -rf dist .astro）。build:start 显式清理两者，保证「构建 = 当前源码」。
+      // 图片压缩产物在 node_modules/.cache/chronicle-images（sha256 键控，dist 之外）——
+      // 清理 dist 不影响：命中缓存只拷贝不重压，源图未变不会重新压缩。
+      (function chronicleFreshBuild() {
+        return {
+          name: 'chronicle-fresh-build',
+          hooks: {
+            'astro:build:start': async ({ logger }) => {
+              for (const dir of ['dist', '.astro']) {
+                const p = join(__dirname, dir);
+                if (existsSync(p)) rmSync(p, { recursive: true, force: true });
+              }
+              logger.info('fresh build: cleared dist/.astro');
+            },
+          },
+        };
+      })(),
+
       // ── Asset pipeline: copy originals + generate WebP/AVIF ──
       // Caching: content-hash based — only recompress when source changes.
       (function assetPipelinePlugin() {
