@@ -1,8 +1,10 @@
 /**
  * Chronicle Post Types
  *
- * Mirrors the data structures in server/data/posts/index.json
- * and the individual <uuid>-content.md files on disk.
+ * 数据契约对齐 Aurora 现状（docs/cleanup-plan.md 类型对齐）：
+ * - id = 文章目录名（slug 优先，CJK 兜底随机），非 UUID
+ * - 正文 = posts/<id>/index.md（非 <uuid>-content.md）
+ * - 真相源 = data/（posts/index.json 是派生索引）
  */
 
 /** TOC entry generated from markdown headings */
@@ -14,19 +16,19 @@ export interface TocEntry {
 
 /** A post entry in posts/index.json — metadata only, no body */
 export interface PostMeta {
-  /** UUID v4 */
+  /** 目录名（slug 优先，CJK/emoji 兜底 crypto.randomUUID()）——创建后不可变 */
   id: string
   title: string
   /** ISO 8601 creation date */
   date: string
   /** ISO 8601 last-modification date */
   updatedAt: string
-  /** Filename on disk, e.g. "<uuid>.md" */
+  /** 磁盘文件名（index.md） */
   filename: string
   /** First ~200 chars of content, used in list views */
   summary: string
   tags: string[]
-  /** published | draft | modifying */
+  /** published | draft */
   status: PostStatus
   /** Font preference: "sans" | "serif" */
   font: string
@@ -51,13 +53,13 @@ export interface PostMeta {
 
 /** Full post including markdown body and compiled HTML */
 export interface Post extends PostMeta {
-  /** Raw markdown content read from <uuid>-content.md */
+  /** Markdown 正文（posts/<id>/index.md 去 frontmatter） */
   content: string
-  /** Pre-compiled HTML read from <uuid>-compiled.html (may be empty) */
+  /** 编译后的 HTML（构建期渲染；可能为空） */
   compiledHtml: string
 }
 
-export type PostStatus = 'published' | 'draft' | 'modifying'
+export type PostStatus = 'published' | 'draft'
 
 export type PostType = 'article' | 'slides'
 
@@ -74,55 +76,9 @@ export interface SlideshowConfig {
 }
 
 /** Input for creating or updating a post via API */
-export interface SavePostInput {
-  id?: string
-  title: string
-  content: string
-  tags?: string[]
-  status?: PostStatus
-  font?: string
-  collection?: string
-  collectionPath?: string
-  author?: string
-  date?: string
-  type?: PostType
-  layout?: SlideLayout
-  slideshow?: SlideshowConfig
-}
 
 /** Normalized post shape sent to public consumers (no draft content, no internals) */
-export interface PublicPost {
-  id: string
-  title: string
-  date: string
-  updatedAt: string
-  summary: string
-  tags: string[]
-  status: 'published' | 'modifying'
-  font: string
-  collection?: string
-  collectionPath?: string
-  author: string
-  toc: TocEntry[]
-  hasHtml: boolean
-  type?: PostType
-  layout?: SlideLayout
-  slideshow?: SlideshowConfig
-}
 
 /** Paginated post list response */
-export interface PaginatedPosts {
-  posts: PublicPost[]
-  total: number
-  page: number
-  perPage: number
-  totalPages: number
-}
 
 /** Arguments for listing posts */
-export interface ListPostsOptions {
-  page?: number
-  perPage?: number
-  includeDrafts?: boolean
-  featured?: boolean
-}

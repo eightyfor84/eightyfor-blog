@@ -181,11 +181,6 @@ export function safeJsonParse<T>(json: string, fallback: T): T {
   }
 }
 
-/** Check if a post status means it's publicly visible */
-export function isPublishedStatus(status: string): boolean {
-  return status === 'published' || status === 'modifying'
-}
-
 /** Format an ISO date string for display (locale-aware) */
 export function formatDate(iso: string, locale = 'zh-CN'): string {
   try {
