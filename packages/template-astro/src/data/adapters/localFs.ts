@@ -570,18 +570,11 @@ export function getPublicSettings(): LocalSettings {
         traffic: raw.traffic ?? raw.featureFlags?.traffic ?? raw.analytics?.enabled ?? false,
         comments: raw.comments ?? raw.featureFlags?.comments ?? true,
         // Nested featureFlags mirror — pages read flags via resolveFeatureFlags(settings.featureFlags).
+        // 插件禁用策略（去上帝式）：featureFlags 段 + site.yml 顶层布尔键通用透传——
+        // 开关键由插件声明（TEMPLATE_MANIFEST.plugins.featureFlag），core 不预知键名
         featureFlags: {
-            collectionPage: raw.collectionPage ?? raw.featureFlags?.collectionPage ?? true,
-            aboutPage: raw.aboutPage ?? raw.featureFlags?.aboutPage ?? true,
-            friendsPage: raw.friendsPage ?? raw.featureFlags?.friendsPage ?? raw.friends ?? true,
-            rss: raw.rss ?? raw.featureFlags?.rss ?? true,
-            searchSuggestions: raw.searchSuggestions ?? raw.featureFlags?.searchSuggestions ?? true,
-            globalSearch: raw.globalSearch ?? raw.featureFlags?.globalSearch ?? true,
-            fullTextSearch: raw.fullTextSearch ?? raw.featureFlags?.fullTextSearch ?? true,
-            traffic: raw.traffic ?? raw.featureFlags?.traffic ?? raw.analytics?.enabled ?? false,
-            comments: raw.comments ?? raw.featureFlags?.comments ?? true,
-            readingExperience: raw.readingExperience ?? raw.featureFlags?.readingExperience ?? true,
-            slides: raw.slides ?? raw.featureFlags?.slides ?? true,
+            ...(raw.featureFlags || {}),
+            ...Object.fromEntries(Object.entries(raw).filter(([, v]) => typeof v === 'boolean')),
         },
         friendsCards: readFriendsCards(),
         friendsGlobalStyle: readFriendsGlobalStyle(),

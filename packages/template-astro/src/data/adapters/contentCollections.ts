@@ -117,16 +117,7 @@ export const contentCollectionsAdapter = {
       theme: 'follow',
       locale: 'zh-CN',
       homepageMode: 'split',
-      featureFlags: {
-        searchSuggestions: true,
-        globalSearch: true,
-        fullTextSearch: true,
-        collectionPage: true,
-        aboutPage: true,
-        friendsPage: true,
-        comments: true,
-        traffic: false,
-      },
+      featureFlags: {}, // 通用：opt-out（when 评估未配置键默认开）——插件开关键由 site.yml 顶层布尔提供
     };
   },
 
