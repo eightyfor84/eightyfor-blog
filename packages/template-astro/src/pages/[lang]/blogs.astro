@@ -228,12 +228,6 @@ const metaDescription = locale === 'zh-CN'
     font-size: 1.1em;
   }
 
-  html.is-mobile .month-label {
-    width: 38px;
-    padding-right: 12px;
-    padding-top: 10px;
-  }
-
   .month-posts {
     flex-grow: 1;
     display: flex;
@@ -290,10 +284,6 @@ const metaDescription = locale === 'zh-CN'
     width: auto;
     min-width: 0;
     line-height: 1.4;
-  }
-
-  html.is-mobile .card-post-title {
-    width: 0;
   }
 
   .post-card-time {
@@ -353,79 +343,91 @@ const metaDescription = locale === 'zh-CN'
     color: var(--comp-text-sec);
   }
 
-  html.is-mobile .featured-grid {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
+  @media (max-width: 768px) {
+    .month-label {
+      width: 38px;
+      padding-right: 12px;
+      padding-top: 10px;
+    }
 
-  html.is-mobile .post-card {
-    padding: 12px 14px;
-  }
+    .card-post-title {
+      width: 0;
+    }
 
+    .featured-grid {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
 
-  html.is-mobile .featured-card {
-    border-radius: 12px;
-    transition: all 0.3s ease;
-  }
+    .post-card {
+      padding: 12px 14px;
+    }
 
-  html.is-mobile .featured-card .card-post-title,
-  html.is-mobile .compact-card .card-post-title {
-    font-size: 0.98rem;
-    font-weight: 500;
-    font-variation-settings: 'wght' 500;
-  }
+    .featured-card {
+      border-radius: 12px;
+      transition: all 0.3s ease;
+    }
 
-  html.is-mobile .featured-card-layout {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-  }
+    .featured-card .card-post-title,
+    .compact-card .card-post-title {
+      font-size: 0.98rem;
+      font-weight: 500;
+      font-variation-settings: 'wght' 500;
+    }
 
-  html.is-mobile .featured-card-date {
-    order: 2;
-    font-size: 0.75rem;
-  }
+    .featured-card-layout {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
 
-  html.is-mobile .featured-card .card-post-title,
-  html.is-mobile .compact-card .card-post-title {
-    order: 1;
-    white-space: nowrap;
-  }
+    .featured-card-date {
+      order: 2;
+      font-size: 0.75rem;
+    }
 
-  html.is-mobile .featured-card .post-tags {
-    display: none;
-  }
+    .featured-card .card-post-title,
+    .compact-card .card-post-title {
+      order: 1;
+      white-space: nowrap;
+    }
 
-  html.is-mobile .post-card-line {
-    gap: 10px;
-  }
+    .featured-card .post-tags {
+      display: none;
+    }
 
-  html.is-mobile .post-card-line .post-card-time {
-    order: 1;
-    margin-right: 0;
-  }
+    .post-card-line {
+      gap: 10px;
+    }
 
-  html.is-mobile .compact-card .post-featured-star {
-    order: 2;
-    display: inline-flex;
-  }
+    .post-card-line .post-card-time {
+      order: 1;
+      margin-right: 0;
+    }
 
-  html.is-mobile .post-card-line .card-post-title {
-    order: 3;
-    flex: 1 1 0;
-    min-width: 0;
-  }
+    .compact-card .post-featured-star {
+      order: 2;
+      display: inline-flex;
+    }
 
-  html.is-mobile .post-card-time {
-    font-size: 0.76rem;
-    min-width: 16px;
-    color: var(--comp-text-sec);
-  }
+    .post-card-line .card-post-title {
+      order: 3;
+      flex: 1 1 0;
+      min-width: 0;
+    }
 
-  html.is-mobile .post-tags {
-    display: none;
+    .post-card-time {
+      font-size: 0.76rem;
+      min-width: 16px;
+      color: var(--comp-text-sec);
+    }
+
+    /* 0-2-0: must beat .compact-card .post-tags (0-2-0, earlier) — plain .post-tags would lose */
+    .post-card .post-tags {
+      display: none;
+    }
   }
 </style>
 

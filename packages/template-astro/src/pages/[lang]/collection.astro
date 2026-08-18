@@ -499,24 +499,44 @@ try {
             const card = document.createElement("article");
             card.className = "post-card mtl-surface interactive glowable scalable collection-card";
 
-            // 添加封面图
+            // 添加封面图 — multi-source for internal rasters (mirror ChronicleImage):
+            // asset:///assets 源有 .avif/.webp 变体（asset pipeline 全量生成），
+            // <picture> 让浏览器按支持度选最优格式，LCP 只下最小字节。
             if (c.cover) {
               const coverWrapper = document.createElement("div");
               coverWrapper.className = "collection-card-cover";
               coverWrapper.style.width = "100%";
               coverWrapper.style.height = "140px";
 
-              const coverImg = document.createElement("img");
-              coverImg.src = c.cover;
-              coverImg.alt = formatCollectionName(c.name);
-              coverImg.loading = "lazy";
-              coverImg.style.width = "100%";
-              coverImg.style.height = "100%";
-              coverImg.style.objectFit = "cover";
-              coverImg.style.borderTopLeftRadius = "12px";
-              coverImg.style.borderTopRightRadius = "12px";
+              const isExternal = /^https?:\/\//i.test(c.cover);
+              const isRaster = /\.(jpg|jpeg|png|gif)$/i.test(c.cover);
+              const imgStyle = "width:100%;height:100%;object-fit:cover;border-top-left-radius:12px;border-top-right-radius:12px;";
 
-              coverWrapper.appendChild(coverImg);
+              if (!isExternal && isRaster) {
+                const picture = document.createElement("picture");
+                const srcAvif = document.createElement("source");
+                srcAvif.srcset = c.cover.replace(/\.(jpg|jpeg|png|gif)$/i, ".avif");
+                srcAvif.type = "image/avif";
+                const srcWebp = document.createElement("source");
+                srcWebp.srcset = c.cover.replace(/\.(jpg|jpeg|png|gif)$/i, ".webp");
+                srcWebp.type = "image/webp";
+                picture.appendChild(srcAvif);
+                picture.appendChild(srcWebp);
+                const coverImg = document.createElement("img");
+                coverImg.src = c.cover;
+                coverImg.alt = formatCollectionName(c.name);
+                coverImg.loading = "lazy";
+                coverImg.style.cssText = imgStyle;
+                picture.appendChild(coverImg);
+                coverWrapper.appendChild(picture);
+              } else {
+                const coverImg = document.createElement("img");
+                coverImg.src = c.cover;
+                coverImg.alt = formatCollectionName(c.name);
+                coverImg.loading = "lazy";
+                coverImg.style.cssText = imgStyle;
+                coverWrapper.appendChild(coverImg);
+              }
               card.appendChild(coverWrapper);
             }
 

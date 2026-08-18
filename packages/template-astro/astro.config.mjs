@@ -1,8 +1,8 @@
 import { defineConfig } from 'astro/config';
-import { readFileSync, existsSync, readdirSync, copyFileSync, mkdirSync, statSync, writeFileSync } from 'fs';
+import { readFileSync, existsSync, readdirSync, copyFileSync, mkdirSync, statSync, writeFileSync, rmSync } from 'fs';
 import { createHash } from 'crypto';
 import { fileURLToPath } from 'url';
-import { dirname, join, extname, parse } from 'path';
+import { dirname, join, extname, parse, relative } from 'path';
 
 import icon from 'astro-icon';
 import YAML from 'yaml';
@@ -166,7 +166,50 @@ export default defineConfig({
         },
       };
     })(),
+    (function chroniclePruneUnreferencedAssets() {
+      // Post-build asset GC: delete dist/assets files (originals + webp/avif
+      // variants) whose base filename appears in NO built file. References are
+      // already resolved in the output (HTML img/picture/srcset, JSON embeds,
+      // CSS url()), so a conservative "does base.ext appear anywhere" scan is
+      // enough. Kept per-base: if any of the trio is referenced, all are kept.
+      return {
+        name: 'chronicle-prune-unreferenced-assets',
+        hooks: {
+          'astro:build:done': async ({ dir }) => {
+            const outDir = typeof dir === 'string' ? dir : (dir.pathname || fileURLToPath(dir));
+            const assetsDir = join(outDir, 'assets');
+            if (!existsSync(assetsDir)) return;
+            const chunks = [];
+            function collect(dir2) {
+              for (const e of readdirSync(dir2, { withFileTypes: true })) {
+                const p = join(dir2, e.name);
+                if (e.isDirectory()) { if (e.name !== 'assets') collect(p); continue; }
+                const ext = extname(e.name).toLowerCase();
+                if (!['.html', '.js', '.json', '.css', '.webmanifest', '.xml'].includes(ext)) continue;
+                try { chunks.push(readFileSync(p, 'utf8')); } catch {}
+              }
+            }
+            collect(outDir);
+            const blob = chunks.join('\n');
+            const seen = new Set();
+            let removed = 0, kept = 0;
+            for (const e of readdirSync(assetsDir)) {
+              if (e.startsWith('.')) continue;
+              const base = parse(e).name;
+              if (seen.has(base)) continue;
+              seen.add(base);
+              const trio = readdirSync(assetsDir).filter((f) => parse(f).name === base);
+              if (trio.some((f) => blob.includes(f))) { kept++; continue; }
+              for (const f of trio) { try { rmSync(join(assetsDir, f), { force: true }); } catch {} }
+              removed++;
+            }
+            console.log(`[chronicle-prune-assets] removed ${removed} unreferenced asset group(s), kept ${kept}`);
+          },
+        },
+      };
+    })(),
   ],
+
   server: { port: 4321 },
   vite: {
     build: { cssMinify: 'esbuild' },
@@ -185,11 +228,17 @@ export default defineConfig({
       exclude: ['astro-icon'],
     },
     plugins: [
+
       // ── Asset pipeline: copy originals + generate WebP/AVIF ──
       // Caching: content-hash based — only recompress when source changes.
       (function assetPipelinePlugin() {
         let _cache = null;
-        const cacheFile = join(__dirname, 'node_modules', '.cache', 'chronicle-image-cache.json');
+        // Persistent variant store — lives OUTSIDE dist (Astro wipes dist between
+        // environment builds, so variants written there get deleted mid-build and
+        // every image re-encodes on every build; and in CI it must survive via the
+        // node_modules cache). Mirrors the dist tree under node_modules/.cache/.
+        const IMAGE_CACHE_DIR = join(__dirname, 'node_modules', '.cache', 'chronicle-images');
+        const cacheFile = join(IMAGE_CACHE_DIR, 'cache.json');
 
         function loadCache() {
           if (_cache) return _cache;
@@ -199,7 +248,7 @@ export default defineConfig({
         }
         function saveCache() {
           if (!_cache) return;
-          try { mkdirSync(dirname(cacheFile), { recursive: true }); } catch {}
+          try { mkdirSync(IMAGE_CACHE_DIR, { recursive: true }); } catch {}
           try { writeFileSync(cacheFile, JSON.stringify(_cache)); } catch {}
         }
 
@@ -236,12 +285,17 @@ export default defineConfig({
 
             /**
              * Copy a directory tree to dist, skipping .md and hidden files.
-             * For images, also generate .webp + .avif in the same output dir.
-             * Uses content-hash cache to skip recompression of unchanged images.
+             * For images, also generate .webp + .avif variants.
+             *
+             * Variants are written to the PERSISTENT cache dir (IMAGE_CACHE_DIR,
+             * mirrors the dist tree) and then copied into dist. Cache hits are
+             * judged against the persistent copies, so a mid-build dist wipe or a
+             * fresh CI checkout never forces recompression: on hit we only copy.
              */
             async function syncDir(srcDir, destDir, opts = {}) {
               const { webpQuality = 80, avifQuality = 55, aggressive = false } = opts;
               if (!existsSync(srcDir)) return;
+              const rel = relative(distDir, destDir) || '.';
               for (const entry of readdirSync(srcDir, { withFileTypes: true })) {
                 const name = entry.name;
                 if (name.startsWith('.') || name.endsWith('.md') || name === 'index.json') continue;
@@ -256,20 +310,28 @@ export default defineConfig({
                   const base = parse(name).name;
                   const destWebp = join(destDir, `${base}.webp`);
                   const destAvif = join(destDir, `${base}.avif`);
+                  const persistDir = join(IMAGE_CACHE_DIR, rel);
+                  const persistWebp = join(persistDir, `${base}.webp`);
+                  const persistAvif = join(persistDir, `${base}.avif`);
 
                   // Content-hash cache key
                   const hash = createHash('sha256').update(readFileSync(src)).digest('hex');
 
-                  // Cache hit: variants already exist and source hasn't changed
-                  if (cache[src] === hash && existsSync(destWebp) && existsSync(destAvif)) {
+                  // Cache hit: source unchanged AND persistent variants exist → copy into dist
+                  if (cache[src] === hash && existsSync(persistWebp) && existsSync(persistAvif)) {
+                    try { copyFileSync(persistWebp, destWebp); } catch (_) {}
+                    try { copyFileSync(persistAvif, destAvif); } catch (_) {}
                     hits++;
                     continue;
                   }
 
                   misses++;
+                  mkdirSync(persistDir, { recursive: true });
                   const effort = aggressive ? 6 : 4;
-                  try { await sharp(src).webp({ quality: webpQuality, effort }).toFile(destWebp); } catch (_) {}
-                  try { await sharp(src).avif({ quality: avifQuality, effort }).toFile(destAvif); } catch (_) {}
+                  try { await sharp(src).webp({ quality: webpQuality, effort }).toFile(persistWebp); } catch (_) {}
+                  try { await sharp(src).avif({ quality: avifQuality, effort }).toFile(persistAvif); } catch (_) {}
+                  try { copyFileSync(persistWebp, destWebp); } catch (_) {}
+                  try { copyFileSync(persistAvif, destAvif); } catch (_) {}
                   cache[src] = hash;
                 }
               }

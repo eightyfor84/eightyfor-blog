@@ -48,6 +48,14 @@ jobs:
           path: packages/gen/node_modules
           key: gen-${{ runner.os }}-${{ hashFiles('packages/gen/package-lock.json') }}
 
+      - name: Cache image compression outputs
+        uses: actions/cache@v4
+        with:
+          # Persistent webp/avif variants + content-hash index, decoupled from
+          # node_modules so lockfile churn never forces a full re-encode.
+          path: packages/template-astro/node_modules/.cache/chronicle-images
+          key: imgcache-${{ runner.os }}-v1
+
       - name: Install template dependencies
         run: npm install
         working-directory: packages/template-astro
