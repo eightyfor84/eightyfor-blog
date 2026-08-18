@@ -91,7 +91,7 @@ contextBridge.exposeInMainWorld('chronicleElectron', {
     const allowed = [
       'fs:readYaml', 'fs:writeYaml', 'fs:readJson', 'fs:writeJson',
       'fs:readDir', 'fs:exists', 'fs:mkdir',
-      'fs:readText', 'fs:writeText', 'fs:deleteDir', 'fs:deleteFile',
+      'fs:readText', 'fs:writeText', 'fs:deleteDir', 'fs:deleteFile', 'fs:deletePlugin',
       'fs:getRepoRoot', 'fs:getDataDir', 'fs:writeBase64', 'fs:copyFile', 'fs:autoCopyBg',
       'build:astro', 'build:compress-background', 'video:convert-background',
     ]

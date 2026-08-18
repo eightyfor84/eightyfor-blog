@@ -440,7 +440,10 @@
     "pluginRemove": "删除",
     "pluginRestore": "恢复",
     "pluginRemoved": "已移除",
-    "pluginBuiltinHint": "内置插件不可删除，但可禁用"
+    "pluginBuiltinHint": "内置插件不可删除，但可禁用",
+    "pluginRemoveConfirm": "确定删除插件「{name}」？将物理删除其源码目录，不可恢复。",
+    "pluginRemoveDone": "插件已删除",
+    "pluginRemoveFailed": "删除失败"
   },
   "postPicker": {
     "inputPlaceholder": "搜索并选择已发布帖子",

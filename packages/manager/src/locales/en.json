@@ -434,7 +434,10 @@
     "pluginRemove": "Remove",
     "pluginRestore": "Restore",
     "pluginRemoved": "Removed",
-    "pluginBuiltinHint": "Built-in plugins cannot be removed, but can be disabled"
+    "pluginBuiltinHint": "Built-in plugins cannot be removed, but can be disabled",
+    "pluginRemoveConfirm": "Remove plugin \"{name}\"? Its source directory will be physically deleted. This cannot be undone.",
+    "pluginRemoveDone": "Plugin removed",
+    "pluginRemoveFailed": "Remove failed"
   },
   "postPicker": {
     "inputPlaceholder": "Search and select a published post",

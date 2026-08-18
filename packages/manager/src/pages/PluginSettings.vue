@@ -5,7 +5,7 @@
 
     <!-- 插件列表：一行一个扩展——启用/禁用（featureFlag）+ 删除（内置不可删） -->
     <div class="plugin-list">
-      <div v-for="p in rows" :key="p.key" class="plugin-row" :class="{ 'plugin-row--removed': p.removed }">
+      <div v-for="p in rows" :key="p.key" class="plugin-row">
         <div class="plugin-row__main">
           <div class="plugin-row__head">
             <span v-if="p.builtin" class="plugin-tag">{{ $t('settings.builtin') }}</span>
@@ -16,29 +16,22 @@
         </div>
 
         <div class="plugin-row__actions">
-          <span v-if="p.removed" class="plugin-row__removed">{{ $t('settings.pluginRemoved') }}</span>
           <SwitchToggle
-            v-else-if="p.featureFlag"
+            v-if="p.featureFlag"
             :model-value="p.on"
             @update:model-value="(v: boolean) => toggleFlag(p, v)"
           />
           <button
-            v-if="p.removed"
-            class="plugin-row__icon-btn"
-            :title="$t('settings.pluginRestore')"
-            @click="restorePlugin(p)"
-          ><span v-html="ShellIcons.undo" /></button>
-          <button
-            v-else-if="!p.builtin"
-            class="plugin-row__icon-btn plugin-row__icon-btn--danger"
-            :title="$t('settings.pluginRemove')"
-            @click="removePlugin(p)"
+            v-if="p.builtin"
+            class="icon-btn"
+            disabled
+            :title="$t('settings.pluginBuiltinHint')"
           ><span v-html="ShellIcons.trash" /></button>
           <button
             v-else
-            class="plugin-row__icon-btn"
-            disabled
-            :title="$t('settings.pluginBuiltinHint')"
+            class="icon-btn icon-btn--danger"
+            :title="$t('settings.pluginRemove')"
+            @click="removePlugin(p)"
           ><span v-html="ShellIcons.trash" /></button>
         </div>
       </div>
@@ -49,13 +42,13 @@
 <script setup lang="ts">
 /**
  * 插件统一管理页（/settings/plugins）：
- * 一行一个扩展——启用/禁用（site.yml featureFlags）+ 删除（site.yml plugins.removed，
- * 构建期注册过滤，彻底移除）；内置插件（builtin）不可删除，但可禁用。
+ * 一行一个扩展——启用/禁用（site.yml featureFlags）+ 删除（专用接口 deletePlugin，
+ * 物理删除源码目录）；内置插件（builtin）不可删除，但可禁用。
  */
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { TEMPLATE_MANIFEST } from '../data/schemaRegistry'
-import { readYaml, writeYaml } from '../data/dataAccess'
+import { readYaml, writeYaml, deletePlugin } from '../data/dataAccess'
 import SwitchToggle from '../components/ui/SwitchToggle.vue'
 import { ShellIcons } from '../utils/shellIcons'
 import useToast from '../composables/useToast'
@@ -71,14 +64,12 @@ interface Row {
   builtin?: boolean
   contentEditor?: boolean
   on: boolean
-  removed: boolean
 }
 
 const rows = ref<Row[]>([])
 
 async function load() {
   const site = (await readYaml<Record<string, any>>('data/site.yml')) || {}
-  const removed = new Set<string>(site.plugins?.removed ?? [])
   rows.value = Object.values(TEMPLATE_MANIFEST.plugins).map((p) => ({
     key: p.key,
     name: p.name,
@@ -87,7 +78,6 @@ async function load() {
     builtin: p.builtin,
     contentEditor: p.contentEditor,
     on: p.featureFlag ? site[p.featureFlag!] !== false : true,
-    removed: removed.has(p.key),
   }))
 }
 
@@ -106,21 +96,17 @@ async function toggleFlag(p: Row, on: boolean) {
   await mutate((site) => { site[p.featureFlag!] = on })
 }
 
+/** 删除插件：专用接口 deletePlugin（物理删除源码目录，key 白名单校验）；内置不可删；confirm 防误点 */
 async function removePlugin(p: Row) {
   if (p.builtin) return
-  await mutate((site) => {
-    const removed = new Set<string>(site.plugins?.removed ?? [])
-    removed.add(p.key)
-    site.plugins = { removed: Array.from(removed) }
-  })
-}
-
-async function restorePlugin(p: Row) {
-  await mutate((site) => {
-    const removed = new Set<string>(site.plugins?.removed ?? [])
-    removed.delete(p.key)
-    site.plugins = { removed: Array.from(removed) }
-  })
+  if (!window.confirm(t('settings.pluginRemoveConfirm', { name: p.name }))) return
+  const ok = await deletePlugin(p.key)
+  if (ok) {
+    toast.show(t('settings.pluginRemoveDone'))
+    rows.value = rows.value.filter((r) => r.key !== p.key)
+  } else {
+    toast.show(t('settings.pluginRemoveFailed'))
+  }
 }
 
 onMounted(load)
@@ -131,7 +117,6 @@ onMounted(load)
 .plugin-list { display: flex; flex-direction: column; gap: 0.5rem; }
 .plugin-row { display: flex; align-items: center; gap: 1rem; padding: 0.75rem 1rem; border-radius: 10px; background: var(--app-bg-sec); border: 1px solid var(--border-color); transition: border-color 0.15s, opacity 0.15s; }
 .plugin-row:hover { border-color: var(--accent); }
-.plugin-row--removed { opacity: 0.55; }
 .plugin-row__main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.2rem; }
 .plugin-row__head { display: flex; align-items: center; gap: 0.5rem; }
 .plugin-tag { font-size: 0.65rem; padding: 2px 6px; border-radius: 999px; background: var(--accent-bg); color: var(--accent); font-weight: 600; white-space: nowrap; }
@@ -140,9 +125,36 @@ onMounted(load)
 .plugin-row__name:hover { color: var(--accent); }
 .plugin-row__desc { font-size: 0.8rem; color: var(--comp-text-sec); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .plugin-row__actions { display: flex; align-items: center; gap: 0.6rem; flex-shrink: 0; }
-.plugin-row__removed { font-size: 0.75rem; color: var(--warning); }
-.plugin-row__icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; padding: 0; border-radius: 8px; border: 1px solid var(--border-color); background: transparent; color: var(--comp-text-sec); cursor: pointer; }
-.plugin-row__icon-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
-.plugin-row__icon-btn--danger:hover:not(:disabled) { border-color: var(--warning); color: var(--warning); }
-.plugin-row__icon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.icon-btn {
+  padding: 0.4rem;
+  font-size: 1rem;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 4px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-btn span, .icon-btn :deep(svg) {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.icon-btn:not(:disabled):hover {
+  background: var(--hover);
+}
+
+.icon-btn--danger {
+  color: var(--status-error);
+}
+
+.icon-btn--danger:not(:disabled):hover {
+  background: var(--status-error-bg);
+}
+.icon-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
 </style>

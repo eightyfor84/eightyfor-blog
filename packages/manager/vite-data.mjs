@@ -377,6 +377,17 @@ export default function chronicleData() {
             return
           }
 
+          // ── DELETE /api/plugins/:key —— 专用：删除插件源码目录（key 白名单 + 固定前缀）──
+          const pluginMatch = urlPath.match(/^\/api\/plugins\/([a-z0-9][a-z0-9-]*)$/)
+          if (method === 'DELETE' && pluginMatch) {
+            const key = pluginMatch[1]
+            const dir = join(repoRoot, 'packages', 'template-astro', 'src', 'plugins', key)
+            // 安全：确认在 repoRoot 且前缀正确（key 已正则白名单）
+            if (!dir.startsWith(repoRoot)) return notFound(res, 'Invalid path')
+            if (existsSync(dir)) rmSync(dir, { recursive: true, force: true })
+            return json(res, null, 204)
+          }
+
           // ── DELETE /api/files?path=xxx ──────────────────
           if (method === 'DELETE' && urlPath === '/api/files') {
             const q = new URL(req.url || '', 'http://localhost').searchParams
@@ -389,7 +400,11 @@ export default function chronicleData() {
             const abs = join(repoRoot, fp)
             // Safety: ensure resolved path is within repoRoot
             if (!abs.startsWith(repoRoot)) return notFound(res, 'Invalid path')
-            if (existsSync(abs)) unlinkSync(abs)
+            if (existsSync(abs)) {
+              // 目录（插件源码删除等）递归删除；文件单删
+              if (statSync(abs).isDirectory()) rmSync(abs, { recursive: true, force: true })
+              else unlinkSync(abs)
+            }
             return json(res, null, 204)
           }
 

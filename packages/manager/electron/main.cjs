@@ -455,7 +455,18 @@ ipcMain.handle('fs:exists', async (_event, relativePath) => {
   }
 })
 
-ipcMain.handle('fs:mkdir', async (_event, relativePath) => {
+ipcMain.handle('fs:deletePlugin', async (_event, pluginKey) => {
+    // 专用删除：只允许 packages/template-astro/src/plugins/<key>，key 白名单校验防穿越
+    if (typeof pluginKey !== 'string' || !/^[a-z0-9][a-z0-9-]*$/.test(pluginKey)) return false
+    const rel = path.join('packages', 'template-astro', 'src', 'plugins', pluginKey)
+    const abs = resolveRepoPath(rel)
+    if (!abs) return false
+    try {
+      if (existsSync(abs)) { rmSync(abs, { recursive: true, force: true }); return true }
+    } catch { return false }
+    return false
+  })
+  ipcMain.handle('fs:mkdir', async (_event, relativePath) => {
   try {
     const absPath = resolveRepoPath(relativePath)
     if (!fs.existsSync(absPath)) {
