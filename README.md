@@ -30,9 +30,23 @@ Content is YAML + Markdown on the filesystem. [Astro](https://astro.build) SSG �
 
 ```
 data/                        — Your content: posts, images, config. The single source of truth.
-packages/template-astro/     — Astro frontend (pages, styles, components)
-packages/manager/            — Content manager (WIP)
+packages/template-astro/     — Astro frontend: the rendering layer (theme + presets + feature plugins)
+packages/gen/                — Build orchestration: rebuild index → render → atomic sync
+packages/manager/            — Content manager (local-first CMS)
 packages/shared/             — Shared types & utilities
+```
+
+## Architecture
+
+**Identity (see [docs/architecture-positioning.md](docs/architecture-positioning.md)):** `template-astro` is a PaperMod-style, content-agnostic rendering layer. Heavy features (comments / search / Marp slides / collections / friends) are optional capabilities registered through an open abstraction layer — a light theme by default, growing heavy features only when a content source enables them. `data/` + `gen` + `manager` are the official reference implementation around it.
+
+Four layers:
+
+```
+主板 (core framework)   — data contract + page skeleton + render loop. Presets only.
+可插拔功能 (plugins)    — collections/friends/search/comments/Marp, registered via manifest
+主题 (theme)            — ALL styles (tokens / global / critical / component). Swappable.
+manager                 — templated CMS: reads a template manifest, not hardwired to this repo
 ```
 
 ## Quick Start
