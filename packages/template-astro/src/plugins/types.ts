@@ -18,6 +18,9 @@ export interface PluginSlotContribution {
   /** 主板槽位 id（如 'post-end-of-article'、'post-toc'、'post-collection-nav'） */
   slot: string;
   component: any;
+  /** 槽位内位置（用于同槽位多组件分区）：'top'（置顶，缺省）| 'bottom'（置底）——
+      主板经 getPluginSlot(slot, ctx, position) 按位置取组件，置顶/置底各唯一 */
+  position?: 'top' | 'bottom';
   /** 条件渲染（when 门控）：featureFlag 读 site.yml featureFlags 段（opt-out，!== false 即开）；
       两条件都通过才渲染；主板经 getPluginSlots(slot, ctx) 统一评估 */
   when?: {

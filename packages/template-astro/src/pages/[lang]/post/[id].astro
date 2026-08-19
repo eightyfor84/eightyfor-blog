@@ -100,9 +100,8 @@ const slotGateCtx = {
   dataSource,
 };
 const TocSlot = getPluginSlot('post-toc', slotGateCtx);
-const EndOfArticleSlot = getPluginSlot('post-end-of-article', slotGateCtx);
-const AttitudeSlot = getPluginSlot('post-attitude', slotGateCtx);
-const CommentsSlot = getPluginSlot('post-comments', slotGateCtx);
+const EndOfArticleSlot = getPluginSlot('post-end-of-article', slotGateCtx, 'top');
+const EndOfArticleBottomSlot = getPluginSlot('post-end-of-article', slotGateCtx, 'bottom');
 const CollectionNavSlot = getPluginSlot('post-collection-nav', slotGateCtx);
 const SlidesSlot = getPluginSlot('post-slides-view', slotGateCtx);
 
@@ -400,25 +399,23 @@ const metaDescription = buildMetaDescription(post, locale);
       {post && EndOfArticleSlot && (
         <EndOfArticleSlot post={post} locale={locale} lang={routeLang} cfg={endOfArticleCfg} />
       )}
+
+      {/* 文末·置底：comments 插件注册（态度按钮 + 评论区）——post-end-of-article position bottom */}
+      {post && EndOfArticleBottomSlot && (
+        <EndOfArticleBottomSlot
+          postId={post?.id || id}
+          locale={locale}
+          commentsEnabled={commentsEnabled}
+          backend={commentBackend}
+          walineServerUrl={commentWalineServerUrl}
+          showGeoAddress={showGeoAddress}
+          imageUploadEnabled={commentsCfg.imageUploadEnabled === true}
+          imageUploadEndpoint={String(commentsCfg.imageUploadEndpoint || '')}
+          imageUploadToken={String(commentsCfg.imageUploadToken || '')}
+        />
+      )}
       </>
     ) : null}
-
-    {post && AttitudeSlot && (
-      <AttitudeSlot postId={post?.id || id} locale={locale} />
-    )}
-
-    {post && commentsEnabled && CommentsSlot && (
-      <CommentsSlot
-        postId={post?.id || id}
-        locale={locale}
-        backend={commentBackend}
-        walineServerUrl={commentWalineServerUrl}
-        showGeoAddress={showGeoAddress}
-        imageUploadEnabled={commentsCfg.imageUploadEnabled === true}
-        imageUploadEndpoint={String(commentsCfg.imageUploadEndpoint || '')}
-        imageUploadToken={String(commentsCfg.imageUploadToken || '')}
-      />
-    )}
   </div>
   <div class="scroll-blank"/>
 

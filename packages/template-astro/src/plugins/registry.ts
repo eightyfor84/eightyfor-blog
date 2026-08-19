@@ -84,7 +84,16 @@ export function getPluginSlots(slot: string, ctx?: SlotGateCtx): any[] {
   return out;
 }
 
-/** 取某槽位的首个贡献组件（主板槽渲染用；未注册或门控不过 → undefined） */
-export function getPluginSlot(slot: string, ctx?: SlotGateCtx): any {
-  return getPluginSlots(slot, ctx)[0];
+/** 取某槽位的贡献组件（主板槽渲染用；未注册或门控不过 → undefined）
+ *  position：槽位内位置——缺省/undefined 与 'top' 都取置顶（兼容旧槽位语义）；
+ *  同槽位置顶/置底各唯一（若同位置多组件，取首个注册者） */
+export function getPluginSlot(slot: string, ctx?: SlotGateCtx, position: 'top' | 'bottom' = 'top'): any {
+  for (const plugin of registry.values()) {
+    for (const s of plugin.slots ?? []) {
+      if (s.slot === slot && (s.position ?? 'top') === position && passesWhen(s.when, ctx)) {
+        return s.component;
+      }
+    }
+  }
+  return undefined;
 }

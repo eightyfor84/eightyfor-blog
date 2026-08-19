@@ -579,8 +579,10 @@ export function getPublicSettings(): LocalSettings {
         globalSearch: raw.search?.globalSearch ?? raw.globalSearch ?? true,
         fullTextSearch: raw.search?.fullTextSearch ?? true,
         traffic: raw.traffic ?? raw.analytics?.enabled ?? false,
-        comments: raw.comments?.comments ?? raw.comments ?? true,
-        readingExperience: raw['reading-experience']?.readingExperience ?? raw['reading-experience']?.enabled ?? true,
+        // comments：enabled 总开关优先折叠；comments 子开关（评论区显隐）在其上叠加
+        comments: raw.comments?.enabled === false ? false : (raw.comments?.comments ?? raw.comments ?? true),
+        // 单功能插件（reading-experience）：组内只存 enabled——readingExperience 派生键回退到 enabled
+        readingExperience: raw['reading-experience']?.enabled ?? true,
         slides: raw.slides?.slides ?? raw.slides?.enabled ?? true,
         // featureFlags 镜像（when.featureFlag 评估读这里）：组内开关键 + featureFlags 段 +
         // 顶层布尔键（兼容）；键名由插件声明（TEMPLATE_MANIFEST.plugins.featureFlag）
@@ -589,8 +591,8 @@ export function getPublicSettings(): LocalSettings {
             searchSuggestions: raw.search?.searchSuggestions ?? raw.featureFlags?.searchSuggestions ?? true,
             globalSearch: raw.search?.globalSearch ?? raw.featureFlags?.globalSearch ?? true,
             fullTextSearch: raw.search?.fullTextSearch ?? raw.featureFlags?.fullTextSearch ?? true,
-            comments: raw.comments?.comments ?? raw.comments?.enabled ?? raw.featureFlags?.comments ?? true,
-            readingExperience: raw['reading-experience']?.readingExperience ?? raw['reading-experience']?.enabled ?? raw.featureFlags?.readingExperience ?? true,
+            comments: raw.comments?.enabled === false ? false : (raw.comments?.comments ?? raw.comments?.enabled ?? raw.featureFlags?.comments ?? true),
+            readingExperience: raw['reading-experience']?.enabled ?? raw.featureFlags?.readingExperience ?? true,
             friendsPage: raw.friends?.friendsPage ?? raw.friends?.enabled ?? raw.featureFlags?.friendsPage ?? true,
             collectionPage: raw.collections?.collectionPage ?? raw.collections?.enabled ?? raw.featureFlags?.collectionPage ?? true,
             slides: raw.slides?.slides ?? raw.slides?.enabled ?? raw.featureFlags?.slides ?? true,
