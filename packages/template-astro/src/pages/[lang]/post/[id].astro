@@ -12,6 +12,7 @@ import { escapeHtmlText, decodeHtmlEntities, getFileExt, getMediaIcon, toMediaCa
 import { getPluginSlot } from '../../../plugins';
 import { resolveFeatureFlags } from '../../../utils/featureFlags';
 import CornerActions from '../../../components/CornerActions.astro';
+import TagLinks from '../../../components/TagLinks.astro';
 import 'katex/dist/katex.min.css';
 
 export const prerender = true;
@@ -103,8 +104,6 @@ const EndOfArticleSlot = getPluginSlot('post-end-of-article', slotGateCtx, 'top'
 const EndOfArticleBottomSlot = getPluginSlot('post-end-of-article', slotGateCtx, 'bottom');
 const CollectionNavSlot = getPluginSlot('post-collection-nav', slotGateCtx);
 const SlidesSlot = getPluginSlot('post-slides-view', slotGateCtx);
-// 文章 tag 链接（搜索插件注册；tag 搜索依赖 /search——搜索禁用/删除 → 链接消失）
-const PostTagsSlot = getPluginSlot('post-tags', slotGateCtx);
 
 // ── Collection feature flag (distinct from data result — see getCollections) ──
 // 单功能插件：页面开关 = 组内 enabled（镜像回退），无独立 collectionPage 键
@@ -334,8 +333,8 @@ const metaDescription = buildMetaDescription(post, locale);
               </span>
             )}
 
-            {post.tags && post.tags.length > 0 && metaCfg.showTags !== false && PostTagsSlot && (
-              <PostTagsSlot tags={post.tags} routeLang={routeLang} />
+            {post.tags && post.tags.length > 0 && metaCfg.showTags !== false && (
+              <TagLinks tags={post.tags} routeLang={routeLang} variant="post" />
             )}
           </div>
         </header>

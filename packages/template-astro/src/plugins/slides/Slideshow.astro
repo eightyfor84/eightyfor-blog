@@ -4,7 +4,7 @@ import './styles/slideshow.css';
 // Reads post content directly from data source (no base64 encoding needed).
 
 import { dataSource } from "../../data";
-import { getPluginSlot } from "../registry";
+import TagLinks from "../../components/TagLinks.astro";
 import {
   chronicleLightCSS,
   chronicleDarkCSS,
@@ -32,8 +32,7 @@ const postMeta = {
   tags: post?.tags || [],
 };
 const collectionUrl = locale === "en" ? "/en/collection" : "/collection";
-// tag 链接随 search 插件注册（post-tags 槽位）——搜索禁用/删除 → 链接消失
-const PostTagsSlot = getPluginSlot('post-tags');
+// tag 展示是 core 功能（TagLinks 组件）；搜索可用时才渲染为链接——搜索禁用时降级纯展示
 
 let slideHTML = "";
 let slideCSS = "";
@@ -204,10 +203,10 @@ if (md.trim()) {
             )
           }
           {
-            postMeta.tags.length > 0 && PostTagsSlot && (
+            postMeta.tags.length > 0 && (
               <div class="slide-info-row">
                 <span class="slide-info-label">Tags</span>
-                <PostTagsSlot tags={postMeta.tags} routeLang={locale === 'en' ? 'en' : 'zh'} variant="slide" />
+                <TagLinks tags={postMeta.tags} routeLang={locale === 'en' ? 'en' : 'zh'} variant="slide" />
               </div>
             )
           }
