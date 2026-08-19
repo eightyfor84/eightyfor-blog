@@ -551,9 +551,12 @@ const yearLabel = new Date().getFullYear();
                 </div>
               </div>
 
-            {/* 插件追加块：home-card-activity 槽位注册（core 预设块之上） */}
+            {/* 插件追加块：home-card-activity 槽位注册——统一包 taxonomy-block 容器，
+                与原生块（更新时间/更新内容）参与相同排列（块间距 .taxonomy-block + .taxonomy-block） */}
             {ActivityBlocks.map((Block: any) => (
-              <Block locale={locale} t={t} />
+              <div class="taxonomy-block">
+                <Block locale={locale} t={t} />
+              </div>
             ))}
           </section>
         )
