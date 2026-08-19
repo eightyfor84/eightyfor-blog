@@ -158,6 +158,7 @@ export default defineConfig({
               let count = 0;
 
               html = html.replace(CSS_LINK_RE, (match, href) => {
+                // 豁免渲染阻塞样式：data-render-blocking 标记
                 if (match.includes('data-render-blocking')) return match;
                 count++;
                 return `<link rel="stylesheet" href="${href}" media="print" onload="this.onload=null;this.media='all'"><noscript><link rel="stylesheet" href="${href}"></noscript>`;
@@ -166,6 +167,35 @@ export default defineConfig({
               if (count > 0) {
                 writeFileSync(filePath, html);
                 console.log(`[chronicle-defer-css] ${relPath}: deferred ${count} CSS file(s)`);
+              }
+
+              // ── Critical lock ──────────────────────────────────────
+              // global.css 的非变量规则位于 @layer chr-global（最低优先级）。
+              // 这里把同一批规则以镜像注入 critical <style>，置于
+              // @layer chr-lock（层序 chr-global < chr-lock < chr-base < 未分层）：
+              //   1) global.css defer 异步到达时（chr-global 层）永远输给
+              //      chr-lock 首帧镜像 → 布局全程不变（零 CLS）；
+              //   2) 页面型 critical 与页面级 css（未分层）仍高于 chr-lock，
+              //      可覆盖 global 的同类规则（如 blogs 的 .section-title）；
+              //   3) critical-base（chr-base 层）高于 chr-lock，其与 global
+              //      重叠的属性（a 颜色 / :root 字体栈 / #app flex）不被压。
+              // 选择器本身一字未改。
+              // 从 dist 产物提取（跟随主题 + 已压缩）；主题未拆分 @layer
+              // 时提取为空，安全跳过。
+              let chrLockCss = '';
+              try {
+                const astroDir = join(outDir, '_astro');
+                const globals = readdirSync(astroDir).filter((f) => /^global\..+\.css$/.test(f));
+                for (const g of globals) {
+                  const gc = readFileSync(join(astroDir, g), 'utf-8');
+                  const lm = gc.match(/@layer\s+chr-global\s*\{([\s\S]*)\}/);
+                  if (lm) { chrLockCss = lm[1].trim(); break; }
+                }
+              } catch {}
+              if (chrLockCss && !html.includes('data-chr-critical-lock')) {
+                html = html.replace('</head>', `<style data-chr-critical-lock>@layer chr-lock{${chrLockCss}}</style></head>`);
+                writeFileSync(filePath, html);
+                console.log(`[chronicle-critical-lock] ${relPath}: locked ${chrLockCss.length} B of global rules at chr-lock layer`);
               }
 
               // ── Minify inlined critical CSS ──
