@@ -500,11 +500,23 @@ const ANALYTICS_GA_ID = String(process.env.GA_MEASUREMENT_ID || analyticsCfg.gaM
          `prefetch` config injects ~4 KiB of prefetch.js into the critical
          JS chain; this tiny (~600 B) replacement uses event delegation and
          native fetch(), waking up only after requestIdleCallback / 2 s fallback.
-         Subsequent SPA navigations benefit from pre-warmed pages. -->
+         Subsequent SPA navigations benefit from pre-warmed pages.
+
+         防抖 + 限流：hover 触发带 120ms 防抖（快速滑过不请求）、并发上限 2、
+         请求间最小间隔 300ms——避免快速扫过导航栏触发大量并发 prefetch 被
+         CDN 限流（此前 /en/friends、/en/blogs 出现 503）。 -->
     <script>
       (function () {
         const PREFETCHED = new Set();
         let _active = false;
+        // 限流：并发上限 + 冷却
+        let _inflight = 0;
+        let _lastFetch = 0;
+        let _debounceTimer = null;
+        let _pendingUrl = '';
+        const CONCURRENCY_LIMIT = 2;
+        const MIN_INTERVAL_MS = 300;
+        const DEBOUNCE_MS = 120;
 
         function resolveUrl(href: string) {
           try {
@@ -515,21 +527,55 @@ const ANALYTICS_GA_ID = String(process.env.GA_MEASUREMENT_ID || analyticsCfg.gaM
           } catch { return ''; }
         }
 
-        function prefetch(url: string) {
+        function doFetch(url: string) {
           if (PREFETCHED.has(url)) return;
           PREFETCHED.add(url);
+          _inflight++;
           // priority: 'low' tells the browser this fetch must not compete with
           // critical resources on the current page — no timer needed.
           const controller = new AbortController();
           setTimeout(() => controller.abort(), 10000);
-          fetch(url, { priority: 'low', signal: controller.signal, headers: { 'X-Prefetch': '1' } }).catch(() => {});
+          fetch(url, { priority: 'low', signal: controller.signal, headers: { 'X-Prefetch': '1' } })
+            .catch(() => {})
+            .finally(() => { _inflight--; _lastFetch = Date.now(); });
+        }
+
+        function maybePrefetch(url: string) {
+          if (!url || PREFETCHED.has(url)) return;
+          // 冷却：距上次请求不足最小间隔 → 延后到间隔后再发（不丢弃，避免丢 prefetch）
+          const wait = MIN_INTERVAL_MS - (Date.now() - _lastFetch);
+          if (wait > 0) {
+            _pendingUrl = url;
+            if (!_debounceTimer) {
+              _debounceTimer = setTimeout(() => {
+                _debounceTimer = null;
+                const u = _pendingUrl; _pendingUrl = '';
+                if (u) doFetch(u);
+              }, wait);
+            }
+            return;
+          }
+          // 并发未超限 → 立即发
+          if (_inflight < CONCURRENCY_LIMIT) {
+            doFetch(url);
+          } else {
+            _pendingUrl = url;
+          }
         }
 
         function onHover(e: Event) {
           const a = (e.target as Element).closest('a[href]') as HTMLAnchorElement | null;
           if (!a) return;
           const url = resolveUrl(a.href);
-          if (url) prefetch(url);
+          if (!url) return;
+          // 防抖：快速滑过多个链接只取最后一个
+          if (_debounceTimer) { clearTimeout(_debounceTimer); _debounceTimer = null; }
+          _pendingUrl = url;
+          _debounceTimer = setTimeout(() => {
+            _debounceTimer = null;
+            const u = _pendingUrl; _pendingUrl = '';
+            if (u) maybePrefetch(u);
+          }, DEBOUNCE_MS);
         }
 
         function activate() {
