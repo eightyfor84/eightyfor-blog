@@ -14,6 +14,7 @@ import AttitudeButtons from './AttitudeButtons.astro';
 
 export const readingExperience: PluginManifest = {
   id: 'reading-experience',
+  featureFlag: 'enabled',
   name: '阅读体验插件（reading-experience）',
   slots: [
     // 插件级开关（总览页 featureFlag readingExperience）：关 → 目录与文末区块不注入

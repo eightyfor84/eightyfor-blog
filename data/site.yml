@@ -43,10 +43,12 @@ post:
 
 # ── 插件分组（每插件一段：开关 + 配置；开关键 = 该插件 featureFlag 名）──
 search:
+  enabled: true
   searchSuggestions: true
   globalSearch: true
   fullTextSearch: true
 comments:
+  enabled: true
   comments: true
   backend: ''
   walineServerUrl: ''
@@ -56,6 +58,7 @@ comments:
   imageUploadEndpoint: ''
   imageUploadToken: ''
 reading-experience:
+  enabled: true
   readingExperience: true
   toc:
     enabled: true
@@ -76,8 +79,11 @@ reading-experience:
     authorCard: false
     prevNextOrder: desc
 friends:
+  enabled: true
   friendsPage: true
 collections:
+  enabled: true
   collectionPage: true
 slides:
+  enabled: true
   slides: true

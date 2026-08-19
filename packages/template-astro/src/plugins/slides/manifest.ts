@@ -8,6 +8,7 @@ import Slideshow from './Slideshow.astro';
 
 export const slides: PluginManifest = {
   id: 'slides',
+  featureFlag: 'enabled',
   name: '幻灯片插件（slides）',
   pages: {},
   slots: [

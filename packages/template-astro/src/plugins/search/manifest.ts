@@ -12,6 +12,7 @@ import SearchBox from './SearchBox.astro';
 
 export const search: PluginManifest = {
   id: 'search',
+  featureFlag: 'enabled',
   name: '检索插件（search）',
   pages: {
     search: { route: 'search', component: SearchPage },

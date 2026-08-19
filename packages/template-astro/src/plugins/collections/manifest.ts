@@ -6,6 +6,7 @@ import CollectionPage from './CollectionPage.astro';
 
 export const collections: PluginManifest = {
   id: 'collections',
+  featureFlag: 'enabled',
   name: '合集插件（collections）',
   pages: {
     collection: { route: 'collection', component: CollectionPage, when: { featureFlag: 'collectionPage' } },

@@ -578,8 +578,8 @@ export function getPublicSettings(): LocalSettings {
         fullTextSearch: raw.search?.fullTextSearch ?? true,
         traffic: raw.traffic ?? raw.analytics?.enabled ?? false,
         comments: raw.comments?.comments ?? raw.comments ?? true,
-        readingExperience: raw['reading-experience']?.readingExperience ?? true,
-        slides: raw.slides?.slides ?? true,
+        readingExperience: raw['reading-experience']?.readingExperience ?? raw['reading-experience']?.enabled ?? true,
+        slides: raw.slides?.slides ?? raw.slides?.enabled ?? true,
         // featureFlags 镜像（when.featureFlag 评估读这里）：组内开关键 + featureFlags 段 +
         // 顶层布尔键（兼容）；键名由插件声明（TEMPLATE_MANIFEST.plugins.featureFlag）
         featureFlags: {
@@ -587,11 +587,11 @@ export function getPublicSettings(): LocalSettings {
             searchSuggestions: raw.search?.searchSuggestions ?? raw.featureFlags?.searchSuggestions ?? true,
             globalSearch: raw.search?.globalSearch ?? raw.featureFlags?.globalSearch ?? true,
             fullTextSearch: raw.search?.fullTextSearch ?? raw.featureFlags?.fullTextSearch ?? true,
-            comments: raw.comments?.comments ?? raw.featureFlags?.comments ?? true,
-            readingExperience: raw['reading-experience']?.readingExperience ?? raw.featureFlags?.readingExperience ?? true,
-            friendsPage: raw.friends?.friendsPage ?? raw.featureFlags?.friendsPage ?? true,
-            collectionPage: raw.collections?.collectionPage ?? raw.featureFlags?.collectionPage ?? true,
-            slides: raw.slides?.slides ?? raw.featureFlags?.slides ?? true,
+            comments: raw.comments?.comments ?? raw.comments?.enabled ?? raw.featureFlags?.comments ?? true,
+            readingExperience: raw['reading-experience']?.readingExperience ?? raw['reading-experience']?.enabled ?? raw.featureFlags?.readingExperience ?? true,
+            friendsPage: raw.friends?.friendsPage ?? raw.friends?.enabled ?? raw.featureFlags?.friendsPage ?? true,
+            collectionPage: raw.collections?.collectionPage ?? raw.collections?.enabled ?? raw.featureFlags?.collectionPage ?? true,
+            slides: raw.slides?.slides ?? raw.slides?.enabled ?? raw.featureFlags?.slides ?? true,
             aboutPage: raw.aboutPage ?? raw.featureFlags?.aboutPage ?? true,
             rss: raw.rss ?? raw.featureFlags?.rss ?? true,
             traffic: raw.traffic ?? raw.featureFlags?.traffic ?? raw.analytics?.enabled ?? false,

@@ -8,6 +8,7 @@ import FriendsPage from './FriendsPage.astro';
 
 export const friends: PluginManifest = {
   id: 'friends',
+  featureFlag: 'enabled',
   name: '友链插件（friends）',
   pages: {
     friends: { route: 'friends', component: FriendsPage, when: { featureFlag: 'friendsPage' } },
