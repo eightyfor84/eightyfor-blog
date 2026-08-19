@@ -1,0 +1,116 @@
+/* ── Critical CSS: Post/article pages ──────────────────────────────
+   Injected alongside critical-base.css on /post/* routes.
+   Covers: article container, title, meta rows, TOC, content body.
+
+   Update in sync with: [lang]/post/[id].astro, styles/post.css. */
+
+/* ── Article container ── */
+.post-detail-container { max-width:1000px; margin:0 auto; padding:2rem 1rem; }
+.post-content {
+  margin:0 max(20px, min(6vw - 10px, 60px));
+  padding-bottom:30vh;
+}
+
+/* ── Header + title ── */
+.post-header { margin-bottom:2rem; border-bottom:1px solid var(--border-color); padding-bottom:1.5rem; }
+.post-title { font-size:2.5rem; font-weight:700; line-height:1.2; margin:0 0 1rem 0; }
+
+/* ── Metadata rows ── */
+.post-meta { display:grid; grid-template-columns:repeat(4,auto); gap:1rem; justify-content:start; align-items:center; }
+.meta-item { display:inline-flex; align-items:center; gap:0.4rem; font-size:0.85rem;}
+.meta-item.warning { grid-column:1/-1; }
+
+/* ── Post tags ── */
+.post-tags { display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:1rem; grid-column:1/-1; }
+.tag { padding:0.25rem 0.75rem; border-radius:1rem; font-size:0.8rem; border:1px solid var(--border-color-blur); }
+
+/* ── Inline TOC ── */
+.toc-inline { padding:10px 14px; margin-bottom:24px; border-radius:10px; border:1px solid var(--border-color); }
+.toc-inline .toc-summary { width:100%; padding:0; border:none; color:inherit; background:transparent; display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:0; }
+.toc-inline .toc-title { font-weight:600; }
+.toc-inline .toc-toggle-icon { width:16px; height:16px; flex:0 0 auto; transform:rotate(-90deg); display:inline-flex; align-items:center; justify-content:center; }
+.toc-inline.open .toc-toggle-icon { transform:rotate(0deg); }
+.toc-inline[open] .toc-body-wrap { grid-template-rows:1fr; }
+.toc-body-wrap { display:grid; grid-template-rows:0fr; transition:grid-template-rows 0.2s; }
+.toc-body { overflow:hidden; min-height:0; }
+
+/* ── Content body ── */
+.post-body {
+  line-height:1.7; font-size:1rem;
+  /* content-visibility deliberately REMOVED (was `auto` + contain-intrinsic-size
+     auto 6000px). On desktop the post-body's estimated height (6000px) expands
+     to the real height (~8-15k px) when it first renders; whenever that happens
+     after FCP it shifts every line below the fold → CLS ~0.59, seen ~50% of
+     runs (FCP-vs-expansion race). Removing it keeps CLS flat (~0.08, mostly
+     font-swap which the subset/fallback work already mitigates) at the cost of
+     ~500ms Style & Layout on very long posts — the pre-CV behavior. */
+}
+
+/* ── Post nav (back link) ── */
+.post-nav { margin-bottom:2rem; }
+
+/* CollectionNav 样式（含 :has 布局偏移）已随 reading-experience 插件的
+   critical 注入（styles/critical/collection-nav.css）——插件禁用不注入 */
+
+.chr-md h1 { font-size: 2rem; padding-bottom: 0.5rem; margin-top: 2.5rem; line-height: 1.3;}
+.chr-md h2 { font-size: 1.75rem; margin-top: 2.2rem; line-height: 1.3;}
+.chr-md h3 { font-size: 1.5rem; margin-top: 1.8rem; line-height: 1.3;}
+.chr-md h4 { font-size: 1.3rem; margin-top: 1.6rem; line-height: 1.3;}
+.chr-md h5 { font-size: 1.2rem; margin-top: 1.4rem; line-height: 1.3;}
+.chr-md h6 { font-size: 1.1rem; margin-top: 1.2rem; line-height: 1.3;}
+
+/* ── Mobile (≤768px) ── */
+@media (max-width:768px) {
+  .post-detail-container { padding:1rem 0.5rem; }
+  .post-title { font-size:2rem; }
+  .post-meta { grid-template-columns:repeat(3,auto); }
+  .meta-item:not(.warning) .meta-label { display:none; }
+  .post-nav { margin-bottom:0.5rem; }
+  .scroll-blank { height:80px; }
+  .toc-inline {display:none;}
+  .toc-float { display:none; }
+}
+
+/* ── CornerActions visibility ──
+   ca-left is mobile-only floating buttons.
+   Reverse media query: visible by default, hidden on desktop (≥769px).
+   Matches 768px breakpoint in post.css mobile section. */
+@media (min-width:769px) { .ca-left { display:none; } }
+
+/* ── CornerButton / FloatingToc — prevent in-flow → fixed CLS ──
+   Their position:fixed lives in the async bundle (component styles → _id_.css).
+   Without these, the buttons/TOC render in-flow inside #app on the very first
+   layout (pushing the article up) and jump to the viewport when the async CSS
+   lands — same class of issue the cn-panel rules above guard against.
+   Keep in sync with CornerButton.astro / FloatingToc.astro. */
+.cb__btn {
+  position:fixed; bottom:30px; width:50px; min-height:50px; max-height:50px;
+  z-index:300; display:block; box-sizing:border-box;
+}
+.cb--right .cb__btn { right:30px; left:auto; }
+/* Back-to-top starts hidden (opacity 0) — mirror the async rule so it never
+   flashes visible at first paint. */
+.cb__btn.cb--btt { opacity:0; pointer-events:none; }
+.toc-float {
+  /* 默认隐藏（合并自原 :not(.visible) 规则）：初始无 .visible → 首帧不可见。
+     .toc-float.visible 恢复显示（见 FloatingToc.astro async 规则）。
+     [data-toc-mode]:not(.visible) 的 rail 半透明例外仍可覆盖（specificity 更高）。 */
+  opacity:0; pointer-events:none;
+  position:fixed; right:calc(10px + 2vw); top:calc(30px + 10vh);
+  z-index:1199; max-height:calc(70vh - 80px); box-sizing:border-box;
+}
+
+/* ── 文章导航返回链接（首帧）── */
+.nav-back, .back-link { font-size:0.9rem; display:inline-flex; align-items:center; gap:0.5rem; }
+
+/* ── 内联目录列表（首帧布局）── */
+.toc-inline .toc-list { list-style:none; padding:0; margin:0; }
+.toc-inline .toc-list li { margin:1px 0; }
+.toc-inline .toc-list li a { display:block; box-sizing:border-box; }
+.toc-inline .toc-list li .toc-text { --padding-h-base:10px; display:block; width:100%; padding:4px var(--padding-h-base); box-sizing:border-box; }
+.toc-inline .toc-list .toc-level-1 span { padding-left:var(--padding-h-base); }
+.toc-inline .toc-list .toc-level-2 span { padding-left:calc(8px + var(--padding-h-base)); }
+.toc-inline .toc-list .toc-level-3 span { padding-left:calc(16px + var(--padding-h-base)); }
+.toc-inline .toc-list .toc-level-4 span { padding-left:calc(24px + var(--padding-h-base)); }
+.toc-inline .toc-list .toc-level-5 span { padding-left:calc(32px + var(--padding-h-base)); }
+.toc-inline .toc-list .toc-level-6 span { padding-left:calc(40px + var(--padding-h-base)); }

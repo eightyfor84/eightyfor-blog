@@ -1,0 +1,17 @@
+/* ── CollectionNav — prevent CLS（reading-experience 插件 critical）──
+   由 post 页在 post-collection-nav 槽位注册时内联（插件禁用 → 不注入，
+   core 零合集样式）。布局偏移规则（:has 正文让位）必须在首帧生效。 */
+.cn-panel[data-cn-variant="sidebar"] { position:fixed; width:260px; min-height:200px; z-index:1200; border-radius:12px; overflow:auto; }
+@media (min-width:1200px) {
+  .cn-panel[data-cn-variant="sidebar"] { top:120px; left:calc(15vw - 160px); }
+  .post-detail-container:has(.cn-panel[data-in-collection="true"]) { padding-left:280px; }
+  body:has(#collection-nav-root[data-in-collection="true"]) .post-detail-container { padding-left:280px; }
+  .cn-panel[data-cn-variant="sidebar"][data-always-collapsed="true"] { top:90px; left:20px; }
+  .cn-panel[data-cn-variant="sidebar"][data-always-collapsed="true"].collapsed { transform:translateX(calc(-260px + 0px)); opacity:0.5; }
+  .post-detail-container:has(.cn-panel[data-in-collection="true"][data-always-collapsed="true"]) { padding-left:0; }
+  body:has(#collection-nav-root[data-in-collection="true"][data-always-collapsed="true"]) .post-detail-container { padding-left:0; }
+}
+@media (max-width:1199px) {
+  .cn-panel[data-cn-variant="sidebar"] { top:90px; left:20px; }
+  .cn-panel[data-cn-variant="sidebar"].collapsed { transform:translateX(calc(-260px + 0px)); opacity:0.5; }
+}

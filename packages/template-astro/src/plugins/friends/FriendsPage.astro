@@ -1,0 +1,148 @@
+---
+import './styles/friends.css';
+import Layout from "../../layouts/Layout.astro";
+import friendsCritical from "./styles/critical.css?raw";
+import { getTranslation, getLocale } from "../../utils/i18n";
+import { buildLocalizedPath } from "../../utils/routeLocale";
+import { loadSiteSettings } from "../../utils/siteSettings";
+import ChronicleImage from "../../components/ChronicleImage.astro";
+
+// Get locale from Astro.locals (set by middleware)
+const locale = getLocale(Astro.locals);
+const t = (key: string) => getTranslation(locale, key);
+
+const settings = await loadSiteSettings();
+
+type FriendCardStyle = "left-sm" | "left-lg" | "top-lg";
+
+type FriendCard = {
+  style: FriendCardStyle;
+  name: string;
+  avatar: string;
+  intro: string;
+  homeUrl: string;
+  storyPostId: string;
+};
+
+function normalizeFriendCards(input: any): FriendCard[] {
+  const source = Array.isArray(input) ? input : [];
+  const normalized = source
+    .map((item) => ({
+      style:
+        item?.style === "left-sm" ||
+        item?.style === "left-lg" ||
+        item?.style === "top-lg"
+          ? item.style
+          : "left-lg",
+      name: String(item?.name || "").trim(),
+      avatar: String(item?.avatar || "").trim(),
+      intro: String(item?.intro || "").trim(),
+      homeUrl: String(item?.homeUrl || "").trim(),
+      storyPostId: String(item?.storyPostId || "").trim(),
+    }))
+    .filter(
+      (item) =>
+        item.name ||
+        item.avatar ||
+        item.intro ||
+        item.homeUrl ||
+        item.storyPostId,
+    );
+
+  return normalized.length > 0 ? normalized : [];
+}
+
+// Normalize cards and apply global style override when provided by settings
+const friendsCards = normalizeFriendCards(settings?.friendsCards);
+const rawGlobalStyle = settings?.friendsGlobalStyle;
+const friendsGlobalStyle =
+  rawGlobalStyle === "left-sm" ||
+  rawGlobalStyle === "left-lg" ||
+  rawGlobalStyle === "top-lg"
+    ? rawGlobalStyle
+    : null;
+if (friendsGlobalStyle) {
+  for (const c of friendsCards) c.style = friendsGlobalStyle;
+}
+
+function getStoryHref(card: FriendCard) {
+  return card.storyPostId
+    ? buildLocalizedPath(locale, `/post/${card.storyPostId}`)
+    : "";
+}
+
+const metaDescription =
+  locale === "zh-CN"
+    ? "浏览 Chronicle 的友链页面，查看站点、朋友与相关故事。"
+    : "Browse Chronicle friends, external sites, and related stories.";
+---
+
+<Layout
+  title={t("friends.title")}
+  settings={settings}
+  meta={{ description: metaDescription }}
+>
+  <Fragment slot="head"><style is:inline set:html={friendsCritical} /></Fragment>
+  <div class="friends-container">
+    <main class="friends-main">
+      <h1 class="section-title">{t("friends.title")}</h1>
+      <div
+        class:list={[
+          "friends-list",
+          `friends-list--${friendsGlobalStyle || "left-lg"}`,
+        ]}
+      >
+        {friendsCards.map((card) => {
+          const storyHref = getStoryHref(card);
+          const hasAvatar = Boolean(card.avatar);
+          return (
+            <article
+              class={`friend-card mtl-surface interactive glowable scalable friend-card--${card.style}`}
+              onclick={`if(!event.target.closest('.friend-card__story')){const h='${String(card.homeUrl || "").replace(/'/g, "\\'")}'; if(h) window.open(h,'_blank');}`}
+            >
+              <div
+                class:list={[
+                  "friend-card__media",
+                  { "is-empty": !hasAvatar },
+                ]}
+              >
+                {hasAvatar ? (
+                  <ChronicleImage
+                    src={card.avatar}
+                    alt={card.name}
+                    loading="lazy"
+                    onerror="this.classList.add('is-hidden'); this.parentElement && this.parentElement.classList.add('is-broken');"
+                  />
+                ) : null}
+                <div
+                  class="friend-card__media-placeholder"
+                  aria-hidden="true"
+                />
+              </div>
+
+              <div class="friend-card__body">
+                <div class="friend-card__heading">
+                  <div class="friend-card__name-wrap">
+                    <h3>{card.name}</h3>
+                    {/* homepage button removed - clicking card handles home navigation */}
+                  </div>
+                </div>
+
+                <div class="friend-card__copy">
+                  {storyHref && (
+                    <a class="friend-card__story" href={storyHref}>
+                      {t("friends.viewStory")}
+                    </a>
+                  ) }
+                  <p class="friend-card__intro">{card.intro}</p>
+                </div>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </main>
+  </div>
+</Layout>
+
+

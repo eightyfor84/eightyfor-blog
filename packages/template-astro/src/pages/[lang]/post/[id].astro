@@ -1,6 +1,7 @@
 ---
+import '../../../themes/aurora/styles/pages/post.css';
 import Layout from '../../../layouts/Layout.astro';
-import { getPublishedPosts, getPostById, getPublicSettings, getCollections, getProfile } from '../../../data/localDataSource';
+import { dataSource } from '../../../data';
 import { SITE_AUTHOR_PLACEHOLDER } from '@chronicle/shared/src/utils';
 import { getTranslation, getLocale } from '../../../utils/i18n';
 import { buildLocalizedPath, toContentLocale } from '../../../utils/routeLocale';
@@ -8,15 +9,11 @@ import { buildTocItems, injectHeadingIds } from '../../../utils/toc';
 import { extractHeadings } from '../../../utils/chronicleMarkdown';
 import { renderCodeBlockStatsHtml, renderCodeBlockLangLabelsHtml } from '../../../utils/markdownParser';
 import { escapeHtmlText, decodeHtmlEntities, getFileExt, getMediaIcon, toMediaCard, rewriteMediaLinks, hydrateLegacyKatexPlaceholders, wrapRenderedKatex } from '../../../utils/contentUtils';
-import DesktopFloatingToc from '../../../components/FloatingToc.astro';
+import { getPluginSlot, getPluginSlots, getPluginCritical } from '../../../plugins';
+import { resolveFeatureFlags } from '../../../utils/featureFlags';
 import CornerActions from '../../../components/CornerActions.astro';
-import CollectionNav from '../../../components/CollectionNav.astro';
-import CommentSection from '../../../components/CommentSection.astro';
-import EndOfArticle from '../../../components/EndOfArticle.astro';
-import AttitudeButtons from '../../../components/AttitudeButtons.astro';
-import Slideshow from '../../../components/Slideshow.astro';
+import TagLinks from '../../../components/TagLinks.astro';
 import 'katex/dist/katex.min.css';
-import '../../../styles/post.css';
 
 export const prerender = true;
 
@@ -25,7 +22,7 @@ export const prerender = true;
 
 
 export async function getStaticPaths() {
-  const posts = getPublishedPosts();
+  const posts = dataSource.getPublishedPosts();
   return posts.flatMap((post) => ([
     { params: { lang: 'zh', id: String(post.id) } },
     { params: { lang: 'en', id: String(post.id) } },
@@ -35,7 +32,6 @@ export async function getStaticPaths() {
 const routeLang = Astro.params.lang;
 const locale = toContentLocale(routeLang);
 const backToBlogs = buildLocalizedPath(routeLang, '/blogs');
-const searchForTags = buildLocalizedPath(routeLang, '/search?tags=');
 const t = (key: string) => getTranslation(locale, key);
 const { id } = Astro.params;
 const mermaidUiText = {
@@ -51,7 +47,7 @@ let error = null;
 let settings: Record<string, any> = {};
 
 // ── Local data source ──────────────────────────────────
-const localPost = getPostById(id, routeLang);
+const localPost = dataSource.getPostById(id, routeLang);
 if (localPost) {
   post = {
     id: localPost.id,
@@ -74,7 +70,7 @@ if (localPost) {
     slideshow: localPost.slideshow,
   };
 }
-settings = getPublicSettings() as Record<string, any>;
+settings = dataSource.getPublicSettings() as Record<string, any>;
 
 // ── Post page config (3.1.x — flat top-level groups from site.yml) ──
 const postCfg = ((settings as Record<string, any>).post || {}) as any;
@@ -90,27 +86,40 @@ const commentWalineServerUrl = String(commentsCfg.walineServerUrl || '');
 // ── Comments feature flag ────────────────────────────────
 const commentsEnabled = (settings as Record<string, any>).comments !== false;
 
-// ── Attitude (like/dislike) is a Waline reaction feature — only with the
-//    waline backend AND comments enabled. Guarding with commentsEnabled
-//    prevents the leak where disabling comments still rendered attitude
-//    buttons and fired Waline API calls. ──
-const attitudeEnabled = commentsEnabled && commentBackend === 'waline' && commentsCfg.attitude !== false;
 // D2: show geo address (never the raw IP) on comments — waline location when present.
 const showGeoAddress = commentsCfg.showGeoAddress !== false;
 
+// ── 阅读体验插件槽位（主板只留渲染点，组件由插件注册；when 门控在此统一评估）──
+// comments 开关：featureFlags 段与 settings.comments（顶层）双源——合并取页面原语义（settings.comments 权威），
+// 保证 when 门控与改动前行为一致（comments=false → 态度按钮不注入）。
+const slotGateCtx = {
+  featureFlags: {
+    ...resolveFeatureFlags((settings as Record<string, any>)?.featureFlags),
+    comments: commentsEnabled,
+  },
+  dataSource,
+};
+const TocSlot = getPluginSlot('post-toc', slotGateCtx);
+// 文末槽位：唯一容器（.end-of-article 由主板渲染）——置顶组件可多个（append），
+// 置底组件唯一（registerPlugin 强制 bottom 唯一）
+const EndOfArticleTopSlots = getPluginSlots('post-end-of-article', slotGateCtx, 'top');
+const EndOfArticleBottomSlot = getPluginSlot('post-end-of-article', slotGateCtx, 'bottom');
+const CollectionNavSlot = getPluginSlot('post-collection-nav', slotGateCtx);
+const SlidesSlot = getPluginSlot('post-slides-view', slotGateCtx);
+
 // ── Collection feature flag (distinct from data result — see getCollections) ──
+// 单功能插件：页面开关 = 组内 enabled（镜像回退），无独立 collectionPage 键
 const collectionEnabled = (settings as Record<string, any>).collectionPage !== false;
-const collectionNavEnabled = postCfg.postCollectionNavEnabled !== false;
-// Single source of truth for "render the collection nav + reserve its sidebar space".
-const hasCollectionNav = collectionEnabled && collectionNavEnabled && !!post?.collection;
-const collectionNavCollapsed = collectionNavCfg.alwaysCollapsed === true;
+// 合集导航开关在 collections.yml 的 post.collectionNav.enabled——CollectionNav 组件自读门控，
+// 主板不预知该配置键（交集式）
 
 // ── TOC toggles (3.1.x) ────────────────────────────────
-const tocEnabled = postCfg.postTocEnabled !== false;
+// TOC（内联 + 浮动 + 移动端控制）属 reading-experience 插件功能——插件禁用/删除 →
+// post-toc 槽位不注册（TocSlot undefined）→ 全部 TOC 收敛（core 不硬编码 TOC）
+const tocEnabled = !!TocSlot && postCfg.postTocEnabled !== false;
 const inlineTocEnabled = tocEnabled && tocCfg.inlineToc !== false;
 const tocFloatEnabled = tocEnabled && tocCfg.tocFloat !== false;
 // 悬浮目录折叠态：始终展开开关关闭时即折叠（rail 现况）；开启时始终展开（正文让位）
-const tocFloatAlwaysExpanded = tocCfg.tocFloatAlwaysExpanded === true;
 const mobileTocControlEnabled = tocEnabled && tocCfg.mobileTocControl !== false;
 
 // ── Collections + post titles for CollectionNav ──────────
@@ -118,9 +127,9 @@ let embeddedCollections: any[] = [];
 let embeddedPostTitles: Record<string, string> = {};
 let embeddedPostTypes: Record<string, string> = {};
 try {
-  const collectionsData = getCollections();
+  const collectionsData = dataSource.getCollections();
   embeddedCollections = (collectionsData as any)?.collections || [];
-  const allPosts = getPublishedPosts();
+  const allPosts = dataSource.getPublishedPosts();
   for (const p of allPosts) {
     embeddedPostTitles[String(p.id)] = String(p.title || '').trim();
     embeddedPostTypes[String(p.id)] = String(p.type || 'article').trim();
@@ -174,7 +183,7 @@ const authorList = Array.isArray(post?.authors) && post.authors.length > 0
   ? post.authors
   : (post?.author ? [post.author] : []);
 // 占位符（$site$）→ 显示网站作者名；空 author 走「匿名」回退
-const siteProfile = getProfile() as Record<string, any>;
+const siteProfile = dataSource.getProfile() as Record<string, any>;
 const authorName = (authorList.length === 1 && authorList[0] === SITE_AUTHOR_PLACEHOLDER)
   ? (siteProfile?.name || authorList[0])
   : (authorList[0] || t('inblog.anonymousAuthor'));
@@ -259,15 +268,19 @@ if (renderedPostContent) {
 const isSlidesType = post?.type === 'slides' || !!post?.slideshow;
 const isSlidesView = isSlidesType;
 const metaDescription = buildMetaDescription(post, locale);
+// 插件 critical（post 页）：合集导航布局偏移防 CLS——插件禁用/删除 → 不注入（core 零插件样式）
+const pluginPostCritical = getPluginCritical('post');
 ---
 
 {isSlidesView && post ? (
 <Layout title={pageTitle} settings={settings} locale={locale} navTitle={post?.title} navBackHref={backToBlogs} navBackLabel={t('inblog.backToBlogs')} meta={{ description: metaDescription, type: 'article' }}>
-  <Slideshow id={post.id} locale={locale} config={post.slideshow || {}} collectionEnabled={collectionEnabled} />
+  {pluginPostCritical && <Fragment slot="head"><style is:inline set:html={pluginPostCritical} /></Fragment>}
+  {SlidesSlot ? <SlidesSlot id={post.id} locale={locale} config={post.slideshow || {}} collectionEnabled={collectionEnabled} /> : null}
 </Layout>
 ) : (
 <Layout title={pageTitle} settings={settings} locale={locale} navTitle={post?.title} navBackHref={backToBlogs} navBackLabel={t('inblog.backToBlogs')} meta={{ description: metaDescription, type: 'article' }}>
-  <div class="post-detail-container" class:list={[{ "has-collection-nav": hasCollectionNav }, { "always-collapsed": collectionNavCollapsed }, { "reserve-toc-right": tocFloatAlwaysExpanded && tocFloatEnabled }]} id="post-top">
+  {pluginPostCritical && <Fragment slot="head"><style is:inline set:html={pluginPostCritical} /></Fragment>}
+  <div class="post-detail-container" id="post-top">
     {error ? (
       <div class="error-container">
         <h1>Post not found</h1>
@@ -329,15 +342,7 @@ const metaDescription = buildMetaDescription(post, locale);
             )}
 
             {post.tags && post.tags.length > 0 && metaCfg.showTags !== false && (
-              <div class="post-tags">
-                {post.tags.map((tag: string) => (
-                <a href={searchForTags + encodeURIComponent(tag)} class="tag-link" aria-label={`Search for tag ${tag}`}>
-                  <span class="tag" class:list={[{ featured: tag === 'featured' || tag === '精选' }]} >
-                    {tag}
-                  </span>
-                  </a>
-                ))}
-              </div>
+              <TagLinks tags={post.tags} routeLang={routeLang} variant="post" />
             )}
           </div>
         </header>
@@ -391,76 +396,51 @@ const metaDescription = buildMetaDescription(post, locale);
         </div>
       </article>
 
-      {post && (
-        <EndOfArticle post={post} locale={locale} lang={routeLang} cfg={endOfArticleCfg} />
+      {/* 文末唯一容器（.end-of-article）：置顶组件们（可多个，append）+ 置底组件（唯一） */}
+      {post && (EndOfArticleTopSlots.length > 0 || EndOfArticleBottomSlot) && (
+        <div class="end-of-article">
+          {EndOfArticleTopSlots.map((TopComp: any) => (
+            <TopComp post={post} locale={locale} lang={routeLang} cfg={endOfArticleCfg} />
+          ))}
+          {EndOfArticleBottomSlot && (
+            <EndOfArticleBottomSlot
+              postId={post?.id || id}
+              locale={locale}
+              commentsEnabled={commentsEnabled}
+              backend={commentBackend}
+              walineServerUrl={commentWalineServerUrl}
+              showGeoAddress={showGeoAddress}
+              imageUploadEnabled={commentsCfg.imageUploadEnabled === true}
+              imageUploadEndpoint={String(commentsCfg.imageUploadEndpoint || '')}
+              imageUploadToken={String(commentsCfg.imageUploadToken || '')}
+            />
+          )}
+        </div>
       )}
       </>
     ) : null}
-
-    {post && attitudeEnabled && (
-      <AttitudeButtons postId={post?.id || id} walineServerUrl={commentWalineServerUrl} locale={locale} />
-    )}
-
-    {post && commentsEnabled && (
-      <CommentSection
-        postId={post?.id || id}
-        locale={locale}
-        backend={commentBackend}
-        walineServerUrl={commentWalineServerUrl}
-        showGeoAddress={showGeoAddress}
-        imageUploadEnabled={commentsCfg.imageUploadEnabled === true}
-        imageUploadEndpoint={String(commentsCfg.imageUploadEndpoint || '')}
-        imageUploadToken={String(commentsCfg.imageUploadToken || '')}
-      />
-    )}
   </div>
   <div class="scroll-blank"/>
 
   {tocItems.length > 0 && tocFloatEnabled && (
     <>
       <script id="chronicle-toc-data" type="application/json" set:html={JSON.stringify(tocItems)}></script>
-      <DesktopFloatingToc
+      {TocSlot && (
+      <TocSlot
         toc={tocItems}
         navLabel={t('inblog.toc-title')}
         mountToBody={true}
-        collapsed={!tocFloatAlwaysExpanded}
-        alwaysExpanded={tocFloatAlwaysExpanded}
       />
+      )}
     </>
   )}
 
-  <CornerActions toc={tocItems} postId={post?.id || id} collections={embeddedCollections} postTitles={embeddedPostTitles} postTypes={embeddedPostTypes} commentsEnabled={commentsEnabled} collectionEnabled={collectionEnabled} mobileToc={mobileTocControlEnabled} />
+  <CornerActions toc={tocItems} postId={post?.id || id} commentsEnabled={commentsEnabled} collectionEnabled={collectionEnabled} hasCollection={!!post?.collection} mobileToc={mobileTocControlEnabled} />
 
-  {hasCollectionNav && (
-    <CollectionNav postId={post?.id || id} collections={embeddedCollections} postTitles={embeddedPostTitles} postTypes={embeddedPostTypes} defaultCollapsed={collectionNavCollapsed} />
+  {CollectionNavSlot && (
+    <CollectionNavSlot postId={post?.id || id} />
   )}
 
-  <style is:global>
-    /* Hide desktop CollectionNav on mobile (768px breakpoint, matches html.is-mobile) */
-    html.is-mobile .cn-panel[data-cn-variant="sidebar"] {
-      display: none !important;
-    }
-
-    @media (max-width: 768px) {
-      .post-detail-container {
-        padding: 1rem 0.5rem;
-      }
-
-      .post-title {
-        font-size: 2rem;
-      }
-
-      .post-nav {
-        margin-bottom: .5rem;
-      }
-
-      .scroll-blank {
-        height: 80px;
-      }
-    }
-
-
-  </style>
 
   <script>
     import '../../../scripts/article';

@@ -1,0 +1,58 @@
+---
+// ── Tag 展示（core 功能）：始终渲染标签；搜索可用时渲染为搜索链接 ──
+// tag 展示本身是 core 能力（文章元数据的一部分），不随任何插件注册而消失；
+// 仅当 search 插件注册（构建期启用）时，tag 才带 /search?tags= 链接——
+// 搜索禁用/删除 → tag 降级为纯展示（不可点），但标签始终可见。
+import { buildLocalizedPath } from "../utils/routeLocale";
+import { getPluginPage } from "../plugins";
+
+interface Props {
+  tags?: string[];
+  /** 路由语言前缀（'zh' | 'en'）——用于拼 /search?tags= 链接 */
+  routeLang?: string;
+  /** 渲染变体：'post'（文章页 .post-tags/.tag-link）| 'slide'（slides .slide-info-tags/.slide-tag-chip） */
+  variant?: 'post' | 'slide';
+}
+
+const { tags = [], routeLang = 'zh', variant = 'post' } = Astro.props as Props;
+// 搜索可用性 = search 插件是否注册（构建期决定；禁用/删除 → 不可点）
+const searchAvailable = !!getPluginPage('search', 'search');
+const searchForTags = buildLocalizedPath(routeLang, '/search?tags=');
+const isSlide = variant === 'slide';
+
+function tagClass(tag: string) {
+  return tag === 'featured' || tag === '精选' ? 'featured' : '';
+}
+---
+
+{tags.length > 0 && (
+  isSlide ? (
+    <span class="slide-info-tags">
+      {tags.map((tag: string) =>
+        searchAvailable ? (
+          <a href={searchForTags + encodeURIComponent(tag)} class="slide-tag-chip">
+            {tag}
+          </a>
+        ) : (
+          <span class="slide-tag-chip">{tag}</span>
+        ),
+      )}
+    </span>
+  ) : (
+    <div class="post-tags">
+      {tags.map((tag: string) =>
+        searchAvailable ? (
+          <a
+            href={searchForTags + encodeURIComponent(tag)}
+            class="tag-link"
+            aria-label={`Search for tag ${tag}`}
+          >
+            <span class="tag" class:list={[tagClass(tag)]}>{tag}</span>
+          </a>
+        ) : (
+          <span class="tag" class:list={[tagClass(tag)]}>{tag}</span>
+        ),
+      )}
+    </div>
+  )
+)}

@@ -24,6 +24,17 @@
         :field-meta-map="metaRefs"
         @update:data="onUpdateData" @update:meta="(key, val) => setMeta(key, val)" />
 
+      <!-- 相关插件入口（独立于表单；一插件一行卡片，tag「插件」即语义——无需标题/容器） -->
+      <div v-if="relatedPlugins.length > 0" class="plugin-entries">
+        <div v-for="p in relatedPlugins" :key="p.key" class="plugin-entry-row">
+          <span class="plugin-entry-tag">{{ $t('settings.pluginTag') }}</span>
+          <span class="plugin-entry-name">{{ p.name }}</span>
+          <span class="plugin-entry-desc">{{ p.description }}</span>
+          <RouterLink :to="`/settings/plugins/${p.key}`" class="plugin-entry-link">{{ $t('settings.goToPage') }} →</RouterLink>
+        </div>
+      </div>
+
+
       <!-- Actions — always interactive, even when the feature is off -->
       <div class="actions-wrapper">
         <div class="actions">
@@ -44,6 +55,7 @@
 import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { TEMPLATE_MANIFEST } from '../data/schemaRegistry'
 import { useSchemaForm } from '../composables/useSchemaForm'
 import { resolveLocale } from '../utils/resolveLocale'
 import SchemaForm from '../components/schema/SchemaForm.vue'
@@ -58,8 +70,16 @@ const props = defineProps<{
   tab?: string
 }>()
 
-const route = useRoute()
 const { t } = useI18n()
+
+/** 相关插件：TEMPLATE_MANIFEST.plugins 中 entries.target === 本 schemaId 的插件 */
+const relatedPlugins = computed(() =>
+  Object.values(TEMPLATE_MANIFEST.plugins).filter((p) =>
+    (p.entries || []).some((e) => e.target === props.schemaId),
+  ),
+)
+
+const route = useRoute()
 const { show } = useToast()
 
 const {
@@ -127,6 +147,22 @@ onMounted(() => { load() })
 </script>
 
 <style scoped>
+.group-card {
+  background: var(--comp-bg-blur);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  margin-bottom: 1rem;
+}
+.group-title {
+  margin: 0 0 1rem 0;
+  font-size: 0.95rem;
+  font-weight: 500;
+  font-variation-settings: 'wght' 500;
+  color: var(--comp-text-sec);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
 .schema-settings-page {
   max-width: 900px;
   margin: 0 auto;
@@ -164,4 +200,12 @@ onMounted(() => { load() })
 h2.settings-title {
   margin-bottom: 1rem;
 }
+.plugin-entries { margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+.plugin-entry-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 10px; background: var(--app-bg-sec); border: 1px solid var(--border-color); transition: border-color 0.15s; }
+.plugin-entry-row:hover { border-color: var(--accent); }
+.plugin-entry-tag { flex-shrink: 0; font-size: 0.65rem; padding: 2px 6px; border-radius: 999px; background: var(--accent-bg); color: var(--accent); font-weight: 600; }
+.plugin-entry-name { font-weight: 600; white-space: nowrap; }
+.plugin-entry-desc { flex: 1; min-width: 0; font-size: 0.8rem; color: var(--comp-text-sec); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.plugin-entry-link { flex-shrink: 0; color: var(--accent); text-decoration: none; font-size: 0.85rem; }
+.plugin-entry-link:hover { text-decoration: underline; }
 </style>

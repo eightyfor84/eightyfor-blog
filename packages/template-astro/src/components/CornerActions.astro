@@ -1,23 +1,28 @@
 ---
+import '../themes/aurora/styles/components/corner-actions.css';
 import BackToTop from './BackToTop.astro';
 import CornerButton from './CornerButton.astro';
-import CollectionNav from './CollectionNav.astro';
+import { getPluginSlot } from '../plugins';
 import type { TocItem } from '../utils/toc';
+const CollectionNavSlot = getPluginSlot('post-collection-nav');
 import { getTranslation, getLocale } from '../utils/i18n';
 
-interface Props { toc?: TocItem[]; collections?: any[]; postTitles?: Record<string, string>; postTypes?: Record<string, string>; postId?: string; commentsEnabled?: boolean; collectionEnabled?: boolean; mobileToc?: boolean }
-const { toc=[], collections=[], postTitles={}, postTypes={}, postId='', commentsEnabled=true, collectionEnabled=true, mobileToc=true } = Astro.props as Props;
+interface Props { toc?: TocItem[]; postId?: string; commentsEnabled?: boolean; collectionEnabled?: boolean; hasCollection?: boolean; mobileToc?: boolean }
+const { toc=[], postId='', commentsEnabled=true, collectionEnabled=true, hasCollection=false, mobileToc=true } = Astro.props as Props;
 
 const locale = getLocale(Astro.locals);
 const t = (key: string) => getTranslation(locale, key);
 
 function inCol(n:any[]|undefined,pid:string):boolean{if(!Array.isArray(n))return false;for(const x of n){if(x?.type==='post'&&String(x.id)===pid)return true;if(x?.children&&inCol(x.children,pid))return true}return false}
-const hasCol=collectionEnabled&&!!(postId&&collections.length)&&collections.some((c:any)=>inCol(c.nodes,postId));
+const hasCol=collectionEnabled&&hasCollection;
 const hasToc=mobileToc&&toc.length>0, hasComment=commentsEnabled, btnCount=(hasToc?1:0)+(hasCol?1:0)+(hasComment?1:0), capW=btnCount*50+(btnCount-1);
 ---
 
 <BackToTop />
 
+{/* 无任何已注册候选功能（TOC/合集/评论全不可用）→ 左下角 primary 按钮整体消失，
+    不显示无功能无图标的空按钮 */}
+{btnCount > 0 && (
 <div class="ca-left">
   <CornerButton id="cb-left" template="menu" side="left" variant="primary" capsule={btnCount>1} capsuleWidth={capW}>
     <Fragment slot="buttons">
@@ -28,11 +33,9 @@ const hasToc=mobileToc&&toc.length>0, hasComment=commentsEnabled, btnCount=(hasT
       {hasComment&&(<button class="cb__slot" data-action="scrollToComment" title={t('comment.title')} aria-label={t('comment.title')}><svg class="cb__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>)}
     </Fragment>
     {hasToc&&(<ul data-menu="toc" class="cb__list" hidden>{toc.map((item:TocItem)=>(<li class:list={['cb__list-item',`cb__list-item--l${item.level}`]} data-toc-id={item.id}><a href={`#${item.id}`} class="cb__list-link" data-toc-id={item.id}><span class="cb__list-text">{item.text}</span></a></li>))}</ul>)}
-    {hasCol&&(<div data-menu="collection" hidden><CollectionNav collections={collections} postTitles={postTitles} postTypes={postTypes} postId={postId} variant="inline" /></div>)}
+    {hasCol&&CollectionNavSlot&&(<div data-menu="collection" hidden><CollectionNavSlot postId={postId} variant="inline" /></div>)}
   </CornerButton>
 </div>
+)}
 
-<style is:global>
-  .ca-left{display:none}
-  html.is-mobile .ca-left{display:block}
-</style>
+

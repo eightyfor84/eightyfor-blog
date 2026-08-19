@@ -1,22 +1,30 @@
 ---
+import '../themes/aurora/styles/components/card-style-home-deck.css';
 import { buildLocalizedPath } from "../utils/routeLocale";
 import { loadSiteSettings } from "../utils/siteSettings";
 import { loadSiteProfile } from "../utils/siteProfile";
 import { getTranslation, getLocale } from "../utils/i18n";
-import SearchBox from "./SearchBox.astro";
+import { getPluginSlots } from '../plugins';
 import ChronicleImage from "./ChronicleImage.astro";
 
 const { locale, featureFlags } = Astro.props || {
   locale: "zh-CN",
   featureFlags: {},
 };
+
+// ── 首页卡片注册式装配 ────────────────────────────────────
+// taxonomy 卡片：主板只留模板骨架（panel-card + section-head），内容块经
+// home-card-taxonomy 槽位注册（search→快速搜索/标签云，collections→合集列表）。
+// activity 卡片：core 扫描 git 变化产原生条目（app/post/delete），插件
+// changeInterpreter 把各自数据文件变化解释为条目——全部并列同一列表。
+// 卡片流：home-card-flow 注册整卡。
+const TaxonomyBlocks = getPluginSlots('home-card-taxonomy', { featureFlags });
+const FlowCards = getPluginSlots('home-card-flow', { featureFlags });
 const t = (key: string) => getTranslation(locale, key);
 const routeLang = locale;
 const blogsPath = buildLocalizedPath(locale, "/blogs");
 const friendsPath = buildLocalizedPath(locale, "/friends");
 const aboutPath = buildLocalizedPath(locale, "/about");
-const collectionPath = buildLocalizedPath(locale, "/collection");
-const searchPath = buildLocalizedPath(locale, "/search");
 const settings = await loadSiteSettings();
 const profile = await loadSiteProfile();
 
@@ -38,7 +46,6 @@ const cardSubtitle =
   settings?.siteDescription || (t("home.cardSubtitle") as string);
 const cardAuthorLine = t("home.cardAuthorLine") as string;
 const isFriendsEnabled = featureFlags?.friendsPage !== false;
-const isCollectionEnabled = featureFlags?.collectionPage !== false;
 
 // Icon glyphs (Lucide-style, stroke=currentColor) for the activity-card items.
 // Each type's colour is applied via `.activity-item__icon { color }`, so the
@@ -47,8 +54,6 @@ const activityIcons = {
   date: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
   app: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>',
   post: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
-  collection:
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M 12 2 L 21 8 L 12 14 L 3 8 Z"/><path d="M 18 14 L 21 16 L 12 22 L 3 16 L 6 14"/></svg>',
   stale:
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
   delete:
@@ -63,7 +68,7 @@ type FooterLink = {
   attrs: Record<string, string>;
 };
 const footerLinks: FooterLink[] = [
-  ...profile.links.map((l) => ({
+  ...(profile?.links || []).map((l) => ({
     label: l.label,
     href: l.url,
     attrs: { target: "_blank", rel: "noopener noreferrer" },
@@ -88,9 +93,13 @@ const footerLinks: FooterLink[] = [
 ];
 
 // Homepage card visibility
+// taxonomy 卡片 = 模板骨架 + 注册块（home-card-taxonomy 槽位）——有注册块才显示；
+// 搜索/合集插件禁用或删除 → 块消失 → 卡片整体不渲染（无空标题）
 const cv = settings?.cardVisibility || {};
 const showAuthorCard = cv?.author !== false;
-const showTaxonomyCard = cv?.taxonomy !== false;
+const showTaxonomyCard =
+  cv?.taxonomy !== false && TaxonomyBlocks.length > 0;
+// activity 卡片：core 预设块恒有内容（更新时间 + 原生活动项）
 const showActivityCard = cv?.activity !== false;
 const isSingleColumn = settings?.singleColumnHomepage === true;
 
@@ -175,115 +184,20 @@ function uniqueById(list: any[]) {
   });
 }
 
-function buildTagStats(postsList: any[]) {
-  const counts = new Map<string, number>();
-  for (const post of postsList) {
-    for (const tag of Array.isArray(post?.tags) ? post.tags : []) {
-      const normalized = String(tag || "").trim();
-      if (!normalized) continue;
-      counts.set(normalized, (counts.get(normalized) || 0) + 1);
-    }
-  }
-  return Array.from(counts.entries())
-    .map(([name, count]) => ({
-      name,
-      count,
-      featured: isFeaturedTag(name),
-    }))
-    .sort((a, b) => {
-      if (a.featured && !b.featured) return -1;
-      if (!a.featured && b.featured) return 1;
-      if (b.count !== a.count) return b.count - a.count;
-      return a.name.localeCompare(b.name);
-    });
-}
-
-function buildArchiveStats(postsList: any[]) {
-  const years = new Map<
-    number,
-    { count: number; months: Map<number, number>; latest: Date }
-  >();
-  for (const post of postsList) {
-    const date = safeDateValue(post?.date);
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const current = years.get(year) || {
-      count: 0,
-      months: new Map<number, number>(),
-      latest: date,
-    };
-    current.count += 1;
-    current.latest = current.latest > date ? current.latest : date;
-    current.months.set(month, (current.months.get(month) || 0) + 1);
-    years.set(year, current);
-  }
-
-  return Array.from(years.entries())
-    .map(([year, data]) => ({
-      year,
-      count: data.count,
-      latest: data.latest,
-      months: Array.from(data.months.entries())
-        .sort((a, b) => b[1] - a[1] || b[0] - a[0])
-        .slice(0, 4)
-        .map(([month, count]) => ({ month, count })),
-    }))
-    .sort((a, b) => b.year - a.year)
-    .slice(0, 5);
-}
-
-function buildCollectionSummaries(collectionsList: any[]) {
-  return collectionsList
-    .filter(Boolean)
-    .map((collection) => {
-      const nodes = Array.isArray(collection.nodes) ? collection.nodes : [];
-      const stats = { posts: 0, groups: 0 };
-      const walk = (items: any[]) => {
-        if (!Array.isArray(items)) return;
-        for (const node of items) {
-          if (!node) continue;
-          if (node.type === "post" && node.id) stats.posts += 1;
-          if (node.type === "group") {
-            stats.groups += 1;
-            walk(node.children);
-          }
-        }
-      };
-      walk(nodes);
-      return {
-        name:
-          String(collection.name || "").trim() ||
-          (t("home.unnamedCollection") as string),
-        description: String(collection.description || "").trim(),
-        posts: stats.posts,
-        groups: stats.groups,
-      };
-    })
-    .filter((item) => item.name)
-    .sort((a, b) => b.posts - a.posts || b.groups - a.groups);
-}
-
 let posts: any[] = [];
-let collections: any[] = [];
+let deckDataSource: any = null;
 
 // Local/filesystem mode: read directly from data/ (single source of truth)
+// 合集数据不在此读取——taxonomy 合集块由 collections 插件经 home-card-taxonomy
+// 槽位自读；activity 合集条目由插件 changeInterpreter 自解释（core 零合集逻辑）
 try {
-  const { getPublishedPosts, getCollections } =
-    await import("../data/localDataSource");
-  posts = getPublishedPosts().map((p: any) => ({
+  const { dataSource } = await import("../data");
+  deckDataSource = dataSource;
+  posts = dataSource.getPublishedPosts().map((p: any) => ({
     ...p,
     content: undefined,
     compiledHtml: undefined,
   }));
-  collections = (getCollections() as any) || [];
-  // unwrap legacy collection format
-  if (
-    !Array.isArray(collections) &&
-    Array.isArray((collections as any).collections)
-  ) {
-    collections = (collections as any).collections;
-  }
-  if (!Array.isArray(collections)) collections = [];
 } catch (e) {
   console.warn(
     "[CardStyleHomeDeck] localDataSource fallback failed, posts empty",
@@ -301,38 +215,24 @@ const leadPost = recentPosts[0] || featuredPosts[0] || null;
 const secondaryPosts = uniqueById([...featuredPosts, ...recentPosts])
   .filter((post) => post?.id && post?.id !== leadPost?.id)
   .slice(0, 4);
-const TAG_LIMIT = 14;
-const COLLECTION_LIMIT = 3;
-const allTagStats = buildTagStats(sortedPosts);
-const tagStats = allTagStats
-  .filter((item) => !item.featured)
-  .slice(0, TAG_LIMIT);
-const hasMoreTags =
-  allTagStats.filter((item) => !item.featured).length > TAG_LIMIT;
-const featuredTagStats = allTagStats
-  .filter((item) => item.featured)
-  .slice(0, 1);
-const archiveStats = buildArchiveStats(sortedPosts);
-const allCollectionSummaries = buildCollectionSummaries(collections);
-const collectionSummaries = allCollectionSummaries.slice(0, COLLECTION_LIMIT);
-const hasMoreCollections = allCollectionSummaries.length > COLLECTION_LIMIT;
 
 const recommendedPosts = uniqueById([...featuredPosts, ...recentPosts])
   .filter((post) => post?.id && post?.id !== leadPost?.id)
   .slice(0, 3);
 
-// Recent updates (git-based) with a static fallback (recent posts + collections,
-// no friends). Fallback shares the exact same rendering — only the data differs:
+// Recent updates (git-based) with a static fallback (recent posts, no collections/
+// friends). Fallback shares the exact same rendering — only the data differs:
 // the "last updated" label reads "Unknown" and the content list is static.
+// 合集动态（newCollections + 静态合集摘要）由 collections 插件经 home-card-activity
+// 槽位渲染——core 只持有帖子/应用/删除动态。
 type RecentUpdatesData = {
   latestCommitDate: string;
   appUpdated: boolean;
   changedPosts: { id: string; title: string; isNew: boolean }[];
   deletedCount: number;
-  newCollections: { slug: string; name: string }[];
 };
 type ActivityItem = {
-  tone: "app" | "post" | "collection" | "delete";
+  tone: "app" | "post" | "delete";
   label?: string;
   title: string;
   href?: string;
@@ -356,7 +256,6 @@ try {
   const { getRecentUpdates } = await import("../utils/recentUpdates");
   recentUpdates = await getRecentUpdates({
     posts,
-    collections,
     aggregateDays,
   });
 } catch {
@@ -373,6 +272,7 @@ const isStale =
 
 // Unified content list — same shape for the git-derived (fresh) and the static
 // fallback feed, so the markup renders identically in both cases.
+// 条目 = core 原生（app/post/delete）+ 插件 changeInterpreter 产物（并列同一列表）
 const activityItems: ActivityItem[] = [];
 if (recentUpdates) {
   if (recentUpdates.appUpdated) {
@@ -399,14 +299,7 @@ if (recentUpdates) {
       }),
     });
   }
-  for (const c of recentUpdates.newCollections) {
-    activityItems.push({
-      tone: "collection",
-      label: t("home.newCollections") as string,
-      title: c.name,
-      href: collectionPath + "#" + encodeURIComponent(c.name),
-    });
-  }
+  // 插件 changeInterpreter 产物（如 collections.yml → 新增合集）——与原生条目并列
 } else {
   for (const post of recentPosts.slice(0, 3)) {
     activityItems.push({
@@ -416,19 +309,14 @@ if (recentUpdates) {
       href: buildPostUrl(post.id),
     });
   }
-  if (isCollectionEnabled) {
-    for (const collection of collectionSummaries.slice(0, 2)) {
-      activityItems.push({
-        tone: "collection",
-        label: interpolate(t("home.collectionMeta"), {
-          posts: collection.posts,
-          groups: collection.groups,
-        }),
-        title: collection.name,
-        href: collectionPath + "#" + encodeURIComponent(collection.name),
-      });
-    }
-  }
+}
+
+// 分发 data/ 变化给插件解释器 → 产物追加到同一列表（并列，不单独成块）
+if (recentUpdates?.changedFiles?.length && deckDataSource) {
+  const { interpretChanges } = await import("../plugins");
+  activityItems.push(
+    ...interpretChanges(recentUpdates.changedFiles, { dataSource: deckDataSource, t }),
+  );
 }
 
 const authorInitials =
@@ -520,6 +408,11 @@ const yearLabel = new Date().getFullYear();
           }
         </div>
       </section>
+
+      {/* 卡片流自定义卡片：home-card-flow 槽位注册（插件自含整卡骨架） */}
+      {FlowCards.map((Card: any) => (
+        <Card locale={locale} t={t} />
+      ))}
     </main>
 
     <aside
@@ -534,13 +427,12 @@ const yearLabel = new Date().getFullYear();
                 <ChronicleImage
                   src={authorAvatar}
                   alt={authorName}
-                  class="author-avatar"
+                  class="author-avatar u-zoomable"
                   width="64"
                   height="64"
                   loading="eager"
                   decoding="async"
                   fetchpriority="auto"
-                  style="cursor:zoom-in"
                   data-source={authorAvatarSource}
                   onclick="window.__openFilePreview?.({ url: event.target.dataset.source || event.target.src, title: event.target.alt, type: 'image' })"
                 />
@@ -557,84 +449,26 @@ const yearLabel = new Date().getFullYear();
             {authorBio ? (
               <p class="author-bio">{authorBio}</p>
             ) : (
-              <p style="margin-bottom:0;">{cardAuthorLine}</p>
+              <p class="u-mb-0">{cardAuthorLine}</p>
             )}
           </article>
         )
       }
 
       {
-        showTaxonomyCard && (
+        // taxonomy 卡片：主板只留模板骨架，内容块经 home-card-taxonomy 槽位注册
+        // （search→快速搜索/标签云、collections→合集列表；插件禁用/删除 → 块消失）
+        showTaxonomyCard && TaxonomyBlocks.length > 0 && (
           <section class="panel-card mtl-container taxonomy-card">
-            <div class="section-head" style="margin-bottom: 0;">
+            <div class="section-head flush">
               <div>
                 <h2 class="panel-kicker">{t("home.topicNavigation")}</h2>
               </div>
             </div>
 
-            <div class="taxonomy-block">
-              <h3>{t("home.quickSearch")}</h3>
-              <SearchBox
-                instanceId="home-searchbox"
-                searchSuggestionsEnabled={false}
-                showTagTrigger={false}
-                placeholder={t("search.placeholder")}
-                featuredLabel={t("tag.featured")}
-                searchOnEnter={true}
-                t={t}
-              />
-            </div>
-
-            {isCollectionEnabled && (
-              <div class="taxonomy-block">
-                <h3>{t("home.collectionList")}</h3>
-                <div class="taxonomy-list">
-                  {collectionSummaries.length
-                    ? collectionSummaries.map((collection) => (
-                        <a
-                          class="mtl-surface interactive glowable scalable"
-                          href={
-                            collectionPath +
-                            "#" +
-                            encodeURIComponent(collection.name)
-                          }
-                        >
-                          <span>{collection.name}</span>
-                          <strong>{collection.posts}</strong>
-                        </a>
-                      ))
-                    : null}
-                </div>
-                {hasMoreCollections ? (
-                  <a href={collectionPath} class="view-more-link">
-                    {t("home.viewAll")} →
-                  </a>
-                ) : null}
-              </div>
-            )}
-
-            <div class="taxonomy-block">
-              <h3>{t("home.tagCloud")}</h3>
-              <div class="tag-cloud">
-                {tagStats.map((tag) => (
-                  <a
-                    class:list={[
-                      "tag-cloud-item",
-                      tag.featured ? "featured" : "",
-                    ]}
-                    href={searchPath + "?tags=" + encodeURIComponent(tag.name)}
-                  >
-                    {tag.featured ? t("blog.featured") : tag.name}
-                    <span class="tag-count">{tag.count}</span>
-                  </a>
-                ))}
-              </div>
-              {hasMoreTags ? (
-                <a href={searchPath + "?view=tags"} class="view-more-link">
-                  {t("home.viewAllTags")} →
-                </a>
-              ) : null}
-            </div>
+            {TaxonomyBlocks.map((Block: any) => (
+              <Block locale={locale} t={t} />
+            ))}
           </section>
         )
       }
@@ -642,7 +476,7 @@ const yearLabel = new Date().getFullYear();
       {
         showActivityCard && (
           <section class="panel-card mtl-container activity-card">
-            <div class="section-head" style="margin-bottom: 0;">
+            <div class="section-head flush">
               <div>
                 <h2 class="panel-kicker">{t("home.recentUpdates")}</h2>
               </div>
@@ -725,7 +559,6 @@ const yearLabel = new Date().getFullYear();
                   )}
                 </div>
               </div>
-            
           </section>
         )
       }
@@ -773,777 +606,4 @@ const yearLabel = new Date().getFullYear();
   </footer>
 </section>
 
-<script define:vars={{ searchPath }}>
-  let _homeSearchInit = false;
 
-  function initHomeSearchBox() {
-    const homeSearchBoxRoot = document.querySelector(
-      '[data-searchbox-id="home-searchbox"]',
-    );
-    if (!homeSearchBoxRoot || _homeSearchInit) return;
-    _homeSearchInit = true;
-
-    homeSearchBoxRoot.addEventListener("searchbox:submit", (event) => {
-      const detail = event.detail || {};
-      const keyword = String(detail.query || "").trim();
-      const target = keyword
-        ? `${searchPath}?keyword=${encodeURIComponent(keyword)}`
-        : `${searchPath}`;
-
-      window.location.href = target;
-    });
-  }
-
-  initHomeSearchBox();
-  document.addEventListener("astro:page-load", initHomeSearchBox);
-  document.addEventListener("astro:before-swap", () => {
-    _homeSearchInit = false;
-  });
-</script>
-
-<style>
-  .home-shell {
-    --home-ui-scale: 0.9;
-    max-width: 1200px;
-    zoom: var(--home-ui-scale);
-    margin: 0 auto;
-    padding: 1.25rem clamp(1rem, 2vw, 2rem) 3rem;
-    color: var(--app-text-pri);
-  }
-
-  .home-shell a,
-  .home-shell button {
-    touch-action: manipulation;
-    -webkit-tap-hl-color: transparent;
-  }
-
-  .card-flows {
-    display: grid;
-    grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.85fr);
-    gap: 1rem;
-    align-items: start;
-  }
-
-  /* Single column: forced by toggle OR right column has no visible cards */
-  .card-flows.single-col {
-    grid-template-columns: 1fr;
-  }
-
-  /* Hide the empty right column to avoid wasted gap space */
-  .flow-column--right.column-empty {
-    display: none;
-  }
-
-  .flow-column {
-    display: grid;
-    gap: 1rem;
-    align-content: start;
-    min-width: 0;
-  }
-
-  .panel-card {
-    position: relative;
-    border-radius: 18px;
-    backdrop-filter: blur(12px);
-    overflow: hidden;
-  }
-
-  .panel-card > * {
-    position: relative;
-    z-index: 1;
-  }
-
-  .flow-intro {
-    padding: clamp(1.4rem, 2.4vw, 2.2rem);
-  }
-
-  .hero-kicker,
-  .panel-kicker,
-  .story-card__eyebrow,
-  .taxonomy-subhead {
-    margin: 0 0 0.55rem;
-    color: var(--comp-text-sec);
-    text-transform: uppercase;
-    letter-spacing: 0.18em;
-    font-size: 0.78rem;
-    font-weight: 400;
-    font-variation-settings: "wght" 400;
-  }
-
-  .flow-intro h1 {
-    margin: 0;
-    font-size: clamp(2.5rem, 4vw, 4rem);
-    line-height: 0.92;
-    letter-spacing: -0.02em;
-  }
-
-  .hero-description {
-    margin: 1rem 0 0;
-    max-width: 42rem;
-    font-size: 1.04rem;
-    line-height: 1.75;
-    color: var(--comp-text-sec);
-  }
-
-  .hero-note {
-    margin: 0.85rem 0 0;
-    color: var(--comp-text-sec);
-  }
-
-  .hero-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    margin-top: 1.25rem;
-  }
-
-  .flow-intro .story-card--lead {
-    margin-top: 1rem;
-  }
-
-  .social-link,
-  .recommend-item,
-  .taxonomy-list a,
-  .footer-links a,
-  .story-card__footer a {
-    text-decoration: none;
-    color: inherit;
-  }
-
-  .story-card__footer a,
-  .taxonomy-list a,
-  .recommend-item,
-  .social-link,
-  .friend-link:hover,
-  .footer-links a {
-    transition: all 0.2s ease;
-  }
-
-  .hero-badges,
-  .mini-stats,
-  .story-card__meta,
-  .archive-row__main,
-  .archive-row__months,
-  .footer-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem 0.7rem;
-  }
-
-  .hero-badges {
-    margin-top: 1.25rem;
-  }
-
-  .hero-badges span,
-  .mini-stats span,
-  .story-card__meta span,
-  .archive-row__main span,
-  .archive-row__months span,
-  .footer-meta span {
-    border-radius: 999px;
-    border: 1px solid var(--border-color-blur);
-    background: var(--comp-bg-glass);
-    padding: 0.45rem 0.75rem;
-    color: var(--comp-text-sec);
-    font-size: 0.86rem;
-  }
-
-  .hero-feature {
-    margin-top: 1.1rem;
-  }
-
-  .story-card {
-    display: grid;
-    gap: 0.7rem;
-    padding: 1.15rem 1.2rem;
-    border-radius: 18px;
-    border: 1px solid var(--border-color-blur);
-    background: var(--comp-bg-glass);
-  }
-
-  .story-card--lead {
-    min-height: 100%;
-  }
-
-  .story-card--lead h2,
-  .story-card--compact h2,
-  .story-card--empty h2 {
-    margin: 0;
-    line-height: 1.12;
-    letter-spacing: -0.03em;
-  }
-
-  .story-card--lead h2 {
-    font-size: clamp(1.7rem, 2.9vw, 2.6rem);
-  }
-
-  .story-card--compact h2 {
-    font-size: 1.2rem;
-  }
-
-  .story-card h2 a,
-  a.stream-card-link {
-    text-decoration: none;
-    color: inherit;
-  }
-
-  .story-card p,
-  .stream-card p,
-  .recommend-item span,
-  .social-link span,
-  .friend-link span {
-    margin: 0;
-    color: var(--comp-text-sec);
-    line-height: 1.6;
-    word-break: break-word;
-  }
-
-  .story-card__footer {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    align-items: center;
-    color: var(--comp-text-sec);
-    font-size: 0.92rem;
-  }
-
-  .author-card,
-  .content-panel,
-  .archive-panel,
-  .taxonomy-card,
-  .recommended-card,
-  .activity-card,
-  .social-card,
-  .home-footer {
-    padding: 1.1rem;
-  }
-
-  .author-card__top {
-    display: flex;
-    gap: 0.9rem;
-    align-items: center;
-    margin-bottom: 0.8rem;
-  }
-
-  h3, .story-card--empty h2 {
-    margin: 0;
-    font-size: 1.2rem;
-  }
-
-  .taxonomy-block h3 {
-    margin-bottom: 1rem;
-  }
-
-  .author-avatar {
-    width: 60px;
-    height: 60px;
-    border-radius: 9999px;
-    display: grid;
-    place-items: center;
-    background: color-mix(in srgb, var(--accent) 18%, var(--comp-bg-glass));
-    color: var(--app-text-pri);
-    font-weight: 700;
-    letter-spacing: -0.04em;
-    font-size: 1.2rem;
-  }
-  img.author-avatar {
-    object-fit: cover;
-  }
-  .author-bio {
-    margin: 0.5rem 0 0;
-    color: var(--comp-text-sec);
-    font-size: 0.92rem;
-    line-height: 1.55;
-  }
-
-  .mini-stats {
-    margin-top: 0.9rem;
-  }
-
-  .mini-stats span {
-    font-size: 0.78rem;
-  }
-
-  .home-footer p {
-    margin: 0.45rem 0 0;
-    color: var(--comp-text-sec);
-    line-height: 1.7;
-  }
-
-  .subscribe-links {
-    display: grid;
-    gap: 0.6rem;
-    margin-top: 0.9rem;
-  }
-
-  .subscribe-links a,
-  .story-card--lead a,
-  .story-card--compact a {
-    color: var(--app-text-pri);
-    text-decoration: none;
-  }
-
-  .section-head {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-bottom: 1rem;
-  }
-
-  .section-head a {
-    color: var(--comp-text-sec);
-  }
-
-  .featured-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.85rem;
-    margin-bottom: 1rem;
-  }
-
-  .recent-stream,
-  .archive-list,
-  .recommend-list,
-  .activity-list,
-  .social-list {
-    display: grid;
-    gap: 0.85rem;
-  }
-
-  .stream-card {
-    display: grid;
-    grid-template-columns: 110px minmax(0, 1fr);
-    gap: 0.85rem;
-    padding: 1rem;
-    border-radius: 14px;
-    transition:
-      background 0.2s ease,
-      border-color 0.2s ease,
-      transform 0.2s ease;
-  }
-
-  .stream-card__date {
-    color: var(--comp-text-sec);
-    font-size: 0.9rem;
-  }
-
-  .stream-card__body {
-    display: grid;
-    gap: 0.55rem;
-  }
-
-  .stream-card__body p {
-    font-size: 0.9rem;
-  }
-
-  .stream-card__top {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 1rem;
-  }
-
-  .stream-card h4 {
-    margin: 0;
-    font-size: 1.2rem;
-    line-height: 1.1;
-  }
-
-  .stream-card__flag {
-    border-radius: 999px;
-    padding: 0.35rem 0.6rem;
-    background: color-mix(in srgb, var(--accent) 16%, var(--comp-bg-glass));
-    color: var(--recommended-accent-text);
-    border: 1px solid
-      color-mix(in srgb, var(--accent) 34%, var(--border-color-blur));
-    font-size: 0.78rem;
-    line-height: 1;
-    white-space: nowrap;
-  }
-
-  .stream-card__flag.featured {
-    background: var(--featured-bg);
-    border-color: var(--featured);
-    color: var(--featured);
-  }
-
-  .stream-card__tags {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
-
-  .tag-chip span,
-  .archive-row {
-    padding: 0.95rem 1rem;
-    border-radius: 22px;
-    background: var(--comp-bg-glass);
-    border: 1px solid var(--border-color-blur);
-    display: grid;
-    gap: 0.7rem;
-  }
-
-  .tag {
-    background: var(--accent-bg);
-    padding: 3px 6px;
-    border-radius: 4px;
-    font-size: 0.8em;
-    color: var(--accent);
-    display: inline-block;
-    line-height: 1;
-    overflow-wrap: break-word;
-    word-break: break-word;
-  }
-
-  .tag.featured {
-    font-weight: 500;
-    font-variation-settings: "wght" 500;
-    background: var(--featured-bg);
-    color: var(--featured);
-  }
-
-  .archive-row__main {
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .archive-row__main strong {
-    font-size: 1.15rem;
-    letter-spacing: -0.03em;
-  }
-
-  .taxonomy-block + .taxonomy-block {
-    margin-top: 1rem;
-  }
-
-  .taxonomy-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-  }
-
-  .taxonomy-list a {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    padding: 0.85rem 0.95rem;
-    border-radius: 18px;
-  }
-
-  .taxonomy-list a span {
-    color: var(--comp-text-sec);
-  }
-
-  .taxonomy-list a strong {
-    border-radius: 999px;
-    padding: 0.3rem 0.55rem;
-    background: var(--comp-bg-glass);
-    color: var(--comp-text-sec);
-    border: 1px solid var(--border-color-blur);
-    font-size: 0.78rem;
-    line-height: 1;
-  }
-
-  .tag-cloud {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    justify-content: center;
-    align-content: flex-start;
-  }
-  .tag-cloud-item {
-    background: var(--comp-bg-blur);
-    color: var(--comp-text-sec);
-    border: 1px solid var(--border-color);
-    padding: 6px 14px;
-    border-radius: 20px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .tag-cloud-item:hover {
-    background: var(--comp-bg-blur-hvr);
-    color: var(--comp-text-pri-hvr);
-  }
-  .tag-cloud-item.selected {
-    background: var(--accent);
-    color: var(--recommended-accent-text);
-    border-color: var(--comp-bg-accent);
-  }
-  .tag-cloud-item.featured {
-    color: var(--featured);
-    font-weight: 500;
-    font-variation-settings: "wght" 500;
-  }
-
-  .tag-cloud-item.featured:hover {
-    background: var(--featured-bg);
-    color: var(--featured);
-    border-color: var(--featured);
-  }
-
-  .tag-cloud-item.featured.selected {
-    background: var(--featured);
-    border-color: var(--featured);
-    color: var(--app-bg-pri);
-  }
-
-  .tag-count {
-    font-size: 0.75em;
-    opacity: 0.7;
-    background: transparent;
-    padding: 0;
-    border-radius: 4px;
-    min-width: 14px;
-    text-align: center;
-    transform: translateY(1px);
-  }
-
-  .view-more-link {
-    width: 100%;
-    height: 24px;
-    text-align: center;
-    display: inline-block;
-    margin-top: 12px;
-    font-size: 1rem;
-    color: var(--accent);
-    text-decoration: none;
-    transition: color 0.15s;
-  }
-
-  .view-more-link:hover {
-    color: var(--accent-dark);
-    text-decoration: underline;
-  }
-
-  .recommend-item,
-  .social-link,
-  .friend-link {
-    border: 1px solid var(--border-color-blur);
-    border-radius: 20px;
-    background: var(--comp-bg-glass);
-    padding: 0.95rem 1rem;
-    display: grid;
-    gap: 0.35rem;
-  }
-
-  .activity-item {
-    padding: 0.75rem;
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: center;
-    gap: 0.7rem;
-    border-radius: 12px;
-    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .activity-item.stale {
-    display: flex;
-    justify-content: center;
-    margin: 1rem 0;
-  }
-
-  .activity-item.stale .activity-item__text {
-    color: var(--status-warning) !important;
-  }
-
-  .recommend-item strong,
-  .social-link strong,
-  .activity-item:not(.stale) strong,
-  .friend-link strong {
-    color: var(--app-text-pri);
-    font-size: 1rem;
-  }
-
-  .recommend-item__meta,
-  .activity-item__label {
-    color: var(--comp-text-sec);
-    font-size: 0.82rem;
-  }
-
-  .activity-item__icon {
-    width: 36px;
-    height: 36px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 10px;
-  }
-
-  .activity-item__icon :global(svg) {
-    width: 24px;
-    height: 24px;
-    display: block;
-  }
-
-  .activity-item__text {
-    display: grid;
-    gap: 0.2rem;
-    min-width: 0;
-  }
-
-  .activity-item.post .activity-item__icon {
-    background: var(--comp-bg-accent-blur);
-    color: var(--comp-text-accent-ghost);
-  }
-
-  .activity-item.collection .activity-item__icon {
-    background: var(--accent-dark);
-    color: #fff;
-  }
-
-  .activity-item.app .activity-item__icon {
-    background: var(--comp-bg);
-    color: var(--app-text-pri);
-  }
-
-  .activity-item.stale .activity-item__icon {
-    background: transparent;
-    color: var(--status-warning);
-  }
-
-  .activity-item.delete .activity-item__icon {
-    background: color-mix(in srgb, var(--status-error) 20%, transparent);
-    color: var(--status-error);
-  }
-
-  .activity-item.date .activity-item__icon {
-    background: color-mix(
-      in srgb,
-      var(--comp-text-sec) 14%,
-      var(--comp-bg-glass)
-    );
-    color: var(--comp-text-sec);
-  }
-
-  a.activity-item {
-    text-decoration: none;
-    color: inherit;
-  }
-
-  .social-list {
-    gap: 0.65rem;
-  }
-
-  .friend-link {
-    display: grid;
-    grid-template-columns: 44px minmax(0, 1fr);
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  .friend-link__avatar {
-    width: 44px;
-    height: 44px;
-    border-radius: 14px;
-    overflow: hidden;
-    background: var(--comp-bg);
-    border: 1px solid var(--border-color-blur);
-  }
-
-  .friend-link__avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-
-  .home-footer {
-    margin-top: 1rem;
-    display: grid;
-    gap: 0.9rem;
-  }
-
-  .home-footer__links {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 0.6rem 1rem;
-  }
-
-  .home-footer__nav a {
-    margin: 0 0.45rem;
-    color: inherit;
-    text-decoration: none;
-    font-weight: 600;
-  }
-
-  .home-footer__sep {
-    margin: 0 0.35rem;
-    color: var(--comp-text-sec);
-  }
-
-  .home-footer__meta {
-    text-align: center;
-    color: var(--comp-text-sec);
-    font-size: 0.95rem;
-    padding: 0.25rem 0 0.55rem;
-  }
-
-  .home-footer__top {
-    display: grid;
-    grid-template-columns: minmax(0, 1.2fr) minmax(220px, 0.8fr);
-    gap: 1rem;
-    align-items: start;
-  }
-
-  .home-footer__subscribe-links {
-    margin-top: 0;
-  }
-
-  .footer-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.7rem;
-  }
-
-  .footer-links a {
-    padding: 0.55rem 0.85rem;
-    border-radius: 999px;
-    border: 1px solid var(--border-color-blur);
-    background: var(--comp-bg-glass);
-  }
-
-  .footer-meta {
-    color: var(--comp-text-sec);
-    align-items: center;
-  }
-
-  .empty-state {
-    padding: 1rem;
-    border-radius: 18px;
-    border: 1px dashed var(--border-color-blur);
-    color: var(--comp-text-sec);
-    background: color-mix(in srgb, var(--comp-bg) 78%, transparent);
-  }
-
-  @media (max-width: 900px) {
-    .card-flows {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  @media (max-width: 768px) {
-    .home-shell {
-      padding: 0.9rem 0.85rem 2rem;
-    }
-
-    .section-head {
-      align-items: flex-start;
-      flex-direction: column;
-    }
-
-    .home-footer__top {
-      grid-template-columns: 1fr;
-    }
-
-    .stream-card {
-      grid-auto-flow: row;
-      grid-template-columns: 1fr;
-    }
-  }
-</style>

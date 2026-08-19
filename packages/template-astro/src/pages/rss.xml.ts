@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getPublishedPosts } from '../data/localDataSource';
+import { dataSource } from '../data';
 import { loadSiteSettings } from '../utils/siteSettings';
 import { buildLocalizedPath } from '../utils/routeLocale';
 
@@ -78,7 +78,7 @@ function buildPostUrl(baseUrl: string, postId: string) {
 
 async function loadPosts(): Promise<Post[]> {
   try {
-    return getPublishedPosts() as Post[];
+    return dataSource.getPublishedPosts() as Post[];
   } catch {
     return [];
   }

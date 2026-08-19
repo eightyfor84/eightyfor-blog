@@ -11,22 +11,31 @@ import systemSettings from '../../schemas/system-settings.schema.json'
 
 // Known schema $ids — for now these are bundled directly
 // In the future, they'd be loaded from packages/template-astro/schemas/ via IPC
-import templateSettings from '../../../template-astro/schemas/template-settings.schema.json'
+// Schema 跟随模块（T5）：模板核心（schemas/）+ 插件 schema（src/plugins/<id>/schema.json）
+import homepage from '../../../template-astro/schemas/homepage.schema.json'
+import appearance from '../../../template-astro/schemas/appearance.schema.json'
 import profile from '../../../template-astro/schemas/profile.schema.json'
-import collections from '../../../template-astro/schemas/collections.schema.json'
-import friends from '../../../template-astro/schemas/friends.schema.json'
 import postPage from '../../../template-astro/schemas/post-page.schema.json'
-import slideshow from '../../../template-astro/schemas/slideshow.schema.json'
+import collections from '../../../template-astro/src/plugins/collections/schema.json'
+import friends from '../../../template-astro/src/plugins/friends/schema.json'
+import search from '../../../template-astro/src/plugins/search/schema.json'
+import comments from '../../../template-astro/src/plugins/comments/schema.json'
+import slideshow from '../../../template-astro/src/plugins/slides/schema.json'
+import readingExperience from '../../../template-astro/src/plugins/reading-experience/schema.json'
 
 // Reactive schema store — populated with bundled schemas on first access
 export const schemaStore = reactive<Record<string, any>>({
   'chronicle:system-settings': systemSettings,
-  'chronicle:template-settings': templateSettings,
+  'chronicle:homepage': homepage,
+  'chronicle:appearance': appearance,
   'chronicle:profile': profile,
+  'chronicle:post-page': postPage,
   'chronicle:collections': collections,
   'chronicle:friends': friends,
-  'chronicle:post-page': postPage,
+  'chronicle:search': search,
+  'chronicle:comments': comments,
   'chronicle:slideshow': slideshow,
+  'chronicle:reading-experience': readingExperience,
 })
 
 /**

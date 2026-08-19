@@ -1,45 +1,107 @@
 /**
- * Chronicle Manager — Schema Registry
+ * Chronicle Manager — 模板清单（Template Manifest，T5）
  *
- * Maps JSON Schema $id to file paths and formats.
- * Used by SchemaSettingsPage and useSchemaForm to know where to
- * read/write data, replacing the old /api/settings endpoint.
+ * 由 SCHEMA_REGISTRY 升级而来：除「schemaId → 文件」映射外，增加
+ * 内容类型声明、插件配置注册、background 双位置声明——
+ * manager 据此适配任意模板（做其他模板的 CMS），不再硬编码 chronicle 约定。
  *
- * All paths are relative to the repository root.
+ * 全部路径相对仓库根。
  */
 
 export interface SchemaMapping {
-  /** JSON Schema $id, e.g. "chronicle:template-settings" */
+  /** JSON Schema $id，如 "chronicle:template-settings" */
   schemaId: string
-  /** File path relative to repo root */
+  /** 文件路径（相对仓库根） */
   filePath: string
-  /** File format */
+  /** 文件格式 */
   format: 'yaml' | 'json'
   /**
-   * Site-level feature flag (a top-level key in data/site.yml) that gates this
-   * page. When set, the page renders a master switch that disables the whole
-   * editing body while the flag is off.
+   * Site-level feature flag（data/site.yml 顶层键）——置位时页面渲染主开关，
+   * flag 关闭则编辑区整体禁用。
    */
   headerFlag?: string
+  /** schema 内 x-nav 的 tab（template-settings 的多 tab schema 用） */
+  tab?: string
+}
+
+/** 内容类型与文件约定（manager 读写内容的基础契约） */
+export interface ContentTypeMapping {
+  /** 内容目录（相对仓库根） */
+  dir: string
+  /** id 来源：目录名（posts）或文件名 */
+  idFrom: 'dirname' | 'filename'
+  /** 单篇内容文件名 */
+  file: string
+  /** 文件格式 */
+  format: 'yaml' | 'markdown' | 'json'
+}
+
+/** 插件配置位置（插件 settingsSchema 声明的逻辑段 → schema 文件 + 配置落点） */
+export interface PluginMapping {
+  /** 插件逻辑段（插件 manifest.settingsSchema 声明的值） */
+  key: string
+  /** 承载该段设置的 schema $id */
+  schemaId: string
+  /** 配置写入位置（文件路径） */
+  filePath: string
+  format: 'yaml' | 'json'
+  /** 插件名（插件总览页显示） */
+  name: string
+  /** 说明 */
+  description: string
+  /** 配置存储归属：'site' = 写 site.yml 段；'file' = 独立数据文件（friends.yml/collections.yml）；'post' = 文章级 frontmatter 配置 */
+  storage?: 'site' | 'file' | 'post'
+  /** 内置插件（随模板出厂，无独立配置页）——仅总览页 tag 提示，不影响存储 */
+  builtin?: boolean
+  /** 插件开关（site.yml featureFlags 键，总览页 toggle；缺省 = 无开关） */
+  featureFlag?: string
+  /** 内容编辑类插件（合集树/友链卡片等重 UI）——总览页标注，编辑在详情页 */
+  contentEditor?: boolean
+  /** 跳转入口：在 target schema 的设置页顶部注入「相关插件」链接（→ plugins/<key> 详情） */
+  entries?: { target: string; label?: string }[]
+
 }
 
 /**
- * Master registry of all schema → file mappings.
- *
- * ┌─────────────────────────────────┬──────────────────────────────┬────────┐
- * │ schema $id                       │ file path                     │ format │
- * ├─────────────────────────────────┼──────────────────────────────┼────────┤
- * │ chronicle:template-settings     │ data/site.yml                 │ yaml   │
- * │ chronicle:system-settings       │ .chronicle/workspace.json     │ json   │
- * │ chronicle:profile               │ data/profile.yml              │ yaml   │
- * │ chronicle:collections           │ data/collections.yml          │ yaml   │
- * │ chronicle:friends               │ data/friends.yml              │ yaml   │
- * │ chronicle:post-page             │ data/site.yml (post key)      │ yaml   │
- * └─────────────────────────────────┴──────────────────────────────┴────────┘
+ * background 双位置声明：UI 显示在 appearance 分组，配置写入独立位置
+ * （background.yml + 图片目录自动发现，URL 不写进 site.yml）。
+ * —— T5 重构保持此分离为显式契约，读写实现不变。
  */
-export const SCHEMA_REGISTRY: Record<string, SchemaMapping> = {
-  'chronicle:template-settings': {
-    schemaId: 'chronicle:template-settings',
+export interface BackgroundMapping {
+  /** UI 所在 x-nav 分组（template-settings 的 appearance tab） */
+  uiNav: string
+  /** UI 所在 x-group（appearance 内的 background 分组） */
+  uiGroup: string
+  /** 元数据配置文件（mode/pos/blur/overlay/baseColor 等） */
+  metaFile: string
+  /** 背景媒体目录（图片/视频自动发现） */
+  mediaDir: string
+}
+
+export interface TemplateManifest {
+  /** 模板名（default: 'chronicle'；其他模板提供同名清单即可被 manager 适配） */
+  name: string
+  /** 设置 schema 注册（原 SCHEMA_REGISTRY） */
+  settings: Record<string, SchemaMapping>
+  /** 内容类型与文件约定 */
+  contentTypes: Record<string, ContentTypeMapping>
+  /** 插件配置位置（插件 settingsSchema → schema + 落点） */
+  plugins: Record<string, PluginMapping>
+  /** background 双位置声明 */
+  background: BackgroundMapping
+}
+
+// ── 主清单：chronicle（默认模板）────────────────────────
+
+const settings: Record<string, SchemaMapping> = {
+  // 模板核心设置：schema 跟随模块拆分（原 template-settings 多 tab → 3 独立模块；功能开关模块 = 插件开关）
+  'chronicle:homepage': {
+    schemaId: 'chronicle:homepage',
+    filePath: 'data/site.yml',
+    format: 'yaml',
+  },
+  'chronicle:appearance': {
+    schemaId: 'chronicle:appearance',
     filePath: 'data/site.yml',
     format: 'yaml',
   },
@@ -57,13 +119,14 @@ export const SCHEMA_REGISTRY: Record<string, SchemaMapping> = {
     schemaId: 'chronicle:collections',
     filePath: 'data/collections.yml',
     format: 'yaml',
-    headerFlag: 'collectionPage',
+    // 单功能插件：页面开关 = 插件总开关（组内 enabled，PluginSettings 管理）——
+    // 不再设顶层 headerFlag（顶层 collectionPage 键是旧残留，会键名重复）
   },
   'chronicle:friends': {
     schemaId: 'chronicle:friends',
     filePath: 'data/friends.yml',
     format: 'yaml',
-    headerFlag: 'friendsPage',
+    // 单功能插件：同上，开关在组内 enabled（PluginSettings）
   },
   'chronicle:post-page': {
     schemaId: 'chronicle:post-page',
@@ -72,17 +135,117 @@ export const SCHEMA_REGISTRY: Record<string, SchemaMapping> = {
   },
 }
 
-/**
- * Look up a schema mapping by its $id.
- * Returns undefined if no mapping exists for the given schema.
- */
-export function getMapping(schemaId: string): SchemaMapping | undefined {
-  return SCHEMA_REGISTRY[schemaId]
+const contentTypes: Record<string, ContentTypeMapping> = {
+  posts: { dir: 'data/posts', idFrom: 'dirname', file: 'index.md', format: 'markdown' },
+  comments: { dir: 'data/comments', idFrom: 'filename', file: '*.json', format: 'json' },
+  commentsPending: { dir: 'data/comments-pending', idFrom: 'filename', file: '*.json', format: 'json' },
+  profile: { dir: 'data', idFrom: 'filename', file: 'profile.yml', format: 'yaml' },
+  collections: { dir: 'data', idFrom: 'filename', file: 'collections.yml', format: 'yaml' },
+  friends: { dir: 'data', idFrom: 'filename', file: 'friends.yml', format: 'yaml' },
 }
 
-/**
- * Check whether a schema ID is registered.
- */
+// 插件配置位置：插件 settingsSchema 声明的逻辑段 → schema + 落点。
+// 现状模式：search/comments 段在 template-settings.schema.json（site.yml）；friends 独立文件。
+const plugins: Record<string, PluginMapping> = {
+  search: {
+    key: 'search',
+    schemaId: 'chronicle:search',
+    filePath: 'data/site.yml',
+    format: 'yaml',
+    name: 'Search 检索',
+    description: 'Search suggestions, global search, full-text index — 搜索建议 / 全局搜索 / 全文索引',
+    featureFlag: 'enabled',
+    builtin: true,
+    storage: 'site',
+    entries: [{ target: 'chronicle:homepage' }],
+  },
+  friends: {
+    key: 'friends',
+    schemaId: 'chronicle:friends',
+    filePath: 'data/friends.yml',
+    format: 'yaml',
+    name: 'Friends 友链',
+    description: 'Friend cards & global style — 好友卡片与全局样式',
+    featureFlag: 'enabled',
+    builtin: true,
+    storage: 'file',
+    contentEditor: true,
+  },
+  comments: {
+    key: 'comments',
+    schemaId: 'chronicle:comments',
+    filePath: 'data/site.yml',
+    format: 'yaml',
+    name: 'Comments 评论',
+    description: 'Master switch, backend, attitude, image upload — 主开关与评论配置（后端/态度/图床）',
+    featureFlag: 'enabled',
+    builtin: true,
+    storage: 'site',
+    // 评论显示在文章页——入口留在 post-page（文章页设置页），点击进入评论插件详情
+    entries: [{ target: 'chronicle:post-page' }],
+  },
+  slides: {
+    key: 'slides',
+    schemaId: 'chronicle:slideshow',
+    filePath: 'data/site.yml',
+    format: 'yaml',
+    name: 'Slides 幻灯片',
+    description: 'Marp slide rendering — Marp 幻灯片渲染（post 级配置走 frontmatter slideshow 段）',
+    featureFlag: 'enabled',
+    storage: 'post',
+    builtin: true,
+  },
+  collections: {
+    key: 'collections',
+    schemaId: 'chronicle:collections',
+    filePath: 'data/collections.yml',
+    format: 'yaml',
+    name: 'Collections 合集',
+    description: 'Collection tree & navigation settings — 合集树与合集导航设置',
+    featureFlag: 'enabled',
+    builtin: true,
+    storage: 'file',
+    contentEditor: true,
+  },
+  readingExperience: {
+    key: 'reading-experience',
+    schemaId: 'chronicle:reading-experience',
+    filePath: 'data/site.yml',
+    format: 'yaml',
+    name: 'Reading Experience 阅读体验',
+    description: 'TOC & end-of-article blocks (related, prev/next, share, attitude, author card) — 目录与文末区块（相关/上下篇/分享/态度/作者卡）',
+    featureFlag: 'enabled',
+    builtin: true,
+    storage: 'site',
+    entries: [{ target: 'chronicle:post-page' }],
+  },
+}
+
+export const TEMPLATE_MANIFEST: TemplateManifest = {
+  name: 'chronicle',
+  settings,
+  contentTypes,
+  plugins,
+  background: {
+    uiNav: 'appearance',
+    uiGroup: 'background',
+    metaFile: 'data/background/background.yml',
+    mediaDir: 'data/background/',
+  },
+}
+
+// ── 兼容导出（原 SCHEMA_REGISTRY API，消费方零改动）────────────────
+export const SCHEMA_REGISTRY: Record<string, SchemaMapping> = settings
+
+export function getMapping(schemaId: string): SchemaMapping | undefined {
+  if (settings[schemaId]) return settings[schemaId]
+  // 插件 schema（chronicle:search/comments/…）的 mapping 在 plugins 映射里——合并查找，
+  // 否则插件详情页（/settings/plugins/<key>）useSchemaForm 拿不到 filePath
+  const plugin = Object.values(plugins).find((p) => p.schemaId === schemaId)
+  if (plugin) return { schemaId, filePath: plugin.filePath, format: plugin.format }
+  return undefined
+}
+
 export function hasMapping(schemaId: string): boolean {
-  return schemaId in SCHEMA_REGISTRY
+  return schemaId in settings || Object.values(plugins).some((p) => p.schemaId === schemaId)
 }

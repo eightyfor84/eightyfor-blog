@@ -1,53 +1,44 @@
-export type FeatureFlagKey =
-  | 'searchSuggestions'
-  | 'globalSearch'
-  | 'fullTextSearch'
-  | 'collectionPage'
-  | 'aboutPage'
-  | 'friendsPage'
-  | 'traffic'
-  | 'comments';
+/**
+ * Feature flags — 插件禁用策略（opt-out：键未配置或 !== false 即开）。
+ *
+ * 去上帝式：不再维护键枚举——开关键由插件声明（TEMPLATE_MANIFEST.plugins.featureFlag
+ * + 插件 manifest 的 when.featureFlag），core 只做通用透传。
+ * 新插件加开关 = 插件侧声明 + site.yml 顶层布尔键，core 零改动。
+ */
 
-export type FeatureFlags = Record<FeatureFlagKey, boolean>;
+/** 任意键（键名由插件声明；不再枚举） */
+export type FeatureFlagKey = string
 
-const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
-  searchSuggestions: true,
-  // Search features are opt-out — on by default (aligned with the schema).
-  globalSearch: true,
-  fullTextSearch: true,
-  collectionPage: true,
-  aboutPage: true,
-  friendsPage: true,
-  comments: true,
-  traffic: false,
-};
+/** featureFlags 映射：键 → 布尔 */
+export type FeatureFlags = Record<string, boolean>
 
-export function normalizeFeatureFlags(input: any): FeatureFlags {
-  return {
-    searchSuggestions: input?.searchSuggestions !== false,
-    globalSearch: input?.globalSearch !== false,
-    fullTextSearch: input?.fullTextSearch !== false,
-    collectionPage: input?.collectionPage !== false,
-    aboutPage: input?.aboutPage !== false,
-    friendsPage: input?.friendsPage !== false,
-    comments: input?.comments !== false,
-    traffic: input?.traffic !== false,
-  };
-}
-
-/** Build-time defaults — constants only, no legacy settings.json source. */
-export function getBuildFeatureFlags(): FeatureFlags {
-  return { ...DEFAULT_FEATURE_FLAGS };
-}
-
-export function resolveFeatureFlags(input?: any): FeatureFlags {
+/**
+ * 通用归一化：任意键 !== false 即开（opt-out）；
+ * 未配置的键不在返回对象中——when 评估 `ctx.featureFlags[k] === false` 对 undefined
+ * 为 false → 默认开，语义与旧默认表一致。
+ */
+export function normalizeFeatureFlags(input?: any): Record<string, boolean> {
+  const out: Record<string, boolean> = {}
   if (input && typeof input === 'object') {
-    return normalizeFeatureFlags(input);
+    for (const [k, v] of Object.entries(input)) {
+      out[k] = v !== false
+    }
   }
-
-  return getBuildFeatureFlags();
+  return out
 }
 
-export function isFeatureEnabled(input: any, key: FeatureFlagKey): boolean {
-  return resolveFeatureFlags(input)[key] !== false;
+/** Build-time defaults：通用空表（opt-out 语义由 when 评估兜底） */
+export function getBuildFeatureFlags(): Record<string, boolean> {
+  return {}
+}
+
+export function resolveFeatureFlags(input?: any): Record<string, boolean> {
+  if (input && typeof input === 'object') {
+    return normalizeFeatureFlags(input)
+  }
+  return getBuildFeatureFlags()
+}
+
+export function isFeatureEnabled(input: any, key: string): boolean {
+  return resolveFeatureFlags(input)[key] !== false
 }

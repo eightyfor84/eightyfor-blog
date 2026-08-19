@@ -1,0 +1,50 @@
+---
+// ── 首页搜索框（searchbox 服务）：search 插件自含 ────────────────
+// 主板首页卡槽（home-search-box）只渲染本组件；提交行为（跳转搜索页）
+// 归插件所有——插件禁用/删除时构建期不注册，主板零 searchbox 代码。
+import SearchBox from './SearchBox.astro';
+import { buildLocalizedPath } from '../../utils/routeLocale';
+
+interface Props {
+  locale?: string;
+  t?: (key: string) => string;
+}
+
+const { locale = 'zh-CN', t = (key: string) => key } = Astro.props;
+const searchPath = buildLocalizedPath(locale, '/search');
+---
+
+<SearchBox
+  instanceId="home-searchbox"
+  searchSuggestionsEnabled={false}
+  showTagTrigger={false}
+  searchOnEnter={true}
+  t={t}
+/>
+
+<script define:vars={{ searchPath }}>
+  // 首页搜索框提交 → 跳转搜索页（searchbox 服务逻辑归插件，不驻留在主板组件）
+  let _homeSearchInit = false;
+
+  function initHomeSearchBox() {
+    const root = document.querySelector('[data-searchbox-id="home-searchbox"]');
+    if (!root || _homeSearchInit) return;
+    _homeSearchInit = true;
+
+    root.addEventListener('searchbox:submit', (event) => {
+      const detail = (event as CustomEvent).detail || {};
+      const keyword = String(detail.query || '').trim();
+      const target = keyword
+        ? `${searchPath}?keyword=${encodeURIComponent(keyword)}`
+        : `${searchPath}`;
+
+      window.location.href = target;
+    });
+  }
+
+  initHomeSearchBox();
+  document.addEventListener('astro:page-load', initHomeSearchBox);
+  document.addEventListener('astro:before-swap', () => {
+    _homeSearchInit = false;
+  });
+</script>

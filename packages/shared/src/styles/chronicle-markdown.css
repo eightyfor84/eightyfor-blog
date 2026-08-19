@@ -1098,79 +1098,7 @@
   }
 }
 
-/* ═══════════════════════════════════════════════════════════
-   18. Post Layout Framework
-   Shared between manager and template-astro (post.css).
-   Uses the exact same class names so both sides render identically.
-   ═══════════════════════════════════════════════════════════ */
-
-.post-detail-container {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 2rem 1.5rem;
-  transition: padding 0.2s ease;
-}
-
-.post-header {
-  margin-bottom: 2rem;
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 1.5rem;
-}
-
-.post-title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  line-height: 1.2;
-  margin: 0 0 1rem;
-  color: var(--app-text-pri);
-  word-break: break-word;
-}
-
-.post-meta {
-  display: grid;
-  grid-template-columns: repeat(4, auto);
-  gap: 1rem;
-  justify-content: start;
-  align-items: center;
-}
-
-.meta-row {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-  font-size: 0.9rem;
-  color: var(--app-text-sec);
-}
-
-.meta-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  background: transparent;
-  padding: 0;
-  border-radius: 0.5rem;
-  border: none;
-  font-size: 0.85rem;
-}
-
-.meta-item svg {
-  width: 16px;
-  height: 16px;
-  opacity: 0.7;
-  flex-shrink: 0;
-}
-
-.post-body {
-  line-height: 1.7;
-  font-size: 1rem;
-}
-
-@media (max-width: 720px) {
-  .post-detail-container { padding: 1rem; }
-  .post-title { font-size: 1.5rem; }
-}
-
-/* ═══════════════════════════════════════════════════════════
+   /*
    19. File Preview Framework
    Mirrors template-astro/src/components/FilePreviewModal.vue.
    Glassmorphism design: transparent container, blur overlay,
@@ -1446,7 +1374,7 @@
 .image-preview-content.is-dragging { transition: none !important; }
 .image-preview-content:active { cursor: grabbing; }
 
-@media (max-width: 720px) {
+@media (max-width: 768px) {
   .file-preview-header { height: 70px; }
   .file-preview-overlay { backdrop-filter: none; }
 
@@ -1456,8 +1384,4 @@
   }
 }
 
-@media (max-width: 768px) {
-    .post-meta {
-        grid-template-columns: repeat(3, auto);
-    }
-}
+

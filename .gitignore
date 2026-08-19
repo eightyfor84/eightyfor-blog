@@ -32,3 +32,4 @@ site.legacy/
 
 
 *.bak
+src/plugins/generated-registry.ts

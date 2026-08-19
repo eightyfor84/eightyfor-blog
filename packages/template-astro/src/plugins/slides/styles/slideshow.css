@@ -1,0 +1,424 @@
+/* ── 组件样式：Slideshow ──
+   自 src/plugins/slides/Slideshow.astro 两个静态 <style> 块迁出（is:global 877-1144 + scoped 1145-1301；set:html 动态块保留）。 */
+  @import "@chronicle/shared/src/styles/chronicle-slides.css";
+
+  /* ── Controls visual styling ─────────────────── */
+  .slides-controls {
+    opacity: 0.4;
+    transition:
+      opacity 0.2s,
+      background 0.2s,
+      padding 0.2s,
+      gap 0.2s;
+    background: transparent;
+    color: var(--comp-text-sec);
+    font-size: 14px;
+  }
+
+  html.is-mobile .slides-controls {
+    opacity: 1;
+  }
+
+  html:not(.focus) .slides-controls {
+    border-top: 1px solid var(--border-color-blur);
+    opacity: 1;
+    background: var(--comp-bg-blur);
+    backdrop-filter: blur(4px);
+  }
+
+  .slides-controls:hover {
+    opacity: 1;
+    background: var(--comp-bg-blur);
+    backdrop-filter: blur(4px);
+  }
+
+  .slides-controls button,
+  .slides-controls a,
+  .slide-popup button,
+  .slide-popup a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: transparent;
+    border: none;
+    color: var(--comp-text-sec);
+    cursor: pointer;
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-size: 14px;
+    transition:
+      background 0.15s,
+      color 0.15s;
+  }
+
+  .slides-controls button .label {
+    transform: translateY(-1px);
+  }
+  .slides-controls button:hover,
+  .slides-controls a:hover,
+  .slide-popup button:hover,
+  .slide-popup a:hover {
+    background: var(--hover);
+    color: var(--comp-text-pri);
+  }
+  .slides-controls button:disabled,
+  .slides-controls a:disabled,
+  .slide-popup button:disabled,
+  .slide-popup a:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+  .slides-controls button.active,
+  .slides-controls a.active,
+  .slide-popup button.active,
+  .slide-popup a.active {
+    background: var(--active);
+    color: var(--comp-text-pri);
+  }
+
+  .slide-back-link {
+    color: var(--comp-text-sec);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    font-size: 16px;
+    transition: background 0.15s;
+  }
+  .slide-back-link:hover {
+    background: var(--hover);
+    color: var(--comp-text-pri);
+  }
+
+  .slide-counter {
+    font-variant-numeric: tabular-nums;
+    min-width: 60px;
+    text-align: center;
+    cursor: pointer;
+    user-select: none;
+  }
+  .slide-counter:hover {
+    color: var(--comp-text-pri);
+  }
+
+  /* ── Zoom controls ───────────────────────────── */
+  .slide-zoom-group {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    position: relative;
+  }
+  .slide-zoom-label {
+    min-width: 42px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    font-size: 12px;
+    border: none;
+    background: transparent;
+    color: inherit;
+    cursor: inherit;
+    padding: 0;
+    border-radius: 4px;
+  }
+  .slide-zoom-group button {
+    font-size: 13px;
+    padding: 4px 10px;
+  }
+
+  .slide-zoom-popup {
+    display: none;
+    align-items: center;
+    gap: 2px;
+    background: var(--comp-bg-blur);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color-blur);
+    border-radius: 8px;
+    padding: 4px 6px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    white-space: nowrap;
+  }
+  .slide-zoom-popup button { font-size: 13px; padding: 8px 12px; }
+  .slide-zoom-popup span { min-width: 64px; text-align: center; font-variant-numeric: tabular-nums; font-size: 0.95rem; }
+
+  /* ── View toggle floating bar ─────────────────── */
+  .slides-view-bar {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 4px;
+    background: var(--comp-bg-blur, rgba(255, 255, 255, 0.9));
+    border: 1px solid var(--border-color, #ddd);
+    border-radius: 8px;
+    padding: 4px;
+    z-index: 80;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .slides-view-bar button {
+    background: transparent;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--app-text-pri, #111);
+  }
+  .slides-view-bar button svg {
+    vertical-align: middle;
+    margin-right: 5px;
+  }
+  .slides-view-bar button:hover {
+    background: var(--hover);
+  }
+  .slides-view-bar button.active {
+    background: var(--comp-bg-accent-blur, #e0e7ff);
+    font-weight: 600;
+  }
+
+  /* ── Browse: absolute size, both scroll directions ── */
+  .marp-slides-browse {
+    overflow: auto;
+    padding: 70px 0 0 0;
+    margin-bottom: 50px;
+  }
+  html.is-mobile .marp-slides-browse {
+    padding: 50px 0 0 0;
+  }
+  .marp-slides-browse .marp-slides {
+    --slide-zoom: 1;
+    width: fit-content;
+    margin: 0 auto;
+  }
+  .marp-slides-browse .marpit {
+    width: 800px;
+    zoom: var(--slide-zoom);
+  }
+
+  /* ── Present: contain, single slide fills viewport ── */
+  .marp-slides-present {
+    margin-top: 70px;
+  }
+
+  html.is-mobile .marp-slides-present {
+    margin-top: 50px;
+  }
+
+  /* ── Shared popup animation (body-mounted) ────── */
+  .slide-popup { transform:translateX(-50%); animation:popup-in .2s ease-out }
+  @keyframes popup-in { from { opacity:0; transform:translateX(-50%) translateY(4px) } to { opacity:1; transform:translateX(-50%) translateY(0) } }
+
+  /* ── Slide TOC popup ──────────────────────────── */
+  .slide-toc-popup {
+    position: absolute;
+    bottom:  8px;
+    left: 6px;
+    background: var(--comp-bg-blur);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color-blur);
+    border-radius: 10px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+    z-index: 30;
+    max-height: 60vh;
+    overflow-y: auto;
+    min-width: 200px;
+  }
+  .slide-toc-list {
+    padding: 6px;
+  }
+  .slide-toc-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--comp-text-sec);
+    white-space: nowrap;
+    transition:
+      background 0.15s,
+      color 0.15s;
+  }
+  .slide-toc-item:hover {
+    background: var(--hover);
+    color: var(--comp-text-pri);
+  }
+  .slide-toc-item.active {
+    background: var(--comp-bg-accent, #e0e7ff);
+    color: var(--comp-text-pri-hl);
+    font-weight: 600;
+  }
+  .slide-toc-num {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    min-width: 24px;
+    text-align: right;
+    font-size: 12px;
+    opacity: 0.6;
+  }
+  .slide-toc-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .chronicle-slideshow .icon-btn{
+    padding: 8px;
+  }
+  .chronicle-slideshow a.icon-btn{
+    text-decoration: none;
+  }
+  @media (max-width: 768px) {
+    .chronicle-slideshow .icon-label-btn{
+      padding: 8px;
+    }
+
+    .chronicle-slideshow .slides-controls{
+      padding: 8px;
+      gap: 4px;
+    }
+
+    .chronicle-slideshow .slide-counter{
+      padding: 6px !important;
+    }
+
+    /* ── Zoom popup (narrow screens) ─────────────── */
+    .chronicle-slideshow .zoom-btn-inline{
+      display: none;
+    }
+
+    .chronicle-slideshow .slide-zoom-label{
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      padding: 4px 10px;
+      font-size: 13px;
+      min-width: 42px;
+      color: var(--comp-text-sec);
+    }
+    .chronicle-slideshow .slide-zoom-label:hover{
+      background: var(--hover);
+      color: var(--comp-text-pri);
+    }
+
+    .chronicle-slideshow .slide-zoom-popup{
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      display: none;
+      align-items: center;
+      gap: 2px;
+      background: var(--comp-bg-blur);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-color-blur);
+      border-radius: 8px;
+      padding: 4px 6px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      white-space: nowrap;
+      z-index: 20;
+    }
+
+    .chronicle-slideshow .slide-zoom-group.open .slide-zoom-popup{
+      display: flex;
+    }
+
+    .chronicle-slideshow .slide-zoom-popup button{
+      font-size: 13px;
+      padding: 8px 12px;
+    }
+    .chronicle-slideshow .slide-zoom-popup span{
+      min-width: 64px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+      font-size: 0.95rem;
+    }
+  }
+  /* ── Post info popup ──────────────────────────── */
+  .chronicle-slideshow .slide-info-popup{
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 8px;
+    background: var(--comp-bg-blur);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color-blur);
+    border-radius: 10px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+    z-index: 30;
+    min-width: 220px;
+    max-width: 320px;
+  }
+  .chronicle-slideshow .slide-info-content{
+    padding: 14px 16px;
+  }
+  .chronicle-slideshow .slide-info-title{
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0 0 10px 0;
+    color: var(--app-text-pri);
+    line-height: 1.3;
+  }
+  .chronicle-slideshow .slide-info-row{
+    display: flex;
+    gap: 8px;
+    padding: 4px 0;
+    font-size: 13px;
+    color: var(--comp-text-sec);
+    align-items: baseline;
+    justify-content: flex-start;
+  }
+  .chronicle-slideshow .slide-info-label{
+    font-weight: 500;
+    font-variation-settings: "wght" 500;
+    min-width: 120px;
+    max-width: 50vw;
+    flex-shrink: 0;
+    color: var(--comp-text-sec);
+    opacity: 0.7;
+    font-size: 0.85rem;
+  }
+  .chronicle-slideshow .slide-info-content span{
+    font-size: 0.9rem;
+  }
+  .chronicle-slideshow a.slide-info-row{
+    text-decoration: none;
+    color: inherit;
+    border-radius: 6px;
+    padding: 4px 8px;
+    margin: 0 -8px;
+    transition: background 0.15s;
+  }
+  .chronicle-slideshow a.slide-info-row:hover{
+    background: var(--hover);
+  }
+  .chronicle-slideshow .slide-info-link{
+    color: var(--accent, #2563eb);
+    text-decoration: none;
+  }
+  .chronicle-slideshow .slide-info-tags{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .chronicle-slideshow .slide-tag-chip{
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    background: var(--comp-bg-hvr, #f0f0f0);
+    color: var(--comp-text-sec);
+    text-decoration: none;
+    transition:
+      background 0.15s,
+      color 0.15s;
+  }
+  .chronicle-slideshow .slide-tag-chip:hover{
+    background: var(--accent, #2563eb);
+    color: #fff;
+  }

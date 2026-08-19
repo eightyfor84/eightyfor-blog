@@ -1,0 +1,15 @@
+/* ── 组件样式：AttitudeButtons（态度反馈）──
+   自 src/plugins/AttitudeButtons.astro <style> 迁出（类名唯一，全局化安全）。 */
+.attitude{ display: flex; flex-direction: column; align-items: center; gap: 1rem; margin: 2rem 0; }
+.attitude .attitude-prompt{ margin: 0; font-size: 1rem; opacity: 0.72; }
+.attitude .attitude-btns{ display: flex; gap: 1.5rem; }
+.attitude .attitude-btn{ display: inline-flex; flex-direction: column; align-items: center; gap: 0.5rem;
+  padding: 0.5rem 0.9rem; border-radius: 8px; border: none; background: transparent;
+  color: var(--app-text-sec); cursor: pointer; transition: background 0.15s ease, color 0.15s ease, opacity 0.15s ease; }
+.attitude .attitude-btn:hover:not(:disabled){ background: var(--hover); color: var(--app-text-pri); }
+.attitude .attitude-btn.voted{ color: var(--accent); opacity: 1 !important; }
+.attitude .attitude-btn.voted.dislike{ color: var(--bg-offset); }
+.attitude .attitude-btn.voted .attitude-icon{ fill: currentColor; }
+.attitude .attitude-btn:disabled{ opacity: 0.55; cursor: default; }
+.attitude .attitude-icon{ width: 36px; height: 36px; }
+.attitude .attitude-count{ font-size: 0.85rem; opacity: 0.6; font-variant-numeric: tabular-nums; }

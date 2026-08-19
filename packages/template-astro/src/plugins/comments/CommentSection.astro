@@ -1,0 +1,319 @@
+---
+import './styles/comment-section.css';
+/**
+ * CommentSection — client:visible island, backend-agnostic.
+ *
+ * Supported backends (via `data-comment-backend`):
+ *   "" (empty)   → static SSR only — reads data/comments/{postId}.json at build time
+ *   "waline"     → Waline headless REST API, rendered with Chronicle's own UI
+ *
+ * Props:
+ *   postId          — unique post identifier
+ *   comments        — pre-fetched comments (overrides file read)
+ *   locale          — i18n locale ("en" | "zh-CN")
+ *   backend         — "" | "waline"
+ *   walineServerUrl — Waline server URL, for "waline" backend
+ *
+ * SSR: renders static comments from data/comments/{postId}.json ("" backend only).
+ * Hydration (IntersectionObserver): for "waline", fetches + renders the comment
+ *   list via the Waline REST API and wires up the Chronicle comment form — no
+ *   third-party SDK or UI is ever loaded.
+ */
+import { createHash } from 'node:crypto';
+import { getTranslation } from '../../utils/i18n';
+import { dataSource, buildCommentTree, type ChronicleComment } from '../../data';
+
+interface Props {
+  postId?: string;
+  comments?: ChronicleComment[];
+  locale?: string;
+  backend?: string;
+  walineServerUrl?: string;
+  /** 3.1.x — show commenter geo address (never the raw IP) when available. */
+  showGeoAddress?: boolean;
+  /** 3.1.x — image upload: enabled switch + image host config (URL + optional Bearer token). */
+  imageUploadEnabled?: boolean;
+  imageUploadEndpoint?: string;
+  imageUploadToken?: string;
+}
+
+const {
+  postId,
+  comments: propComments,
+  locale = 'en',
+  backend = '',
+  walineServerUrl = '',
+  showGeoAddress = true,
+  imageUploadEnabled = false,
+  imageUploadEndpoint = '',
+  imageUploadToken = '',
+} = Astro.props as Props;
+
+const t = (key: string) => getTranslation(locale as 'en' | 'zh-CN', key);
+
+/** MD5 hash for Gravatar URL (SSR only) */
+function md5Hash(str: string): string {
+  return createHash('md5').update(str).digest('hex');
+}
+
+/** SSR fallback date formatter (replaced by client-side relative dates on hydration) */
+function formatDate(iso: string): string {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  } catch {
+    return iso;
+  }
+}
+
+// Load comments: prop > localDataSource > empty
+let comments: ChronicleComment[] = propComments || [];
+if (!propComments && postId) {
+  comments = dataSource.getComments(postId);
+}
+
+/** 评论内容图懒加载（静态渲染路径——客户端动态拉取已由 applyMediaLazyLoad 处理） */
+function lazyCommentImages(content: string): string {
+  return content.replace(/<img(?![^>]*\bloading=)/gi, '<img loading="lazy" decoding="async"');
+}
+comments = comments.map((c) => ({ ...c, content: lazyCommentImages(c.content || '') }));
+
+// Build tree from flat parent references, filter hidden
+const commentTree = buildCommentTree(comments).filter(c => !c.hidden);
+
+function countReplies(nodes: any[]): number {
+  return nodes.reduce((s, n) => s + 1 + countReplies(n.replies || []), 0);
+}
+const commentCount = countReplies(commentTree);
+const sectionTitle = t('comment.title');
+const isEmpty = commentTree.length === 0;
+
+// i18n strings needed by the client (Waline hydration). Single source of truth = locale files.
+const clientI18n = {
+  reply: t('comment.reply'),
+  replyTo: t('comment.replyTo'),
+  pinned: t('comment.pinned'),
+  loading: t('comment.loading'),
+  loadError: t('comment.loadError'),
+  noComments: t('comment.noComments'),
+  loadMore: t('comment.loadMore'),
+  imageDisabled: t('comment.imageDisabled'),
+  imageUploadError: t('comment.imageUploadError'),
+  submitted: t('comment.submitted'),
+  submitError: t('comment.submitError'),
+};
+---
+
+<div
+  class="comment-section"
+  id="comments"
+  data-post-id={postId || ''}
+  data-comment-backend={backend}
+  data-waline-server-url={walineServerUrl}
+  data-show-geo={showGeoAddress ? 'true' : 'false'}
+  data-locale={locale}
+  data-image-upload={imageUploadEnabled ? 'true' : 'false'}
+  data-image-endpoint={imageUploadEndpoint}
+  data-image-token={imageUploadToken}
+>
+  <script type="application/json" data-role="comment-i18n" set:html={JSON.stringify(clientI18n)}></script>
+
+  {backend === 'waline' ? (
+  <form class="cs-form" data-role="comment-form">
+    <div class="cs-form-row">
+      <input class="cs-form-input" data-role="author" type="text" placeholder={t('comment.namePlaceholder')} autocomplete="name" required />
+      <input class="cs-form-input" data-role="email" type="email" placeholder={t('comment.emailPlaceholder')} autocomplete="email" required />
+      <input class="cs-form-input" data-role="website" type="url" placeholder={t('comment.websitePlaceholder')} autocomplete="url" />
+    </div>
+    <textarea class="cs-form-textarea" data-role="content" placeholder={t('comment.contentPlaceholder')} required></textarea>
+
+    <div class="cs-attachments" data-role="attachments" hidden></div>
+
+    <div class="cs-form-footer">
+      <div class="cs-reply-indicator" data-role="reply-indicator" hidden>
+        <span>{t('comment.replyingTo')} <strong data-role="reply-target"></strong></span>
+        <button type="button" class="cs-reply-cancel" data-role="reply-cancel" aria-label="Cancel"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="u-icon-sm"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+      </div>
+      <div class="cs-form-actions">
+        {imageUploadEnabled ? (
+        <button type="button" class="cs-image-btn" data-role="image-btn" aria-label={t('comment.imageUpload')} title={t('comment.imageUpload')}>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        </button>
+        ) : null}
+        <button type="button" class="cs-preview-toggle" data-role="preview-toggle">{t('comment.preview')}</button>
+        <button type="submit" class="cs-submit-btn" data-role="submit">{t('comment.submit')}</button>
+      </div>
+    </div>
+
+    <div class="cs-form-preview" data-role="preview" hidden></div>
+    <div class="cs-form-note" data-role="form-note" hidden></div>
+
+    <input type="hidden" data-role="parent" />
+    <input type="hidden" data-role="root" />
+    <input type="file" data-role="image-input" accept="image/*" hidden />
+  </form>
+  ) : (
+    !backend && (
+      <div class="cs-form-placeholder">
+        <p>{t('comment.staticPlaceholder')}</p>
+      </div>
+    )
+  )}
+
+  <!-- Comment list header -->
+  <div class="cs-header">
+    <h2 class="cs-title">{sectionTitle}</h2>
+    <span class="cs-count" style={commentCount > 0 ? '' : 'display:none'}>{commentCount}</span>
+  </div>
+
+  <!-- Comment list -->
+  <div class="cs-list">
+    {backend === 'waline' ? (
+      /* Waline: SSR renders the loading placeholder (same as hydrateWaline's
+         first paint) so the list area has a stable height from the start —
+         rendering .cs-empty here then swapping to .cs-loading → comments on
+         hydrate caused a 0/150px → 80px → N height jump that shifted the huge
+         article container (desktop CLS ~0.64 with waline on). */
+      <div class="cs-loading">{t('comment.loading')}</div>
+    ) : isEmpty ? (
+      <div class="cs-empty">
+        <svg class="cs-empty-icon" viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <p class="cs-empty-text">{t('comment.noComments')}</p>
+      </div>
+    ) : (
+      commentTree.map((comment) => (
+        <div class="cs-thread">
+          <div class="cs-comment" id={`comment-${comment.id}`}>
+            <div class="cs-avatar">
+              {comment.email ? (
+                <img
+                  src={`https://www.gravatar.com/avatar/${md5Hash(comment.email.trim().toLowerCase())}?s=80&d=identicon&r=g`}
+                  alt={`${comment.author}'s avatar`}
+                  class="cs-avatar-img"
+                  loading="lazy"
+                  width="40"
+                  height="40"
+                />
+              ) : (
+                <span class="cs-avatar-initial">{comment.author.charAt(0).toUpperCase()}</span>
+              )}
+            </div>
+            <div class="cs-body">
+              <div class="cs-meta">
+                <span class="cs-author">
+                  {comment.website ? (
+                    <a href={comment.website} rel="nofollow noopener" target="_blank">{comment.author}</a>
+                  ) : (
+                    comment.author
+                  )}
+                </span>
+                <span class="cs-date" data-date={comment.date}>
+                  {formatDate(comment.date)}
+                </span>
+                {showGeoAddress && comment.location && (
+                  <span class="cs-location">{comment.location}</span>
+                )}
+              </div>
+              <div class="cs-content" set:html={comment.content} />
+            </div>
+          </div>
+
+          {comment.replies && comment.replies.length > 0 && (
+            <div class="cs-replies">
+              {comment.replies.map((reply) => (
+                <div class="cs-comment cs-comment--reply" id={`comment-${reply.id}`}>
+                  <div class="cs-avatar">
+                    {reply.email ? (
+                      <img
+                        src={`https://www.gravatar.com/avatar/${md5Hash(reply.email.trim().toLowerCase())}?s=60&d=identicon&r=g`}
+                        alt={`${reply.author}'s avatar`}
+                        class="cs-avatar-img cs-avatar-img--sm"
+                        loading="lazy"
+                        width="32"
+                        height="32"
+                      />
+                    ) : (
+                      <span class="cs-avatar-initial cs-avatar-initial--sm">{reply.author.charAt(0).toUpperCase()}</span>
+                    )}
+                  </div>
+                  <div class="cs-body">
+                    <div class="cs-meta">
+                      <span class="cs-author">{reply.author}</span>
+                      <span class="cs-date" data-date={reply.date}>
+                        {formatDate(reply.date)}
+                      </span>
+                      {showGeoAddress && reply.location && (
+                        <span class="cs-location">{reply.location}</span>
+                      )}
+                    </div>
+                    <div class="cs-content" set:html={reply.content} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ))
+    )}
+  </div>
+</div>
+
+<script>
+  /**
+   * True lazy hydration: commentAdapter (+ its DOMPurify chunk, ~76KB) is only
+   * downloaded when the comment section approaches the viewport. First paint
+   * loads nothing but this tiny observer.
+   *
+   * Dynamic import() makes Astro split commentAdapter into its own chunk, and
+   * DOMPurify (imported only by commentAdapter) rides along in that chunk — it
+   * is no longer part of any first-paint module.
+   */
+  let _csCleanup: (() => void) | null = null;
+  let _csObserver: IntersectionObserver | null = null;
+
+  async function _csHydrate() {
+    if (_csCleanup) return;
+    const { hydrateCommentSection } = await import('./commentAdapter');
+    if (_csCleanup) return; // page swapped away while the chunk was loading
+    _csCleanup = hydrateCommentSection();
+  }
+
+  function _csMount() {
+    if (_csObserver) return;
+    const containers = document.querySelectorAll<HTMLElement>('.comment-section');
+    if (containers.length === 0) return;
+    _csObserver = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            _csObserver?.disconnect();
+            _csObserver = null;
+            _csHydrate();
+            break;
+          }
+        }
+      },
+      { rootMargin: '300px' },
+    );
+    containers.forEach((c) => _csObserver?.observe(c));
+  }
+
+  function _csUnmount() {
+    _csObserver?.disconnect();
+    _csObserver = null;
+    if (_csCleanup) { _csCleanup(); _csCleanup = null; }
+  }
+
+  document.addEventListener('astro:page-load', _csMount);
+  document.addEventListener('astro:before-swap', _csUnmount);
+  // Run immediately for first paint (observer only — no heavy imports)
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _csMount, { once: true });
+  } else {
+    _csMount();
+  }
+</script>
+
+

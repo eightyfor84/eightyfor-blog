@@ -1,0 +1,49 @@
+---
+// ── 文章页文末·置底组件：comments 插件注册（post-end-of-article, position bottom）──
+// 态度按钮（attitude）+ 评论区合并为文末置底块——两者都属于评论功能，归 comments
+// 插件；主板经 getPluginSlot('post-end-of-article', ctx, 'bottom') 渲染本组件。
+// 门控：when capability getComments（评论适配器无能力不注入）。
+import AttitudeButtons from './AttitudeButtons.astro';
+import CommentSection from './CommentSection.astro';
+
+interface Props {
+  postId?: string;
+  locale?: string;
+  commentsEnabled?: boolean;
+  backend?: string;
+  walineServerUrl?: string;
+  showGeoAddress?: boolean;
+  imageUploadEnabled?: boolean;
+  imageUploadEndpoint?: string;
+  imageUploadToken?: string;
+}
+
+const {
+  postId = '',
+  locale = 'zh-CN',
+  commentsEnabled = true,
+  backend = '',
+  walineServerUrl = '',
+  showGeoAddress = true,
+  imageUploadEnabled = false,
+  imageUploadEndpoint = '',
+  imageUploadToken = '',
+} = Astro.props as Props;
+---
+
+{/* 容器（.end-of-article）由主板统一渲染——本组件只输出置底内容块 */}
+{commentsEnabled && (
+  <AttitudeButtons postId={postId} walineServerUrl={walineServerUrl} locale={locale} />
+)}
+{commentsEnabled && (
+  <CommentSection
+    postId={postId}
+    locale={locale}
+    backend={backend}
+    walineServerUrl={walineServerUrl}
+    showGeoAddress={showGeoAddress}
+    imageUploadEnabled={imageUploadEnabled}
+    imageUploadEndpoint={imageUploadEndpoint}
+    imageUploadToken={imageUploadToken}
+  />
+)}

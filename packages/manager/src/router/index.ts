@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory, createWebHashHistory } from 'vue-router'
 // Import locale messages so we can translate route meta titles without
 // depending on the app instance. We pick locale from localStorage or navigator.
+import { TEMPLATE_MANIFEST } from '../data/schemaRegistry'
 import en from '../locales/en.json'
 import zh from '../locales/zh-CN.json'
 
@@ -40,11 +41,19 @@ const Dashboard = () => import(/* webpackChunkName: "dashboard" */ '../pages/Das
 // Traffic page hidden — self-hosted analytics not meaningful for static Astro sites
 // const Traffic = () => import(/* webpackChunkName: "traffic" */ '../pages/Traffic.vue')
 const Settings = () => import(/* webpackChunkName: "settings" */ '../pages/Settings.vue')
+
+/** 插件子页 props：pluginKey → schemaId（TEMPLATE_MANIFEST.plugins 映射） */
+function pluginDetailProps(route: { params: { pluginKey?: string } }) {
+  // 按 key 字段查找（对象属性名可能驼峰，如 readingExperience——不依赖属性名约定）
+  const plugin = Object.values(TEMPLATE_MANIFEST.plugins).find((p) => p.key === route.params.pluginKey)
+  return { schemaId: plugin?.schemaId || 'chronicle:homepage' }
+}
 const TextEditorLazy = () => import(/* webpackChunkName: "text-editor" */ '../pages/TextEditor.vue')
 const EditorPrintPreview = () => import(/* webpackChunkName: "editor-print-preview" */ '../pages/EditorPrintPreview.vue')
 const Playground = () => import(/* webpackChunkName: "playground" */ '../pages/Playground.vue')
 // Schema-driven settings: single generic page that renders any schema
 const SchemaSettingsPage = () => import(/* webpackChunkName: "schema-settings" */ '../pages/SchemaSettingsPage.vue')
+const PluginSettings = () => import(/* webpackChunkName: "plugin-settings" */ '../pages/PluginSettings.vue')
 const SystemAppearance = () => import(/* webpackChunkName: "system-appearance" */ '../pages/settings/SystemAppearance.vue')
 const SystemGit = () => import(/* webpackChunkName: "system-git" */ '../pages/settings/SystemGit.vue')
 const SystemReset = () => import(/* webpackChunkName: "system-reset" */ '../pages/settings/SystemReset.vue')
@@ -69,12 +78,22 @@ const routes = [
       // ═══════════════════════════════════════════════
       // Schema-driven settings (replaces old hand-coded pages)
       // ═══════════════════════════════════════════════
-      // Template schema tabs — each gets a direct route
-      { path: 'template-homepage',   name: 'SettingsTemplateHomepage',   component: SchemaSettingsPage, props: { schemaId: 'chronicle:template-settings', tab: 'template-homepage' },   meta: { title: 'settings.home' } },
-      { path: 'template-appearance', name: 'SettingsTemplateAppearance', component: SchemaSettingsPage, props: { schemaId: 'chronicle:template-settings', tab: 'template-appearance' }, meta: { title: 'settings.appearance' } },
-      { path: 'template-features',   name: 'SettingsTemplateFeatures',   component: SchemaSettingsPage, props: { schemaId: 'chronicle:template-settings', tab: 'template-features' },   meta: { title: 'settings.features' } },
-      { path: 'template-search',     name: 'SettingsTemplateSearch',     component: SchemaSettingsPage, props: { schemaId: 'chronicle:template-settings', tab: 'template-search' },     meta: { title: 'settings.search' } },
-      { path: 'template', redirect: '/settings/template-homepage' },
+      // Template core modules — schema 跟随模块（T5 拆分，原多 tab → 独立模块）
+      { path: 'homepage',    name: 'SettingsHomepage',    component: SchemaSettingsPage, props: { schemaId: 'chronicle:homepage' },    meta: { title: 'settings.home' } },
+      { path: 'appearance',  name: 'SettingsAppearance',  component: SchemaSettingsPage, props: { schemaId: 'chronicle:appearance' },  meta: { title: 'settings.appearance' } },
+      // Plugins: 总览页（导航可达）+ 子页详情（导航不可直达，从总览进入）
+      { path: 'plugins', name: 'SettingsPlugins', component: PluginSettings, meta: { title: 'settings.plugins' } },
+      { path: 'plugins/:pluginKey', name: 'SettingsPluginDetail', component: SchemaSettingsPage, props: pluginDetailProps, meta: { title: 'settings.pluginDetail' } },
+      // Backward-compat: old tab routes → new module routes
+      { path: 'template-homepage',   redirect: '/settings/homepage' },
+      { path: 'template-appearance', redirect: '/settings/appearance' },
+      { path: 'template-features',   redirect: '/settings/plugins' },
+      { path: 'template-search',     redirect: '/settings/plugins/search' },
+      { path: 'search',              redirect: '/settings/plugins/search' },
+      { path: 'comments',            redirect: '/settings/plugins/comments' },
+      { path: 'friends',             redirect: '/settings/plugins/friends' },
+      { path: 'collections',         redirect: '/settings/plugins/collections' },
+      { path: 'template', redirect: '/settings/homepage' },
       // System schema tabs (Build & Deploy removed — Aurora is CI/CD-managed)
       { path: 'system-appearance', name: 'SettingsSystemAppearance', component: SystemAppearance, meta: { title: 'settings.appearance' } },
       { path: 'system-git', name: 'SettingsSystemGit', component: SystemGit, meta: { title: 'settings.git' } },
@@ -86,12 +105,9 @@ const routes = [
       { path: 'profile',     name: 'SettingsProfile',     component: SchemaSettingsPage, props: { schemaId: 'chronicle:profile' },     meta: { title: 'settings.profile' } },
       { path: 'post-page',  name: 'SettingsPostPage',   component: SchemaSettingsPage, props: { schemaId: 'chronicle:post-page' }, meta: { title: 'settings.postPage' } },
       // Backward-compat redirects (old paths → new direct routes)
-      { path: 'homepage',   redirect: '/settings/template-homepage' },
-      { path: 'appearance', redirect: '/settings/template-appearance' },
-      { path: 'features',   redirect: '/settings/template-features' },
       { path: 'about',      redirect: '/settings/profile' },
       { path: 'collection', redirect: '/settings/collections' },
-      { path: 'i18n',       redirect: '/settings/template-appearance' },
+      { path: 'i18n',       redirect: '/settings/appearance' },
     ]
   },
 
