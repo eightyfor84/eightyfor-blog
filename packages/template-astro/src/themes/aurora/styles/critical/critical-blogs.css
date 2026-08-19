@@ -50,8 +50,8 @@ h3.year-header { font-size:3em; font-weight:800; font-variation-settings:'wght' 
 .post-card-time { flex-shrink:0; white-space:nowrap; }
 
 /* ── Slides badge (BlogPostCard is:global) ── */
-.slides-badge { display:inline-flex; margin:0 8px 0 0; flex-shrink:0; transform:translateY(3px); justify-content:center; }
-.slides-badge svg { width:18px; height:18px; }
+.type-badge { display:inline-flex; margin:0 8px 0 0; flex-shrink:0; transform:translateY(3px); justify-content:center; }
+.type-badge svg { width:18px; height:18px; }
 
 /* ── Card internals — mirror blogs.astro component styles (first paint == final) ── */
 .featured-card-layout { display:grid; gap:10px; min-width:0; }

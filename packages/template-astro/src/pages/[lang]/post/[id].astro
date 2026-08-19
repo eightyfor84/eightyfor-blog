@@ -9,7 +9,7 @@ import { buildTocItems, injectHeadingIds } from '../../../utils/toc';
 import { extractHeadings } from '../../../utils/chronicleMarkdown';
 import { renderCodeBlockStatsHtml, renderCodeBlockLangLabelsHtml } from '../../../utils/markdownParser';
 import { escapeHtmlText, decodeHtmlEntities, getFileExt, getMediaIcon, toMediaCard, rewriteMediaLinks, hydrateLegacyKatexPlaceholders, wrapRenderedKatex } from '../../../utils/contentUtils';
-import { getPluginSlot, getPluginSlots, getPluginCritical } from '../../../plugins';
+import { getPluginSlot, getPluginSlots, getPluginCritical, isPostTypeRegistered, getPostTypeFallback } from '../../../plugins';
 import { resolveFeatureFlags } from '../../../utils/featureFlags';
 import CornerActions from '../../../components/CornerActions.astro';
 import TagLinks from '../../../components/TagLinks.astro';
@@ -265,7 +265,16 @@ if (renderedPostContent) {
   }
 }
 
-const isSlidesType = post?.type === 'slides' || !!post?.slideshow;
+// ── 文章类型解析（注册式）──
+// post.type 由插件声明（postTypes）；插件禁用/删除 → 类型无匹配 → 降级为
+// fallbackType（缺省 article，无匹配继续降级）→ 文章按降级类型正常渲染
+// （而非空页）。slideshow 字段同 slides 类型——仅当 slides 插件注册才走 slides 视图。
+const rawPostType = post?.type || 'article';
+const typeRegistered = isPostTypeRegistered(rawPostType);
+const renderType = rawPostType === 'article' || typeRegistered
+  ? rawPostType
+  : getPostTypeFallback(rawPostType);
+const isSlidesType = renderType === 'slides' && !!SlidesSlot;
 const isSlidesView = isSlidesType;
 const metaDescription = buildMetaDescription(post, locale);
 // 插件 critical（post 页）：合集导航布局偏移防 CLS——插件禁用/删除 → 不注入（core 零插件样式）

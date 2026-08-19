@@ -1,8 +1,8 @@
 // ── 插件注册表（构建期静态收集）────────────────────────────
 // 主板路由壳经 getPluginPage / getPluginSlots 查表渲染。
 // 注册发生在 src/plugins/index.ts（静态 import 各插件 manifest）。
-import type { PluginManifest, PluginSlotContribution, PluginChangeInterpreter, ChangedFile, ActivityItem, ChangeInterpreterCtx } from './types';
-export type { PluginManifest, ActivityItem, ChangedFile, ChangeInterpreterCtx } from './types';
+import type { PluginManifest, PluginSlotContribution, PluginChangeInterpreter, ChangedFile, ActivityItem, ChangeInterpreterCtx, PluginPostTypeContribution } from './types';
+export type { PluginManifest, ActivityItem, ChangedFile, ChangeInterpreterCtx, PluginPostTypeContribution } from './types';
 import type { DataSource } from '../data/types';
 
 /** 槽位门控评估上下文（主板页面传入；不传 = 不过滤，全量返回） */
@@ -42,6 +42,7 @@ export function registerPlugin(manifest: PluginManifest): void {
   }
   registry.set(manifest.id, manifest);
   for (const cap of manifest.provides ?? []) providedCapabilities.add(cap);
+  indexPostTypes(manifest);
 }
 
 function passesWhen(when: PluginSlotContribution['when'], ctx?: SlotGateCtx): boolean {
@@ -155,4 +156,44 @@ export function getPluginCritical(pageType: string): string {
     if (css) out += css + '\n';
   }
   return out;
+}
+
+/** 文章类型索引：type → 贡献（构建期收集——插件禁用/删除 → 不在索引 → 类型无匹配） */
+const postTypeIndex = new Map<string, PluginPostTypeContribution>();
+
+/** 收集文章类型贡献（registerPlugin 内调用） */
+function indexPostTypes(manifest: PluginManifest): void {
+  for (const t of manifest.postTypes ?? []) {
+    if (!postTypeIndex.has(t.type)) postTypeIndex.set(t.type, t);
+  }
+}
+
+/** 文章类型是否被某插件匹配（有注册贡献 = 可渲染） */
+export function isPostTypeRegistered(type: string): boolean {
+  return postTypeIndex.has(type);
+}
+
+/** 文章类型的渲染槽位（插件注册的视图槽位名；无匹配 → undefined） */
+export function getPostTypeSlot(type: string): string | undefined {
+  return postTypeIndex.get(type)?.slot;
+}
+
+/** 文章类型的降级目标（插件禁用时降级为；缺省 'article'；无匹配也回 'article'） */
+export function getPostTypeFallback(type: string): string {
+  const t = postTypeIndex.get(type);
+  if (!t) return 'article';
+  const fb = t.fallbackType || 'article';
+  // 降级类型也无匹配 → 继续降级到 article
+  return fb === 'article' || postTypeIndex.has(fb) ? fb : 'article';
+}
+
+/** 文章类型的徽章（label + icon；无注册/无徽章 → undefined = 不挂徽章） */
+export function getPostTypeBadge(type: string): { label: string; icon?: string } | undefined {
+  return postTypeIndex.get(type)?.badge;
+}
+
+/** 文章类型是否忽略 prev/next 导航队列（插件声明 queueIgnored；
+ *  无注册/未声明 → false = 参与导航） */
+export function isPostTypeQueueIgnored(type: string): boolean {
+  return postTypeIndex.get(type)?.queueIgnored === true;
 }

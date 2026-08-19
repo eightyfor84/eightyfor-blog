@@ -32,7 +32,7 @@ const searchPath = buildLocalizedPath(locale, '/search');
     _homeSearchInit = true;
 
     root.addEventListener('searchbox:submit', (event) => {
-      const detail = (event as CustomEvent).detail || {};
+      const detail = (event && event.detail) || {};
       const keyword = String(detail.query || '').trim();
       const target = keyword
         ? `${searchPath}?keyword=${encodeURIComponent(keyword)}`

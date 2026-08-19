@@ -2,6 +2,7 @@
 import './styles/prevnext-nav.css';
 import { dataSource } from '../../data';
 import { getTranslation, type Locale } from '../../utils/i18n';
+import { isPostTypeQueueIgnored } from '../../plugins';
 
 interface Props {
   post: any;
@@ -15,9 +16,14 @@ interface Props {
 const { post, locale, lang, mode = 'both', scope = 'global', order = 'desc' } = Astro.props as Props;
 const t = (key: string) => getTranslation(locale, key);
 
-// ── 规则 1：导航忽略 slides——当前页是 slides 或候选是 slides 都不参与 prev/next ──
-if (post?.type === 'slides') return;
-const published = (dataSource.getPublishedPosts() as any[]).filter((p: any) => p.type !== 'slides');
+// ── 规则 1：导航忽略 queueIgnored 类型（如 slides 无正文阅读顺序）——
+// 由插件 postTypes.queueIgnored 声明（默认 false）；当前页或候选是该类型
+// 都不参与 prev/next。core 不预知具体类型名。
+const isPostIgnored = isPostTypeQueueIgnored(post?.type || 'article');
+if (isPostIgnored) return;
+const published = (dataSource.getPublishedPosts() as any[]).filter(
+  (p: any) => !isPostTypeQueueIgnored(p.type || 'article'),
+);
 
 // ── 规则 2：collection 内导航开启时，不属于任何 collection 的文章不显示 prev/next ──
 if (scope === 'collection' && !post.collection) return;
