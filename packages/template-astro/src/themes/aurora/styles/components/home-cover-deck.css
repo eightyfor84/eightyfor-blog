@@ -1,5 +1,10 @@
 /* ── 组件样式：HomeCoverDeck ──
-   自 src/components/HomeCoverDeck.astro <style> 迁出（与 critical 同值+附加细化，bundled 后加载赢平局，安全）。 */
+   自 src/components/HomeCoverDeck.astro <style> 迁出（与 critical 同值+附加细化）。
+   包在 @layer chr-component：封面自带 <style>（data/homepage-cover.html 或
+   default-cover.html，set:html 注入 body，未分层）永远赢组件默认——站点
+   自定义封面样式（如 .hero 偏移）不再被组件默认（.home-cover-deck 前缀、
+   更高特异性）覆盖；组件默认迟到应用也改变不了首帧（同值被压，零 CLS）。 */
+@layer chr-component {
   /* Shell — layout & positioning */
   .home-cover-deck .home-cover-deck--split{ transform-origin: left bottom; will-change: transform, opacity; }
   .home-cover-deck .hero{ position: relative; left: 15vw; }
@@ -12,3 +17,4 @@
   .home-cover-deck .cover-cta:hover{ filter: brightness(1.8); transform: scale(1.05); color: #000;}
   .home-cover-deck .cover-cta svg{ width:20px; height:20px; }
   @media (max-width:760px) { .home-cover-deck .cover-title{ font-size:2.2rem; } .home-cover-deck .cover-subtitle{ font-size:1rem; margin-bottom:2rem; } }
+}
