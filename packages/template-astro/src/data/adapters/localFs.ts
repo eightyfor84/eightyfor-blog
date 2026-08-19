@@ -299,6 +299,9 @@ const POST_PAGE_DEFAULTS: Required<PostPageConfig> = {
 function normalizePostConfig(raw: unknown): PostPageConfig {
   const src = raw && typeof raw === 'object' ? (raw as Record<string, any>) : {};
   const legacy = src.post && typeof src.post === 'object' ? (src.post as Record<string, any>) : {};
+  // site.yml 按插件分组：readingExperience 组提供 toc/endOfArticle、comments 组提供评论配置
+  const re = src['reading-experience'] && typeof src['reading-experience'] === 'object' ? (src['reading-experience'] as Record<string, any>) : {};
+  const cm = src.comments && typeof src.comments === 'object' ? (src.comments as Record<string, any>) : {};
   // postCollectionNav 内置在 collections.yml（post.collectionNav——单 schema 同文件，
   // manager 保存时一并写入）；site.yml 旧值回退
   try {
@@ -323,7 +326,12 @@ function normalizePostConfig(raw: unknown): PostPageConfig {
         legacyVal = (legacyVal as Record<string, any>)[p]
       }
     }
-    const val = src[key] ?? legacyVal;
+    // 组优先（插件分组）：toc/endOfArticle ← readingExperience、comments ← comments 组
+    const groupVal = key === 'postToc' ? re.toc
+      : key === 'postEndOfArticle' ? re.endOfArticle
+      : key === 'postComments' ? cm
+      : undefined;
+    const val = groupVal ?? src[key] ?? legacyVal;
     if (val && typeof val === 'object' && !Array.isArray(val) && def && typeof def === 'object') {
       out[key] = { ...def, ...val };
     } else {
@@ -560,20 +568,33 @@ export function getPublicSettings(): LocalSettings {
           ?? parseBackgroundColor('baseColorDark') ?? parseBackgroundColor('backgroundColorDark') ?? '',
         font: raw.font ?? raw.frontendFont,
         locale: raw.locale ?? raw.frontendLocale,
-        collectionPage: raw.collectionPage ?? raw.featureFlags?.collectionPage ?? true,
-        aboutPage: raw.aboutPage ?? raw.featureFlags?.aboutPage ?? true,
-        friendsPage: raw.friendsPage ?? raw.featureFlags?.friendsPage ?? raw.friends ?? true,
-        rss: raw.rss ?? raw.featureFlags?.rss ?? true,
-        searchSuggestions: raw.searchSuggestions ?? raw.featureFlags?.searchSuggestions ?? true,
-        globalSearch: raw.globalSearch ?? raw.featureFlags?.globalSearch ?? true,
-        fullTextSearch: raw.fullTextSearch ?? raw.featureFlags?.fullTextSearch ?? true,
-        traffic: raw.traffic ?? raw.featureFlags?.traffic ?? raw.analytics?.enabled ?? false,
-        comments: raw.comments ?? raw.featureFlags?.comments ?? true,
-        // Nested featureFlags mirror — pages read flags via resolveFeatureFlags(settings.featureFlags).
-        // 插件禁用策略（去上帝式）：featureFlags 段 + site.yml 顶层布尔键通用透传——
-        // 开关键由插件声明（TEMPLATE_MANIFEST.plugins.featureFlag），core 不预知键名
+        // ── 开关按插件分组读取（site.yml 每插件一段，组内开关键 = featureFlag 名）──
+        collectionPage: raw.collections?.collectionPage ?? raw.collectionPage ?? true,
+        aboutPage: raw.aboutPage ?? true,
+        friendsPage: raw.friends?.friendsPage ?? raw.friendsPage ?? true,
+        rss: raw.rss ?? true,
+        searchSuggestions: raw.search?.searchSuggestions ?? true,
+        globalSearch: raw.search?.globalSearch ?? raw.globalSearch ?? true,
+        fullTextSearch: raw.search?.fullTextSearch ?? true,
+        traffic: raw.traffic ?? raw.analytics?.enabled ?? false,
+        comments: raw.comments?.comments ?? raw.comments ?? true,
+        readingExperience: raw['reading-experience']?.readingExperience ?? true,
+        slides: raw.slides?.slides ?? true,
+        // featureFlags 镜像（when.featureFlag 评估读这里）：组内开关键 + featureFlags 段 +
+        // 顶层布尔键（兼容）；键名由插件声明（TEMPLATE_MANIFEST.plugins.featureFlag）
         featureFlags: {
             ...(raw.featureFlags || {}),
+            searchSuggestions: raw.search?.searchSuggestions ?? raw.featureFlags?.searchSuggestions ?? true,
+            globalSearch: raw.search?.globalSearch ?? raw.featureFlags?.globalSearch ?? true,
+            fullTextSearch: raw.search?.fullTextSearch ?? raw.featureFlags?.fullTextSearch ?? true,
+            comments: raw.comments?.comments ?? raw.featureFlags?.comments ?? true,
+            readingExperience: raw['reading-experience']?.readingExperience ?? raw.featureFlags?.readingExperience ?? true,
+            friendsPage: raw.friends?.friendsPage ?? raw.featureFlags?.friendsPage ?? true,
+            collectionPage: raw.collections?.collectionPage ?? raw.featureFlags?.collectionPage ?? true,
+            slides: raw.slides?.slides ?? raw.featureFlags?.slides ?? true,
+            aboutPage: raw.aboutPage ?? raw.featureFlags?.aboutPage ?? true,
+            rss: raw.rss ?? raw.featureFlags?.rss ?? true,
+            traffic: raw.traffic ?? raw.featureFlags?.traffic ?? raw.analytics?.enabled ?? false,
             ...Object.fromEntries(Object.entries(raw).filter(([, v]) => typeof v === 'boolean')),
         },
         friendsCards: readFriendsCards(),
