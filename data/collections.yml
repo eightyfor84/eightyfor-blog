@@ -28,4 +28,4 @@ collections:
 post:
   collectionNav:
     enabled: true
-    alwaysCollapsed: true
+    alwaysCollapsed: false
