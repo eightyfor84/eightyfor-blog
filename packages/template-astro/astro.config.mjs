@@ -169,12 +169,17 @@ export default defineConfig({
                 console.log(`[chronicle-defer-css] ${relPath}: deferred ${count} CSS file(s)`);
               }
 
-              // ── Unlayered critical lock ────────────────────────────
+              // ── Critical lock ──────────────────────────────────────
               // global.css 的非变量规则位于 @layer chr-global（最低优先级）。
-              // 这里把同一批规则以「未分层」镜像注入 critical <style>：CSS
-              // 规范保证未分层普通声明永远胜过分层声明（与到达顺序/特异性
-              // 无关）→ 首帧即最终态，defer 异步到达的 global.css 再也无法
-              // 改变任何已渲染布局（零 CLS）。选择器本身一字未改。
+              // 这里把同一批规则以镜像注入 critical <style>，置于
+              // @layer chr-lock（层序 chr-global < chr-lock < chr-base < 未分层）：
+              //   1) global.css defer 异步到达时（chr-global 层）永远输给
+              //      chr-lock 首帧镜像 → 布局全程不变（零 CLS）；
+              //   2) 页面型 critical 与页面级 css（未分层）仍高于 chr-lock，
+              //      可覆盖 global 的同类规则（如 blogs 的 .section-title）；
+              //   3) critical-base（chr-base 层）高于 chr-lock，其与 global
+              //      重叠的属性（a 颜色 / :root 字体栈 / #app flex）不被压。
+              // 选择器本身一字未改。
               // 从 dist 产物提取（跟随主题 + 已压缩）；主题未拆分 @layer
               // 时提取为空，安全跳过。
               let chrLockCss = '';
@@ -188,9 +193,9 @@ export default defineConfig({
                 }
               } catch {}
               if (chrLockCss && !html.includes('data-chr-critical-lock')) {
-                html = html.replace('</head>', `<style data-chr-critical-lock>${chrLockCss}</style></head>`);
+                html = html.replace('</head>', `<style data-chr-critical-lock>@layer chr-lock{${chrLockCss}}</style></head>`);
                 writeFileSync(filePath, html);
-                console.log(`[chronicle-critical-lock] ${relPath}: locked ${chrLockCss.length} B of global rules unlayered`);
+                console.log(`[chronicle-critical-lock] ${relPath}: locked ${chrLockCss.length} B of global rules at chr-lock layer`);
               }
 
               // ── Minify inlined critical CSS ──
