@@ -1,0 +1,29 @@
+---
+// ── 导航链接：friends 插件注册（nav-link 槽位）──────────────
+// 主板 NavHeader 经 nav-link 槽位渲染插件导航项——插件禁用/删除 →
+// 构建期不注册 → 导航链接消失（core 零硬编码插件链接）。
+import { buildLocalizedPath } from '../../utils/routeLocale';
+
+interface Props {
+  locale?: string;
+  t?: (key: string) => string;
+  /** 当前路由路径（不含语言前缀）——用于高亮 */
+  activePath?: string;
+}
+
+const { locale = 'zh-CN', t = (key: string) => key, activePath = '' } = Astro.props as Props;
+const href = buildLocalizedPath(locale, '/friends');
+const isActive = activePath.startsWith('/friends');
+---
+
+<a
+  href={href}
+  class:list={["nav-link", { "router-link-active": isActive }]}
+>
+  <span class="nav-link-swap">
+    <span class="nav-link-full">{t("nav.friends")}</span>
+    <span class="nav-link-collapsed" aria-hidden="true">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"></path><circle cx="10" cy="7" r="3"></circle><path d="M21 21v-2a3 3 0 0 0-2.25-2.9"></path><path d="M16 4.2a3 3 0 0 1 0 5.6"></path></svg>
+    </span>
+  </span>
+</a>

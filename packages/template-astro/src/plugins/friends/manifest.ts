@@ -6,6 +6,7 @@
 // 样式归属主题层：styles/pages/friends.css（页面样式归主题，插件不吞样式）
 import type { PluginManifest } from '../types';
 import FriendsPage from './FriendsPage.astro';
+import NavFriendsLink from './NavFriendsLink.astro';
 
 export const friends: PluginManifest = {
   id: 'friends',
@@ -14,7 +15,10 @@ export const friends: PluginManifest = {
   pages: {
     friends: { route: 'friends', component: FriendsPage },
   },
-  slots: [],
+  slots: [
+    // 导航链接（NavHeader nav-link 槽位）——插件禁用/删除 → 链接消失
+    { slot: 'nav-link', component: NavFriendsLink },
+  ],
   dataHooks: {},
   settingsSchema: ['friends'],
 };

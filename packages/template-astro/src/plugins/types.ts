@@ -66,7 +66,7 @@ export interface PluginChangeInterpreter {
   interpret(changes: ChangedFile[], ctx: ChangeInterpreterCtx): ActivityItem[];
 }
 
-/** 插件 manifest：一单元注册（页面 + 槽位 + 数据钩子 + 变化解释器 + 设置 schema） */
+/** 插件 manifest：一单元注册（页面 + 槽位 + 数据钩子 + 变化解释器 + critical + 设置 schema） */
 export interface PluginManifest {
   id: string;
   /** 插件级开关键（site.yml featureFlags/顶层布尔）：构建期 false → 不注册（禁用=构建时忽略，与删除同效果） */
@@ -81,6 +81,9 @@ export interface PluginManifest {
   dataHooks?: Partial<DataSource>;
   /** 文件变化解释器：把 data/ 变化理解为主页 activity 条目（core 分发变化，插件自解释） */
   changeInterpreters?: PluginChangeInterpreter[];
+  /** 页面级 critical CSS（页面类型 → CSS 文本，插件 ?raw 提供）：
+      主板页面在对应槽位/页面注册时内联——插件禁用/删除 → 不注入（core 零插件样式） */
+  critical?: Record<string, string>;
   /** 设置 schema 贡献（manager 侧，T5 接入 SCHEMA_REGISTRY） */
   settingsSchema?: string[];
 }

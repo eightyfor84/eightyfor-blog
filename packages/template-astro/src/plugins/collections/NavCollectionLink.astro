@@ -1,0 +1,29 @@
+---
+// ── 导航链接：collections 插件注册（nav-link 槽位）────────────
+// 主板 NavHeader 经 nav-link 槽位渲染插件导航项——插件禁用/删除 →
+// 构建期不注册 → 导航链接消失（core 零硬编码插件链接）。
+import { buildLocalizedPath } from '../../utils/routeLocale';
+
+interface Props {
+  locale?: string;
+  t?: (key: string) => string;
+  /** 当前路由路径（不含语言前缀）——用于高亮 */
+  activePath?: string;
+}
+
+const { locale = 'zh-CN', t = (key: string) => key, activePath = '' } = Astro.props as Props;
+const href = buildLocalizedPath(locale, '/collection');
+const isActive = activePath.startsWith('/collection');
+---
+
+<a
+  href={href}
+  class:list={["nav-link", { "router-link-active": isActive }]}
+>
+  <span class="nav-link-swap">
+    <span class="nav-link-full">{t("nav.collection")}</span>
+    <span class="nav-link-collapsed" aria-hidden="true">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M 12 2 L 21 8 L 12 14 L 3 8 Z"/><path d="M 18 14 L 21 16 L 12 22 L 3 16 L 6 14"/></svg>
+    </span>
+  </span>
+</a>

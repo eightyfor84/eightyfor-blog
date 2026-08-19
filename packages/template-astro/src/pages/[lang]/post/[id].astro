@@ -9,7 +9,7 @@ import { buildTocItems, injectHeadingIds } from '../../../utils/toc';
 import { extractHeadings } from '../../../utils/chronicleMarkdown';
 import { renderCodeBlockStatsHtml, renderCodeBlockLangLabelsHtml } from '../../../utils/markdownParser';
 import { escapeHtmlText, decodeHtmlEntities, getFileExt, getMediaIcon, toMediaCard, rewriteMediaLinks, hydrateLegacyKatexPlaceholders, wrapRenderedKatex } from '../../../utils/contentUtils';
-import { getPluginSlot, getPluginSlots } from '../../../plugins';
+import { getPluginSlot, getPluginSlots, getPluginCritical } from '../../../plugins';
 import { resolveFeatureFlags } from '../../../utils/featureFlags';
 import CornerActions from '../../../components/CornerActions.astro';
 import TagLinks from '../../../components/TagLinks.astro';
@@ -268,14 +268,18 @@ if (renderedPostContent) {
 const isSlidesType = post?.type === 'slides' || !!post?.slideshow;
 const isSlidesView = isSlidesType;
 const metaDescription = buildMetaDescription(post, locale);
+// 插件 critical（post 页）：合集导航布局偏移防 CLS——插件禁用/删除 → 不注入（core 零插件样式）
+const pluginPostCritical = getPluginCritical('post');
 ---
 
 {isSlidesView && post ? (
 <Layout title={pageTitle} settings={settings} locale={locale} navTitle={post?.title} navBackHref={backToBlogs} navBackLabel={t('inblog.backToBlogs')} meta={{ description: metaDescription, type: 'article' }}>
+  {pluginPostCritical && <Fragment slot="head"><style is:inline set:html={pluginPostCritical} /></Fragment>}
   {SlidesSlot ? <SlidesSlot id={post.id} locale={locale} config={post.slideshow || {}} collectionEnabled={collectionEnabled} /> : null}
 </Layout>
 ) : (
 <Layout title={pageTitle} settings={settings} locale={locale} navTitle={post?.title} navBackHref={backToBlogs} navBackLabel={t('inblog.backToBlogs')} meta={{ description: metaDescription, type: 'article' }}>
+  {pluginPostCritical && <Fragment slot="head"><style is:inline set:html={pluginPostCritical} /></Fragment>}
   <div class="post-detail-container" id="post-top">
     {error ? (
       <div class="error-container">

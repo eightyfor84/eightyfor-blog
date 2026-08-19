@@ -143,3 +143,16 @@ export function interpretChanges(changes: ChangedFile[], ctx: ChangeInterpreterC
   }
   return out;
 }
+
+/**
+ * 收集某页面类型的插件 critical CSS（如 post 页的合集导航布局偏移规则）。
+ * 插件禁用/删除 → 不注册 → 对应 critical 不注入（core 零插件样式）。
+ */
+export function getPluginCritical(pageType: string): string {
+  let out = '';
+  for (const plugin of registry.values()) {
+    const css = plugin.critical?.[pageType];
+    if (css) out += css + '\n';
+  }
+  return out;
+}

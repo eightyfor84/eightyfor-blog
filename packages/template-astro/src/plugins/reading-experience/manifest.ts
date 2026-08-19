@@ -10,6 +10,7 @@ import type { PluginManifest } from '../types';
 import FloatingToc from './FloatingToc.astro';
 import CollectionNav from './CollectionNav.astro';
 import EndOfArticle from './EndOfArticle.astro';
+import collectionNavCritical from './styles/critical/collection-nav.css?raw';
 
 export const readingExperience: PluginManifest = {
   id: 'reading-experience',
@@ -24,6 +25,10 @@ export const readingExperience: PluginManifest = {
     // capability 探测——内容源无合集能力时不注入
     { slot: 'post-collection-nav', component: CollectionNav, when: { capability: 'getCollections' } },
   ],
+  // 页面 critical：post 页在合集导航槽位注册时内联（布局偏移防 CLS——插件禁用 → 不注入）
+  critical: {
+    post: collectionNavCritical,
+  },
   dataHooks: {},
   settingsSchema: ['reading-experience'],
 };

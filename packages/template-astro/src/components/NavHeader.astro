@@ -2,7 +2,7 @@
 import '../themes/aurora/styles/components/nav-header.css';
 import { getTranslation, getLocale, type Locale } from "../utils/i18n";
 import { buildLocalizedPath, stripRouteLocale } from "../utils/routeLocale";
-import { getPluginSlot } from '../plugins';
+import { getPluginSlot, getPluginSlots } from '../plugins';
 
 interface Props {
   currentPath: string;
@@ -26,20 +26,16 @@ const blogsHref = buildLocalizedPath(locale, "/blogs");
 // 导航搜索按钮槽位：search 插件注册（when globalSearch 门控）——插件禁用/删除 →
 // 构建期不注册 → 按钮消失（注册式，core 不预知按钮）；globalSearch 关闭 → 与弹层同 flag 消失
 const NavSearchActionSlot = getPluginSlot('nav-search-action', { featureFlags });
+// 插件导航链接槽位：friends/collections 插件注册——禁用/删除 → 链接消失（core 零硬编码）
+const NavPluginLinks = getPluginSlots('nav-link', { featureFlags });
 // Initial SSR state for the perf toggle. 'auto' defaults to 'full' — the
 // client-side script corrects it immediately if the device is low-end.
-const collectionHref = buildLocalizedPath(locale, "/collection");
-const friendsHref = buildLocalizedPath(locale, "/friends");
 const aboutHref = buildLocalizedPath(locale, "/about");
-const showFriends = featureFlags?.friendsPage !== false;
 const showAbout = featureFlags?.aboutPage !== false;
-const showCollection = featureFlags?.collectionPage !== false;
 
 const navCollapsedIcons = {
   home: `<svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"></path><path d="M5 10.5V20h14v-9.5"></path><path d="M9 20v-6h6v6"></path></svg>`,
   blogs: `<svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line></svg>`,
-  collection: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M 12 2 L 21 8 L 12 14 L 3 8 Z"/><path d="M 18 14 L 21 16 L 12 22 L 3 16 L 6 14"/></svg>`,
-  friends: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"></path><circle cx="10" cy="7" r="3"></circle><path d="M21 21v-2a3 3 0 0 0-2.25-2.9"></path><path d="M16 4.2a3 3 0 0 1 0 5.6"></path></svg>`,
 };
 
 // Determine active route for highlighting
@@ -148,28 +144,10 @@ const isActive = (path: string) => {
             <span class="nav-link-collapsed" aria-hidden="true" set:html={navCollapsedIcons.blogs}></span>
           </span>
         </a>
-        {showCollection && (
-          <a
-            href={collectionHref}
-            class:list={["nav-link", { "router-link-active": isActive("/collection") }]}
-          >
-            <span class="nav-link-swap">
-              <span class="nav-link-full">{t("nav.collection")}</span>
-              <span class="nav-link-collapsed" aria-hidden="true" set:html={navCollapsedIcons.collection}></span>
-            </span>
-          </a>
-        )}
-        {showFriends && (
-          <a
-            href={friendsHref}
-            class:list={["nav-link", { "router-link-active": isActive("/friends") }]}
-          >
-            <span class="nav-link-swap">
-              <span class="nav-link-full">{t("nav.friends")}</span>
-              <span class="nav-link-collapsed" aria-hidden="true" set:html={navCollapsedIcons.friends}></span>
-            </span>
-          </a>
-        )}
+        {/* 插件导航链接（nav-link 槽位：friends/collections 注册）——禁用/删除 → 消失 */}
+        {NavPluginLinks.map((Link: any) => (
+          <Link locale={locale} t={t} activePath={activePath} />
+        ))}
       </div>
 
       {NavSearchActionSlot ? (

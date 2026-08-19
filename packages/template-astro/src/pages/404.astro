@@ -4,6 +4,7 @@ import Layout from '../layouts/Layout.astro';
 import { getLocale, getTranslation } from '../utils/i18n';
 import { buildLocalizedPath } from '../utils/routeLocale';
 import { loadSiteSettings } from '../utils/siteSettings';
+import { getPluginPage } from '../plugins';
 
 export const prerender = true;
 
@@ -12,6 +13,8 @@ const t = (key: string) => getTranslation(locale, key);
 const isZh = locale === 'zh-CN';
 const homeHref = buildLocalizedPath(locale, '/');
 const blogsHref = buildLocalizedPath(locale, '/blogs');
+// 搜索链接仅在 search 插件注册时提供——禁用/删除 → 不显示（避免指向 404 页）
+const searchAvailable = !!getPluginPage('search', 'search');
 const searchHref = buildLocalizedPath(locale, '/search');
 
 const settings = await loadSiteSettings();
@@ -42,7 +45,9 @@ const settings = await loadSiteSettings();
       <div class="error-actions">
         <a class="error-action" href={homeHref}>{isZh ? '返回首页' : 'Go home'}</a>
         <a class="error-action" href={blogsHref}>{isZh ? '浏览文章' : 'Browse posts'}</a>
-        <a class="error-action" href={searchHref}>{isZh ? '搜索内容' : 'Search'}</a>
+        {searchAvailable && (
+          <a class="error-action" href={searchHref}>{isZh ? '搜索内容' : 'Search'}</a>
+        )}
       </div>
 
       <p class="error-footnote">

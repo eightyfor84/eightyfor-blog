@@ -9,6 +9,7 @@
 import type { PluginManifest } from '../types';
 import CollectionPage from './CollectionPage.astro';
 import TaxonomyCollectionBlock from './TaxonomyCollectionBlock.astro';
+import NavCollectionLink from './NavCollectionLink.astro';
 import { collectionsChangeInterpreter } from './changeInterpreter';
 
 export const collections: PluginManifest = {
@@ -21,6 +22,8 @@ export const collections: PluginManifest = {
   slots: [
     // 首页 taxonomy 卡片合集列表块（主板模板骨架渲染）
     { slot: 'home-card-taxonomy', component: TaxonomyCollectionBlock },
+    // 导航链接（NavHeader nav-link 槽位）——插件禁用/删除 → 链接消失
+    { slot: 'nav-link', component: NavCollectionLink },
   ],
   // 文件变化解释器：collections.yml 变化 → activity 条目
   changeInterpreters: [collectionsChangeInterpreter],
