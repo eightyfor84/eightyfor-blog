@@ -6,12 +6,12 @@ tags: chronicle, welcome, jamstack
 author: 
 aiGenerated: false
 status: published
-summary: Chronicle is a local-first, git-backed Jamstack blogging platform. No server, no database — just Markdown, YAML, and Git.
+summary: Chronicle is a local-first, git-backed Jamstack blogging platform. No server, no database — just Markdown, YAML, and Git. Its frontend is a lightweight core with pluggable features registered by plugins.
 font: sans
 type: article
 ---
 
-Welcome to **Chronicle Aurora** — the 3.1.x release of Chronicle, a local-first, git-backed Jamstack blog system. This post is your starting point: it explains what Chronicle is, how the data layer works, and how the nine example posts in this blog double as its documentation.
+Welcome to **Chronicle Aurora** — the 3.1.x release of Chronicle, a local-first, git-backed Jamstack blog system. This post is your starting point: it explains what Chronicle is, how the four-layer architecture works, and how the example posts in this blog double as its documentation.
 
 ## The Core Philosophy
 
@@ -22,6 +22,30 @@ Chronicle is built on three principles:
 3. **Git is the API** — There is no sync endpoint to call. `git commit` saves a change, `git push` deploys it, `git pull` syncs it. Authentication is your SSH key; history, branching, and rollback come free.
 
 Because there is no server, the three pieces of the system each do exactly one job: **build** = Astro SSG (`data/` → `dist/`), **edit** = the Electron Manager (reads and writes `data/` directly), **deploy** = git push → CI/CD → CDN.
+
+## Four-Layer Architecture
+
+Chronicle's frontend is built as a **lightweight core + pluggable features**. The core renders posts and pages and knows nothing about search, comments, collections, friends, or slides — those are *plugins* that register themselves.
+
+```
+┌──────────────────────────────────────────────────────────┐
+│ Core (mainboard) — data contract + page skeleton         │
+│ · Renders posts/pages; owns routing, layout, i18n        │
+│ · Knows nothing about search/comments/collections/...    │
+├──────────────────────────────────────────────────────────┤
+│ Plugins — register via manifest                         │
+│ · search / comments / reading-experience / friends       │
+│   / collections / slides                                 │
+│ · Each = pages + slots + data hooks + settings schema    │
+├──────────────────────────────────────────────────────────┤
+│ Theme — all styles live in the theme                     │
+│ · tokens / global / critical CSS, component styles       │
+├──────────────────────────────────────────────────────────┤
+│ Manager — schema-driven CMS, adapts via template manifest│
+└──────────────────────────────────────────────────────────┘
+```
+
+**This demo site ships with all plugins disabled.** You are looking at the bare core: posts, author card, recent updates, footer. Flip a plugin on in `data/site.yml` (or the Manager's plugin page) and its pages, components, and styles join the next build — nothing else changes. That is the point of the architecture: the core stays small, and every feature is optional.
 
 ## `data/` — The Single Source of Truth
 
@@ -36,11 +60,11 @@ The key files:
 
 ```
 data/
-├── site.yml               # Site configuration (homepage, appearance, search, comments,
-│                          #   collectionPage, aboutPage, friendsPage, rss, analytics, post)
+├── site.yml               # Site configuration (homepage, appearance, rss, analytics, post,
+│                          #   plus one section per enabled plugin)
 ├── profile.yml            # Author profile
-├── friends.yml            # Friends page
-├── collections.yml        # Collections
+├── friends.yml            # Friends page (friends plugin)
+├── collections.yml        # Collections (collections plugin)
 ├── background/            # Site background image + background.yml meta
 ├── avatar/                # Author avatar
 ├── posts/
@@ -48,6 +72,8 @@ data/
 │   └── <id>/index.md      # One directory per post: frontmatter + Markdown body
 └── comments/{id}.json     # Approved comments (Staticman format)
 ```
+
+`site.yml` is grouped **by plugin**: the core sections (homepage/appearance/rss/analytics/post) come first, then one section per plugin, each with its own `enabled` switch and configuration. Disabling a plugin means its section is ignored at build time — the feature's components and styles never enter the bundle.
 
 ## Directories Are Data Sources
 
@@ -59,22 +85,22 @@ Chronicle follows a "put it there, it works" model for media: instead of storing
 
 The CMS copies selected images into these directories, and the build compresses them to WebP/AVIF. Compression is a CI/CD concern, not an editor concern: `data/` stores source-quality images, and the build pipeline optimizes them universally.
 
-## The Nine Example Posts Are the Docs
+## The Example Posts Are the Docs
 
-This blog ships with nine example posts that double as usage documentation. Read them in order and you cover the whole system:
+This blog ships with example posts that double as usage documentation. Read them in order and you cover the whole system:
 
 | Post | What it teaches |
 | --- | --- |
 | [Getting Started](post://getting-started) | Installation and prerequisites |
-| [Site Configuration](post://site-config) | `data/site.yml` — every top-level block |
+| [Site Configuration](post://site-config) | `data/site.yml` — core sections + per-plugin sections |
 | [Profile Configuration](post://profile-config) | `data/profile.yml` — author identity |
-| [Friends Management](post://friend-config) | `data/friends.yml` — the blogroll |
-| [Collections Guide](post://c8n-config) | `data/collections.yml` — series and chapters |
-| [Comments Configuration](post://comments-config) | Static JSON vs. Waline backends |
+| [Friends Management](post://friend-config) | `data/friends.yml` — the blogroll (friends plugin) |
+| [Collections Guide](post://c8n-config) | `data/collections.yml` — series and chapters (collections plugin) |
+| [Comments Configuration](post://comments-config) | Static JSON vs. Waline backends (comments plugin) |
 | [Markdown Showcase](post://markdown-showcase) | The full Markdown feature set |
-| [Chronicle Presentation](post://slides-demo) | Writing slide decks in Markdown |
+| [Chronicle Presentation](post://slides-demo) | Writing slide decks in Markdown (slides plugin) |
 
-Start with **Getting Started**, work through the five configuration guides, then explore **Markdown Showcase** to see what the editor can do and **Chronicle Presentation** for slides.
+Start with **Getting Started**, work through the configuration guides, then explore **Markdown Showcase** and **Chronicle Presentation**.
 
 ## Quick Start
 

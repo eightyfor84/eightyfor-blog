@@ -42,13 +42,14 @@ post:
     showTags: true
 
 # ── 插件分组（每插件一段：开关 + 配置；开关键 = 该插件 featureFlag 名）──
+# 演示站默认全部关闭——展示精简 core；按需在 CMS/本文件开启对应插件
 search:
-  enabled: true
+  enabled: false
   searchSuggestions: true
   globalSearch: true
   fullTextSearch: true
 comments:
-  enabled: true
+  enabled: false
   comments: true
   backend: ''
   walineServerUrl: ''
@@ -58,7 +59,7 @@ comments:
   imageUploadEndpoint: ''
   imageUploadToken: ''
 reading-experience:
-  enabled: true
+  enabled: false
   readingExperience: true
   toc:
     enabled: true
@@ -79,8 +80,8 @@ reading-experience:
     authorCard: false
     prevNextOrder: desc
 friends:
-  enabled: true
+  enabled: false
 collections:
-  enabled: true
+  enabled: false
 slides:
-  enabled: true
+  enabled: false

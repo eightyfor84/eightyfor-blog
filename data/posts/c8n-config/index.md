@@ -27,7 +27,7 @@ The collection system has three surfaces:
 2. **Article sidebar panel** — on article pages that belong to a collection, a sidebar (desktop) or floating entry (mobile) shows the collection tree with the current article highlighted and groups expanding and collapsing on click.
 3. **Collection-scoped prev/next** — with the end-of-article navigation scope set to "Within the same collection", readers move between articles in the exact order you defined.
 
-The overview page and the sidebar panel are both gated by the top-level `collectionPage` switch. Collection-scoped prev/next is independent of it.
+The overview page and the sidebar panel are both gated by the collections plugin's `enabled` switch. Collection-scoped prev/next is independent of it.
 
 ## Data structure
 
@@ -111,15 +111,16 @@ When an article belongs to more than one collection, a dropdown switcher appears
 
 ## Settings
 
-### `collectionPage` — master switch
+### Plugin switch — `collections` section
 
-`collectionPage` is a top-level key in `site.yml`, alongside the other page toggles:
+Collections are a **plugin**. The `/collection` page and the article sidebar panel are both gated by the plugin's `enabled` switch in `site.yml`:
 
 ```yaml
-collectionPage: true
+collections:
+  enabled: true
 ```
 
-When `false`, the `/collections` route is not generated (visiting it returns a 404) and the article sidebar panel — including its mobile floating entry — is hidden. Collection-scoped prev/next keeps working: it reads the collection assignments from the post index, not from the page.
+When `false` (or when the plugin is removed), the `/collection` route is not generated (visiting it returns a 404), the article sidebar panel — including its mobile floating entry — disappears, and the homepage collection blocks vanish. Collection-scoped prev/next keeps working: it reads the collection assignments from the post index, not from the page.
 
 ### `post.collectionNav` — sidebar panel settings
 
@@ -132,7 +133,7 @@ post:
     alwaysCollapsed: false # true → never auto-expand on wide screens
 ```
 
-- `enabled` — master switch for the article sidebar panel. When `false`, the panel never renders, even if `collectionPage` is on.
+- `enabled` — master switch for the article sidebar panel. When `false`, the panel never renders, even if the plugin is on.
 - `alwaysCollapsed` — when `true`, the panel starts collapsed and never auto-expands on wide screens; the reader opens it explicitly.
 
 ### Prev/next — collection scope

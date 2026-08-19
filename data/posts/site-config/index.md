@@ -20,17 +20,27 @@ The file is read at build time by the Astro SSG. There is no runtime server, no 
 ```
 homepage      — identity and homepage layout (siteName, description, mode, cards, recent updates)
 appearance    — theme, accent, font, locale, performance mode
-search        — search suggestions, global search, full-text search
-comments      — master switch for the comment section on post pages (boolean)
-collectionPage / aboutPage / friendsPage — page toggles
 rss           — RSS feed toggle
 analytics     — multi-backend traffic analytics (GA / Cloudflare / Umami / Plausible / Baidu)
 post          — post-page settings (header meta, TOC, collection nav, end of article, comments)
 ```
 
+Then **one section per plugin**, each with its own `enabled` switch and configuration:
+
+```
+search             — search suggestions, global search, full-text search
+comments           — comment master switch + backend (waline, attitude, image upload)
+reading-experience — table of contents, end-of-article blocks
+friends            — the /friends page (data in friends.yml)
+collections        — the /collection page + collection navigation
+slides             — Marp slide rendering
+```
+
+Disabling a plugin (`enabled: false`) means its components and styles never enter the build — the feature simply disappears, as if it were never installed. This demo site ships with all plugins disabled so you can see the bare core; enable whichever you need.
+
 Two values that used to live in `site.yml` — the light/dark base background colors — now belong to `data/background/background.yml` together with the other background metadata. See the *Base colors* section under Appearance below.
 
-The Manager mirrors this structure under **Settings**: **Template** (Homepage / Appearance / Search tabs), **Post Page** (the `post` tree), plus **Collections**, **Friends** and **Author Profile**. Editor-level settings (window appearance, Git & preview, Reset) live under **Settings → System**.
+The Manager mirrors this structure under **Settings**: **Template** (Homepage / Appearance), **Post Page** (the `post` tree), plus a **Plugins** page listing every plugin with its own enable/disable toggle. Editor-level settings (window appearance, Git & preview, Reset) live under **Settings → System**.
 
 ### Quick start
 
@@ -203,27 +213,19 @@ Lets visitors search inside the body of your posts, not just titles, summaries, 
 
 ## Comments master switch (`comments`)
 
-A single boolean that toggles the comment section on post pages. This is the same flag the Post Page comments group refers to. When `false`, comment sections are not rendered at all, regardless of the per-post comment backend.
+The comments plugin section. `enabled` is the plugin master switch — when `false`, the comment section, attitude buttons, and the whole comments feature disappear from the build. Inside it, `comments` toggles the comment section on post pages specifically (the same flag the Post Page comments group refers to); when that is `false`, comment sections are not rendered at all, regardless of the per-post comment backend.
 
-## Page toggles (`collectionPage` / `aboutPage` / `friendsPage`)
+## Page toggles (`aboutPage`)
 
 | Field | Description | Datatype | Sample |
 | --- | --- | --- | --- |
-| `collectionPage` | Enable the `/collections` overview page and the collection navigation panel on post pages. | boolean | `true` |
 | `aboutPage` | Enable the about page, sourced from `data/__about__/index.md`. | boolean | `true` |
-| `friendsPage` | Enable the `/friends` page, driven by `data/friends.yml`. | boolean | `true` |
-
-### `collectionPage`
-
-Gates the entire collection system — the `/collections` overview, the article sidebar nav panel, and the mobile floating button. Turn this off if you don't use collections.
 
 ### `aboutPage`
 
 When enabled, generates the about page from `data/__about__/index.md` using the same markdown rendering pipeline as blog posts. If you haven't written an about page yet, leave this off to avoid an empty page.
 
-### `friendsPage`
-
-Enables the `/friends` page driven by `data/friends.yml` (global style + cards). When disabled, the route returns a 404 and no nav link appears. The data file can still exist — it's just not rendered.
+> **Collections and friends pages are no longer toggled from `site.yml`.** They are plugins: enable the `collections` / `friends` section (`enabled: true`) and the `/collection` / `/friends` pages appear with their navigation links; disable them and the routes return 404 and no nav link appears. The data files (`collections.yml`, `friends.yml`) can still exist — they're just not rendered. See the [Collections Guide](post://c8n-config) and [Friends Management](post://friend-config).
 
 ## RSS (`rss`)
 

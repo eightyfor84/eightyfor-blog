@@ -13,25 +13,24 @@ font: sans
 
 ## Where the settings live
 
-Comments are driven by two separate settings — keep them apart:
+Comments are a **plugin**. Settings live in the `comments` section of `site.yml`, with two levels of switch:
 
 | Key | Type | Role |
 | --- | --- | --- |
-| `comments` (top level) | boolean | Master switch. `false` hides the comment section on every post. |
-| `post.comments` (inside the `post` block) | object | Backend selection + connection settings. Read only when `comments` is `true`. |
-
-`post.comments` is a subtree of the `post` block in `site.yml` — not a top-level `comment` key:
+| `comments.enabled` | boolean | Plugin master switch. `false` removes comments (and attitude buttons) from the build entirely. |
+| `comments.comments` | boolean | Comment section switch on post pages. `false` hides the comment section even while the plugin is on. |
+| `comments.backend` + friends | object | Backend selection + connection settings. Read only when `comments.comments` is `true`. |
 
 ```yaml
 # data/site.yml
-comments: true                # master switch (top level)
-post:
-  comments:
-    backend: waline           # "" (static) or "waline"
-    walineServerUrl: https://waline-xxx.vercel.app
+comments:
+  enabled: true               # plugin master switch
+  comments: true              # comment section on post pages
+  backend: waline             # "" (static) or "waline"
+  walineServerUrl: https://waline-xxx.vercel.app
 ```
 
-`post.comments` is only meaningful when the top-level `comments` flag is enabled. If you just want to turn comments off everywhere, set `comments: false` and ignore the rest.
+`comments.comments` is only meaningful when `comments.enabled` is on. If you just want to turn comments off everywhere, set `comments.enabled: false` (or `comments.comments: false` to keep the plugin but hide the section).
 
 ## Choosing a backend
 
