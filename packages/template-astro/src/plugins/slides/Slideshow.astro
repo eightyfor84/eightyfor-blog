@@ -4,6 +4,7 @@ import './styles/slideshow.css';
 // Reads post content directly from data source (no base64 encoding needed).
 
 import { dataSource } from "../../data";
+import { getPluginSlot } from "../registry";
 import {
   chronicleLightCSS,
   chronicleDarkCSS,
@@ -31,7 +32,8 @@ const postMeta = {
   tags: post?.tags || [],
 };
 const collectionUrl = locale === "en" ? "/en/collection" : "/collection";
-const searchUrl = locale === "en" ? "/en/search?tags=" : "/search?tags=";
+// tag 链接随 search 插件注册（post-tags 槽位）——搜索禁用/删除 → 链接消失
+const PostTagsSlot = getPluginSlot('post-tags');
 
 let slideHTML = "";
 let slideCSS = "";
@@ -202,19 +204,10 @@ if (md.trim()) {
             )
           }
           {
-            postMeta.tags.length > 0 && (
+            postMeta.tags.length > 0 && PostTagsSlot && (
               <div class="slide-info-row">
                 <span class="slide-info-label">Tags</span>
-                <span class="slide-info-tags">
-                  {postMeta.tags.map((tag: string) => (
-                    <a
-                      href={searchUrl + encodeURIComponent(tag)}
-                      class="slide-tag-chip"
-                    >
-                      {tag}
-                    </a>
-                  ))}
-                </span>
+                <PostTagsSlot tags={postMeta.tags} routeLang={locale === 'en' ? 'en' : 'zh'} variant="slide" />
               </div>
             )
           }
