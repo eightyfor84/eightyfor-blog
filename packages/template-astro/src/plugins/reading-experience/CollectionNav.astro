@@ -1,0 +1,261 @@
+---
+import './styles/collection-nav.css';
+import { dataSource } from '../../data';
+// Collection navigation panel — dual-mode: desktop sidebar + mobile inline.
+// variant="sidebar" (default): fixed sidebar with collapse. variant="inline": plain panel for CornerButton.
+interface Props {
+  postId?: string;
+  mountToBody?: boolean;
+  variant?: "sidebar" | "inline";
+  /** 3.1.x — always collapsed: never auto-expand on wide screens. */
+  defaultCollapsed?: boolean;
+}
+const { postId = "", mountToBody = true, variant = "sidebar", defaultCollapsed: defaultCollapsedProp } = Astro.props as Props;
+
+// 配置自读（交集式）：合集导航开关/折叠初态来自 collections.yml 的 post.collectionNav
+// （normalizePostConfig 归一化键名为 postCollectionNav——含 enabled + alwaysCollapsed）
+const _navCfg = (dataSource.getPublicSettings() as any)?.post?.postCollectionNav || {};
+const _navEnabled = _navCfg.enabled !== false;
+const defaultCollapsed = defaultCollapsedProp !== undefined ? defaultCollapsedProp : _navCfg.alwaysCollapsed === true;
+
+// ── 数据自读（插件自包含，交集式：数据经 DataSource——collections 插件提供）──
+// 合集功能禁用由 capability 探测（provides）拦截（槽位不注入），组件不预知开关键
+const collections: any[] = (dataSource.getCollections?.() as any)?.collections || [];
+const postTitles: Record<string, string> = {};
+const postTypes: Record<string, string> = {};
+try {
+  for (const p of dataSource.getPublishedPosts()) {
+    postTitles[String(p.id)] = String(p.title || '').trim();
+    postTypes[String(p.id)] = String(p.type || 'article').trim();
+  }
+} catch { /* 数据缺失降级为空 */ }
+
+function esc(s: string) {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+function has(n: any[] | undefined, pid: string): boolean {
+  if (!Array.isArray(n)) return false;
+  for (const x of n) {
+    if (x?.type === "post" && String(x.id) === pid) return true;
+    if (x?.children && has(x.children, pid)) return true;
+  }
+  return false;
+}
+function find(cols: any[], pid: string): any[] {
+  return cols.filter((c: any) => has(c.nodes, pid));
+}
+function iconFor(pid: string): string {
+  const st = postTypes[pid] || 'article';
+  if (st === 'slides') {
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M 2 12 L 2 22 L 14 22 L 14 12 Z"></path><path d="M 6 10 L 6 8 L 18 8 L 18 18 L 16 18"></path><path d="M 10 6 L 10 4 L 22 4 L 22 14 L 20 14"></path></svg>';
+  }
+  return '<svg viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 2v6h6" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/></svg>';
+}
+function tree(n: any[] | undefined, p: string, active: string): string {
+  if (!Array.isArray(n) || !n.length) return "";
+  return (
+    "<ul>" +
+    n
+      .map((x, i) => {
+        const np = p + "-" + i;
+        if (x.type === "post") {
+          const id = String(x.id || ""),
+            t = esc(postTitles[id] || id),
+            ac = active && id === active ? " active" : "";
+          return (
+            '<li><div class="ct-card post' +
+            ac +
+            '" tabindex="0" role="link" data-pid="' +
+            esc(id) +
+            '"' +
+            (ac ? ' aria-current="true"' : "") +
+            '><span class="ct-icon">' + iconFor(id) + '</span><span class="ct-title">' +
+            t +
+            "</span></div></li>"
+          );
+        }
+        const gt = esc(String(x.title || x.name || "Group")),
+          ch = tree(x.children, np, active),
+          ex = !!(active && has(x.children, active));
+        return (
+          '<li><div class="ct-card group' +
+          (ex ? " active" : "") +
+          '" tabindex="0" role="button" data-gk="' +
+          esc(np) +
+          '"><span class="ct-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg></span><span class="ct-title">' +
+          gt +
+          '</span></div><div class="ct-children"' +
+          (ex ? "" : " hidden") +
+          ">" +
+          ch +
+          "</div></li>"
+        );
+      })
+      .join("") +
+    "</ul>"
+  );
+}
+
+const matched = postId ? find(collections, postId) : [];
+const activeCol =
+  matched.length > 0
+    ? matched[0]
+    : collections.length > 0
+      ? collections[0]
+      : null;
+const treeHtml = activeCol ? tree(activeCol.nodes, "r", postId) : "";
+const navTitle = activeCol ? String(activeCol.name || "") : "";
+const hasMultiple = matched.length > 1;
+const isSidebar = variant === "sidebar";
+const rootId = isSidebar ? "collection-nav-root" : "collection-nav-inline";
+---
+
+{_navEnabled && collections.length > 0 && (
+<div
+  id={rootId}
+  class="cn-panel collapsed"
+  data-cn-variant={variant}
+  data-mount-to-body={isSidebar ? String(mountToBody) : "false"}
+  data-post-id={postId}
+  data-in-collection={matched.length > 0 ? "true" : undefined}
+  data-always-collapsed={defaultCollapsed ? "true" : undefined}
+>
+  <div class="cn-header">
+    <div class="cn-header-title">
+      <span class="cn-header-icon"
+        ><svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          ><path d="M 12 2 L 21 8 L 12 14 L 3 8 Z"></path><path
+            d="M 18 14 L 21 16 L 12 22 L 3 16 L 6 14"></path></svg
+        ></span
+      >
+      {
+        hasMultiple ? (
+          <select class="cn-switcher">
+            {matched.map((c: any, i: number) => (
+              <option value={String(i)} data-name={c.name}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <span class="cn-header-text">{navTitle}</span>
+        )
+      }
+    </div>
+  </div>
+  <div class="cn-body">
+    {
+      treeHtml ? (
+        <div class="cn-tree" set:html={treeHtml} />
+      ) : (
+        <div class="cn-empty">No posts in this collection</div>
+      )
+    }
+  </div>
+</div>
+)}
+
+<script>
+  (() => {
+    const _roots=new Set<HTMLElement>();
+    function setup() {
+      _roots.clear();
+      document.querySelectorAll(".cn-panel[data-cn-variant]").forEach((r) => {
+        if (!(r instanceof HTMLElement)) return;
+        if(_roots.has(r))return;_roots.add(r);
+        if (
+          r.dataset.mountToBody === "true" &&
+          r.parentElement !== document.body
+        )
+          document.body.appendChild(r);
+        if (r.dataset.cnVariant === "sidebar") {
+          // 可折叠态（rail）由 @media (max-width:1199px) 定义；"始终折叠"开关
+          // 把 ≥1200px 也切进这个模式：默认收起成 rail、hover 探头、离开收回。
+          // 正文容器左间距只由可折叠态决定（CSS），hover 探头不动容器。
+          const alwaysCollapsed = r.dataset.alwaysCollapsed === "true";
+          function expand() {
+            r.classList.remove("collapsed");
+            r.classList.add("expanded");
+          }
+          function collapse() {
+            r.classList.add("collapsed");
+            r.classList.remove("expanded");
+          }
+          function P() {
+            const w = window.innerWidth;
+            // 非可折叠态（≥1200px 且未开始终折叠）常展开；其余为可折叠态默认收起
+            if (w >= 1200 && !alwaysCollapsed) expand();
+            else collapse();
+          }
+          let ct2: number | undefined;
+          r.addEventListener("pointerenter", () => {
+            if (ct2) { clearTimeout(ct2); ct2 = undefined; }
+            expand();
+          });
+          r.addEventListener("pointerleave", () => {
+            if (window.innerWidth < 1200 || alwaysCollapsed)
+              ct2 = window.setTimeout(() => {
+                collapse();
+              }, 700);
+          });
+          window.addEventListener("resize", P);
+          P();
+          document.addEventListener(
+            "astro:before-swap",
+            () => {
+              window.removeEventListener("resize", P);
+              if (ct2) clearTimeout(ct2);
+              if (r.parentElement) r.parentElement.removeChild(r);
+            },
+            { once: true },
+          );
+        }
+        r.addEventListener("click", (e) => {
+          const t = e.target as HTMLElement;
+          if (!t) return;
+          const gh = t.closest(".ct-card.group");
+          if (gh) {
+            const ch = gh.parentElement?.querySelector(":scope>.ct-children") as HTMLElement | null;
+            if (!ch) return;
+            ch.hidden = !ch.hidden;
+            gh.classList.toggle("active", !ch.hidden);
+            return;
+          }
+          const pc = t.closest(".ct-card.post") as HTMLElement | null;
+          if (pc && pc.dataset.pid) {
+            const p = window.location.pathname.startsWith("/en")
+              ? "/en"
+              : "/zh";
+            window.location.href =
+              p + "/post/" + encodeURIComponent(pc.dataset.pid);
+          }
+        });
+        r.addEventListener("keydown", (e) => {
+          if (!e || !e.target || (e.key !== "Enter" && e.key !== " ")) return;
+          const a = (e.target as HTMLElement).closest(".ct-card") as HTMLElement | null;
+          if (a) {
+            e.preventDefault();
+            a.click();
+          }
+        });
+      });
+    }
+    document.addEventListener("astro:before-swap",()=>{_roots.forEach(r=>{if(r.parentElement)r.parentElement.removeChild(r)});_roots.clear()});
+    document.addEventListener("astro:page-load", setup);
+  })();
+</script>
+
+

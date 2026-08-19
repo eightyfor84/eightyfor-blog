@@ -1,0 +1,869 @@
+---
+import './styles/slideshow.css';
+// Chronicle Slideshow — Marp-based slide rendering at SSG build time.
+// Reads post content directly from data source (no base64 encoding needed).
+
+import { dataSource } from "../../data";
+import TagLinks from "../../components/TagLinks.astro";
+import {
+  chronicleLightCSS,
+  chronicleDarkCSS,
+} from "@chronicle/shared/src/styles/chronicle-marp-theme.ts";
+import marpCore from "@marp-team/marp-core";
+
+interface Props {
+  id: string;
+  locale?: string;
+  config?: { theme?: string; ratio?: string; footer?: string };
+  collectionEnabled?: boolean;
+}
+
+const { id, locale = "zh", config = {}, collectionEnabled = true } = Astro.props as Props;
+const post = dataSource.getPostById(id);
+const md = post?.content || "";
+const ratio = config.ratio || "16:9";
+const postMeta = {
+  title: post?.title || "",
+  author: post?.author || "",
+  date: post?.date || "",
+  updatedAt: post?.updatedAt || "",
+  collection: post?.collection || "",
+  collectionPath: post?.collectionPath || "",
+  tags: post?.tags || [],
+};
+const collectionUrl = locale === "en" ? "/en/collection" : "/collection";
+// tag 展示是 core 功能（TagLinks 组件）；搜索可用时才渲染为链接——搜索禁用时降级纯展示
+
+let slideHTML = "";
+let slideCSS = "";
+let totalSlides = 0;
+
+if (md.trim()) {
+  const Marp = (marpCore as any).default || marpCore;
+
+  // Parse frontmatter for accent-color and tinted-bg
+  let accent = "#2563eb";
+  let tintedBg = false;
+  const fmMatch = md.match(/^---\n([\s\S]*?)\n---/);
+  if (fmMatch) {
+    const fm = fmMatch[1];
+    let raw = (
+      fm.match(/accent-color:\s*"?([^"\n]+)"?/)?.[1] ||
+      fm.match(/^accent:\s*(\S+)/m)?.[1] ||
+      ""
+    ).trim();
+    if (raw && raw !== "default") {
+      accent = raw.startsWith("#") ? raw : `#${raw}`;
+    }
+    tintedBg = fm.match(/^tinted-bg:\s*(\S+)/m)?.[1] === "true";
+  }
+
+  const marp = new Marp({
+    html: true,
+    math: "katex",
+    markdown: { breaks: false },
+  });
+
+  // Register Chronicle themes with parsed accent
+  try {
+    marp.themeSet.add(chronicleLightCSS(accent, tintedBg));
+  } catch (e) {
+    console.error("[Slideshow] Failed to register chronicle theme:", e);
+  }
+  try {
+    marp.themeSet.add(chronicleDarkCSS(accent, tintedBg));
+  } catch (e) {
+    console.error("[Slideshow] Failed to register chronicle-dark theme:", e);
+  }
+
+  try {
+    const r = marp.render(md);
+    slideHTML = r.html;
+    slideCSS = r.css;
+    totalSlides = (slideHTML.match(/<\/section>/g) || []).length;
+  } catch (e) {
+    console.error("[Slideshow] marp.render failed:", e);
+    slideHTML = `<section><pre>${md.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre></section>`;
+  }
+}
+---
+
+<div
+  class="chronicle-slideshow"
+  id="chronicle-slideshow"
+  data-total={totalSlides}
+>
+  <style set:html={slideCSS}></style>
+  <div class="slides-container">
+    <div class="slides-viewport" id="slides-viewport">
+      <div class="marp-slides-wrap marp-slides-browse" id="marp-slides-browse">
+        <div class="marp-slides" set:html={slideHTML} />
+      </div>
+      <div
+        class="marp-slides-wrap marp-slides-present"
+        id="marp-slides-present"
+        style="display:none"
+      >
+        <div class="marp-slides" set:html={slideHTML} />
+      </div>
+    </div>
+    <div class="slides-controls no-print">
+      <a
+        class="icon-btn"
+        href="../../blogs/"
+        class="slide-back-link"
+        title="Back to blogs"
+        ><svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          ><line x1="18" y1="6" x2="6" y2="18"></line><line
+            x1="6"
+            y1="6"
+            x2="18"
+            y2="18"></line></svg
+        ></a
+      >
+      <button class="icon-btn" id="slide-info" title="Post info"
+        ><svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          ><circle cx="12" cy="12" r="10"></circle><line
+            x1="12"
+            y1="16"
+            x2="12"
+            y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg
+        ></button
+      >
+      <div class="slide-info-popup" id="slide-info-popup" style="display:none">
+        <div class="slide-info-content">
+          {postMeta.title && <h3 class="slide-info-title">{postMeta.title}</h3>}
+          {
+            postMeta.author && (
+              <div class="slide-info-row">
+                <>
+                  <span class="slide-info-label">Author</span>
+                  <span>{postMeta.author}</span>
+                </>
+              </div>
+            )
+          }
+          {
+            postMeta.date && (
+              <div class="slide-info-row">
+                <>
+                  <span class="slide-info-label">Created</span>
+                  <span>
+                    {new Date(postMeta.date).toLocaleDateString(
+                      locale === "en" ? "en-US" : "zh-CN",
+                    )}
+                  </span>
+                </>
+              </div>
+            )
+          }
+          {
+            postMeta.updatedAt && postMeta.updatedAt !== postMeta.date && (
+              <div class="slide-info-row">
+                <>
+                  <span class="slide-info-label">Updated</span>
+                  <span>
+                    {new Date(postMeta.updatedAt).toLocaleDateString(
+                      locale === "en" ? "en-US" : "zh-CN",
+                    )}
+                  </span>
+                </>
+              </div>
+            )
+          }
+          {
+            postMeta.collection && collectionEnabled && (
+              <a
+                href={
+                  collectionUrl + "#" + encodeURIComponent(postMeta.collection)
+                }
+                class="slide-info-row slide-info-link"
+              >
+                <span class="slide-info-label">Collection</span>
+                <span>{postMeta.collection}</span>
+              </a>
+            )
+          }
+          {
+            postMeta.tags.length > 0 && (
+              <div class="slide-info-row">
+                <span class="slide-info-label">Tags</span>
+                <TagLinks tags={postMeta.tags} routeLang={locale === 'en' ? 'en' : 'zh'} variant="slide" />
+              </div>
+            )
+          }
+        </div>
+      </div>
+      <button class="icon-btn" id="slide-prev" title="Previous (←)"
+        ><svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          ><polyline points="15 6 9 12 15 18"></polyline></svg
+        ></button
+      >
+      <button class="slide-counter" id="slide-counter" title="Slide overview"
+        >1 / {totalSlides}</button
+      >
+      <div class="slide-toc-popup" id="slide-toc-popup" style="display:none">
+        <div class="slide-toc-list" id="slide-toc-list"></div>
+      </div>
+      <button class="icon-btn" id="slide-next" title="Next (→)"
+        ><svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          ><polyline points="9 6 15 12 9 18"></polyline></svg
+        ></button
+      >
+      <span class="slide-view-spacer"></span>
+      <span class="slide-zoom-group" id="slide-zoom-group">
+        <button
+          class="icon-btn zoom-btn-inline"
+          id="slide-zoom-out"
+          title="Zoom out (Ctrl+scroll)"
+          ><svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            ><line x1="5" y1="12" x2="19" y2="12"></line></svg
+          ></button
+        >
+        <button class="slide-zoom-label" id="slide-zoom-label" title="Zoom"
+          >100%</button
+        >
+        <button
+          class="icon-btn zoom-btn-inline"
+          id="slide-zoom-in"
+          title="Zoom in (Ctrl+scroll)"
+          ><svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            ><line x1="12" y1="5" x2="12" y2="19"></line><line
+              x1="5"
+              y1="12"
+              x2="19"
+              y2="12"></line></svg
+          ></button
+        >
+        <button
+          id="slide-zoom-fit"
+          class="zoom-btn-inline icon-btn"
+          title="Fit to width"
+          ><svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            ><rect x="3" y="6" width="18" height="12" rx="2"></rect><polyline
+              points="9 9 6 12 9 15"></polyline><polyline
+              points="15 9 18 12 15 15"></polyline></svg
+          ></button
+        >
+        <div class="slide-zoom-popup" id="slide-zoom-popup" style="display:none">
+          <button
+            class="icon-btn"
+            id="slide-zoom-out-m"
+            title="Zoom out (Ctrl+scroll)"
+            ><svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              ><line x1="5" y1="12" x2="19" y2="12"></line></svg
+            ></button
+          >
+          <span id="slide-zoom-value-m">100%</span>
+          <button
+            class="icon-btn"
+            id="slide-zoom-in-m"
+            title="Zoom in (Ctrl+scroll)"
+            ><svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              ><line x1="12" y1="5" x2="12" y2="19"></line><line
+                x1="5"
+                y1="12"
+                x2="19"
+                y2="12"></line></svg
+            ></button
+          >
+          <button id="slide-zoom-fit-m" class="icon-btn" title="Fit to width"
+            ><svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              ><rect x="3" y="6" width="18" height="12" rx="2"></rect><polyline
+                points="9 9 6 12 9 15"></polyline><polyline
+                points="15 9 18 12 15 15"></polyline></svg
+            ></button
+          >
+        </div>
+      </span>
+      <button
+        class="icon-label-btn"
+        id="slide-view-browse"
+        class="active"
+        title="Browse all slides"
+      >
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          aria-hidden="true"
+          ><rect
+            x="3"
+            y="3"
+            width="18"
+            height="7"
+            rx="1"
+            stroke="currentColor"
+            stroke-width="1.5"></rect><rect
+            x="3"
+            y="14"
+            width="18"
+            height="7"
+            rx="1"
+            stroke="currentColor"
+            stroke-width="1.5"></rect></svg
+        >
+        <span class="label">Browse</span>
+      </button>
+      <button
+        class="icon-label-btn"
+        id="slide-view-present"
+        title="Present one slide"
+      >
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          aria-hidden="true"
+          ><polygon
+            points="7,4 20,12 7,20"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linejoin="round"></polygon></svg
+        >
+        <span class="label">Present</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+
+  // ── Page lifecycle: recreate on every soft navigation ──
+  let scope: any
+  function createScope() {
+    const listeners: any[] = [], bodyNodes: HTMLElement[] = [];
+    return {
+      on(ev: string, fn: EventListener, opts?: any) { document.addEventListener(ev, fn, opts); listeners.push({ t: document, ev, fn, opts }); },
+      onEl(el: EventTarget, ev: string, fn: EventListener, opts?: any) { el.addEventListener(ev, fn, opts); listeners.push({ t: el, ev, fn, opts }); },
+      toBody(el: HTMLElement) { document.body.appendChild(el); bodyNodes.push(el); },
+      destroy() {
+        listeners.forEach((l: any) => l.t.removeEventListener(l.ev, l.fn, l.opts));
+        listeners.length = 0;
+        bodyNodes.forEach((el: HTMLElement) => el.remove());
+        bodyNodes.length = 0;
+      }
+    };
+  }
+
+  function setupPage() {
+  const el = document.getElementById("chronicle-slideshow");
+  if (!el) return; // not a slideshow page — silently skip
+  scope = createScope()
+  const browseBox = document.getElementById("marp-slides-browse")!;
+  const presentBox = document.getElementById("marp-slides-present")!;
+  const browseSlides = browseBox.querySelector(".marp-slides")! as HTMLElement;
+  const total = parseInt(el.dataset.total || "0");
+  let current = 0;
+  let viewMode: "present" | "browse" = "browse";
+
+  function updateView() {
+    const isPresent = viewMode === "present";
+    // Set html.focus FIRST so CSS display:flex is active before clearing inline display:none
+    document.documentElement.classList.toggle("focus", isPresent);
+    browseBox.style.display = isPresent ? "none" : "";
+    presentBox.style.display = isPresent ? "" : "none";
+    if (isPresent) {
+      const svgs = presentBox.querySelectorAll("[data-marpit-svg]");
+      svgs.forEach((s: any, i: number) => {
+        s.style.display = i === current ? "" : "none";
+      });
+    }
+    document
+      .getElementById("slide-view-present")
+      ?.classList.toggle("active", isPresent);
+    document
+      .getElementById("slide-view-browse")
+      ?.classList.toggle("active", !isPresent);
+    document.getElementById("slide-counter")!.textContent =
+      `${current + 1} / ${total}`;
+    updateZoomUI();
+    updateTocActive();
+  }
+
+  // ── Slide TOC popup ──
+  const tocPopup = document.getElementById("slide-toc-popup")!;
+  const tocList = document.getElementById("slide-toc-list")!;
+  const slideCounter = document.getElementById("slide-counter")!;
+  let tocBuilt = false;
+
+  function getSlideTitle(el: Element): string {
+    // Try to extract first heading from the SVG's foreignObject section
+    const section = el.querySelector("section[id], section");
+    if (!section) return "";
+    const h = section.querySelector("h1, h2, h3, h4, h5, h6");
+    if (h)
+      return (h.textContent || "").replace(/\s+/g, " ").trim().slice(0, 50);
+    // Fallback: first line of text content
+    const text = (section.textContent || "").replace(/\s+/g, " ").trim();
+    return text.slice(0, 50);
+  }
+
+  function buildTocList() {
+    if (tocBuilt) return;
+    const slides = getSlideEls();
+    tocList.innerHTML = "";
+    slides.forEach((el, i) => {
+      const item = document.createElement("div");
+      item.className = "slide-toc-item";
+      const title = getSlideTitle(el);
+      item.innerHTML = `<span class="slide-toc-num">${i + 1}</span><span class="slide-toc-title">${title || `Slide ${i + 1}`}</span>`;
+      item.addEventListener("click", (e) => {
+        e.stopPropagation();
+        current = i;
+        if (viewMode === "browse") scrollToSlide(i);
+        updateView();
+        hidePopup(tocPopup);
+      });
+      tocList.appendChild(item);
+    });
+    tocBuilt = true;
+  }
+
+  function updateTocActive() {
+    if (!tocBuilt) return;
+    const items = tocList.querySelectorAll(".slide-toc-item");
+    items.forEach((item, i) => item.classList.toggle("active", i === current));
+  }
+
+  slideCounter.addEventListener("click", (e) => {
+    e.stopPropagation();
+    buildTocList();
+    updateTocActive();
+    togglePopup(tocPopup, slideCounter);
+  });
+
+  scope.on("click", (e: { target: Node; }) => {
+    if (!tocPopup.contains(e.target as Node) && e.target !== slideCounter) {
+      hidePopup(tocPopup);
+    }
+    if (
+      !infoPopup.contains(e.target as Node) &&
+      (e.target as HTMLElement).id !== "slide-info"
+    ) {
+      hidePopup(infoPopup);
+    }
+  });
+
+  // ── Post info popup ──
+  const infoPopup = document.getElementById("slide-info-popup")!;
+  document.getElementById("slide-info")!.addEventListener("click", (e) => {
+    e.stopPropagation();
+    // Close TOC if open
+    tocPopup.style.display = "none";
+    togglePopup(infoPopup, e.target as HTMLElement);
+  });
+
+  scope.on("keydown", (e: { key: string; }) => {
+    if (e.key === "Escape") {
+      hidePopup(tocPopup);
+      hidePopup(infoPopup);
+      hidePopup(zoomPopup);
+    }
+  });
+
+  function getSlideEls() {
+    let els = browseBox.querySelectorAll("svg[data-marpit-svg]");
+    if (els.length === 0) els = browseBox.querySelectorAll(".marpit");
+    if (els.length === 0)
+      els = browseBox.querySelector(".marp-slides")?.children as any;
+    return els || [];
+  }
+  function scrollToSlide(index: number) {
+    const slides = getSlideEls();
+    if (slides[index]) {
+      const boxRect = browseBox.getBoundingClientRect();
+      const elRect = slides[index].getBoundingClientRect();
+      browseBox.scrollTop +=
+        elRect.top - boxRect.top + elRect.height / 2 - boxRect.height / 2;
+    }
+  }
+  function next() {
+    if (current < total - 1) {
+      current++;
+      if (viewMode === "browse") scrollToSlide(current);
+      updateView();
+    }
+  }
+  function prev() {
+    if (current > 0) {
+      current--;
+      if (viewMode === "browse") scrollToSlide(current);
+      updateView();
+    }
+  }
+
+  scope.on("keydown", (e: { target: HTMLElement; key: any; preventDefault: () => void; }) => {
+    if ((e.target as HTMLElement)?.closest("input,textarea")) return;
+    switch (e.key) {
+      case "ArrowRight":
+      case "PageDown":
+      case " ":
+        e.preventDefault();
+        next();
+        break;
+      case "ArrowLeft":
+      case "PageUp":
+        e.preventDefault();
+        prev();
+        break;
+      case "Home":
+        e.preventDefault();
+        current = 0;
+        if (viewMode === "browse") scrollToSlide(0);
+        updateView();
+        break;
+      case "End":
+        e.preventDefault();
+        current = total - 1;
+        if (viewMode === "browse") scrollToSlide(current);
+        updateView();
+        break;
+      case "Escape":
+        if (viewMode === "present") {
+          e.preventDefault();
+          viewMode = "browse";
+          updateView();
+        }
+        break;
+    }
+  });
+
+  // Click on present background → exit to browse
+  document.querySelector(".slides-container")?.addEventListener("click", (e) => {
+    if (viewMode === "present" && e.target === e.currentTarget) {
+      viewMode = "browse";
+      updateView();
+    }
+  });
+
+
+  let tx = 0;
+  scope.on("touchstart", (e: { touches: { clientX: number; }[]; }) => {
+    tx = e.touches[0].clientX;
+  });
+  scope.on("touchend", (e: { changedTouches: { clientX: number; }[]; }) => {
+    const dx = e.changedTouches[0].clientX - tx;
+    if (Math.abs(dx) > 50) dx > 0 ? prev() : next();
+  });
+
+  document.getElementById("slide-prev")?.addEventListener("click", prev);
+  document.getElementById("slide-next")?.addEventListener("click", next);
+  document
+    .getElementById("slide-view-present")
+    ?.addEventListener("click", () => {
+      browseZoom = zoom;
+      viewMode = "present";
+      updateView();
+    });
+  document
+    .getElementById("slide-view-browse")
+    ?.addEventListener("click", () => {
+      viewMode = "browse";
+      updateView();
+    });
+
+  // ── Zoom (Browse only) ──
+  const zoomLabel = document.getElementById("slide-zoom-label")!;
+  const zoomGroup = document.getElementById("slide-zoom-group")!;
+  const zoomPopup = document.getElementById("slide-zoom-popup")!;
+  ;[tocPopup, infoPopup, zoomPopup].forEach((p) => scope.toBody(p));
+
+  // Popup positioning relative to trigger buttons
+  function positionPopup(popup: HTMLElement, trigger: HTMLElement) {
+    const r = trigger.getBoundingClientRect();
+    const anchorX = r.left + r.width / 2;
+    // Half popup width + 8px margin — cached so we only measure once
+    if (!popup.dataset._halfW) {
+      const prev = popup.style.display;
+      popup.style.display = 'block'; popup.style.visibility = 'hidden';
+      popup.dataset._halfW = String(popup.offsetWidth / 2 + 8 || 100);
+      popup.style.display = prev; popup.style.visibility = '';
+    }
+    const pad = popup.dataset._halfW;
+    popup.style.position = 'fixed';
+    popup.style.top = 'auto';
+    popup.style.bottom = (window.innerHeight - r.top + 12) + 'px';
+    popup.style.left = `clamp(${pad}px, ${anchorX}px, calc(100vw - ${pad}px))`;
+  }
+  function showPopup(popup: HTMLElement, trigger: HTMLElement) {
+    [tocPopup, infoPopup, zoomPopup].forEach(p => { if (p !== popup) hidePopup(p) });
+    positionPopup(popup, trigger);
+    popup.style.display = popup === zoomPopup ? 'flex' : 'block';
+    popup.classList.remove('slide-popup');
+    void popup.offsetHeight;
+    popup.classList.add('slide-popup');
+  }
+  function hidePopup(popup: HTMLElement) { popup.style.display = 'none'; popup.classList.remove('slide-popup'); }
+  function togglePopup(popup: HTMLElement, trigger: HTMLElement) { popup.style.display === 'none' ? showPopup(popup, trigger) : hidePopup(popup); }
+
+  const zoomValueM = document.getElementById("slide-zoom-value-m")!;
+  let browseZoom = 1;
+  let zoom = 1;
+  let zooming = false;
+  const ZOOM_MIN = 0.2;
+  const ZOOM_MAX = 4;
+  const ZOOM_DEFAULT_MAX = 1;
+  const ZOOM_STEP = 0.1;
+  function setZoom(z: number) {
+    zoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z));
+    const idx = current;
+    zooming = true;
+    browseSlides.style.setProperty("--slide-zoom", String(zoom));
+    // getBoundingClientRect in scrollToSlide forces sync reflow → zoom + scroll in one frame
+    scrollToSlide(idx);
+    zooming = false;
+    const text = Math.round(zoom * 100) + "%";
+    zoomLabel.textContent = text;
+    zoomValueM.textContent = text;
+  }
+  scope.on(
+    "wheel",
+    (e: { ctrlKey: boolean; deltaY: number; preventDefault: () => void; }) => {
+      // Browse mode + Ctrl: zoom
+      if (viewMode === "browse" && e.ctrlKey) {
+        e.preventDefault();
+        setZoom(zoom - Math.sign(e.deltaY) * ZOOM_STEP);
+        return;
+      }
+      // Present mode: scroll to navigate slides (skip if inside a popup)
+      if (viewMode === "present") {
+        if (((e as any).target as HTMLElement).closest('.slide-popup')) return;
+        e.preventDefault();
+        if (e.deltaY > 0) next();
+        else if (e.deltaY < 0) prev();
+      }
+    },
+    { passive: false },
+  );
+  document
+    .getElementById("slide-zoom-out")
+    ?.addEventListener("click", () => setZoom(zoom - ZOOM_STEP));
+  document
+    .getElementById("slide-zoom-in")
+    ?.addEventListener("click", () => setZoom(zoom + ZOOM_STEP));
+  function fitZoom() {
+    const vw = browseBox.clientWidth;
+    const fitPct = 10 * Math.floor((vw - 10) / 80);
+    setZoom(Math.min(Math.max(ZOOM_MIN, fitPct / 100), ZOOM_DEFAULT_MAX));
+  }
+  document
+    .getElementById("slide-zoom-fit")
+    ?.addEventListener("click", () => fitZoom());
+  // Popup buttons
+  document
+    .getElementById("slide-zoom-out-m")
+    ?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      setZoom(zoom - ZOOM_STEP);
+    });
+  document.getElementById("slide-zoom-in-m")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    setZoom(zoom + ZOOM_STEP);
+  });
+  document
+    .getElementById("slide-zoom-fit-m")
+    ?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      fitZoom();
+      hidePopup(zoomPopup);
+    });
+  // Label click → toggle popup
+  zoomLabel.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (window.matchMedia("(max-width: 768px)").matches)
+      togglePopup(zoomPopup, zoomLabel);
+  });
+  // Click outside → close
+  scope.on("click", (e: { target: Node; }) => {
+    if (!zoomGroup.contains(e.target as Node))
+      hidePopup(zoomPopup);
+  });
+  function updateZoomUI() {
+    zoomGroup.style.display = viewMode === "browse" ? "" : "none";
+  }
+  updateZoomUI();
+  fitZoom();
+
+  // ── Scroll detection: update current slide from browse scroll position ──
+  let scrollTicking = false;
+  scope.onEl(browseBox, "scroll", () => {
+    if (scrollTicking) return;
+    scrollTicking = true;
+    requestAnimationFrame(() => {
+      if (viewMode !== "browse" || zooming) {
+        scrollTicking = false;
+        return;
+      }
+      const boxRect = browseBox.getBoundingClientRect();
+      const viewMid = browseBox.scrollTop + browseBox.clientHeight / 2;
+      const slides = getSlideEls();
+      // Current slide = whose center is closest to viewport center
+      let newIdx = current;
+      let bestDist = Infinity;
+      slides.forEach((el, i) => {
+        const elRect = el.getBoundingClientRect();
+        const elMid =
+          browseBox.scrollTop + elRect.top - boxRect.top + elRect.height / 2;
+        const dist = Math.abs(elMid - viewMid);
+        if (dist < bestDist) {
+          bestDist = dist;
+          newIdx = i;
+        }
+      });
+      if (newIdx !== current) {
+        current = newIdx;
+        document.getElementById("slide-counter")!.textContent =
+          `${current + 1} / ${total}`;
+      }
+      scrollTicking = false;
+    });
+  });
+
+  const h = parseInt(location.hash.slice(1));
+  if (h >= 1 && h <= total) current = h - 1;
+  const saved = localStorage.getItem("chronicle-slides-view");
+  if (saved === "present") viewMode = "present";
+  updateView();
+  if (viewMode === "browse" && h >= 1) scrollToSlide(current);
+
+  // ── Mermaid client-side rendering ─────────────────
+  function renderMermaidBlocks(root: Element) {
+    const codes = root.querySelectorAll(
+      'code.language-mermaid, code[class*="mermaid"]',
+    );
+    if (!codes.length) return;
+    // Lazy-load mermaid and render each block
+    import("mermaid")
+      .then((mm: any) => {
+        const mermaidLib = (mm && mm.default) || mm;
+        mermaidLib.initialize({ startOnLoad: false, theme: "base" });
+        codes.forEach(async (code: Element, idx: number) => {
+          const pre = code.closest("pre");
+          const text = (code.textContent || "").trim();
+          if (!text || !pre) return;
+          try {
+            const id =
+              "mermaid_slide_" +
+              Date.now() +
+              "_" +
+              idx +
+              "_" +
+              Math.random().toString(36).slice(2, 6);
+            const { svg } = await mermaidLib.render(id, text);
+            const wrapper = document.createElement("div");
+            wrapper.className = "mermaid-prerendered";
+            wrapper.innerHTML = svg;
+            pre.replaceWith(wrapper);
+          } catch (e) {
+            /* render failed, keep raw code */
+          }
+        });
+      })
+      .catch(() => {});
+  }
+  // Render Mermaid in both browse and present slides
+  [browseBox, presentBox].forEach((box) => renderMermaidBlocks(box));
+
+  }
+
+  // ── Lifecycle: setup on every navigation, teardown on leave ──
+  document.addEventListener("astro:page-load", setupPage)
+  document.addEventListener("astro:before-swap", () => {
+    if (scope) { scope.destroy(); scope = null }
+    document.documentElement.classList.remove("focus")
+  })
+</script>
+

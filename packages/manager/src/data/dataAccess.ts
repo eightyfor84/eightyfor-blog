@@ -280,6 +280,24 @@ export async function writeText(relativePath: string, content: string): Promise<
   }
 }
 
+/** 插件 key 校验（防路径穿越：只允许小写字母/数字/连字符） */
+const PLUGIN_KEY_RE = /^[a-z0-9][a-z0-9-]*$/
+
+/**
+ * 删除插件（专用接口——只删 packages/template-astro/src/plugins/<key>，key 白名单校验，
+ * 不走通用 deleteDir，防误删任意路径）。
+ */
+export async function deletePlugin(pluginKey: string): Promise<boolean> {
+  if (!PLUGIN_KEY_RE.test(pluginKey)) return false
+  if (isElectron) {
+    return getBridge()!.invoke('fs:deletePlugin', pluginKey)
+  }
+  try {
+    const resp = await fetch(`/api/plugins/${encodeURIComponent(pluginKey)}`, { method: 'DELETE' })
+    return resp.ok
+  } catch { return false }
+}
+
 export async function deleteDir(relativePath: string): Promise<boolean> {
   if (isElectron) return getBridge()!.deleteDir(relativePath)
   // Route post directory deletions to /api/post, assets to /api/files

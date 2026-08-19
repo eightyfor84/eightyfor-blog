@@ -1,0 +1,311 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronicle:appearance",
+  "title": {
+    "en": "Appearance",
+    "zh-CN": "外观"
+  },
+  "type": "object",
+  "x-nav": {
+    "group": "template",
+    "icon": "palette",
+    "order": 2
+  },
+  "x-groups": {
+    "theme": {
+      "label": {
+        "en": "Theme",
+        "zh": "主题"
+      }
+    },
+    "background": {
+      "label": {
+        "en": "Background",
+        "zh-CN": "背景"
+      }
+    },
+    "locale": {
+      "label": {
+        "en": "Language & Region",
+        "zh": "语言与地区"
+      }
+    }
+  },
+  "properties": {
+    "appearance": {
+      "type": "object",
+      "x-widget": "fieldset",
+      "title": {
+        "en": "Appearance",
+        "zh-CN": "外观"
+      },
+      "properties": {
+        "theme": {
+          "type": "string",
+          "default": "follow",
+          "enum": [
+            "light",
+            "dark",
+            "follow"
+          ],
+          "x-widget": "select",
+          "x-tab": "template-appearance",
+          "x-group": "theme",
+          "x-order": 1,
+          "title": {
+            "en": "Default Color Scheme",
+            "zh-CN": "默认主题"
+          },
+          "x-options": [
+            {
+              "value": "light",
+              "label": {
+                "en": "Light",
+                "zh-CN": "浅色"
+              }
+            },
+            {
+              "value": "dark",
+              "label": {
+                "en": "Dark",
+                "zh-CN": "深色"
+              }
+            },
+            {
+              "value": "follow",
+              "label": {
+                "en": "Follow System",
+                "zh-CN": "跟随系统"
+              }
+            }
+          ]
+        },
+        "accent": {
+          "type": "string",
+          "default": "#36a32e",
+          "pattern": "^#[0-9a-fA-F]{6}$",
+          "x-widget": "color",
+          "x-tab": "template-appearance",
+          "x-group": "theme",
+          "x-order": 2,
+          "title": {
+            "en": "Accent Color",
+            "zh-CN": "强调色"
+          }
+        },
+        "font": {
+          "type": "string",
+          "default": "sans",
+          "enum": [
+            "sans",
+            "serif"
+          ],
+          "x-widget": "select",
+          "x-tab": "template-appearance",
+          "x-group": "theme",
+          "x-order": 3,
+          "title": {
+            "en": "Default Font",
+            "zh-CN": "默认字体"
+          },
+          "x-options": [
+            {
+              "value": "sans",
+              "label": {
+                "en": "Sans-serif",
+                "zh-CN": "无衬线体"
+              }
+            },
+            {
+              "value": "serif",
+              "label": {
+                "en": "Serif",
+                "zh-CN": "衬线体"
+              }
+            }
+          ]
+        },
+        "locale": {
+          "type": "string",
+          "default": "follow",
+          "enum": [
+            "follow",
+            "en",
+            "zh-CN",
+            "ja",
+            "ko",
+            "fr",
+            "de",
+            "es"
+          ],
+          "x-widget": "select",
+          "x-tab": "template-appearance",
+          "x-group": "locale",
+          "x-order": 1,
+          "title": {
+            "en": "Default Language",
+            "zh-CN": "默认语言"
+          },
+          "x-options": [
+            {
+              "value": "follow",
+              "label": {
+                "en": "Follow System",
+                "zh-CN": "跟随系统"
+              }
+            },
+            {
+              "value": "en",
+              "label": {
+                "en": "English",
+                "zh-CN": "英语 (English)"
+              }
+            },
+            {
+              "value": "zh-CN",
+              "label": {
+                "en": "Simplified Chinese (中文 (简体) )",
+                "zh-CN": "中文 (简体)"
+              }
+            },
+            {
+              "value": "ja",
+              "label": {
+                "en": "Japanese (日本語)",
+                "zh-CN": "日语 (日本語)"
+              }
+            },
+            {
+              "value": "ko",
+              "label": {
+                "en": "Korean (한국어)",
+                "zh-CN": "韩语 (한국어)"
+              }
+            },
+            {
+              "value": "fr",
+              "label": {
+                "en": "French (Français)",
+                "zh-CN": "法语 (Français)"
+              }
+            },
+            {
+              "value": "de",
+              "label": {
+                "en": "German (Deutsch)",
+                "zh-CN": "德语 (Deutsch)"
+              }
+            },
+            {
+              "value": "es",
+              "label": {
+                "en": "Spanish (Español)",
+                "zh-CN": "西语 (Español)"
+              }
+            }
+          ]
+        },
+        "defaultPerformanceMode": {
+          "type": "string",
+          "default": "auto",
+          "enum": [
+            "auto",
+            "full",
+            "reduced"
+          ],
+          "x-widget": "select",
+          "x-tab": "template-appearance",
+          "x-group": "theme",
+          "x-order": 99,
+          "title": {
+            "en": "Performance Mode",
+            "zh-CN": "性能模式"
+          },
+          "description": {
+            "en": "Auto: detect device capability. Full: all effects. Reduced: disable blur/glow/heavy animations for lower-end devices.",
+            "zh-CN": "auto=自动检测设备性能, full=全效果, reduced=禁用模糊/光晕等重效果以适配低端设备"
+          },
+          "x-options": [
+            {
+              "value": "auto",
+              "label": {
+                "en": "Auto",
+                "zh-CN": "自动"
+              }
+            },
+            {
+              "value": "full",
+              "label": {
+                "en": "Full Effects",
+                "zh-CN": "全效果"
+              }
+            },
+            {
+              "value": "reduced",
+              "label": {
+                "en": "Reduced",
+                "zh-CN": "流畅"
+              }
+            }
+          ]
+        },
+        "background": {
+          "type": "string",
+          "x-widget": "background-editor",
+          "x-group": "background",
+          "x-order": 0,
+          "title": {
+            "en": "Background Image",
+            "zh-CN": "背景图"
+          },
+          "x-persist": false,
+          "x-tab": "template-appearance",
+          "x-allow-video": true
+        },
+        "backgroundMeta": {
+          "type": "string",
+          "x-widget": "hidden",
+          "x-group": "background",
+          "x-order": 1,
+          "title": {
+            "en": "Background Meta",
+            "zh-CN": "背景元数据"
+          },
+          "x-persist": false,
+          "x-tab": "template-appearance"
+        },
+        "baseColorLight": {
+          "type": "string",
+          "x-widget": "color",
+          "x-group": "background",
+          "x-order": 14,
+          "title": {
+            "en": "Base Color (Light)",
+            "zh-CN": "基础背景色（浅色）"
+          },
+          "default": "",
+          "pattern": "^(|#[0-9a-fA-F]{6})$",
+          "x-allow-empty": true,
+          "x-tab": "template-appearance",
+          "x-file": "data/background/background.yml"
+        },
+        "baseColorDark": {
+          "type": "string",
+          "x-widget": "color",
+          "x-group": "background",
+          "x-order": 15,
+          "title": {
+            "en": "Base Color (Dark)",
+            "zh-CN": "基础背景色（深色）"
+          },
+          "default": "",
+          "pattern": "^(|#[0-9a-fA-F]{6})$",
+          "x-allow-empty": true,
+          "x-tab": "template-appearance",
+          "x-file": "data/background/background.yml"
+        }
+      },
+      "x-tab": "template-appearance"
+    }
+  }
+}

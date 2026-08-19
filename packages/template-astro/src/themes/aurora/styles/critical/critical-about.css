@@ -1,0 +1,110 @@
+/* ── Critical CSS: About page ─────────────────────────────────
+   Inlined in <head> to lock the profile-card geometry before the
+   async about.css loads (author card + title + links render in-flow —
+   without these, the async CSS reflows the page on arrival, CLS).
+   仅收录布局属性（尺寸/间距/显示/盒模型/断点）；装饰（颜色/阴影/渐变）不收。
+
+   Update in sync with: [lang]/about.astro → styles/pages/about.css
+   （about.astro 无 <style> 块，布局源在页面 css；bundled 后异步赢平局，安全）。 */
+
+.about-page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 48px 24px 64px;
+}
+
+.about-title {
+  font-size: 2.4rem;
+  font-weight: 700;
+  margin: 0 0 32px;
+  padding: 0 0 16px;
+}
+
+.about-empty {
+  padding: 48px 0;
+  text-align: center;
+  font-size: 1rem;
+}
+
+/* Profile Card — 作者卡片几何（核心 CLS 源：flex 行/列切换 + 头像尺寸） */
+.about-profile-card {
+  display: flex;
+  gap: 20px;
+  padding: 20px 24px;
+  margin: 0 0 36px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  align-items: center;
+}
+
+.about-avatar {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.about-profile-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.about-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  font-variation-settings: 'wght' 600;
+  margin: 0 0 6px;
+}
+
+.about-bio {
+  font-size: 0.95rem;
+  margin: 0 0 8px;
+  line-height: 1.55;
+}
+
+.about-location {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  margin: 0 0 6px;
+}
+
+.about-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.about-link {
+  display: inline-block;
+  padding: 4px 12px;
+  border: 1px solid var(--comp-border);
+  border-radius: 999px;
+  font-size: 0.85rem;
+}
+
+/* Last Modified */
+.about-last-modified {
+  margin-top: 40px;
+  padding-top: 16px;
+  border-top: 1px solid var(--comp-border);
+  font-size: 0.85rem;
+}
+
+.about-modified-label {
+  margin-right: 4px;
+}
+
+/* 移动端（注意：about 的断点是 600px，与全站 768px 不同——保持与 about.css 一致） */
+@media (max-width: 600px) {
+  .about-profile-card {
+    flex-direction: column;
+    text-align: center;
+  }
+  .about-links {
+    justify-content: center;
+  }
+}

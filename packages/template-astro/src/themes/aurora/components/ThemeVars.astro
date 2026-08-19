@@ -1,0 +1,43 @@
+---
+// ── 主题 SSR 变量（head，critical tokens 之后注入）────────
+// accent / 字体栈 / 视图过渡辅助——由主题拥有的视觉变量层。
+// 位置约束：在 critical CSS 之前渲染（var() 需首帧解析）。
+interface Props {
+  accent?: string;
+  font?: string;
+}
+const { accent, font } = Astro.props;
+const fontStack = font === 'serif' ? 'var(--app-font-stack-serif)' : 'var(--app-font-stack-inter)';
+---
+
+<style define:vars={{ accentColor: accent || '#2ea35f', fontStack }}>
+  .frontend-body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--frontend-body-bg-color, var(--app-bg-pri));
+    color: var(--app-text-pri);
+    font-family: var(--fontStack);
+  }
+  #app { display: flex; flex-direction: column; min-height: 100vh; }
+  .app-title { font-size: 1.5rem; font-weight: bold; }
+
+  /* 应用 accent 颜色 */
+  :root {
+    --accent: var(--accentColor);
+  }
+
+  html.home-transition-disabled::view-transition-group(root),
+  html.home-transition-disabled::view-transition-old(root),
+  html.home-transition-disabled::view-transition-new(root) {
+    animation: none !important;
+  }
+
+  html.home-transition-disabled .main-content {
+    view-transition-name: none !important;
+  }
+
+  html.home-transition-disabled .home-container::before,
+  html.home-transition-disabled .home-container::after {
+    animation: none !important;
+  }
+</style>

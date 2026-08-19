@@ -108,4 +108,3 @@ export const THUMB_SERVE_PATH = '/thumb'
 export const BUILD_GRANULARITIES = ['full', 'posts', 'index'] as const
 
 /** Valid post statuses */
-export const POST_STATUSES = ['published', 'draft', 'modifying'] as const

@@ -1,4 +1,5 @@
 ---
+import '../../themes/aurora/styles/pages/index.css';
 export const prerender = true;
 
 export async function getStaticPaths() {
@@ -62,81 +63,7 @@ const featureFlags = resolveFeatureFlags(settings?.featureFlags || {});
   <BackToTop />
 </Layout>
 
-<style>
-  .home-container {
-    margin: 0;
-    top: 0;
-    min-height: 100vh;
-    padding: 0;
-    color: #fff;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    z-index: 2;
-    text-align: start;
-    overflow: visible;
-  }
 
-  .home-container--cover {
-    top: -70px;
-    height: 100vh;
-    justify-content: center;
-    text-align: start;
-    overflow: hidden;
-  }
-
-  .home-container--split,
-  .home-container--cards {
-    --split-hero-min: clamp(118px, 18vh, 170px);
-    --split-peek: clamp(24px, 4vh, 40px);
-    --split-cards-offset: 0px; /* cards visual offset controlled by JS */
-  }
-
-  .home-container--split {
-    align-items: stretch;
-    justify-content: flex-start;
-    overflow: visible;
-    overflow-anchor: none;
-  }
-
-  .home-container--cards {
-    align-items: stretch;
-    justify-content: flex-start;
-    padding-top: clamp(2.5rem, 10vh, 6rem);
-  }
-
-  .split-hero-stage {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    height: calc(90vh - 80px);
-    min-height: var(--split-hero-min);
-    display: flex;
-    align-items: center;
-    padding: 0 0 0.8rem;
-    overflow: clip;
-    will-change: filter, opacity;
-  }
-
-  .split-cards-stage {
-    position: relative;
-    z-index: 20;
-    /* overlap hero by peek amount; further visual offset is applied by JS via transform */
-    margin-top: calc(-1 * var(--split-peek));
-    will-change: transform, opacity;
-  }
-
-  .home-container--split .card-home-shell,
-  .home-container--cards .card-home-shell {
-    width: 100%;
-    min-height: 0;
-  }
-
-  .hero--compact {
-    max-width: 1280px;
-  }
-
-</style>
 
 <script type="module">
   let homeEffectsController = null;

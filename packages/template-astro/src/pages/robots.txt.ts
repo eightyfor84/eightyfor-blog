@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getPublicSettings } from '../data/localDataSource';
+import { dataSource } from '../data';
 
 export const GET: APIRoute = ({ site }) => {
   const origin = site ? site.origin.replace(/\/$/, '') : '';

@@ -1,0 +1,4 @@
+/* ── 组件样式：CornerActions ──
+   自 src/components/CornerActions.astro <style> 迁出。 */
+  .ca-left{display:none}
+  html.is-mobile .ca-left{display:block}

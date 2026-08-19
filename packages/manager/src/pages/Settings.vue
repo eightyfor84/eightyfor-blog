@@ -1,12 +1,9 @@
 <template>
   <div class="settings-page">
     <main class="settings-content">
-      <!--
-        Key by schema group, not full path.
-        Same schema different tab → no remount → no flash.
-        Different schema → remount → fresh data.
-      -->
-      <router-view :key="routeKey" />
+      <!-- 模块页（T5）：/settings 根 = 模块聚合入口；子路由 = 各模块 schema 详情 -->
+      <SettingsHome v-if="isHome" />
+      <router-view v-else :key="routeKey" />
     </main>
   </div>
 </template>
@@ -14,8 +11,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import SettingsHome from './SettingsHome.vue'
 
 const route = useRoute()
+
+/** /settings 根（仅匹配父路由）→ 模块页；子路由 → 详情 */
+const isHome = computed(() => route.matched.length <= 1)
 
 /** Group routes by schema: /settings/template-* → same key, no remount. */
 const routeKey = computed(() => {

@@ -1,0 +1,115 @@
+---
+import './styles/search-box.css';
+const props = (Astro.props || {}) as {
+  instanceId?: string;
+  searchSuggestionsEnabled?: boolean;
+  showTagTrigger?: boolean;
+  initialTitle?: string;
+  featuredLabel?: string;
+  routePrefix?: string;
+  t?: (k: string) => string;
+  searchOnEnter?: boolean;
+  searchBtnAsButton?: boolean;
+};
+
+const searchSuggestionsEnabled = props.searchSuggestionsEnabled ?? false;
+const showTagTrigger = props.showTagTrigger ?? props.searchSuggestionsEnabled ?? false;
+const instanceId = props.instanceId ?? 'searchbox';
+const initialTitle = props.initialTitle ?? '';
+const featuredLabel = props.featuredLabel ?? '';
+const routePrefix = props.routePrefix ?? '/';
+const t = props.t ?? ((k: string) => k);
+const searchOnEnter = props.searchOnEnter ?? true;
+const searchBtnAsButton = props.searchBtnAsButton ?? true;
+---
+
+<div
+  class="search-box-wrapper"
+  data-searchbox-id={instanceId}
+  data-searchbox-config={JSON.stringify({ instanceId, initialTitle, searchOnEnter, searchBtnAsButton, showTagTrigger })}
+>
+  <div class="search-box mtl-surface">
+    {showTagTrigger && (
+      <>
+        <button
+          class="tag-trigger"
+          id="tag-trigger"
+          title={t("search.selectTags")}
+        >
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="4" y1="9" x2="20" y2="9"></line>
+            <line x1="4" y1="15" x2="20" y2="15"></line>
+            <line x1="10" y1="3" x2="8" y2="21"></line>
+            <line x1="16" y1="3" x2="14" y2="21"></line>
+          </svg>
+        </button>
+        <span class="divider"></span>
+      </>
+    )}
+
+    <div class="input-area" id="input-area">
+      <input
+        id="search-input"
+        type="text"
+        placeholder={t("search.placeholder")}
+        class="search-input"
+        value={initialTitle}
+      />
+    </div>
+
+    <button class="clear-btn" id="clear-btn" title="清空搜索" style="display:none;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+    {searchBtnAsButton ? (
+      <button class="search-btn" id="search-btn" type="button" title={t("search.search")} data-search-btn="true" disabled={initialTitle.trim().length === 0}>
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.3-4.3"></path>
+      </svg>
+      </button>
+    ) : (
+      <div class="search-btn search-btn--static" id="search-btn" title={t("search.search")} aria-hidden="true" aria-disabled="true">
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.3-4.3"></path>
+        </svg>
+      </div>
+    )}
+  </div>
+</div>
+
+<script>
+  import './scripts/search-bootstrap';
+</script>
+
+

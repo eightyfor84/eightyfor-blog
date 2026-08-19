@@ -1,0 +1,79 @@
+---
+// ── taxonomy 卡片·搜索块：search 插件注册（home-card-taxonomy 槽位）────
+// 主板 taxonomy 卡片模板只留骨架（panel-card + section-head），内容块由插件
+// 注册——搜索禁用/删除 → 构建期不注册 → 快速搜索与标签云整体消失。
+// 数据自读（交集式）：posts 经 DataSource，标签统计在块内计算。
+import HomeSearchBox from './HomeSearchBox.astro';
+import { buildLocalizedPath } from '../../utils/routeLocale';
+import { dataSource } from '../../data';
+
+interface Props {
+  locale?: string;
+  t?: (key: string) => string;
+}
+
+const { locale = 'zh-CN', t = (key: string) => key } = Astro.props;
+const searchPath = buildLocalizedPath(locale, '/search');
+
+function normalizeTag(tag: unknown) {
+  return String(tag || '').trim().replace(/^#+/, '').toLowerCase();
+}
+function isFeaturedTag(tag: unknown) {
+  const n = normalizeTag(tag);
+  return n === 'featured' || n === '精选';
+}
+
+let posts: any[] = [];
+try {
+  posts = dataSource.getPublishedPosts().map((p: any) => ({ ...p, content: undefined, compiledHtml: undefined }));
+} catch { /* 数据缺失降级为空 */ }
+
+function buildTagStats(postsList: any[]) {
+  const counts = new Map<string, number>();
+  for (const post of postsList) {
+    for (const tag of Array.isArray(post?.tags) ? post.tags : []) {
+      const normalized = String(tag || '').trim();
+      if (!normalized) continue;
+      counts.set(normalized, (counts.get(normalized) || 0) + 1);
+    }
+  }
+  return Array.from(counts.entries())
+    .map(([name, count]) => ({ name, count, featured: isFeaturedTag(name) }))
+    .sort((a, b) => {
+      if (a.featured && !b.featured) return -1;
+      if (!a.featured && b.featured) return 1;
+      if (b.count !== a.count) return b.count - a.count;
+      return a.name.localeCompare(b.name);
+    });
+}
+
+const TAG_LIMIT = 14;
+const allTagStats = buildTagStats(posts);
+const tagStats = allTagStats.filter((item) => !item.featured).slice(0, TAG_LIMIT);
+const hasMoreTags = allTagStats.filter((item) => !item.featured).length > TAG_LIMIT;
+---
+
+<div class="taxonomy-block">
+  <h3>{t("home.quickSearch")}</h3>
+  <HomeSearchBox locale={locale} t={t} />
+</div>
+
+<div class="taxonomy-block">
+  <h3>{t("home.tagCloud")}</h3>
+  <div class="tag-cloud">
+    {tagStats.map((tag) => (
+      <a
+        class:list={["tag-cloud-item", tag.featured ? "featured" : ""]}
+        href={searchPath + "?tags=" + encodeURIComponent(tag.name)}
+      >
+        {tag.featured ? t("blog.featured") : tag.name}
+        <span class="tag-count">{tag.count}</span>
+      </a>
+    ))}
+  </div>
+  {hasMoreTags ? (
+    <a href={searchPath + "?view=tags"} class="view-more-link">
+      {t("home.viewAllTags")} →
+    </a>
+  ) : null}
+</div>

@@ -21,13 +21,14 @@ A friends page serves several purposes:
 
 ## Enabling the page
 
-The `/friends` route is gated by the top-level `friendsPage` key in `data/site.yml`:
+Friends is a **plugin**. The `/friends` route is gated by the plugin's `enabled` switch in the `friends` section of `data/site.yml`:
 
 ```yaml
-friendsPage: true
+friends:
+  enabled: true
 ```
 
-When set to `false`, the route is not generated at build time — `/friends` returns a 404 and no navigation link appears. The data file can still exist; it just isn't rendered. The toggle lives in the CMS under **Settings → Template → Features → Pages → Friends Page** (设置 → 模板 → 功能开关 → 页面 → 友链页面).
+When set to `false` (or when the plugin is removed), the route is not generated at build time — `/friends` returns a 404 and no navigation link appears. The data file can still exist; it just isn't rendered. The toggle lives in the CMS's **Plugins** page.
 
 ## Structure of `friends.yml`
 

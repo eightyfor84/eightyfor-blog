@@ -1,0 +1,32 @@
+/* ── Critical CSS: Collection page ─────────────────────────────
+   内联 <head> 锁定合集页首帧容器几何（container/grid/card），
+   防异步 collection.css 到达时重排（CLS）。
+   与 src/plugins/collections/styles/collection.css 同值（+附加细化走异步）。
+   仅收录布局属性；装饰（渐变/过渡/颜色）不收录。 */
+
+/* ── 容器 + 网格 ── */
+.collection-container { max-width:1000px; margin:0 auto; padding:40px; box-sizing:border-box; }
+.collections-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:16px; }
+
+/* ── 卡片壳 ── */
+.post-card.collection-card { padding:0; border-radius:12px; cursor:pointer; }
+.collection-card-content { padding:14px 16px; }
+.collection-card-title { font-size:1.1em; margin:0 0 8px; font-weight:600; color:var(--comp-text-pri); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.collection-card-desc { margin:0; font-size:.92em; color:var(--comp-text-sec); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+
+/* ── 详情层 ── */
+.detail-header { margin-bottom:12px; }
+.back-btn { background:transparent; border:none; color:var(--comp-text-sec); border-radius:6px; padding:6px 0; cursor:pointer; }
+.layer-detail { padding-top:60px; }
+.collection-tree { background:transparent; border:none; border-radius:0; padding:0; }
+.mini-card { display:flex; align-items:center; gap:8px; padding:8px 10px; border-radius:8px; background:transparent; border:1px solid transparent; cursor:pointer; }
+.mini-icon { width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center; margin-right:8px; flex:0 0 18px; }
+.children-container { margin-left:12px; padding-left:12px; }
+
+/* 背景层（fixed 防占位；默认隐藏） */
+.collection-temp-bg { position:fixed; top:0; left:0; width:100%; height:100%; z-index:-1; pointer-events:none; opacity:0; visibility:hidden; }
+
+/* ── 响应式（与异步同序） ── */
+@media (max-width:768px) {
+  .collections-grid { grid-template-columns:1fr; gap:10px; }
+}

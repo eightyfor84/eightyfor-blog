@@ -30,9 +30,23 @@ Jamstack 博客模板。克隆即用——Markdown + YAML 内容管理、Git 版
 
 ```
 data/                        — 你的内容：文章、图片、配置。唯一数据源。
-packages/template-astro/     — Astro 博客前端（页面、样式、组件）
-packages/manager/            — 内容管理后台（开发中）
+packages/template-astro/     — Astro 前端：渲染层（主题 + 预设 + 功能插件）
+packages/gen/                — 构建编排：重建索引 → 渲染 → 原子同步
+packages/manager/            — 内容管理（本地优先 CMS）
 packages/shared/             — 共享类型与工具
+```
+
+## 架构
+
+**定位（详见 [docs/architecture-positioning.md](docs/architecture-positioning.md)）：** `template-astro` 是 PaperMod 式、**内容无关的渲染层**。重功能（评论/搜索/Marp 幻灯片/合集/友链）是通过开放抽象层注册的**可选能力**——默认是轻主题，内容源启用后才长出重功能。`data/` + `gen` + `manager` 是围绕它的官方参考实现。
+
+四层结构：
+
+```
+主板（内容框架）   — 数据契约 + 页面骨架 + 渲染循环。只提供预设。
+可插拔功能（插件） — collections/friends/search/comments/Marp，经 manifest 注册
+主题               — 全部样式（tokens/global/critical/组件样式）归主题，可整体更换
+manager            — 模板化 CMS：读"模板清单"适配，不绑死本仓库
 ```
 
 ## 快速开始

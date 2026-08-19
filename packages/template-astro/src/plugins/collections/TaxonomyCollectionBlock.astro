@@ -1,0 +1,74 @@
+---
+// ── taxonomy 卡片·合集块：collections 插件注册（home-card-taxonomy 槽位）──
+// 数据自读（交集式）：合集树经 DataSource（getCollections——collections 插件
+// 提供），块内计算摘要；插件禁用/删除 → 构建期不注册 → 合集列表消失。
+import { buildLocalizedPath } from '../../utils/routeLocale';
+import { dataSource } from '../../data';
+
+interface Props {
+  locale?: string;
+  t?: (key: string) => string;
+}
+
+const { locale = 'zh-CN', t = (key: string) => key } = Astro.props;
+const collectionPath = buildLocalizedPath(locale, '/collection');
+
+let collections: any[] = [];
+try {
+  const raw = (dataSource.getCollections?.() as any) || [];
+  collections = Array.isArray(raw) ? raw : (Array.isArray(raw?.collections) ? raw.collections : []);
+} catch { collections = []; }
+
+function buildCollectionSummaries(collectionsList: any[]) {
+  return collectionsList
+    .filter(Boolean)
+    .map((collection) => {
+      const nodes = Array.isArray(collection.nodes) ? collection.nodes : [];
+      const stats = { posts: 0, groups: 0 };
+      const walk = (items: any[]) => {
+        if (!Array.isArray(items)) return;
+        for (const node of items) {
+          if (!node) continue;
+          if (node.type === 'post' && node.id) stats.posts += 1;
+          if (node.type === 'group') { stats.groups += 1; walk(node.children); }
+        }
+      };
+      walk(nodes);
+      return {
+        name: String(collection.name || '').trim() || (t('home.unnamedCollection') as string),
+        description: String(collection.description || '').trim(),
+        posts: stats.posts,
+        groups: stats.groups,
+      };
+    })
+    .filter((item) => item.name)
+    .sort((a, b) => b.posts - a.posts || b.groups - a.groups);
+}
+
+const COLLECTION_LIMIT = 3;
+const allSummaries = buildCollectionSummaries(collections);
+const collectionSummaries = allSummaries.slice(0, COLLECTION_LIMIT);
+const hasMoreCollections = allSummaries.length > COLLECTION_LIMIT;
+---
+
+<div class="taxonomy-block">
+  <h3>{t("home.collectionList")}</h3>
+  {collectionSummaries.length ? (
+    <div class="taxonomy-list">
+      {collectionSummaries.map((collection) => (
+        <a
+          class="mtl-surface interactive glowable scalable"
+          href={collectionPath + "#" + encodeURIComponent(collection.name)}
+        >
+          <span>{collection.name}</span>
+          <strong>{collection.posts}</strong>
+        </a>
+      ))}
+    </div>
+  ) : null}
+  {hasMoreCollections ? (
+    <a href={collectionPath} class="view-more-link">
+      {t("home.viewAll")} →
+    </a>
+  ) : null}
+</div>

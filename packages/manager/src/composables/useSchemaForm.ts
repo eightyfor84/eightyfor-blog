@@ -132,8 +132,8 @@ export function useSchemaForm(schemaId: string) {
       let fileData: any = null
       if (mapping.format === 'yaml') {
         fileData = await readYaml(mapping.filePath)
-        // Auto-discover background from directory (site.yml doesn't store these)
-        if (id === 'chronicle:template-settings') {
+        // Auto-discover background from directory (site.yml doesn't store these)——仅 appearance 模块
+        if (id === 'chronicle:appearance') {
           fileData = fileData ?? {}
           if (!fileData.background) {
             fileData.background = await resolveBackgroundUrlAsync('frontend')

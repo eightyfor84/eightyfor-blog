@@ -8,6 +8,7 @@
 import { ref, watch } from 'vue'
 import { syncSchemas, schemaStore } from './schemaApi'
 import { resolveLocale } from '../utils/resolveLocale'
+import { TEMPLATE_MANIFEST } from '../data/schemaRegistry'
 
 import systemSettings from '../../schemas/system-settings.schema.json'
 
@@ -33,18 +34,22 @@ export interface NavGroup {
 }
 
 const SCHEMA_ROUTE_PREFIX: Record<string, string> = {
-  'chronicle:template-settings': '/settings/',
+  'chronicle:homepage': '/settings/homepage',
+  'chronicle:appearance': '/settings/appearance',
   'chronicle:system-settings': '/settings/',
-  'chronicle:collections': '/settings/collections',
-  'chronicle:friends': '/settings/friends',
   'chronicle:profile': '/settings/profile',
   'chronicle:post-page': '/settings/post-page',
+  // 插件 schema（chronicle:search/comments/collections/friends/slideshow）不入左侧导航，
+  // 由 /settings/plugins 总览页统一管理（子页导航不可直达）
 }
 
 function buildNavTree(schemas: Record<string, any>): NavGroup[] {
   const groups = new Map<string, NavGroup>()
 
+  // 插件 schema 不入左侧导航（插件统一由 /settings/plugins 总览页管理）
+  const pluginSchemaIds = new Set(Object.values(TEMPLATE_MANIFEST.plugins).map((p) => p.schemaId))
   for (const [id, schema] of Object.entries(schemas)) {
+    if (pluginSchemaIds.has(id)) continue
     const xnav = schema['x-nav']
     if (!xnav) continue
 
@@ -92,6 +97,12 @@ function buildNavTree(schemas: Record<string, any>): NavGroup[] {
   const result = Array.from(groups.values())
   result.sort((a, b) => a.order - b.order)
   for (const g of result) g.items.sort((a, b) => a.order - b.order)
+  // 插件统一管理页（非 schema 驱动）：并入 template 组——侧栏 Homepage/Appearance/Plugins
+  const templateGroup = result.find((g) => g.group === 'template')
+  if (templateGroup) {
+    templateGroup.items.push({ route: '/settings/plugins', label: 'Plugins', icon: 'puzzle', order: 99 })
+    templateGroup.items.sort((a, b) => a.order - b.order)
+  }
   return result
 }
 

@@ -1,0 +1,43 @@
+---
+import './styles/related-posts.css';
+import { dataSource } from '../../data';
+import { getTranslation, type Locale } from '../../utils/i18n';
+
+interface Props { post: any; locale: Locale; lang: string }
+const { post, locale, lang } = Astro.props as Props;
+const t = (key: string) => getTranslation(locale, key);
+
+const all = dataSource.getPublishedPosts() as any[];
+const others = all.filter((p: any) => String(p.id) !== String(post.id));
+const myTags = new Set((post.tags || []).map((x: string) => String(x)));
+const scored = others
+  .map((p: any) => {
+    let score = 0;
+    for (const tag of p.tags || []) if (myTags.has(String(tag))) score += 2;
+    if (p.collectionPath && post.collectionPath && p.collectionPath === post.collectionPath) score += 3;
+    return { p, score };
+  })
+  .sort((a: any, b: any) => b.score - a.score || (String(a.p.date) < String(b.p.date) ? 1 : -1));
+const strong = scored.filter((x: any) => x.score > 0).map((x: any) => x.p);
+const fill = scored.filter((x: any) => x.score === 0).map((x: any) => x.p);
+const related = [...strong, ...fill].slice(0, 3);
+---
+
+{related.length > 0 && (
+  <section class="related-posts">
+    <h2 class="related-title">{t('postPage.relatedPosts')}</h2>
+    <div class="related-grid">
+      {related.map((p: any) => (
+        <a class="related-card mtl-surface interactive glowable scalable" href={`/${lang}/post/${encodeURIComponent(p.id)}`}>
+          <span class="related-card-title">{p.title}</span>
+          <span class="related-card-date">{new Date(p.date).toLocaleDateString(locale)}</span>
+          {(p.tags || []).length > 0 && (
+            <span class="related-card-tags">{(p.tags || []).slice(0, 3).join(' · ')}</span>
+          )}
+        </a>
+      ))}
+    </div>
+  </section>
+)}
+
+
