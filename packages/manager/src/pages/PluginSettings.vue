@@ -77,7 +77,7 @@ async function load() {
     featureFlag: p.featureFlag,
     builtin: p.builtin,
     contentEditor: p.contentEditor,
-    on: p.featureFlag ? site[p.featureFlag!] !== false : true,
+    on: p.featureFlag ? (site[p.key]?.[p.featureFlag!] ?? site[p.featureFlag!]) !== false : true,
   }))
 }
 
@@ -91,9 +91,13 @@ async function mutate(fn: (site: Record<string, any>) => void) {
   }
 }
 
+/** 开关写组内（site.yml 按插件分组：组名 = 插件 key，键 = featureFlag 名） */
 async function toggleFlag(p: Row, on: boolean) {
   if (!p.featureFlag) return
-  await mutate((site) => { site[p.featureFlag!] = on })
+  await mutate((site) => {
+    const group = site[p.key] && typeof site[p.key] === 'object' ? site[p.key] : (site[p.key] = {})
+    group[p.featureFlag!] = on
+  })
 }
 
 /** 删除插件：专用接口 deletePlugin（物理删除源码目录，key 白名单校验）；内置不可删；confirm 防误点 */

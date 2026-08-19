@@ -16,6 +16,13 @@
     "order": 6
   },
   "x-groups": {
+    "postReadingExperience": {
+      "label": {
+        "en": "Reading Experience",
+        "zh-CN": "阅读体验"
+      },
+      "order": 1
+    },
     "postToc": {
       "label": {
         "en": "Table of Contents",
@@ -29,13 +36,25 @@
         "en": "End of Article",
         "zh-CN": "文章末尾"
       },
-      "order": 4
+      "order": 3
     }
   },
   "properties": {
-    "post": {
+    "reading-experience": {
       "type": "object",
+      "x-widget": "fieldset",
+      "x-group": "postReadingExperience",
       "properties": {
+        "readingExperience": {
+          "type": "boolean",
+          "default": true,
+          "x-widget": "toggle",
+          "x-order": 0,
+          "title": {
+            "en": "Enable Reading Experience",
+            "zh-CN": "启用阅读体验"
+          }
+        },
         "toc": {
           "type": "object",
           "x-widget": "fieldset",
@@ -306,8 +325,7 @@
           },
           "x-group": "postEndOfArticle"
         }
-      },
-      "x-widget": "fieldset"
+      }
     }
   }
 }
