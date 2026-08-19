@@ -80,10 +80,7 @@ reading-experience:
     prevNextOrder: desc
 friends:
   enabled: true
-  friendsPage: true
 collections:
   enabled: true
-  collectionPage: true
 slides:
   enabled: true
-  slides: true

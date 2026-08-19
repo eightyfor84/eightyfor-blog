@@ -48,6 +48,22 @@
             "zh-CN": "在用户输入时显示搜索建议。"
           }
         },
+        "globalSearch": {
+          "type": "boolean",
+          "default": true,
+          "x-widget": "toggle",
+          "x-tab": "template-search",
+          "x-group": "general",
+          "x-order": 2,
+          "title": {
+            "en": "Global Search (Overlay)",
+            "zh-CN": "全局搜索（遮罩式）"
+          },
+          "description": {
+            "en": "Enable the mask/overlay global search (nav button + Ctrl/Cmd+K). Does not affect the search page or the home search box.",
+            "zh-CN": "启用遮罩式全局搜索（导航按钮 + Ctrl/Cmd+K 弹层）。不影响搜索页与首页搜索框。"
+          }
+        },
         "fullTextSearch": {
           "type": "boolean",
           "default": true,

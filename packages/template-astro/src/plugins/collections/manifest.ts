@@ -1,5 +1,6 @@
 // ── collections 插件（合集）────────────────────────────────
-// 页面：/collection（主板壳渲染本插件页面体）
+// 页面：/collection（主板壳渲染本插件页面体；单功能插件——enabled 总开关即页面开关，
+//   不再设独立 featureFlag 键，避免 site.yml 键名重复）
 // 数据：合集读取走主板 DataSource（getCollections/getCollectionPostIds）
 import type { PluginManifest } from '../types';
 import CollectionPage from './CollectionPage.astro';
@@ -9,7 +10,7 @@ export const collections: PluginManifest = {
   featureFlag: 'enabled',
   name: '合集插件（collections）',
   pages: {
-    collection: { route: 'collection', component: CollectionPage, when: { featureFlag: 'collectionPage' } },
+    collection: { route: 'collection', component: CollectionPage },
   },
   slots: [], // 合集导航（文章页阅读场景）已随交集式归属移入 reading-experience 插件
   // 提供的能力：合集数据（getCollections/getCollectionPostIds 实现在 DataSource/localFs，

@@ -8,7 +8,7 @@
 import type { PluginManifest } from '../types';
 import SearchPage from './SearchPage.astro';
 import GlobalSearchOverlay from './GlobalSearchOverlay.astro';
-import SearchBox from './SearchBox.astro';
+import HomeSearchBox from './HomeSearchBox.astro';
 
 export const search: PluginManifest = {
   id: 'search',
@@ -18,10 +18,11 @@ export const search: PluginManifest = {
     search: { route: 'search', component: SearchPage },
   },
   slots: [
-    // 全局搜索弹层：globalSearch 配置关闭时不注入（主板 NavHeader 的搜索按钮同 flag 控制）
+    // 全局搜索弹层（遮罩式搜索）：globalSearch 配置关闭时不注入（主板 NavHeader 的搜索按钮同 flag 控制）
     { slot: 'global-search-overlay', component: GlobalSearchOverlay, when: { featureFlag: 'globalSearch' } },
-    // 首页搜索框：search 插件贡献——removed search 后首页无搜索框（注册式，非 core 持有组件）
-    { slot: 'home-search-box', component: SearchBox, when: { featureFlag: 'globalSearch' } },
+    // 首页搜索框：searchbox 服务——随插件总开关注册（globalSearch 只控制遮罩弹层，
+    // 不影响首页搜索框；插件禁用/删除时构建期不注册，首页无搜索框）
+    { slot: 'home-search-box', component: HomeSearchBox },
   ],
   dataHooks: {},
   settingsSchema: ['search'],

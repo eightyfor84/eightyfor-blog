@@ -12,7 +12,7 @@ const { locale, featureFlags } = Astro.props || {
   featureFlags: {},
 };
 
-// 首页搜索框槽位：search 插件贡献（when globalSearch）——removed search 后首页无搜索框
+// 首页搜索框槽位：search 插件贡献（插件启用即注册；globalSearch 不参与门控）
 const HomeSearchBoxSlot = getPluginSlot('home-search-box', { featureFlags });
 const t = (key: string) => getTranslation(locale, key);
 const routeLang = locale;
@@ -578,12 +578,7 @@ const yearLabel = new Date().getFullYear();
               <h3>{t("home.quickSearch")}</h3>
               {HomeSearchBoxSlot ? (
                 <HomeSearchBoxSlot
-                  instanceId="home-searchbox"
-                  searchSuggestionsEnabled={false}
-                  showTagTrigger={false}
-                  placeholder={t("search.placeholder")}
-                  featuredLabel={t("tag.featured")}
-                  searchOnEnter={true}
+                  locale={locale}
                   t={t}
                 />
               ) : null}
@@ -776,33 +771,5 @@ const yearLabel = new Date().getFullYear();
     </div>
   </footer>
 </section>
-
-<script define:vars={{ searchPath }}>
-  let _homeSearchInit = false;
-
-  function initHomeSearchBox() {
-    const homeSearchBoxRoot = document.querySelector(
-      '[data-searchbox-id="home-searchbox"]',
-    );
-    if (!homeSearchBoxRoot || _homeSearchInit) return;
-    _homeSearchInit = true;
-
-    homeSearchBoxRoot.addEventListener("searchbox:submit", (event) => {
-      const detail = event.detail || {};
-      const keyword = String(detail.query || "").trim();
-      const target = keyword
-        ? `${searchPath}?keyword=${encodeURIComponent(keyword)}`
-        : `${searchPath}`;
-
-      window.location.href = target;
-    });
-  }
-
-  initHomeSearchBox();
-  document.addEventListener("astro:page-load", initHomeSearchBox);
-  document.addEventListener("astro:before-swap", () => {
-    _homeSearchInit = false;
-  });
-</script>
 
 

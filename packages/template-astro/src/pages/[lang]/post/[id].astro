@@ -107,9 +107,10 @@ const CollectionNavSlot = getPluginSlot('post-collection-nav', slotGateCtx);
 const SlidesSlot = getPluginSlot('post-slides-view', slotGateCtx);
 
 // ── Collection feature flag (distinct from data result — see getCollections) ──
+// 单功能插件：页面开关 = 组内 enabled（镜像回退），无独立 collectionPage 键
 const collectionEnabled = (settings as Record<string, any>).collectionPage !== false;
-const collectionNavEnabled = postCfg.postCollectionNavEnabled !== false;
-// Single source of truth for "render the collection nav + reserve its sidebar space".
+// 合集导航开关在 collections.yml 的 post.collectionNav.enabled——CollectionNav 组件自读门控，
+// 主板不预知该配置键（交集式）
 
 // ── TOC toggles (3.1.x) ────────────────────────────────
 const tocEnabled = postCfg.postTocEnabled !== false;

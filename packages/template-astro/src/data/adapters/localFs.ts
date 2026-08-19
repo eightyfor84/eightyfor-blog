@@ -569,9 +569,11 @@ export function getPublicSettings(): LocalSettings {
         font: raw.font ?? raw.frontendFont,
         locale: raw.locale ?? raw.frontendLocale,
         // ── 开关按插件分组读取（site.yml 每插件一段，组内开关键 = featureFlag 名）──
-        collectionPage: raw.collections?.collectionPage ?? raw.collectionPage ?? true,
+        // 单功能插件（friends/collections/slides）site.yml 只存 enabled——页面开关 = 总开关，
+        // 顶层镜像键（collectionPage/friendsPage/slides）作为派生值回退到组内 enabled（兼容旧消费方）
+        collectionPage: raw.collections?.collectionPage ?? raw.collections?.enabled ?? raw.collectionPage ?? true,
         aboutPage: raw.aboutPage ?? true,
-        friendsPage: raw.friends?.friendsPage ?? raw.friendsPage ?? true,
+        friendsPage: raw.friends?.friendsPage ?? raw.friends?.enabled ?? raw.friendsPage ?? true,
         rss: raw.rss ?? true,
         searchSuggestions: raw.search?.searchSuggestions ?? true,
         globalSearch: raw.search?.globalSearch ?? raw.globalSearch ?? true,

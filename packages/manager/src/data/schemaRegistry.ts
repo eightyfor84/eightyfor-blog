@@ -119,13 +119,14 @@ const settings: Record<string, SchemaMapping> = {
     schemaId: 'chronicle:collections',
     filePath: 'data/collections.yml',
     format: 'yaml',
-    headerFlag: 'collectionPage',
+    // 单功能插件：页面开关 = 插件总开关（组内 enabled，PluginSettings 管理）——
+    // 不再设顶层 headerFlag（顶层 collectionPage 键是旧残留，会键名重复）
   },
   'chronicle:friends': {
     schemaId: 'chronicle:friends',
     filePath: 'data/friends.yml',
     format: 'yaml',
-    headerFlag: 'friendsPage',
+    // 单功能插件：同上，开关在组内 enabled（PluginSettings）
   },
   'chronicle:post-page': {
     schemaId: 'chronicle:post-page',

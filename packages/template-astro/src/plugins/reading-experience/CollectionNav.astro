@@ -12,8 +12,10 @@ interface Props {
 }
 const { postId = "", mountToBody = true, variant = "sidebar", defaultCollapsed: defaultCollapsedProp } = Astro.props as Props;
 
-// 配置自读（交集式）：合集导航折叠初态来自 collections.yml 的 post.collectionNav.alwaysCollapsed
-const _navCfg = (dataSource.getPublicSettings() as any)?.post?.collectionNav || {};
+// 配置自读（交集式）：合集导航开关/折叠初态来自 collections.yml 的 post.collectionNav
+// （normalizePostConfig 归一化键名为 postCollectionNav——含 enabled + alwaysCollapsed）
+const _navCfg = (dataSource.getPublicSettings() as any)?.post?.postCollectionNav || {};
+const _navEnabled = _navCfg.enabled !== false;
 const defaultCollapsed = defaultCollapsedProp !== undefined ? defaultCollapsedProp : _navCfg.alwaysCollapsed === true;
 
 // ── 数据自读（插件自包含，交集式：数据经 DataSource——collections 插件提供）──
@@ -112,7 +114,7 @@ const isSidebar = variant === "sidebar";
 const rootId = isSidebar ? "collection-nav-root" : "collection-nav-inline";
 ---
 
-{collections.length > 0 && (
+{_navEnabled && collections.length > 0 && (
 <div
   id={rootId}
   class="cn-panel collapsed"

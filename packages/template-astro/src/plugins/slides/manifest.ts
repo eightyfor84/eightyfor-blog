@@ -1,6 +1,7 @@
 // ── slides 插件（幻灯片/Marp）──────────────────────────────
 // 槽位：post-slides-view（文章页 slides 形态视图；isSlidesType 由主板页面数据判断，
-//   无 when——数据驱动非配置门控）
+//   无 when——数据驱动非配置门控；单功能插件——enabled 总开关即视图开关，不再设
+//   独立 featureFlag 键，避免 site.yml 键名重复）
 // 依赖：@marp-team/marp-core + @chronicle/shared 的 chronicle-marp-theme（light/dark 生成器）
 // 样式归属主题层：styles/components/slideshow.css
 import type { PluginManifest } from '../types';
@@ -14,7 +15,7 @@ export const slides: PluginManifest = {
   slots: [
     // 文章页 slides 形态：主板 post 页 isSlidesView 分支渲染
     // （槽位契约 props：{ id, locale, config, collectionEnabled }）
-    { slot: 'post-slides-view', component: Slideshow, when: { featureFlag: 'slides' } },
+    { slot: 'post-slides-view', component: Slideshow },
   ],
   dataHooks: {},
   settingsSchema: ['slides'],
