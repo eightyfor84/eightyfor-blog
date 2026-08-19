@@ -61,7 +61,7 @@
   border:1px solid var(--border-color-blur); border-radius:8px;
   font-size:1em; font-weight:500; text-decoration:none;
 }
-.author-card__top { display:flex; gap:.9rem; align-items:center; margin-bottom:.8rem; }
+.author-card__top { display:flex; gap:.9rem; align-items:center;}
 .author-avatar { width:60px; height:60px; border-radius:9999px; display:grid; place-items:center; }
 .section-head {
   display:flex; align-items:flex-end; justify-content:space-between; gap:1rem; margin-bottom:1rem;
