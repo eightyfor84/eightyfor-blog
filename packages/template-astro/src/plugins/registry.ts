@@ -14,21 +14,28 @@ export interface SlotGateCtx {
 }
 
 /** 评估单个槽位的 when 条件；无 when 恒通过 */
-function passesWhen(when: PluginSlotContribution['when'], ctx?: SlotGateCtx): boolean {
-  if (!when) return true;
-  if (when.featureFlag && ctx?.featureFlags?.[when.featureFlag] === false) return false;
-  if (when.capability && typeof ctx?.dataSource?.[when.capability] !== 'function') return false;
-  return true;
-}
-
-const registry = new Map<string, PluginManifest>();
-
+/** 已注册插件声明提供的能力集合（禁用/删除 → 不注册 → 能力消失） */
+const providedCapabilities = new Set<string>();
 export function registerPlugin(manifest: PluginManifest): void {
   if (registry.has(manifest.id)) {
     throw new Error(`[plugins] 重复注册插件: ${manifest.id}`);
   }
   registry.set(manifest.id, manifest);
+  for (const cap of manifest.provides ?? []) providedCapabilities.add(cap);
 }
+
+function passesWhen(when: PluginSlotContribution['when'], ctx?: SlotGateCtx): boolean {
+  if (!when) return true;
+  if (when.featureFlag && ctx?.featureFlags?.[when.featureFlag] === false) return false;
+  // capability：方法存在 && 有插件提供该能力（数据方声明 provides）——
+  // 提供方禁用/删除 → 能力消失 → 消费方自动收敛（无需预知提供方键名/开关）
+  if (when.capability &&
+      (typeof ctx?.dataSource?.[when.capability] !== 'function' || !providedCapabilities.has(when.capability))) return false;
+  return true;
+}
+
+const registry = new Map<string, PluginManifest>();
+
 
 export function getPlugin(id: string): PluginManifest | undefined {
   return registry.get(id);

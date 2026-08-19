@@ -33,6 +33,9 @@ export interface PluginManifest {
   id: string;
   /** 插件级开关键（site.yml featureFlags/顶层布尔）：构建期 false → 不注册（禁用=构建时忽略，与删除同效果） */
   featureFlag?: string;
+  /** 提供的能力（DataSource 方法名）：禁用/删除 → 不注册 → 能力消失，
+      when.capability 探测同时要求「方法存在 && 有插件提供」——消费方无需预知提供方 */
+  provides?: string[];
   name: string;
   pages?: Record<string, PluginPageContribution>;
   slots?: PluginSlotContribution[];

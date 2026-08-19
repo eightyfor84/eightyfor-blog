@@ -11,6 +11,9 @@ export const collections: PluginManifest = {
     collection: { route: 'collection', component: CollectionPage, when: { featureFlag: 'collectionPage' } },
   },
   slots: [], // 合集导航（文章页阅读场景）已随交集式归属移入 reading-experience 插件
+  // 提供的能力：合集数据（getCollections/getCollectionPostIds 实现在 DataSource/localFs，
+  // 能力声明随插件注册——禁用/删除 → 能力消失 → 消费方（reading-experience 导航槽位）自动收敛
+  provides: ['getCollections', 'getCollectionPostIds'],
   dataHooks: {},
   settingsSchema: ['collections'],
 };

@@ -17,6 +17,7 @@ const _navCfg = (dataSource.getPublicSettings() as any)?.post?.collectionNav || 
 const defaultCollapsed = defaultCollapsedProp !== undefined ? defaultCollapsedProp : _navCfg.alwaysCollapsed === true;
 
 // ── 数据自读（插件自包含，交集式：数据经 DataSource——collections 插件提供）──
+// 合集功能禁用由 capability 探测（provides）拦截（槽位不注入），组件不预知开关键
 const collections: any[] = (dataSource.getCollections?.() as any)?.collections || [];
 const postTitles: Record<string, string> = {};
 const postTypes: Record<string, string> = {};
@@ -111,12 +112,14 @@ const isSidebar = variant === "sidebar";
 const rootId = isSidebar ? "collection-nav-root" : "collection-nav-inline";
 ---
 
+{collections.length > 0 && (
 <div
   id={rootId}
   class="cn-panel collapsed"
   data-cn-variant={variant}
   data-mount-to-body={isSidebar ? String(mountToBody) : "false"}
   data-post-id={postId}
+  data-in-collection={matched.length > 0 ? "true" : undefined}
   data-always-collapsed={defaultCollapsed ? "true" : undefined}
 >
   <div class="cn-header">
@@ -161,6 +164,7 @@ const rootId = isSidebar ? "collection-nav-root" : "collection-nav-inline";
     }
   </div>
 </div>
+)}
 
 <script>
   (() => {
