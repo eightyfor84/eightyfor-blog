@@ -20,6 +20,9 @@ const hasToc=mobileToc&&toc.length>0, hasComment=commentsEnabled, btnCount=(hasT
 
 <BackToTop />
 
+{/* 无任何已注册候选功能（TOC/合集/评论全不可用）→ 左下角 primary 按钮整体消失，
+    不显示无功能无图标的空按钮 */}
+{btnCount > 0 && (
 <div class="ca-left">
   <CornerButton id="cb-left" template="menu" side="left" variant="primary" capsule={btnCount>1} capsuleWidth={capW}>
     <Fragment slot="buttons">
@@ -33,5 +36,6 @@ const hasToc=mobileToc&&toc.length>0, hasComment=commentsEnabled, btnCount=(hasT
     {hasCol&&CollectionNavSlot&&(<div data-menu="collection" hidden><CollectionNavSlot postId={postId} variant="inline" /></div>)}
   </CornerButton>
 </div>
+)}
 
 
