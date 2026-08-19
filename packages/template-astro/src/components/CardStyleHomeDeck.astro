@@ -92,9 +92,12 @@ const footerLinks: FooterLink[] = [
 ];
 
 // Homepage card visibility
+// taxonomy 卡片内容 = 搜索块（search 插件）+ 合集块（collections 插件）——任一存在才显示；
+// 搜索功能去掉时快速导航（快速搜索 + 标签云）整体消失，卡片不显示空标题
 const cv = settings?.cardVisibility || {};
 const showAuthorCard = cv?.author !== false;
-const showTaxonomyCard = cv?.taxonomy !== false;
+const showTaxonomyCard =
+  cv?.taxonomy !== false && (!!HomeSearchBoxSlot || isCollectionEnabled);
 const showActivityCard = cv?.activity !== false;
 const isSingleColumn = settings?.singleColumnHomepage === true;
 
@@ -574,15 +577,15 @@ const yearLabel = new Date().getFullYear();
               </div>
             </div>
 
-            <div class="taxonomy-block">
-              <h3>{t("home.quickSearch")}</h3>
-              {HomeSearchBoxSlot ? (
+            {HomeSearchBoxSlot ? (
+              <div class="taxonomy-block">
+                <h3>{t("home.quickSearch")}</h3>
                 <HomeSearchBoxSlot
                   locale={locale}
                   t={t}
                 />
-              ) : null}
-            </div>
+              </div>
+            ) : null}
 
             {isCollectionEnabled && (
               <div class="taxonomy-block">
@@ -612,28 +615,30 @@ const yearLabel = new Date().getFullYear();
               </div>
             )}
 
-            <div class="taxonomy-block">
-              <h3>{t("home.tagCloud")}</h3>
-              <div class="tag-cloud">
-                {tagStats.map((tag) => (
-                  <a
-                    class:list={[
-                      "tag-cloud-item",
-                      tag.featured ? "featured" : "",
-                    ]}
-                    href={searchPath + "?tags=" + encodeURIComponent(tag.name)}
-                  >
-                    {tag.featured ? t("blog.featured") : tag.name}
-                    <span class="tag-count">{tag.count}</span>
+            {HomeSearchBoxSlot ? (
+              <div class="taxonomy-block">
+                <h3>{t("home.tagCloud")}</h3>
+                <div class="tag-cloud">
+                  {tagStats.map((tag) => (
+                    <a
+                      class:list={[
+                        "tag-cloud-item",
+                        tag.featured ? "featured" : "",
+                      ]}
+                      href={searchPath + "?tags=" + encodeURIComponent(tag.name)}
+                    >
+                      {tag.featured ? t("blog.featured") : tag.name}
+                      <span class="tag-count">{tag.count}</span>
+                    </a>
+                  ))}
+                </div>
+                {hasMoreTags ? (
+                  <a href={searchPath + "?view=tags"} class="view-more-link">
+                    {t("home.viewAllTags")} →
                   </a>
-                ))}
+                ) : null}
               </div>
-              {hasMoreTags ? (
-                <a href={searchPath + "?view=tags"} class="view-more-link">
-                  {t("home.viewAllTags")} →
-                </a>
-              ) : null}
-            </div>
+            ) : null}
           </section>
         )
       }
