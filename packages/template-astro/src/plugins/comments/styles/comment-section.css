@@ -8,8 +8,10 @@
      All selectors are namespaced inside .comment-section to avoid leaks.
      ═══════════════════════════════════════════════════════════ */
 
+  /* 容器（.end-of-article）由主板渲染并已提供左右内边距——评论区只保留底部
+     留白（waline 交互/滚动锚定舒适度） */
   .comment-section {
-    padding: 0 max(20px,min((6vw - 10px),60px)) 40vh;
+    padding-bottom: 40vh;
   }
 
   /* The `hidden` attribute is neutralized when a class also sets `display`

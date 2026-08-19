@@ -16,6 +16,7 @@ export const comments: PluginManifest = {
     // 文章页文末·置底：态度按钮 + 评论区（同属评论功能，合并为一个置底块；
     // T4 内容源适配器无评论能力 → 不注入；槽位契约 props：
     // { postId, locale, commentsEnabled, backend, walineServerUrl, showGeoAddress, imageUpload* }）
+    // 置底必须唯一（registerPlugin 强制——同一 slot 的 bottom 重复注册构建期报错）
     { slot: 'post-end-of-article', position: 'bottom', component: EndOfArticleBottom, when: { capability: 'getComments' } },
   ],
   // 提供的能力：评论数据（getComments 实现在 DataSource/localFs——能力声明随插件注册，

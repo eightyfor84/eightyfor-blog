@@ -16,9 +16,29 @@ export interface SlotGateCtx {
 /** 评估单个槽位的 when 条件；无 when 恒通过 */
 /** 已注册插件声明提供的能力集合（禁用/删除 → 不注册 → 能力消失） */
 const providedCapabilities = new Set<string>();
+
+/** 槽位唯一性索引：slot + position → 已注册插件 id
+ *  唯一语义：置底（bottom）必须唯一——同一 slot 的 bottom 只允许一个组件；
+ *  置顶（top）允许多组件（append 排列，不校验）。容器本身（slot 存在与否）由主板决定 */
+const uniqueSlots = new Map<string, string>();
+
 export function registerPlugin(manifest: PluginManifest): void {
   if (registry.has(manifest.id)) {
     throw new Error(`[plugins] 重复注册插件: ${manifest.id}`);
+  }
+  // 置底唯一校验：同一 slot 的 position:'bottom' 只允许一个组件（如 post-end-of-article
+  // 置底——重复注册即构建期报错，不静默取首个）；置顶不校验（可多组件）
+  for (const s of manifest.slots ?? []) {
+    if ((s.position ?? 'top') !== 'bottom') continue;
+    const key = `${s.slot}:bottom`;
+    const existing = uniqueSlots.get(key);
+    if (existing) {
+      throw new Error(
+        `[plugins] 槽位 ${s.slot} (bottom) 置底唯一冲突：${existing} 与 ${manifest.id} 都注册了——` +
+        `置底只允许一个组件`,
+      );
+    }
+    uniqueSlots.set(key, manifest.id);
   }
   registry.set(manifest.id, manifest);
   for (const cap of manifest.provides ?? []) providedCapabilities.add(cap);
@@ -73,20 +93,26 @@ export function getPluginPageByRoute(route: string): { component: any; when?: { 
   return undefined;
 }
 
-/** 取某槽位的贡献组件列表（主板页面槽渲染用）；经 when 门控过滤 */
-export function getPluginSlots(slot: string, ctx?: SlotGateCtx): any[] {
+/** 取某槽位的贡献组件列表（主板页面槽渲染用）；经 when 门控过滤。
+ *  position：可选按位置过滤（'top' | 'bottom'）——top 允许多组件（append 排列），
+ *  bottom 唯一（见 getPluginSlot） */
+export function getPluginSlots(slot: string, ctx?: SlotGateCtx, position?: 'top' | 'bottom'): any[] {
   const out: any[] = [];
   for (const plugin of registry.values()) {
     for (const s of plugin.slots ?? []) {
-      if (s.slot === slot && passesWhen(s.when, ctx)) out.push(s.component);
+      if (s.slot === slot &&
+          (position === undefined || (s.position ?? 'top') === position) &&
+          passesWhen(s.when, ctx)) {
+        out.push(s.component);
+      }
     }
   }
   return out;
 }
 
-/** 取某槽位的贡献组件（主板槽渲染用；未注册或门控不过 → undefined）
- *  position：槽位内位置——缺省/undefined 与 'top' 都取置顶（兼容旧槽位语义）；
- *  同槽位置顶/置底各唯一（若同位置多组件，取首个注册者） */
+/** 取某槽位的唯一贡献组件（主板槽渲染用；未注册或门控不过 → undefined）。
+ *  position 缺省取置顶（兼容旧槽位语义）——bottom 唯一槽位（如 post-end-of-article
+ *  置底）注册时已强制唯一（重复注册构建期报错），这里直接返回该组件 */
 export function getPluginSlot(slot: string, ctx?: SlotGateCtx, position: 'top' | 'bottom' = 'top'): any {
   for (const plugin of registry.values()) {
     for (const s of plugin.slots ?? []) {

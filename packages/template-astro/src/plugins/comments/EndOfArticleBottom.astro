@@ -31,20 +31,19 @@ const {
 } = Astro.props as Props;
 ---
 
-<div class="end-of-article end-of-article--bottom">
-  {commentsEnabled && (
-    <AttitudeButtons postId={postId} walineServerUrl={walineServerUrl} locale={locale} />
-  )}
-  {commentsEnabled && (
-    <CommentSection
-      postId={postId}
-      locale={locale}
-      backend={backend}
-      walineServerUrl={walineServerUrl}
-      showGeoAddress={showGeoAddress}
-      imageUploadEnabled={imageUploadEnabled}
-      imageUploadEndpoint={imageUploadEndpoint}
-      imageUploadToken={imageUploadToken}
-    />
-  )}
-</div>
+{/* 容器（.end-of-article）由主板统一渲染——本组件只输出置底内容块 */}
+{commentsEnabled && (
+  <AttitudeButtons postId={postId} walineServerUrl={walineServerUrl} locale={locale} />
+)}
+{commentsEnabled && (
+  <CommentSection
+    postId={postId}
+    locale={locale}
+    backend={backend}
+    walineServerUrl={walineServerUrl}
+    showGeoAddress={showGeoAddress}
+    imageUploadEnabled={imageUploadEnabled}
+    imageUploadEndpoint={imageUploadEndpoint}
+    imageUploadToken={imageUploadToken}
+  />
+)}

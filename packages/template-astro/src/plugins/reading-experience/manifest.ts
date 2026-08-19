@@ -18,7 +18,7 @@ export const readingExperience: PluginManifest = {
   slots: [
     // 插件级开关（总览页 featureFlag readingExperience）：关 → 目录与文末置顶区块不注入
     { slot: 'post-toc', component: FloatingToc, when: { featureFlag: 'readingExperience' } },
-    // 文末·置顶（阅读体验内容：相关/上下篇/分享/作者卡）——置顶/置底各唯一
+    // 文末·置顶（阅读体验内容：相关/上下篇/分享/作者卡）——置顶允许多组件（append 排列）
     { slot: 'post-end-of-article', position: 'top', component: EndOfArticle, when: { featureFlag: 'readingExperience' } },
     // 交集式：合集导航 UI（阅读场景）——数据经 DataSource.getCollections（collections 插件提供），
     // capability 探测——内容源无合集能力时不注入
