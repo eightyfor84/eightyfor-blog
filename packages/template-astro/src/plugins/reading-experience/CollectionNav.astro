@@ -6,22 +6,22 @@ import { dataSource } from '../../data';
 interface Props {
   postId?: string;
   mountToBody?: boolean;
-  collections?: any[];
-  postTitles?: Record<string, string>;
-  postTypes?: Record<string, string>;
   variant?: "sidebar" | "inline";
   /** 3.1.x — always collapsed: never auto-expand on wide screens. */
   defaultCollapsed?: boolean;
 }
-const {
-  postId = "",
-  mountToBody = true,
-  collections = [],
-  postTitles = {},
-  postTypes = {},
-  variant = "sidebar",
-  defaultCollapsed = false,
-} = Astro.props as Props;
+const { postId = "", mountToBody = true, variant = "sidebar", defaultCollapsed = false } = Astro.props as Props;
+
+// ── 数据自读（插件自包含，交集式：数据经 DataSource——collections 插件提供）──
+const collections: any[] = (dataSource.getCollections?.() as any)?.collections || [];
+const postTitles: Record<string, string> = {};
+const postTypes: Record<string, string> = {};
+try {
+  for (const p of dataSource.getPublishedPosts()) {
+    postTitles[String(p.id)] = String(p.title || '').trim();
+    postTypes[String(p.id)] = String(p.type || 'article').trim();
+  }
+} catch { /* 数据缺失降级为空 */ }
 
 function esc(s: string) {
   return String(s)
