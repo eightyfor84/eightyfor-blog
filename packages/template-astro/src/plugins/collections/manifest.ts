@@ -4,9 +4,12 @@
 // 数据：合集读取走主板 DataSource（getCollections/getCollectionPostIds）
 // 槽位：home-card-taxonomy（首页 taxonomy 卡片合集块——主板卡片模板骨架渲染本槽位，
 //   数据自读 getCollections；插件禁用/删除 → 块消失）
+//      home-card-activity（首页 activity 卡片合集动态块——git 新合集由主板
+//   recentUpdates 传入、静态回退自读 getCollections；插件禁用/删除 → 合集动态消失）
 import type { PluginManifest } from '../types';
 import CollectionPage from './CollectionPage.astro';
 import TaxonomyCollectionBlock from './TaxonomyCollectionBlock.astro';
+import ActivityCollectionBlock from './ActivityCollectionBlock.astro';
 
 export const collections: PluginManifest = {
   id: 'collections',
@@ -18,6 +21,8 @@ export const collections: PluginManifest = {
   slots: [
     // 首页 taxonomy 卡片合集列表块（主板模板骨架渲染）
     { slot: 'home-card-taxonomy', component: TaxonomyCollectionBlock },
+    // 首页 activity 卡片合集动态块（主板 core 预设块之上追加）
+    { slot: 'home-card-activity', component: ActivityCollectionBlock },
   ],
   // 提供的能力：合集数据（getCollections/getCollectionPostIds 实现在 DataSource/localFs，
   // 能力声明随插件注册——禁用/删除 → 能力消失 → 消费方（reading-experience 导航槽位）自动收敛

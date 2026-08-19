@@ -1,0 +1,105 @@
+---
+// ── activity 卡片·合集动态块：collections 插件注册（home-card-activity 槽位）──
+// 数据自读（交集式）：合集树经 DataSource（getCollections——本插件提供），git
+// 新合集经 utils/recentUpdates 自算（本插件自读 posts + collections + 设置）。
+// 插件禁用/删除 → 构建期不注册 → activity 卡片的合集动态整体消失（core 零合集逻辑）。
+import { buildLocalizedPath } from '../../utils/routeLocale';
+import { dataSource } from '../../data';
+
+interface Props {
+  locale?: string;
+  t?: (key: string) => string;
+}
+
+const { locale = 'zh-CN', t = (key: string) => key } = Astro.props as Props;
+const collectionPath = buildLocalizedPath(locale, '/collection');
+
+// ── 数据自读 ──
+let collections: any[] = [];
+let posts: any[] = [];
+try {
+  const raw = (dataSource.getCollections?.() as any) || [];
+  collections = Array.isArray(raw) ? raw : (Array.isArray(raw?.collections) ? raw.collections : []);
+  posts = dataSource.getPublishedPosts().map((p: any) => ({ ...p, content: undefined, compiledHtml: undefined }));
+} catch { /* 数据缺失降级为空 */ }
+
+const settings = (dataSource.getPublicSettings?.() as any) || {};
+const aggregateDays = sanitizeDays(settings?.recentUpdates?.aggregateDays, 7);
+
+function sanitizeDays(value: unknown, fallback: number): number {
+  const n = Number(value);
+  return Number.isFinite(n) && n >= 1 ? Math.floor(n) : fallback;
+}
+
+// ── git 新合集（自算）──
+let newCollections: { slug: string; name: string }[] = [];
+try {
+  const { getRecentUpdates } = await import('../../utils/recentUpdates');
+  const recent = await getRecentUpdates({ posts, collections, aggregateDays });
+  newCollections = recent?.newCollections ?? [];
+} catch { newCollections = []; }
+
+// ── 静态回退：合集摘要（自读 getCollections）──
+function buildCollectionSummaries(collectionsList: any[]) {
+  return collectionsList
+    .filter(Boolean)
+    .map((collection) => {
+      const nodes = Array.isArray(collection.nodes) ? collection.nodes : [];
+      const stats = { posts: 0, groups: 0 };
+      const walk = (items: any[]) => {
+        if (!Array.isArray(items)) return;
+        for (const node of items) {
+          if (!node) continue;
+          if (node.type === 'post' && node.id) stats.posts += 1;
+          if (node.type === 'group') { stats.groups += 1; walk(node.children); }
+        }
+      };
+      walk(nodes);
+      return {
+        name: String(collection.name || '').trim() || (t('home.unnamedCollection') as string),
+        posts: stats.posts,
+        groups: stats.groups,
+      };
+    })
+    .filter((item) => item.name)
+    .sort((a, b) => b.posts - a.posts || b.groups - a.groups);
+}
+
+const COLLECTION_LIMIT = 2;
+const fallbackItems = buildCollectionSummaries(collections).slice(0, COLLECTION_LIMIT);
+
+const collectionIcon =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M 12 2 L 21 8 L 12 14 L 3 8 Z"/><path d="M 18 14 L 21 16 L 12 22 L 3 16 L 6 14"/></svg>';
+---
+
+{/* git 新合集 */}
+{newCollections.map((c) => (
+  <a
+    class:list={["activity-item", "collection", "mtl-surface interactive glowable scalable"]}
+    href={collectionPath + "#" + encodeURIComponent(c.name)}
+  >
+    <span class="activity-item__icon" aria-hidden="true" set:html={collectionIcon} />
+    <span class="activity-item__text">
+      <span class="activity-item__label">{t("home.newCollections")}</span>
+      <strong>{c.name}</strong>
+    </span>
+  </a>
+))}
+
+{/* 静态回退合集摘要（git 不可用时） */}
+{!newCollections.length && fallbackItems.map((collection) => (
+  <a
+    class:list={["activity-item", "collection", "mtl-surface interactive glowable scalable"]}
+    href={collectionPath + "#" + encodeURIComponent(collection.name)}
+  >
+    <span class="activity-item__icon" aria-hidden="true" set:html={collectionIcon} />
+    <span class="activity-item__text">
+      <span class="activity-item__label">
+        {t("home.collectionMeta")
+          .replace("{posts}", String(collection.posts))
+          .replace("{groups}", String(collection.groups))}
+      </span>
+      <strong>{collection.name}</strong>
+    </span>
+  </a>
+))}

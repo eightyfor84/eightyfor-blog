@@ -25,7 +25,6 @@ const routeLang = locale;
 const blogsPath = buildLocalizedPath(locale, "/blogs");
 const friendsPath = buildLocalizedPath(locale, "/friends");
 const aboutPath = buildLocalizedPath(locale, "/about");
-const collectionPath = buildLocalizedPath(locale, "/collection");
 const settings = await loadSiteSettings();
 const profile = await loadSiteProfile();
 
@@ -47,7 +46,6 @@ const cardSubtitle =
   settings?.siteDescription || (t("home.cardSubtitle") as string);
 const cardAuthorLine = t("home.cardAuthorLine") as string;
 const isFriendsEnabled = featureFlags?.friendsPage !== false;
-const isCollectionEnabled = featureFlags?.collectionPage !== false;
 
 // Icon glyphs (Lucide-style, stroke=currentColor) for the activity-card items.
 // Each type's colour is applied via `.activity-item__icon { color }`, so the
@@ -56,8 +54,6 @@ const activityIcons = {
   date: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
   app: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>',
   post: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
-  collection:
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M 12 2 L 21 8 L 12 14 L 3 8 Z"/><path d="M 18 14 L 21 16 L 12 22 L 3 16 L 6 14"/></svg>',
   stale:
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
   delete:
@@ -188,41 +184,11 @@ function uniqueById(list: any[]) {
   });
 }
 
-function buildCollectionSummaries(collectionsList: any[]) {
-  return collectionsList
-    .filter(Boolean)
-    .map((collection) => {
-      const nodes = Array.isArray(collection.nodes) ? collection.nodes : [];
-      const stats = { posts: 0, groups: 0 };
-      const walk = (items: any[]) => {
-        if (!Array.isArray(items)) return;
-        for (const node of items) {
-          if (!node) continue;
-          if (node.type === "post" && node.id) stats.posts += 1;
-          if (node.type === "group") {
-            stats.groups += 1;
-            walk(node.children);
-          }
-        }
-      };
-      walk(nodes);
-      return {
-        name:
-          String(collection.name || "").trim() ||
-          (t("home.unnamedCollection") as string),
-        description: String(collection.description || "").trim(),
-        posts: stats.posts,
-        groups: stats.groups,
-      };
-    })
-    .filter((item) => item.name)
-    .sort((a, b) => b.posts - a.posts || b.groups - a.groups);
-}
-
 let posts: any[] = [];
-let collections: any[] = [];
 
 // Local/filesystem mode: read directly from data/ (single source of truth)
+// 合集数据不在此读取——taxonomy 合集块 / activity 合集动态由 collections 插件
+// 经 home-card-taxonomy / home-card-activity 槽位自读（core 零合集逻辑）
 try {
   const { dataSource } = await import("../data");
   posts = dataSource.getPublishedPosts().map((p: any) => ({
@@ -230,15 +196,6 @@ try {
     content: undefined,
     compiledHtml: undefined,
   }));
-  collections = (dataSource.getCollections?.() as any) || [];
-  // unwrap legacy collection format
-  if (
-    !Array.isArray(collections) &&
-    Array.isArray((collections as any).collections)
-  ) {
-    collections = (collections as any).collections;
-  }
-  if (!Array.isArray(collections)) collections = [];
 } catch (e) {
   console.warn(
     "[CardStyleHomeDeck] localDataSource fallback failed, posts empty",
@@ -256,27 +213,24 @@ const leadPost = recentPosts[0] || featuredPosts[0] || null;
 const secondaryPosts = uniqueById([...featuredPosts, ...recentPosts])
   .filter((post) => post?.id && post?.id !== leadPost?.id)
   .slice(0, 4);
-const COLLECTION_LIMIT = 3;
-const allCollectionSummaries = buildCollectionSummaries(collections);
-const collectionSummaries = allCollectionSummaries.slice(0, COLLECTION_LIMIT);
-const hasMoreCollections = allCollectionSummaries.length > COLLECTION_LIMIT;
 
 const recommendedPosts = uniqueById([...featuredPosts, ...recentPosts])
   .filter((post) => post?.id && post?.id !== leadPost?.id)
   .slice(0, 3);
 
-// Recent updates (git-based) with a static fallback (recent posts + collections,
-// no friends). Fallback shares the exact same rendering — only the data differs:
+// Recent updates (git-based) with a static fallback (recent posts, no collections/
+// friends). Fallback shares the exact same rendering — only the data differs:
 // the "last updated" label reads "Unknown" and the content list is static.
+// 合集动态（newCollections + 静态合集摘要）由 collections 插件经 home-card-activity
+// 槽位渲染——core 只持有帖子/应用/删除动态。
 type RecentUpdatesData = {
   latestCommitDate: string;
   appUpdated: boolean;
   changedPosts: { id: string; title: string; isNew: boolean }[];
   deletedCount: number;
-  newCollections: { slug: string; name: string }[];
 };
 type ActivityItem = {
-  tone: "app" | "post" | "collection" | "delete";
+  tone: "app" | "post" | "delete";
   label?: string;
   title: string;
   href?: string;
@@ -300,7 +254,7 @@ try {
   const { getRecentUpdates } = await import("../utils/recentUpdates");
   recentUpdates = await getRecentUpdates({
     posts,
-    collections,
+    collections: [], // 合集动态由 collections 插件块自读/自算——core 不持有合集数据
     aggregateDays,
   });
 } catch {
@@ -343,14 +297,7 @@ if (recentUpdates) {
       }),
     });
   }
-  for (const c of recentUpdates.newCollections) {
-    activityItems.push({
-      tone: "collection",
-      label: t("home.newCollections") as string,
-      title: c.name,
-      href: collectionPath + "#" + encodeURIComponent(c.name),
-    });
-  }
+  // 合集动态（newCollections）由 collections 插件块渲染——core 不持有合集逻辑
 } else {
   for (const post of recentPosts.slice(0, 3)) {
     activityItems.push({
@@ -360,19 +307,7 @@ if (recentUpdates) {
       href: buildPostUrl(post.id),
     });
   }
-  if (isCollectionEnabled) {
-    for (const collection of collectionSummaries.slice(0, 2)) {
-      activityItems.push({
-        tone: "collection",
-        label: interpolate(t("home.collectionMeta"), {
-          posts: collection.posts,
-          groups: collection.groups,
-        }),
-        title: collection.name,
-        href: collectionPath + "#" + encodeURIComponent(collection.name),
-      });
-    }
-  }
+  // 静态回退合集摘要由 collections 插件块渲染——core 不持有合集逻辑
 }
 
 const authorInitials =
