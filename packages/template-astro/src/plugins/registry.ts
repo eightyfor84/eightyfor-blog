@@ -1,8 +1,8 @@
 // ── 插件注册表（构建期静态收集）────────────────────────────
 // 主板路由壳经 getPluginPage / getPluginSlots 查表渲染。
 // 注册发生在 src/plugins/index.ts（静态 import 各插件 manifest）。
-import type { PluginManifest, PluginSlotContribution } from './types';
-export type { PluginManifest } from './types';
+import type { PluginManifest, PluginSlotContribution, PluginChangeInterpreter, ChangedFile, ActivityItem, ChangeInterpreterCtx } from './types';
+export type { PluginManifest, ActivityItem, ChangedFile, ChangeInterpreterCtx } from './types';
 import type { DataSource } from '../data/types';
 
 /** 槽位门控评估上下文（主板页面传入；不传 = 不过滤，全量返回） */
@@ -96,4 +96,24 @@ export function getPluginSlot(slot: string, ctx?: SlotGateCtx, position: 'top' |
     }
   }
   return undefined;
+}
+
+/**
+ * 文件变化解释：把 git 扫描到的 data/ 变化分发给各插件 changeInterpreter，
+ * 汇总为 activity 条目（与原生 app/post/delete 并列，不单独成块）。
+ * 插件禁用/删除 → 解释器不注册 → 其数据文件变化不再产生 activity 条目。
+ */
+export function interpretChanges(changes: ChangedFile[], ctx: ChangeInterpreterCtx): ActivityItem[] {
+  const out: ActivityItem[] = [];
+  for (const plugin of registry.values()) {
+    for (const interpreter of plugin.changeInterpreters ?? []) {
+      const matched = changes.filter((c) =>
+        typeof interpreter.match === 'string'
+          ? c.path === interpreter.match || c.path.startsWith(interpreter.match + '/')
+          : interpreter.match(c.path),
+      );
+      if (matched.length) out.push(...interpreter.interpret(matched, ctx));
+    }
+  }
+  return out;
 }

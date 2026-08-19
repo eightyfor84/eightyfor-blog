@@ -2,19 +2,18 @@
  * Chronicle Template — Recent Updates
  *
  * Infers a "recently updated" summary from git history: the latest commit date,
- * whether the App changed, which posts were added/modified, and which
- * collections were newly added. Uses the shared git reader
- * (`@chronicle/shared/src/utils/git`) plus the current post/collection data to
- * map file paths → display titles. Returns `null` when git is unavailable so
- * the caller can fall back to a static list.
+ * whether the App changed, which posts were added/modified/deleted, and exposes
+ * the raw data/ file changes for plugin changeInterpreters (each plugin decides
+ * how to interpret its own data files, e.g. collections.yml → new collection).
+ * Uses the shared git reader (`@chronicle/shared/src/utils/git`) plus the
+ * current post data to map file paths → display titles. Returns `null` when git
+ * is unavailable so the caller can fall back to a static list.
  */
-import YAML from 'yaml';
 import {
   resolveRepoRoot,
   getLatestCommit,
   getChangedFiles,
   getDiffFiles,
-  getFileAtRevision,
   getLastCommitBefore,
 } from '@chronicle/shared/src/utils/git';
 
@@ -32,35 +31,23 @@ export interface RecentUpdates {
   appUpdated: boolean;
   changedPosts: { id: string; title: string; isNew: boolean }[];
   deletedCount: number;
-  newCollections: { slug: string; name: string }[];
+  /** 窗口内 data/ 的原始文件变化（status + path）——插件 changeInterpreter 解释入口 */
+  changedFiles: ChangedFile[];
+}
+
+/** 文件变化（git --name-status 形状，与 shared/git 一致） */
+export interface ChangedFile {
+  status: 'A' | 'M' | 'D';
+  path: string;
 }
 
 interface PostLike { id?: string; title?: string }
-interface CollectionLike { slug?: string; name?: string }
-
-/** Parse `data/collections.yml` content into a set of slugs. */
-function parseCollectionSlugs(yml: string): Set<string> {
-  const slugs = new Set<string>();
-  try {
-    const parsed = YAML.parse(yml);
-    const arr = Array.isArray(parsed) ? parsed : (parsed?.collections ?? parsed?.items ?? []);
-    if (!Array.isArray(arr)) return slugs;
-    for (const c of arr) {
-      const slug = String(c?.slug || '').trim();
-      if (slug) slugs.add(slug);
-    }
-  } catch {
-    // Unparseable snapshot → treat as no collections
-  }
-  return slugs;
-}
 
 export async function getRecentUpdates(opts: {
   posts: PostLike[];
-  collections: CollectionLike[];
   aggregateDays: number;
 }): Promise<RecentUpdates | null> {
-  const { posts, collections, aggregateDays } = opts;
+  const { posts, aggregateDays } = opts;
 
   // ── Dev-only mock ────────────────────────────────────────────────────────
   // Short-circuit git so the display layer can be exercised without a real
@@ -75,7 +62,7 @@ export async function getRecentUpdates(opts: {
       appUpdated: false,
       changedPosts: [],
       deletedCount: 0,
-      newCollections: [{ slug: 'mock-collection', name: 'Mock Collection' }],
+      changedFiles: [{ status: 'A', path: 'data/collections.yml' }],
     };
   }
 
@@ -100,16 +87,12 @@ export async function getRecentUpdates(opts: {
     const id = String(p?.id || '').trim();
     if (id && !postTitleById.has(id)) postTitleById.set(id, String(p?.title || id));
   }
-  const collectionNameBySlug = new Map<string, string>();
-  for (const c of collections) {
-    const slug = String(c?.slug || '').trim();
-    if (slug && !collectionNameBySlug.has(slug)) collectionNameBySlug.set(slug, String(c?.name || slug));
-  }
 
-  // Classify changed paths. `data/` files other than posts/collections are
-  // ignored (site.yml, profile.yml, friends.yml, index.json, background/avatar).
+  // Classify changed paths. `data/` files other than posts are left to plugin
+  // changeInterpreters (collections.yml → collections 插件解释新合集等)；
+  // 非 data/.chronicle 路径 → App updated。
   let appUpdated = false;
-  let collectionsTouched = false;
+  const dataChanges: ChangedFile[] = [];
   const ordered: { id: string; isNew: boolean }[] = [];
   const seen = new Map<string, boolean>();
 
@@ -120,10 +103,6 @@ export async function getRecentUpdates(opts: {
 
     if (!inData && !inChronicle) {
       appUpdated = true;
-      continue;
-    }
-    if (inData && p === 'data/collections.yml') {
-      collectionsTouched = true;
       continue;
     }
     if (inData && p.startsWith('data/posts/')) {
@@ -148,13 +127,17 @@ export async function getRecentUpdates(opts: {
         const item = ordered.find((o) => o.id === id);
         if (item) item.isNew = true;
       }
+    } else if (inData) {
+      // 其余 data/ 变化（collections.yml / friends.yml / profile.yml 等）原样暴露，
+      // 由插件 changeInterpreter 解释（core 不预知各数据文件语义）
+      dataChanges.push(f);
     }
-    // Any other data/ path is intentionally ignored.
   }
 
   // Net diff: count posts whose `index.md` was deleted, and catch App changes
   // that only arrived via merge commits (invisible to the first-parent log).
   let deletedCount = 0;
+  const netDataChanges: ChangedFile[] = [];
   if (netDiff !== null) {
     for (const f of netDiff) {
       const inData = f.path.startsWith('data/');
@@ -163,6 +146,7 @@ export async function getRecentUpdates(opts: {
         appUpdated = true;
         continue;
       }
+      if (inData) netDataChanges.push(f);
       if (f.status === 'D' && /^data\/posts\/[^/]+\/index\.md$/.test(f.path)) {
         deletedCount += 1;
       }
@@ -175,28 +159,16 @@ export async function getRecentUpdates(opts: {
     .slice(0, MAX_POSTS)
     .map((o) => ({ id: o.id, title: postTitleById.get(o.id) || o.id, isNew: o.isNew }));
 
-  // New collections: diff slugs between the window start and HEAD.
-  let newCollections: { slug: string; name: string }[] = [];
-  if (collectionsTouched) {
-    const oldCommit = getLastCommitBefore(root, sinceIso, 'data/collections.yml');
-    if (oldCommit) {
-      const oldYml = getFileAtRevision(root, 'data/collections.yml', oldCommit);
-      const newYml = getFileAtRevision(root, 'data/collections.yml', 'HEAD');
-      if (oldYml !== null && newYml !== null) {
-        const oldSlugs = parseCollectionSlugs(oldYml);
-        const newSlugs = parseCollectionSlugs(newYml);
-        newCollections = Array.from(newSlugs)
-          .filter((slug) => !oldSlugs.has(slug))
-          .map((slug) => ({ slug, name: collectionNameBySlug.get(slug) || slug }));
-      }
-    }
-  }
+  // 原始 data/ 文件变化（窗口内 + net diff 合并、按路径去重）——插件
+  // changeInterpreter 据此解释各类 data 文件变化（如 collections.yml → 新合集）。
+  const byPath = new Map<string, ChangedFile>();
+  for (const f of [...dataChanges, ...netDataChanges]) byPath.set(f.path, f);
 
   return {
     latestCommitDate: latest.dateIso,
     appUpdated,
     changedPosts,
     deletedCount,
-    newCollections,
+    changedFiles: Array.from(byPath.values()),
   };
 }

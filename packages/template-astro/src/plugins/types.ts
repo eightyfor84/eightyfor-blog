@@ -31,7 +31,41 @@ export interface PluginSlotContribution {
   };
 }
 
-/** 插件 manifest：一单元注册（页面 + 槽位 + 数据钩子 + 设置 schema） */
+/** activity 卡片条目（首页"最近更新"列表项）——插件 changeInterpreter 产物 */
+export interface ActivityItem {
+  /** 条目类型：'app' | 'post' | 'delete' 为 core 预设；插件可自定 tone（样式需主题支持） */
+  tone: string;
+  label?: string;
+  title: string;
+  href?: string;
+  external?: boolean;
+}
+
+/** git 文件变化（recentUpdates 暴露的原始 data/ 变化） */
+export interface ChangedFile {
+  status: 'A' | 'M' | 'D';
+  path: string;
+}
+
+/** 文件变化解释器上下文（解释器读取当前数据/设置） */
+export interface ChangeInterpreterCtx {
+  dataSource: DataSource;
+  t?: (key: string) => string;
+}
+
+/**
+ * 文件变化解释器：把某类 data/ 文件变化理解为主页 activity 条目。
+ * 插件声明关心的路径模式 + 解释函数——core 扫描 git 变化后分发给所有解释器，
+ * 产物与原生条目（app/post/delete）并列（不单独成块）。
+ */
+export interface PluginChangeInterpreter {
+  /** 匹配的 data/ 路径（如 'data/collections.yml'；支持前缀 'data/xxx/'） */
+  match: string | ((path: string) => boolean);
+  /** 解释变化 → activity 条目（返回空数组 = 无可见活动） */
+  interpret(changes: ChangedFile[], ctx: ChangeInterpreterCtx): ActivityItem[];
+}
+
+/** 插件 manifest：一单元注册（页面 + 槽位 + 数据钩子 + 变化解释器 + 设置 schema） */
 export interface PluginManifest {
   id: string;
   /** 插件级开关键（site.yml featureFlags/顶层布尔）：构建期 false → 不注册（禁用=构建时忽略，与删除同效果） */
@@ -44,6 +78,8 @@ export interface PluginManifest {
   slots?: PluginSlotContribution[];
   /** 数据钩子扩展：插件专属能力（叠加在 DataSource 上，可缺省） */
   dataHooks?: Partial<DataSource>;
+  /** 文件变化解释器：把 data/ 变化理解为主页 activity 条目（core 分发变化，插件自解释） */
+  changeInterpreters?: PluginChangeInterpreter[];
   /** 设置 schema 贡献（manager 侧，T5 接入 SCHEMA_REGISTRY） */
   settingsSchema?: string[];
 }

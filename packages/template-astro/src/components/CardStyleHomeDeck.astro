@@ -15,10 +15,10 @@ const { locale, featureFlags } = Astro.props || {
 // ── 首页卡片注册式装配 ────────────────────────────────────
 // taxonomy 卡片：主板只留模板骨架（panel-card + section-head），内容块经
 // home-card-taxonomy 槽位注册（search→快速搜索/标签云，collections→合集列表）。
-// activity 卡片：core 预设块（最近更新）+ home-card-activity 追加块。
+// activity 卡片：core 扫描 git 变化产原生条目（app/post/delete），插件
+// changeInterpreter 把各自数据文件变化解释为条目——全部并列同一列表。
 // 卡片流：home-card-flow 注册整卡。
 const TaxonomyBlocks = getPluginSlots('home-card-taxonomy', { featureFlags });
-const ActivityBlocks = getPluginSlots('home-card-activity', { featureFlags });
 const FlowCards = getPluginSlots('home-card-flow', { featureFlags });
 const t = (key: string) => getTranslation(locale, key);
 const routeLang = locale;
@@ -99,8 +99,8 @@ const cv = settings?.cardVisibility || {};
 const showAuthorCard = cv?.author !== false;
 const showTaxonomyCard =
   cv?.taxonomy !== false && TaxonomyBlocks.length > 0;
-const showActivityCard =
-  cv?.activity !== false && (ActivityBlocks.length > 0 || true); // core 预设块恒有内容
+// activity 卡片：core 预设块恒有内容（更新时间 + 原生活动项）
+const showActivityCard = cv?.activity !== false;
 const isSingleColumn = settings?.singleColumnHomepage === true;
 
 // Right column is empty if all cards in it are hidden
@@ -185,12 +185,14 @@ function uniqueById(list: any[]) {
 }
 
 let posts: any[] = [];
+let deckDataSource: any = null;
 
 // Local/filesystem mode: read directly from data/ (single source of truth)
-// 合集数据不在此读取——taxonomy 合集块 / activity 合集动态由 collections 插件
-// 经 home-card-taxonomy / home-card-activity 槽位自读（core 零合集逻辑）
+// 合集数据不在此读取——taxonomy 合集块由 collections 插件经 home-card-taxonomy
+// 槽位自读；activity 合集条目由插件 changeInterpreter 自解释（core 零合集逻辑）
 try {
   const { dataSource } = await import("../data");
+  deckDataSource = dataSource;
   posts = dataSource.getPublishedPosts().map((p: any) => ({
     ...p,
     content: undefined,
@@ -254,7 +256,6 @@ try {
   const { getRecentUpdates } = await import("../utils/recentUpdates");
   recentUpdates = await getRecentUpdates({
     posts,
-    collections: [], // 合集动态由 collections 插件块自读/自算——core 不持有合集数据
     aggregateDays,
   });
 } catch {
@@ -271,6 +272,7 @@ const isStale =
 
 // Unified content list — same shape for the git-derived (fresh) and the static
 // fallback feed, so the markup renders identically in both cases.
+// 条目 = core 原生（app/post/delete）+ 插件 changeInterpreter 产物（并列同一列表）
 const activityItems: ActivityItem[] = [];
 if (recentUpdates) {
   if (recentUpdates.appUpdated) {
@@ -297,7 +299,7 @@ if (recentUpdates) {
       }),
     });
   }
-  // 合集动态（newCollections）由 collections 插件块渲染——core 不持有合集逻辑
+  // 插件 changeInterpreter 产物（如 collections.yml → 新增合集）——与原生条目并列
 } else {
   for (const post of recentPosts.slice(0, 3)) {
     activityItems.push({
@@ -307,7 +309,14 @@ if (recentUpdates) {
       href: buildPostUrl(post.id),
     });
   }
-  // 静态回退合集摘要由 collections 插件块渲染——core 不持有合集逻辑
+}
+
+// 分发 data/ 变化给插件解释器 → 产物追加到同一列表（并列，不单独成块）
+if (recentUpdates?.changedFiles?.length && deckDataSource) {
+  const { interpretChanges } = await import("../plugins");
+  activityItems.push(
+    ...interpretChanges(recentUpdates.changedFiles, { dataSource: deckDataSource, t }),
+  );
 }
 
 const authorInitials =
@@ -550,14 +559,6 @@ const yearLabel = new Date().getFullYear();
                   )}
                 </div>
               </div>
-
-            {/* 插件追加块：home-card-activity 槽位注册——统一包 taxonomy-block 容器，
-                与原生块（更新时间/更新内容）参与相同排列（块间距 .taxonomy-block + .taxonomy-block） */}
-            {ActivityBlocks.map((Block: any) => (
-              <div class="taxonomy-block">
-                <Block locale={locale} t={t} />
-              </div>
-            ))}
           </section>
         )
       }
