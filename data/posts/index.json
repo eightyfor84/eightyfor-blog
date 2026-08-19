@@ -152,7 +152,7 @@
       "jamstack"
     ],
     "status": "published",
-    "summary": "Chronicle is a local-first, git-backed Jamstack blogging platform. No server, no database — just Markdown, YAML, and Git.",
+    "summary": "Chronicle is a local-first, git-backed Jamstack blogging platform. No server, no database — just Markdown, YAML, and Git. Its frontend is a lightweight core with pluggable features registered by plugins.",
     "font": "sans",
     "author": null,
     "aiGenerated": false,

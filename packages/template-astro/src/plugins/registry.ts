@@ -191,3 +191,9 @@ export function getPostTypeFallback(type: string): string {
 export function getPostTypeBadge(type: string): { label: string; icon?: string } | undefined {
   return postTypeIndex.get(type)?.badge;
 }
+
+/** 文章类型是否忽略 prev/next 导航队列（插件声明 queueIgnored；
+ *  无注册/未声明 → false = 参与导航） */
+export function isPostTypeQueueIgnored(type: string): boolean {
+  return postTypeIndex.get(type)?.queueIgnored === true;
+}

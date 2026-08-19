@@ -66,7 +66,7 @@ export interface PluginChangeInterpreter {
   interpret(changes: ChangedFile[], ctx: ChangeInterpreterCtx): ActivityItem[];
 }
 
-/** 插件文章类型贡献：插件声明自己处理的文章类型 + 降级 + 徽章 */
+/** 插件文章类型贡献：插件声明自己处理的文章类型 + 降级 + 徽章 + 导航队列 */
 export interface PluginPostTypeContribution {
   /** 文章类型（post.type / frontmatter type 值），如 'slides' */
   type: string;
@@ -82,6 +82,9 @@ export interface PluginPostTypeContribution {
     /** 徽章图标 SVG */
     icon?: string;
   };
+  /** 是否忽略 prev/next 导航队列（默认 false）：true → 该类型文章不参与
+      上/下篇导航，也不作为其他文章的候选（如 slides 无正文阅读顺序） */
+  queueIgnored?: boolean;
 }
 
 /** 插件 manifest：一单元注册（页面 + 槽位 + 数据钩子 + 变化解释器 + critical + 设置 schema） */

@@ -23,12 +23,14 @@ export const slides: PluginManifest = {
     { slot: 'post-slides-view', component: Slideshow },
   ],
   // 文章类型注册：slides 类型 → 渲染槽位 post-slides-view + 降级 article + 徽章
+  // + queueIgnored（slides 无正文阅读顺序——不参与 prev/next 导航队列）
   postTypes: [
     {
       type: 'slides',
       slot: 'post-slides-view',
       fallbackType: 'article',
       badge: { label: 'Slides', icon: slidesIcon },
+      queueIgnored: true,
     },
   ],
   dataHooks: {},
