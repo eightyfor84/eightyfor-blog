@@ -4,7 +4,7 @@ import { buildLocalizedPath } from "../utils/routeLocale";
 import { loadSiteSettings } from "../utils/siteSettings";
 import { loadSiteProfile } from "../utils/siteProfile";
 import { getTranslation, getLocale } from "../utils/i18n";
-import { getPluginSlot } from '../plugins';
+import { getPluginSlots } from '../plugins';
 import ChronicleImage from "./ChronicleImage.astro";
 
 const { locale, featureFlags } = Astro.props || {
@@ -12,15 +12,20 @@ const { locale, featureFlags } = Astro.props || {
   featureFlags: {},
 };
 
-// 首页搜索框槽位：search 插件贡献（插件启用即注册；globalSearch 不参与门控）
-const HomeSearchBoxSlot = getPluginSlot('home-search-box', { featureFlags });
+// ── 首页卡片注册式装配 ────────────────────────────────────
+// taxonomy 卡片：主板只留模板骨架（panel-card + section-head），内容块经
+// home-card-taxonomy 槽位注册（search→快速搜索/标签云，collections→合集列表）。
+// activity 卡片：core 预设块（最近更新）+ home-card-activity 追加块。
+// 卡片流：home-card-flow 注册整卡。
+const TaxonomyBlocks = getPluginSlots('home-card-taxonomy', { featureFlags });
+const ActivityBlocks = getPluginSlots('home-card-activity', { featureFlags });
+const FlowCards = getPluginSlots('home-card-flow', { featureFlags });
 const t = (key: string) => getTranslation(locale, key);
 const routeLang = locale;
 const blogsPath = buildLocalizedPath(locale, "/blogs");
 const friendsPath = buildLocalizedPath(locale, "/friends");
 const aboutPath = buildLocalizedPath(locale, "/about");
 const collectionPath = buildLocalizedPath(locale, "/collection");
-const searchPath = buildLocalizedPath(locale, "/search");
 const settings = await loadSiteSettings();
 const profile = await loadSiteProfile();
 
@@ -92,13 +97,14 @@ const footerLinks: FooterLink[] = [
 ];
 
 // Homepage card visibility
-// taxonomy 卡片内容 = 搜索块（search 插件）+ 合集块（collections 插件）——任一存在才显示；
-// 搜索功能去掉时快速导航（快速搜索 + 标签云）整体消失，卡片不显示空标题
+// taxonomy 卡片 = 模板骨架 + 注册块（home-card-taxonomy 槽位）——有注册块才显示；
+// 搜索/合集插件禁用或删除 → 块消失 → 卡片整体不渲染（无空标题）
 const cv = settings?.cardVisibility || {};
 const showAuthorCard = cv?.author !== false;
 const showTaxonomyCard =
-  cv?.taxonomy !== false && (!!HomeSearchBoxSlot || isCollectionEnabled);
-const showActivityCard = cv?.activity !== false;
+  cv?.taxonomy !== false && TaxonomyBlocks.length > 0;
+const showActivityCard =
+  cv?.activity !== false && (ActivityBlocks.length > 0 || true); // core 预设块恒有内容
 const isSingleColumn = settings?.singleColumnHomepage === true;
 
 // Right column is empty if all cards in it are hidden
@@ -182,63 +188,6 @@ function uniqueById(list: any[]) {
   });
 }
 
-function buildTagStats(postsList: any[]) {
-  const counts = new Map<string, number>();
-  for (const post of postsList) {
-    for (const tag of Array.isArray(post?.tags) ? post.tags : []) {
-      const normalized = String(tag || "").trim();
-      if (!normalized) continue;
-      counts.set(normalized, (counts.get(normalized) || 0) + 1);
-    }
-  }
-  return Array.from(counts.entries())
-    .map(([name, count]) => ({
-      name,
-      count,
-      featured: isFeaturedTag(name),
-    }))
-    .sort((a, b) => {
-      if (a.featured && !b.featured) return -1;
-      if (!a.featured && b.featured) return 1;
-      if (b.count !== a.count) return b.count - a.count;
-      return a.name.localeCompare(b.name);
-    });
-}
-
-function buildArchiveStats(postsList: any[]) {
-  const years = new Map<
-    number,
-    { count: number; months: Map<number, number>; latest: Date }
-  >();
-  for (const post of postsList) {
-    const date = safeDateValue(post?.date);
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const current = years.get(year) || {
-      count: 0,
-      months: new Map<number, number>(),
-      latest: date,
-    };
-    current.count += 1;
-    current.latest = current.latest > date ? current.latest : date;
-    current.months.set(month, (current.months.get(month) || 0) + 1);
-    years.set(year, current);
-  }
-
-  return Array.from(years.entries())
-    .map(([year, data]) => ({
-      year,
-      count: data.count,
-      latest: data.latest,
-      months: Array.from(data.months.entries())
-        .sort((a, b) => b[1] - a[1] || b[0] - a[0])
-        .slice(0, 4)
-        .map(([month, count]) => ({ month, count })),
-    }))
-    .sort((a, b) => b.year - a.year)
-    .slice(0, 5);
-}
-
 function buildCollectionSummaries(collectionsList: any[]) {
   return collectionsList
     .filter(Boolean)
@@ -307,18 +256,7 @@ const leadPost = recentPosts[0] || featuredPosts[0] || null;
 const secondaryPosts = uniqueById([...featuredPosts, ...recentPosts])
   .filter((post) => post?.id && post?.id !== leadPost?.id)
   .slice(0, 4);
-const TAG_LIMIT = 14;
 const COLLECTION_LIMIT = 3;
-const allTagStats = buildTagStats(sortedPosts);
-const tagStats = allTagStats
-  .filter((item) => !item.featured)
-  .slice(0, TAG_LIMIT);
-const hasMoreTags =
-  allTagStats.filter((item) => !item.featured).length > TAG_LIMIT;
-const featuredTagStats = allTagStats
-  .filter((item) => item.featured)
-  .slice(0, 1);
-const archiveStats = buildArchiveStats(sortedPosts);
 const allCollectionSummaries = buildCollectionSummaries(collections);
 const collectionSummaries = allCollectionSummaries.slice(0, COLLECTION_LIMIT);
 const hasMoreCollections = allCollectionSummaries.length > COLLECTION_LIMIT;
@@ -526,6 +464,11 @@ const yearLabel = new Date().getFullYear();
           }
         </div>
       </section>
+
+      {/* 卡片流自定义卡片：home-card-flow 槽位注册（插件自含整卡骨架） */}
+      {FlowCards.map((Card: any) => (
+        <Card locale={locale} t={t} />
+      ))}
     </main>
 
     <aside
@@ -569,7 +512,9 @@ const yearLabel = new Date().getFullYear();
       }
 
       {
-        showTaxonomyCard && (
+        // taxonomy 卡片：主板只留模板骨架，内容块经 home-card-taxonomy 槽位注册
+        // （search→快速搜索/标签云、collections→合集列表；插件禁用/删除 → 块消失）
+        showTaxonomyCard && TaxonomyBlocks.length > 0 && (
           <section class="panel-card mtl-container taxonomy-card">
             <div class="section-head flush">
               <div>
@@ -577,68 +522,9 @@ const yearLabel = new Date().getFullYear();
               </div>
             </div>
 
-            {HomeSearchBoxSlot ? (
-              <div class="taxonomy-block">
-                <h3>{t("home.quickSearch")}</h3>
-                <HomeSearchBoxSlot
-                  locale={locale}
-                  t={t}
-                />
-              </div>
-            ) : null}
-
-            {isCollectionEnabled && (
-              <div class="taxonomy-block">
-                <h3>{t("home.collectionList")}</h3>
-                <div class="taxonomy-list">
-                  {collectionSummaries.length
-                    ? collectionSummaries.map((collection) => (
-                        <a
-                          class="mtl-surface interactive glowable scalable"
-                          href={
-                            collectionPath +
-                            "#" +
-                            encodeURIComponent(collection.name)
-                          }
-                        >
-                          <span>{collection.name}</span>
-                          <strong>{collection.posts}</strong>
-                        </a>
-                      ))
-                    : null}
-                </div>
-                {hasMoreCollections ? (
-                  <a href={collectionPath} class="view-more-link">
-                    {t("home.viewAll")} →
-                  </a>
-                ) : null}
-              </div>
-            )}
-
-            {HomeSearchBoxSlot ? (
-              <div class="taxonomy-block">
-                <h3>{t("home.tagCloud")}</h3>
-                <div class="tag-cloud">
-                  {tagStats.map((tag) => (
-                    <a
-                      class:list={[
-                        "tag-cloud-item",
-                        tag.featured ? "featured" : "",
-                      ]}
-                      href={searchPath + "?tags=" + encodeURIComponent(tag.name)}
-                    >
-                      {tag.featured ? t("blog.featured") : tag.name}
-                      <span class="tag-count">{tag.count}</span>
-                    </a>
-                  ))}
-                </div>
-                {hasMoreTags ? (
-                  <a href={searchPath + "?view=tags"} class="view-more-link">
-                    {t("home.viewAllTags")} →
-                  </a>
-                ) : null}
-              </div>
-            ) : null}
+            {TaxonomyBlocks.map((Block: any) => (
+              <Block locale={locale} t={t} />
+            ))}
           </section>
         )
       }
@@ -729,7 +615,11 @@ const yearLabel = new Date().getFullYear();
                   )}
                 </div>
               </div>
-            
+
+            {/* 插件追加块：home-card-activity 槽位注册（core 预设块之上） */}
+            {ActivityBlocks.map((Block: any) => (
+              <Block locale={locale} t={t} />
+            ))}
           </section>
         )
       }

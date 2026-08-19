@@ -3,7 +3,8 @@
 // 槽位：global-search-overlay（全局搜索弹层，Layout 渲染，when 门控 globalSearch flag）
 //      nav-search-action（导航搜索按钮，NavHeader 渲染，同 globalSearch 门控——
 //      插件禁用/删除时按钮不注册，core 无硬编码按钮）
-//      home-search-box（首页搜索框，随插件总开关注册）
+//      home-card-taxonomy（首页 taxonomy 卡片内容块：快速搜索 + 标签云——
+//      主板卡片只留模板骨架，内容块随插件注册；禁用/删除 → 块消失）
 // 构建钩子：full_index.json 生成仍在 astro.config.mjs（isFullTextEnabled 按配置 opt-out）
 // 设置 schema：template-settings.schema.json 的 search 段（T5 接 SCHEMA_REGISTRY）
 // 样式归属主题层：search-experience.css / search-box.css / global-search-overlay.css
@@ -12,7 +13,7 @@ import type { PluginManifest } from '../types';
 import SearchPage from './SearchPage.astro';
 import GlobalSearchOverlay from './GlobalSearchOverlay.astro';
 import NavSearchButton from './NavSearchButton.astro';
-import HomeSearchBox from './HomeSearchBox.astro';
+import TaxonomySearchBlock from './TaxonomySearchBlock.astro';
 
 export const search: PluginManifest = {
   id: 'search',
@@ -27,9 +28,8 @@ export const search: PluginManifest = {
     // 导航搜索按钮（遮罩式搜索入口）：同 globalSearch 门控——插件禁用/删除 →
     // 构建期不注册 → 按钮消失；globalSearch 关闭 → 按钮与弹层一起消失
     { slot: 'nav-search-action', component: NavSearchButton, when: { featureFlag: 'globalSearch' } },
-    // 首页搜索框：searchbox 服务——随插件总开关注册（globalSearch 只控制遮罩弹层，
-    // 不影响首页搜索框；插件禁用/删除时构建期不注册，首页无搜索框）
-    { slot: 'home-search-box', component: HomeSearchBox },
+    // 首页 taxonomy 卡片内容块（快速搜索 + 标签云）——主板模板骨架渲染本槽位
+    { slot: 'home-card-taxonomy', component: TaxonomySearchBlock },
   ],
   dataHooks: {},
   settingsSchema: ['search'],
