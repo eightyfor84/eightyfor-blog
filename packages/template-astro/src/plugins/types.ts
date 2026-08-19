@@ -66,6 +66,24 @@ export interface PluginChangeInterpreter {
   interpret(changes: ChangedFile[], ctx: ChangeInterpreterCtx): ActivityItem[];
 }
 
+/** 插件文章类型贡献：插件声明自己处理的文章类型 + 降级 + 徽章 */
+export interface PluginPostTypeContribution {
+  /** 文章类型（post.type / frontmatter type 值），如 'slides' */
+  type: string;
+  /** 渲染槽位（文章页该类型的视图槽位，如 'post-slides-view'） */
+  slot?: string;
+  /** 降级类型：插件禁用/删除时文章降级为的类型（缺省 'article'）。
+      若降级类型也无匹配插件 → 继续降级到 'article' */
+  fallbackType?: string;
+  /** 类型徽章（列表/卡片/标题展示；可选——无徽章则该类型不挂徽章） */
+  badge?: {
+    /** 徽章文案（如 "幻灯片" / "Slides"） */
+    label: string;
+    /** 徽章图标 SVG */
+    icon?: string;
+  };
+}
+
 /** 插件 manifest：一单元注册（页面 + 槽位 + 数据钩子 + 变化解释器 + critical + 设置 schema） */
 export interface PluginManifest {
   id: string;
@@ -84,6 +102,9 @@ export interface PluginManifest {
   /** 页面级 critical CSS（页面类型 → CSS 文本，插件 ?raw 提供）：
       主板页面在对应槽位/页面注册时内联——插件禁用/删除 → 不注入（core 零插件样式） */
   critical?: Record<string, string>;
+  /** 文章类型贡献：声明处理的类型 + 降级 + 徽章——插件禁用/删除 → 类型无匹配
+      → 文章降级为 fallbackType（默认 article）且无徽章 */
+  postTypes?: PluginPostTypeContribution[];
   /** 设置 schema 贡献（manager 侧，T5 接入 SCHEMA_REGISTRY） */
   settingsSchema?: string[];
 }

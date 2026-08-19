@@ -1,4 +1,4 @@
 /* ── 组件样式：BlogPostCard ──
    自 src/components/BlogPostCard.astro <style> 迁出。 */
-  .slides-badge { transform:translateY(3px); justify-content: center; opacity:.5; display: inline-flex; margin: 0 8px 0 0; flex-shrink: 0; }
-  .slides-badge svg { width: 18px; height: 18px; }
+  .type-badge { transform:translateY(3px); justify-content: center; opacity:.5; display: inline-flex; margin: 0 8px 0 0; flex-shrink: 0; }
+  .type-badge svg { width: 18px; height: 18px; }
