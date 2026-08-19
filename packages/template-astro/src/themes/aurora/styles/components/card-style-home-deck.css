@@ -220,7 +220,6 @@
     display: flex;
     gap: 0.9rem;
     align-items: center;
-    margin-bottom: 0.8rem;
   }
 
   .home-shell h3, .home-shell .story-card--empty h2{
@@ -577,7 +576,7 @@
     border-radius: 10px;
   }
 
-  .home-shell .activity-item__icon :global(svg){
+  .home-shell .activity-item__icon svg{
     width: 24px;
     height: 24px;
     display: block;

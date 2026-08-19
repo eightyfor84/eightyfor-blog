@@ -576,7 +576,7 @@
     }
   }
 
-  :global(.mobile-menu-overlay) {
+  .mobile-menu-overlay {
     position: fixed;
     inset: 0;
     z-index: 10000;
@@ -585,7 +585,7 @@
     opacity: 1;
     transition: opacity 0.3s ease;
   }
-  :global(.mobile-menu-overlay.fade-out) {
+  .mobile-menu-overlay.fade-out {
     opacity: 0;
   }
 
