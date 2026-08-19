@@ -1,50 +1,55 @@
+collections:
 - name: Stories to tell
   description: Stories of Chronicle, abd stories around Chronicle.
   cover: asset://1774947821473_vly1_177494760300-737.webp
   slug: stories-to-tell
   nodes:
-    - id: 45175cf3-db12-4dda-8a62-f36d0d2c3d51
+  - id: 45175cf3-db12-4dda-8a62-f36d0d2c3d51
+    type: post
+  - id: ''
+    type: group
+    title: content theme
+    children:
+    - id: 8a877784-76cd-4b0a-a669-4c30cc3a32ec
       type: post
-    - id: ""
-      type: group
-      title: content theme
-      children:
-        - id: 8a877784-76cd-4b0a-a669-4c30cc3a32ec
-          type: post
-        - id: 6d879241-fa6c-4099-82a5-066853046b9a
-          type: post
-        - id: 26s3
-          type: post
+    - id: 6d879241-fa6c-4099-82a5-066853046b9a
+      type: post
+    - id: 26s3
+      type: post
 - name: Chronicle Docs
   description: Offical Documents of Chronicle Project
   cover: asset://1770891564693_cktp_.png
   slug: chronicle-docs
   nodes:
-    - type: group
-      title: Changelog
-      children:
-        - id: chronicle-aurora
-          type: post
-    - id: ""
-      type: group
-      title: legacy
-      children:
-        - id: ""
-          type: group
-          title: changelog
-          children:
-            - id: b792d6ca-5efb-405e-84d2-609f056d4be9
-              type: post
-            - id: 9fad38a2-cf83-476b-bbab-5c097a1180fc
-              type: post
-        - id: 88394cb9-6f3b-4c20-a950-e6d74ea912a0
-          type: post
-    - id: chronicle-aurora-css
+  - type: group
+    title: Changelog
+    children:
+    - id: chronicle-aurora
       type: post
+  - id: ''
+    type: group
+    title: legacy
+    children:
+    - id: ''
+      type: group
+      title: changelog
+      children:
+      - id: b792d6ca-5efb-405e-84d2-609f056d4be9
+        type: post
+      - id: 9fad38a2-cf83-476b-bbab-5c097a1180fc
+        type: post
+    - id: 88394cb9-6f3b-4c20-a950-e6d74ea912a0
+      type: post
+  - id: chronicle-aurora-css
+    type: post
 - name: AuthorDNA
   description: the offical docs of AuthorDNA, an AI-powered writing assistant.
   cover: asset://1780412391392_8rqy_2026-06-02225940.png
   slug: authordna
   nodes:
-    - id: 249931ea-c899-45a5-9daa-9b6fe0089a41
-      type: post
+  - id: 249931ea-c899-45a5-9daa-9b6fe0089a41
+    type: post
+post:
+  collectionNav:
+    enabled: true
+    alwaysCollapsed: false

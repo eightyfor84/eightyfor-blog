@@ -1,5 +1,7 @@
 # Chronicle Aurora site configuration — written by the CMS settings pages; hand-written comments and untouched keys are preserved
 
+# ── 主板基础（非插件）──
+
 # Homepage settings (Template settings → Homepage)
 homepage:
   siteName: Blogs →
@@ -23,21 +25,6 @@ appearance:
   locale: follow
   defaultPerformanceMode: auto
 
-# Search settings (Template settings → Search)
-search:
-  searchSuggestions: true
-  globalSearch: true
-  fullTextSearch: true
-
-# Comments master switch (Post page → Comments group toggle)
-comments: true
-
-# Page toggles
-collectionPage: true
-aboutPage: true
-friendsPage: true
-
-# RSS feed toggle
 rss: true
 
 # Analytics (multi-backend)
@@ -52,18 +39,35 @@ analytics:
   plausibleDomain: ''
   baiduId: ''
 
-# Post page settings (Post page tab: header/meta, TOC, collection nav, end-of-article, comments)
+# 文章页基础（主板预设）：头部信息 meta
 post:
   meta: { metaUpdated: true, metaStats: true, metaAiBadge: true, showTags: true }
+
+# ── 插件分组（每插件一段：开关 + 配置；开关键 = 该插件 featureFlag 名）──
+search:
+  enabled: true
+  searchSuggestions: true
+  globalSearch: true
+  fullTextSearch: true
+comments:
+  enabled: true
+  comments: true
+  backend: 'waline'
+  walineServerUrl: "https://aurora-comments.eightyfor.top"
+  attitude: true
+  showGeoAddress: true
+  imageUploadEnabled: false
+  imageUploadEndpoint: ""
+  imageUploadToken: ""
+reading-experience:
+  enabled: true
+  readingExperience: true
   toc:
     enabled: true
-    tocFloatAlwaysExpanded: false
     inlineToc: true
     tocFloat: true
+    tocFloatAlwaysExpanded: false
     mobileTocControl: true
-  collectionNav:
-    enabled: true
-    alwaysCollapsed: false
   endOfArticle:
     share: true
     shareChannels:
@@ -76,11 +80,9 @@ post:
     relatedPosts: true
     authorCard: false
     prevNextOrder: desc
-  comments:
-    backend: 'waline'
-    walineServerUrl: "https://aurora-comments.eightyfor.top"
-    imageUploadEnabled: false
-    attitude: true
-    showGeoAddress: true
-    imageUploadEndpoint: ""
-    imageUploadToken: ""
+friends:
+  enabled: true
+collections:
+  enabled: true
+slides:
+  enabled: false
