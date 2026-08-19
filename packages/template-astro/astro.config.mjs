@@ -158,6 +158,7 @@ export default defineConfig({
               let count = 0;
 
               html = html.replace(CSS_LINK_RE, (match, href) => {
+                // 豁免渲染阻塞样式：data-render-blocking 标记
                 if (match.includes('data-render-blocking')) return match;
                 count++;
                 return `<link rel="stylesheet" href="${href}" media="print" onload="this.onload=null;this.media='all'"><noscript><link rel="stylesheet" href="${href}"></noscript>`;
@@ -166,6 +167,30 @@ export default defineConfig({
               if (count > 0) {
                 writeFileSync(filePath, html);
                 console.log(`[chronicle-defer-css] ${relPath}: deferred ${count} CSS file(s)`);
+              }
+
+              // ── Unlayered critical lock ────────────────────────────
+              // global.css 的非变量规则位于 @layer chr-global（最低优先级）。
+              // 这里把同一批规则以「未分层」镜像注入 critical <style>：CSS
+              // 规范保证未分层普通声明永远胜过分层声明（与到达顺序/特异性
+              // 无关）→ 首帧即最终态，defer 异步到达的 global.css 再也无法
+              // 改变任何已渲染布局（零 CLS）。选择器本身一字未改。
+              // 从 dist 产物提取（跟随主题 + 已压缩）；主题未拆分 @layer
+              // 时提取为空，安全跳过。
+              let chrLockCss = '';
+              try {
+                const astroDir = join(outDir, '_astro');
+                const globals = readdirSync(astroDir).filter((f) => /^global\..+\.css$/.test(f));
+                for (const g of globals) {
+                  const gc = readFileSync(join(astroDir, g), 'utf-8');
+                  const lm = gc.match(/@layer\s+chr-global\s*\{([\s\S]*)\}/);
+                  if (lm) { chrLockCss = lm[1].trim(); break; }
+                }
+              } catch {}
+              if (chrLockCss && !html.includes('data-chr-critical-lock')) {
+                html = html.replace('</head>', `<style data-chr-critical-lock>${chrLockCss}</style></head>`);
+                writeFileSync(filePath, html);
+                console.log(`[chronicle-critical-lock] ${relPath}: locked ${chrLockCss.length} B of global rules unlayered`);
               }
 
               // ── Minify inlined critical CSS ──
