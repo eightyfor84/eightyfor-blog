@@ -70,6 +70,8 @@ jobs:
             --dataDir data \
             --codeDir packages/template-astro \
             --targetDir dist
+          # GitHub Pages 自定义响应头（缓存策略：HTML 短 TTL / 指纹资源 immutable）
+          cp _headers dist/_headers
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
