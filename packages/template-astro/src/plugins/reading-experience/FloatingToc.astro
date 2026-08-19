@@ -25,6 +25,13 @@ const {
   collapsed = true,
   alwaysExpanded = false,
 } = Astro.props as Props;
+
+// ── 配置自读（插件自包含）：tocFloatAlwaysExpanded 决定常展开态（原由主板读 tocCfg 传入）──
+import { dataSource } from '../../data';
+const _tocCfg = (dataSource.getPublicSettings() as any)?.post?.toc || {};
+const tocFloatAlwaysExpanded = _tocCfg.tocFloatAlwaysExpanded === true;
+const effectiveCollapsed = collapsed !== undefined ? collapsed : !tocFloatAlwaysExpanded;
+const effectiveAlwaysExpanded = alwaysExpanded !== undefined ? alwaysExpanded : tocFloatAlwaysExpanded;
 ---
 
 <div id="floating-toc-root" data-mount-to-body={String(mountToBody)}>
@@ -32,7 +39,7 @@ const {
     <nav
       class="toc-float collapsed"
       class:list={{ visible: false }}
-      data-toc-mode={collapsed ? undefined : (alwaysExpanded ? 'always' : 'default')}
+      data-toc-mode={effectiveCollapsed ? undefined : (effectiveAlwaysExpanded ? 'always' : 'default')}
       aria-label={navLabel}
       data-container-selector={containerSelector}
       data-inline-selector={inlineSelector}

@@ -110,15 +110,12 @@ const SlidesSlot = getPluginSlot('post-slides-view', slotGateCtx);
 const collectionEnabled = (settings as Record<string, any>).collectionPage !== false;
 const collectionNavEnabled = postCfg.postCollectionNavEnabled !== false;
 // Single source of truth for "render the collection nav + reserve its sidebar space".
-const hasCollectionNav = collectionEnabled && collectionNavEnabled && !!post?.collection;
-const collectionNavCollapsed = collectionNavCfg.alwaysCollapsed === true;
 
 // ── TOC toggles (3.1.x) ────────────────────────────────
 const tocEnabled = postCfg.postTocEnabled !== false;
 const inlineTocEnabled = tocEnabled && tocCfg.inlineToc !== false;
 const tocFloatEnabled = tocEnabled && tocCfg.tocFloat !== false;
 // 悬浮目录折叠态：始终展开开关关闭时即折叠（rail 现况）；开启时始终展开（正文让位）
-const tocFloatAlwaysExpanded = tocCfg.tocFloatAlwaysExpanded === true;
 const mobileTocControlEnabled = tocEnabled && tocCfg.mobileTocControl !== false;
 
 // ── Collections + post titles for CollectionNav ──────────
@@ -275,7 +272,7 @@ const metaDescription = buildMetaDescription(post, locale);
 </Layout>
 ) : (
 <Layout title={pageTitle} settings={settings} locale={locale} navTitle={post?.title} navBackHref={backToBlogs} navBackLabel={t('inblog.backToBlogs')} meta={{ description: metaDescription, type: 'article' }}>
-  <div class="post-detail-container" class:list={[{ "has-collection-nav": hasCollectionNav }, { "always-collapsed": collectionNavCollapsed }, { "reserve-toc-right": tocFloatAlwaysExpanded && tocFloatEnabled }]} id="post-top">
+  <div class="post-detail-container" id="post-top">
     {error ? (
       <div class="error-container">
         <h1>Post not found</h1>
@@ -432,8 +429,6 @@ const metaDescription = buildMetaDescription(post, locale);
         toc={tocItems}
         navLabel={t('inblog.toc-title')}
         mountToBody={true}
-        collapsed={!tocFloatAlwaysExpanded}
-        alwaysExpanded={tocFloatAlwaysExpanded}
       />
       )}
     </>
@@ -441,8 +436,8 @@ const metaDescription = buildMetaDescription(post, locale);
 
   <CornerActions toc={tocItems} postId={post?.id || id} commentsEnabled={commentsEnabled} collectionEnabled={collectionEnabled} hasCollection={!!post?.collection} mobileToc={mobileTocControlEnabled} />
 
-  {hasCollectionNav && CollectionNavSlot && (
-    <CollectionNavSlot postId={post?.id || id} defaultCollapsed={collectionNavCollapsed} />
+  {CollectionNavSlot && (
+    <CollectionNavSlot postId={post?.id || id} />
   )}
 
 

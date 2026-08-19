@@ -56,12 +56,13 @@
 .cn-panel[data-cn-variant="sidebar"] { position:fixed; width:260px; min-height:200px; z-index:1200; border-radius:12px; overflow:auto; }
 @media (min-width:1200px) {
   .cn-panel[data-cn-variant="sidebar"] { top:120px; left:calc(15vw - 160px); }
-  .post-detail-container.has-collection-nav { padding-left:280px; }
+  /* 布局跟随组件渲染（CSS :has，无 core 判断）：合集导航（sidebar）渲染在容器内 → 正文左移让位 */
+  .post-detail-container:has(.cn-panel[data-cn-variant="sidebar"]) { padding-left:280px; }
   /* 始终折叠开关：把 ≥1200px 也切进可折叠态（rail，与 ≤1199px 同款）——
      默认收起、hover 探头；正文不预留左间距 */
   .cn-panel[data-cn-variant="sidebar"][data-always-collapsed="true"] { top:90px; left:20px; }
   .cn-panel[data-cn-variant="sidebar"][data-always-collapsed="true"].collapsed { transform:translateX(calc(-260px + 0px)); opacity:0.5; }
-  .post-detail-container.has-collection-nav.always-collapsed { padding-left:0; }
+  .post-detail-container:has(.cn-panel[data-cn-variant="sidebar"][data-always-collapsed="true"]) { padding-left:0; }
 }
 @media (max-width:1199px) {
   .cn-panel[data-cn-variant="sidebar"] { top:90px; left:20px; }

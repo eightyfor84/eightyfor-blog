@@ -10,7 +10,11 @@ interface Props {
   /** 3.1.x — always collapsed: never auto-expand on wide screens. */
   defaultCollapsed?: boolean;
 }
-const { postId = "", mountToBody = true, variant = "sidebar", defaultCollapsed = false } = Astro.props as Props;
+const { postId = "", mountToBody = true, variant = "sidebar", defaultCollapsed: defaultCollapsedProp } = Astro.props as Props;
+
+// 配置自读（交集式）：合集导航折叠初态来自 collections.yml 的 post.collectionNav.alwaysCollapsed
+const _navCfg = (dataSource.getPublicSettings() as any)?.post?.collectionNav || {};
+const defaultCollapsed = defaultCollapsedProp !== undefined ? defaultCollapsedProp : _navCfg.alwaysCollapsed === true;
 
 // ── 数据自读（插件自包含，交集式：数据经 DataSource——collections 插件提供）──
 const collections: any[] = (dataSource.getCollections?.() as any)?.collections || [];
