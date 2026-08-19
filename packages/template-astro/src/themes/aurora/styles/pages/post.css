@@ -17,9 +17,11 @@
     }
 
     /* 常展开 floating TOC：正文右侧让位（仅桌面端；移动端 TOC 收纳进 CornerActions）。
-       布局跟随组件渲染（CSS :has，无 core 判断）：TOC 以 always 模式渲染 → 正文右移 */
+       布局跟随组件渲染（CSS :has，无 core 判断）：TOC 以 always 模式渲染 → 正文右移。
+       双规则：首帧容器内 + 客户端 mountToBody 后（body:has） */
     @media (min-width: 900px) {
       .post-detail-container:has(.toc-float[data-toc-mode="always"]) { padding-right: 240px; }
+      body:has(#floating-toc-root .toc-float[data-toc-mode="always"]) .post-detail-container { padding-right: 240px; }
     }
 
     .error-container {
