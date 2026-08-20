@@ -444,7 +444,7 @@ const pluginPostCritical = getPluginCritical('post');
     </>
   )}
 
-  <CornerActions toc={tocItems} postId={post?.id || id} commentsEnabled={commentsEnabled} collectionEnabled={collectionEnabled} hasCollection={!!post?.collection} mobileToc={mobileTocControlEnabled} />
+  <CornerActions toc={tocItems} postId={post?.id || id} commentsEnabled={commentsEnabled} collectionEnabled={collectionEnabled} hasCollection={!!post?.collection} mobileToc={mobileTocControlEnabled} dataSource={dataSource} />
 
   {CollectionNavSlot && (
     <CollectionNavSlot postId={post?.id || id} />
