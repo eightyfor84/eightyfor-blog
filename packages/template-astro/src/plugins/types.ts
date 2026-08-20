@@ -54,6 +54,10 @@ export interface ChangeInterpreterCtx {
   t?: (key: string) => string;
   /** 当前 locale（'en' | 'zh-CN'）——解释器构造本地化跳转链接用 */
   locale?: string;
+  /** 仓库根路径——解释器读 git 旧版内容做内容级 diff（变化前 vs 当前） */
+  root?: string;
+  /** 聚合窗口起点 commit——解释器对比"变化前"内容；null 时无法对比（保守回退） */
+  baseCommit?: string | null;
 }
 
 /**

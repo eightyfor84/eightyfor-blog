@@ -33,6 +33,10 @@ export interface RecentUpdates {
   deletedCount: number;
   /** 窗口内 data/ 的原始文件变化（status + path）——插件 changeInterpreter 解释入口 */
   changedFiles: ChangedFile[];
+  /** 仓库根（解释器读 git 旧版内容用） */
+  root: string;
+  /** 聚合窗口起点 commit（解释器对比变化前 vs 当前内容用）；无窗口起点时 null */
+  baseCommit: string | null;
 }
 
 /** 文件变化（git --name-status 形状，与 shared/git 一致） */
@@ -63,6 +67,8 @@ export async function getRecentUpdates(opts: {
       changedPosts: [],
       deletedCount: 0,
       changedFiles: [{ status: 'A', path: 'data/collections.yml' }],
+      root: '',
+      baseCommit: null,
     };
   }
 
@@ -172,5 +178,7 @@ export async function getRecentUpdates(opts: {
     changedPosts,
     deletedCount,
     changedFiles: dataChanges,
+    root,
+    baseCommit: base,
   };
 }

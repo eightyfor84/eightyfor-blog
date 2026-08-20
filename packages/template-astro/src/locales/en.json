@@ -111,7 +111,8 @@
     "aboutEntryDescription": "Learn about the author and the site.",
     "unnamedCollection": "Untitled collection",
     "recentPublished": "Recently Published",
-    "newCollection": "New collection"
+    "newCollection": "New collection",
+    "updatedCollection": "Updated collection"
   },
   "file": {
     "type": {

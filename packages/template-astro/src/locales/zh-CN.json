@@ -111,7 +111,8 @@
     "aboutEntryDescription": "了解作者与站点。",
     "unnamedCollection": "未命名合集",
     "recentPublished": "最近发布",
-    "newCollection": "新增合集"
+    "newCollection": "新增合集",
+    "updatedCollection": "更新合集"
   },
   "file": {
     "type": {
