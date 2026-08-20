@@ -52,8 +52,9 @@
 .friend-card--top-lg .friend-card__copy { min-height:170px; gap:.7rem; }
 
 /* ── Responsive (same cascade order as the page's <style>) ── */
-@media (max-width:760px) {
-  .friends-list--left-sm,
+@media (max-width:768px) {
+  /* 与 friends.css 同值：left-sm（小卡片 300px）与 left-lg/top-lg（大卡片 500px）分开定列宽 */
+  .friends-list--left-sm { grid-template-columns:repeat(1, minmax(0,300px)); }
   .friends-list--left-lg,
   .friends-list--top-lg { grid-template-columns:repeat(1, minmax(0,500px)); }
   .friend-card--left-sm .friend-card__media,
