@@ -545,4 +545,11 @@ body.backend::after{
     overflow: hidden;
     z-index: 0;
   }
+  @media(max-width: 768px){
+    .main-content{
+      padding-top: 50px;
+      --toc-scroll-offset: 50px;
+      --top-fade-length: 50px;
+    }
+  }
 }
