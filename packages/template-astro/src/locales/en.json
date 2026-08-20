@@ -92,7 +92,6 @@
     "updatedApp": "App updated",
     "newPost": "New post",
     "updatedPost": "Updated post",
-    "newCollections": "New collections",
     "deletedPosts": "Deleted {count} posts",
     "noRecentChanges": "No recent content changes",
     "siteLinksAria": "Site links",
@@ -111,7 +110,9 @@
     "aboutEntry": "About",
     "aboutEntryDescription": "Learn about the author and the site.",
     "unnamedCollection": "Untitled collection",
-    "recentPublished": "Recently Published"
+    "recentPublished": "Recently Published",
+    "newCollection": "New collection",
+    "updatedCollection": "Updated collection"
   },
   "file": {
     "type": {

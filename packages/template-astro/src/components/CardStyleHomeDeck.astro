@@ -58,6 +58,9 @@ const activityIcons = {
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
   delete:
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>',
+  // 插件 tone（如 collections 的合集条目）——图标随 tone 查表，缺省回退 app 图标
+  collection:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>',
 };
 
 // Home footer site links (profile links + RSS + About). Separators are rendered
@@ -223,8 +226,8 @@ const recommendedPosts = uniqueById([...featuredPosts, ...recentPosts])
 // Recent updates (git-based) with a static fallback (recent posts, no collections/
 // friends). Fallback shares the exact same rendering — only the data differs:
 // the "last updated" label reads "Unknown" and the content list is static.
-// 合集动态（newCollections + 静态合集摘要）由 collections 插件经 home-card-activity
-// 槽位渲染——core 只持有帖子/应用/删除动态。
+// 插件动态（合集/友链等）由各插件 changeInterpreter 自解释后并列进同一列表——
+// core 只持有帖子/应用/删除动态，零插件数据语义。
 type RecentUpdatesData = {
   latestCommitDate: string;
   appUpdated: boolean;
@@ -232,7 +235,9 @@ type RecentUpdatesData = {
   deletedCount: number;
 };
 type ActivityItem = {
-  tone: "app" | "post" | "delete";
+  // tone 不限 core 预设（app/post/delete）——插件 changeInterpreter 可自定义
+  // （如 collections 的 'collection'）；图标/样式随 tone 查表（缺省回退）
+  tone: string;
   label?: string;
   title: string;
   href?: string;
@@ -312,10 +317,18 @@ if (recentUpdates) {
 }
 
 // 分发 data/ 变化给插件解释器 → 产物追加到同一列表（并列，不单独成块）
+// ctx 带非 posts/ yml 的内容 diff（YAML-as-DataSource 通道）+ 仓库上下文
 if (recentUpdates?.changedFiles?.length && deckDataSource) {
   const { interpretChanges } = await import("../plugins");
   activityItems.push(
-    ...interpretChanges(recentUpdates.changedFiles, { dataSource: deckDataSource, t }),
+    ...interpretChanges(recentUpdates.changedFiles, {
+      dataSource: deckDataSource,
+      t,
+      locale,
+      root: recentUpdates.root,
+      baseCommit: recentUpdates.baseCommit,
+      yamlFileChanges: recentUpdates.yamlFileChanges,
+    }),
   );
 }
 
@@ -525,7 +538,7 @@ const yearLabel = new Date().getFullYear();
                           <span
                             class="activity-item__icon"
                             aria-hidden="true"
-                            set:html={activityIcons[item.tone]}
+                            set:html={activityIcons[item.tone] ?? activityIcons.app}
                           />
                           <span class="activity-item__text">
                             {item.label ? (
@@ -541,7 +554,7 @@ const yearLabel = new Date().getFullYear();
                           <span
                             class="activity-item__icon"
                             aria-hidden="true"
-                            set:html={activityIcons[item.tone]}
+                            set:html={activityIcons[item.tone] ?? activityIcons.app}
                           />
                           <span class="activity-item__text">
                             {item.label ? (

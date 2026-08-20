@@ -15,7 +15,10 @@ import {
   getChangedFiles,
   getDiffFiles,
   getLastCommitBefore,
+  getFileAtRevision,
 } from '@chronicle/shared/src/utils/git';
+import YAML from 'yaml';
+import type { ChangedFile, YamlFileChange } from '../plugins/types';
 
 const DAY_MS = 86400000;
 const MAX_POSTS = 5;
@@ -26,6 +29,45 @@ function sanitizeDays(value: unknown, fallback: number): number {
   return Number.isFinite(n) && n >= 1 ? Math.floor(n) : fallback;
 }
 
+/**
+ * 非 posts/ 的 yml 文件内容 diff——插件 YAML-as-DataSource 通道。
+ * 对窗口内变化的 data/ 文件（排除 data/posts/——内容太重，core 只需文件级信号），
+ * 读取窗口起点（baseCommit）与当前（HEAD）两个版本，raw + yaml 解析双通道返回。
+ * 消费者（changeInterpreter）拿 yaml 结构做业务 diff；解析失败退回 raw。
+ */
+export function getYamlFileChanges(
+  root: string,
+  baseCommit: string | null,
+  changes: ChangedFile[],
+): YamlFileChange[] {
+  const out: YamlFileChange[] = [];
+  for (const f of changes) {
+    if (!f.path.startsWith('data/') || f.path.startsWith('data/posts/')) continue;
+    if (!/\.ya?ml$/.test(f.path)) continue;
+    const currentRaw =
+      f.status === 'D' ? null : getFileAtRevision(root, f.path, 'HEAD');
+    const previousRaw =
+      f.status === 'A' || !baseCommit ? null : getFileAtRevision(root, f.path, baseCommit);
+    const parse = (raw: string | null): unknown | null => {
+      if (raw === null) return null;
+      try {
+        return YAML.parse(raw) ?? null;
+      } catch {
+        return null;
+      }
+    };
+    out.push({
+      path: f.path,
+      status: f.status,
+      previousRaw,
+      currentRaw,
+      previous: parse(previousRaw),
+      current: parse(currentRaw),
+    });
+  }
+  return out;
+}
+
 export interface RecentUpdates {
   latestCommitDate: string;
   appUpdated: boolean;
@@ -33,12 +75,12 @@ export interface RecentUpdates {
   deletedCount: number;
   /** 窗口内 data/ 的原始文件变化（status + path）——插件 changeInterpreter 解释入口 */
   changedFiles: ChangedFile[];
-}
-
-/** 文件变化（git --name-status 形状，与 shared/git 一致） */
-export interface ChangedFile {
-  status: 'A' | 'M' | 'D';
-  path: string;
+  /** 非 posts/ yml 的内容 diff（插件 YAML-as-DataSource 通道） */
+  yamlFileChanges: YamlFileChange[];
+  /** 仓库根（解释器读 git 旧版内容用） */
+  root: string;
+  /** 聚合窗口起点 commit（解释器对比变化前 vs 当前内容用）；无窗口起点时 null */
+  baseCommit: string | null;
 }
 
 interface PostLike { id?: string; title?: string }
@@ -63,6 +105,9 @@ export async function getRecentUpdates(opts: {
       changedPosts: [],
       deletedCount: 0,
       changedFiles: [{ status: 'A', path: 'data/collections.yml' }],
+      yamlFileChanges: [],
+      root: '',
+      baseCommit: null,
     };
   }
 
@@ -136,8 +181,12 @@ export async function getRecentUpdates(opts: {
 
   // Net diff: count posts whose `index.md` was deleted, and catch App changes
   // that only arrived via merge commits (invisible to the first-parent log).
+  // 注意：netDiff 是 base（窗口起点前的最后一个 commit）→ HEAD 的**全量 diff**，
+  // 不受时间窗口过滤——若窗口起点前很久没提交，base 很旧，全量 diff 会包含
+  // 窗口外的旧 data/ 变化（如几周前改过的 collections.yml 被误报为"新增"）。
+  // 因此 netDiff 只用于 deletedCount 与 appUpdated（merge 补充），**不**并入
+  // changedFiles——data 文件变化只采 getChangedFiles（窗口内 + first-parent）。
   let deletedCount = 0;
-  const netDataChanges: ChangedFile[] = [];
   if (netDiff !== null) {
     for (const f of netDiff) {
       const inData = f.path.startsWith('data/');
@@ -146,7 +195,6 @@ export async function getRecentUpdates(opts: {
         appUpdated = true;
         continue;
       }
-      if (inData) netDataChanges.push(f);
       if (f.status === 'D' && /^data\/posts\/[^/]+\/index\.md$/.test(f.path)) {
         deletedCount += 1;
       }
@@ -159,16 +207,18 @@ export async function getRecentUpdates(opts: {
     .slice(0, MAX_POSTS)
     .map((o) => ({ id: o.id, title: postTitleById.get(o.id) || o.id, isNew: o.isNew }));
 
-  // 原始 data/ 文件变化（窗口内 + net diff 合并、按路径去重）——插件
-  // changeInterpreter 据此解释各类 data 文件变化（如 collections.yml → 新合集）。
-  const byPath = new Map<string, ChangedFile>();
-  for (const f of [...dataChanges, ...netDataChanges]) byPath.set(f.path, f);
-
+  // 原始 data/ 文件变化——按聚合窗口（aggregateDays）语义：getChangedFiles 的
+  // 窗口内 + first-parent 结果，插件 changeInterpreter 据此解释（如 collections.yml
+  // → 新合集）。不用 netDiff 合并：base→HEAD 全量 diff 无时间过滤，会把窗口外的
+  // 旧变化（如几周前改过的 collections.yml）误报为"新增"——详见上文 netDiff 注释。
   return {
     latestCommitDate: latest.dateIso,
     appUpdated,
     changedPosts,
     deletedCount,
-    changedFiles: Array.from(byPath.values()),
+    changedFiles: dataChanges,
+    yamlFileChanges: getYamlFileChanges(root, base, dataChanges),
+    root,
+    baseCommit: base,
   };
 }

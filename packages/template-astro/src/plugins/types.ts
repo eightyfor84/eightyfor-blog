@@ -48,10 +48,37 @@ export interface ChangedFile {
   path: string;
 }
 
+/**
+ * 非 posts/ 的 yml 文件在聚合窗口内的内容 diff——插件 YAML-as-DataSource 通道。
+ * adapter（recentUpdates）算好旧版（窗口起点）vs 当前（HEAD）的内容，raw + yaml
+ * 解析双通道：解释器拿 yaml 结构直接做业务 diff（哪个条目新增/修改），
+ * yaml 解析失败时退回 raw 文本。posts/ 被排除——内容太重，core 只需文件级信号。
+ */
+export interface YamlFileChange {
+  path: string;
+  status: 'A' | 'M' | 'D';
+  /** 窗口起点版本原文（A 时 null；无 baseCommit/git 不可读时 null） */
+  previousRaw: string | null;
+  /** 当前版本原文（D 时 null） */
+  currentRaw: string | null;
+  /** 窗口起点版本 yaml 解析结果（解析失败 null，用 raw） */
+  previous: unknown | null;
+  /** 当前版本 yaml 解析结果（解析失败 null，用 raw） */
+  current: unknown | null;
+}
+
 /** 文件变化解释器上下文（解释器读取当前数据/设置） */
 export interface ChangeInterpreterCtx {
   dataSource: DataSource;
   t?: (key: string) => string;
+  /** 当前 locale（'en' | 'zh-CN'）——解释器构造本地化跳转链接用 */
+  locale?: string;
+  /** 仓库根路径——解释器读 git 旧版内容做内容级 diff（变化前 vs 当前） */
+  root?: string;
+  /** 聚合窗口起点 commit——解释器对比"变化前"内容；null 时无法对比（保守回退） */
+  baseCommit?: string | null;
+  /** 非 posts/ yml 的内容 diff（YAML-as-DataSource 通道）——按 path 自取 */
+  yamlFileChanges?: YamlFileChange[];
 }
 
 /**
