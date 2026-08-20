@@ -38,7 +38,6 @@
     "words": "字数",
     "readingTime": "阅读时间",
     "aiGeneratedTip": "文章含 AI 生成内容",
-    "aboutMe": "关于我",
     "aboutMe": "关于我"
   },
   "collection": {
@@ -93,7 +92,6 @@
     "updatedApp": "更新 App 版本",
     "newPost": "新增文章",
     "updatedPost": "更新文章",
-    "newCollections": "新增合集",
     "deletedPosts": "删除 {count} 篇文章",
     "noRecentChanges": "最近无内容更新",
     "siteLinksAria": "站点链接",
@@ -112,7 +110,8 @@
     "aboutEntry": "关于本站",
     "aboutEntryDescription": "了解作者与站点。",
     "unnamedCollection": "未命名合集",
-    "recentPublished": "最近发布"
+    "recentPublished": "最近发布",
+    "newCollection": "新增合集"
   },
   "file": {
     "type": {

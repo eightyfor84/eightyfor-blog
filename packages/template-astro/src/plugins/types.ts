@@ -52,6 +52,8 @@ export interface ChangedFile {
 export interface ChangeInterpreterCtx {
   dataSource: DataSource;
   t?: (key: string) => string;
+  /** 当前 locale（'en' | 'zh-CN'）——解释器构造本地化跳转链接用 */
+  locale?: string;
 }
 
 /**

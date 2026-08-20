@@ -9,6 +9,7 @@
  * 解释器读当前合集树，把变化信号映射为可见条目；数据自读 DataSource。
  */
 import type { PluginChangeInterpreter, ChangedFile, ActivityItem, ChangeInterpreterCtx } from '../types';
+import { buildLocalizedPath } from '../../utils/routeLocale';
 
 const DISPLAY_LIMIT = 2;
 
@@ -26,19 +27,24 @@ export const collectionsChangeInterpreter: PluginChangeInterpreter = {
   match: 'data/collections.yml',
 
   interpret(changes: ChangedFile[], ctx: ChangeInterpreterCtx): ActivityItem[] {
-    const { dataSource, t = (k: string) => k } = ctx;
+    const { dataSource, t = (k: string) => k, locale = 'zh-CN' } = ctx;
     const touched = changes.filter((c) => c.status === 'A' || c.status === 'M');
     if (!touched.length) return [];
 
-    const label = touched.some((c) => c.status === 'A')
-      ? t('home.newCollections')
-      : t('home.newCollections'); // 修改也沿用"新增合集"标签（无"更新合集"文案）
+    // 单数文案：每条条目对应一个合集（New collection / 新增合集）
+    const label = t('home.newCollection');
+    const collectionPath = buildLocalizedPath(locale, '/collection');
     return readCollections(dataSource)
       .slice(0, DISPLAY_LIMIT)
-      .map((col) => ({
-        tone: 'collection',
-        label,
-        title: String(col?.name || '').trim() || 'Untitled',
-      }));
+      .map((col) => {
+        const name = String(col?.name || '').trim() || 'Untitled';
+        return {
+          tone: 'collection',
+          label,
+          title: name,
+          // 跳转合集页面对应合集锚点（与 TaxonomyCollectionBlock 一致）
+          href: `${collectionPath}#${encodeURIComponent(name)}`,
+        };
+      });
   },
 };
