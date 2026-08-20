@@ -226,8 +226,8 @@ const recommendedPosts = uniqueById([...featuredPosts, ...recentPosts])
 // Recent updates (git-based) with a static fallback (recent posts, no collections/
 // friends). Fallback shares the exact same rendering — only the data differs:
 // the "last updated" label reads "Unknown" and the content list is static.
-// 合集动态（newCollections + 静态合集摘要）由 collections 插件经 home-card-activity
-// 槽位渲染——core 只持有帖子/应用/删除动态。
+// 插件动态（合集/友链等）由各插件 changeInterpreter 自解释后并列进同一列表——
+// core 只持有帖子/应用/删除动态，零插件数据语义。
 type RecentUpdatesData = {
   latestCommitDate: string;
   appUpdated: boolean;
@@ -317,6 +317,7 @@ if (recentUpdates) {
 }
 
 // 分发 data/ 变化给插件解释器 → 产物追加到同一列表（并列，不单独成块）
+// ctx 带非 posts/ yml 的内容 diff（YAML-as-DataSource 通道）+ 仓库上下文
 if (recentUpdates?.changedFiles?.length && deckDataSource) {
   const { interpretChanges } = await import("../plugins");
   activityItems.push(
@@ -326,6 +327,7 @@ if (recentUpdates?.changedFiles?.length && deckDataSource) {
       locale,
       root: recentUpdates.root,
       baseCommit: recentUpdates.baseCommit,
+      yamlFileChanges: recentUpdates.yamlFileChanges,
     }),
   );
 }

@@ -4,19 +4,17 @@
  * 把 data/collections.yml 的变化理解为主页 activity 条目（与原生 app/post/delete
  * 并列，不单独成块）。
  *
- * 内容级 diff：collections.yml 是整文件变化（单文件），M 不代表合集一定变了——
- * 可能是改导航配置/调整顺序。解释器读聚合窗口起点（baseCommit）的旧版内容，
- * 与当前（HEAD）对比，**只有真正新增或修改的合集**才进入 activity：
+ * 内容级 diff（消费 adapter 的 YAML-as-DataSource 通道）：
+ * collections.yml 是整文件变化（单文件），M 不代表合集一定变了——可能是改导航
+ * 配置/调整顺序/加注释。解释器用 ctx.yamlFileChanges（adapter 已把窗口起点旧版
+ * 与当前 HEAD 都解析成 yaml 结构）对比，**只有真正新增或修改的合集**才进入 activity：
  *   - 新增（旧版无此合集）   → "新增合集 <name>"（New collection）
  *   - 修改（内容变化）       → "更新合集 <name>"（Updated collection）
- *   - 未变/删除/仅配置变化   → 不报
- * 无 baseCommit（无窗口起点）时保守回退：A（文件整体新增）→ 当前合集全当新增；
- * M 无法对比 → 不报。
+ *   - 未变/删除/仅配置或顺序变化 → 不报
+ * 无旧版可对比时保守回退：A（文件整体新增）→ 当前合集全当新增；M → 不报。
  */
-import YAML from 'yaml';
 import type { PluginChangeInterpreter, ChangedFile, ActivityItem, ChangeInterpreterCtx } from '../types';
 import { buildLocalizedPath } from '../../utils/routeLocale';
-import { getFileAtRevision } from '@chronicle/shared/src/utils/git';
 
 const DISPLAY_LIMIT = 2;
 
@@ -25,34 +23,30 @@ function collectionKey(col: any): string {
   return String(col?.name || '').trim();
 }
 
-/** 解析 collections.yml 文本 → 合集数组（兼容裸数组与 { collections: [...] }） */
-function parseCollectionsYaml(text: string | null): any[] {
-  if (!text) return [];
+/** 归一化合集列表：yaml 结构可能是裸数组或 { collections: [...] } 对象 */
+function asCollectionList(value: unknown): any[] | null {
+  if (Array.isArray(value)) return value.filter(Boolean);
+  if (value && typeof value === 'object' && Array.isArray((value as any).collections)) {
+    return (value as any).collections.filter(Boolean);
+  }
+  return null;
+}
+
+/** 回退读取 dataSource 当前合集（git 不可读/adapter 未提供时） */
+function currentFromDataSource(dataSource: ChangeInterpreterCtx['dataSource']): any[] {
   try {
-    const data = YAML.parse(text) || {};
-    const arr = Array.isArray(data) ? data : data?.collections;
-    return Array.isArray(arr) ? arr.filter(Boolean) : [];
+    const raw = (dataSource.getCollections?.() as any) || [];
+    return asCollectionList(raw) ?? [];
   } catch {
     return [];
   }
-}
-
-/** 从 git 读取某版本的 collections.yml 并解析（读不到 → null） */
-function readCollectionsAt(
-  root: string | undefined,
-  revision: string,
-): any[] | null {
-  if (!root) return null;
-  const raw = getFileAtRevision(root, 'data/collections.yml', revision);
-  if (raw === null) return null;
-  return parseCollectionsYaml(raw);
 }
 
 export const collectionsChangeInterpreter: PluginChangeInterpreter = {
   match: 'data/collections.yml',
 
   interpret(changes: ChangedFile[], ctx: ChangeInterpreterCtx): ActivityItem[] {
-    const { dataSource, t = (k: string) => k, locale = 'zh-CN', root, baseCommit } = ctx;
+    const { dataSource, t = (k: string) => k, locale = 'zh-CN', yamlFileChanges = [] } = ctx;
     const touched = changes.filter((c) => c.status === 'A' || c.status === 'M');
     if (!touched.length) return [];
 
@@ -68,22 +62,13 @@ export const collectionsChangeInterpreter: PluginChangeInterpreter = {
       };
     };
 
-    // ── 内容级 diff：旧版（窗口起点）vs 当前（HEAD），同源 git 解析 ──
-    // git 不可读（root 为空/读失败）时回退 dataSource 当前合集（无对比 → A 全当新增）
-    let current = readCollectionsAt(root, 'HEAD');
-    if (current === null) {
-      try {
-        const raw = (dataSource.getCollections?.() as any) || [];
-        current = Array.isArray(raw) ? raw : (Array.isArray(raw?.collections) ? raw.collections : []);
-        current = Array.isArray(current) ? current.filter(Boolean) : [];
-      } catch {
-        current = [];
-      }
-    }
-    const previous = baseCommit ? readCollectionsAt(root, baseCommit) : null;
+    // ── YAML-as-DataSource 通道：adapter 已解析旧版（previous）与当前（current）──
+    const change = yamlFileChanges.find((c) => c.path === 'data/collections.yml');
+    const current = asCollectionList(change?.current) ?? currentFromDataSource(dataSource);
+    const previous = asCollectionList(change?.previous);
     if (!current.length) return [];
 
-    // 有对比依据：新增/修改才进 activity
+    // 有旧版可对比：新增/修改才进 activity（未变/删除/仅配置变化不报）
     if (previous !== null) {
       const prevByName = new Map(previous.map((c) => [collectionKey(c), c]));
       const items: ActivityItem[] = [];
@@ -91,18 +76,25 @@ export const collectionsChangeInterpreter: PluginChangeInterpreter = {
         const name = collectionKey(col);
         if (!name) continue;
         const prev = prevByName.get(name);
+        let item: ActivityItem | null = null;
         if (!prev) {
-          items.push(makeItem(col, true)); // 新增
+          item = makeItem(col, true); // 新增
         } else if (JSON.stringify(prev) !== JSON.stringify(col)) {
-          items.push(makeItem(col, false)); // 修改
+          item = makeItem(col, false); // 修改
         }
+        if (item) items.push(item);
       }
-      return items.filter(Boolean).slice(0, DISPLAY_LIMIT) as ActivityItem[];
+      return items.slice(0, DISPLAY_LIMIT);
     }
 
-    // ── 无对比依据（无 baseCommit）：保守回退 ──
+    // ── 无旧版（无 baseCommit/adapter 未提供）：保守回退 ──
     // 文件整体新增（A）→ 当前合集全当新增；M（无旧版可对比）→ 不报
     if (!touched.some((c) => c.status === 'A')) return [];
-    return current.map((col) => makeItem(col, true)).filter(Boolean).slice(0, DISPLAY_LIMIT) as ActivityItem[];
+    const fallbackItems: ActivityItem[] = [];
+    for (const col of current) {
+      const item = makeItem(col, true);
+      if (item) fallbackItems.push(item);
+    }
+    return fallbackItems.slice(0, DISPLAY_LIMIT);
   },
 };
