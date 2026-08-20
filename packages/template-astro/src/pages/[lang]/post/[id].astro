@@ -77,6 +77,10 @@ const postCfg = ((settings as Record<string, any>).post || {}) as any;
 const metaCfg = postCfg.postMeta || {};
 const tocCfg = postCfg.postToc || {};
 const collectionNavCfg = postCfg.postCollectionNav || {};
+// 正文让位 body 类（插件契约：reading-experience 合集导航 CSS 用 body.has-collection-nav
+// 做确定性首帧让位——:has 在慢网首帧 DOM 未完整时不匹配，让位迟到造成 CLS）
+const collectionNavBodyClass =
+  !!localPost?.collection && collectionNavCfg.alwaysCollapsed !== true ? 'has-collection-nav' : '';
 const endOfArticleCfg = postCfg.postEndOfArticle || {};
 const commentsCfg = postCfg.postComments || (settings as Record<string, any>).comment || {};
 
@@ -282,12 +286,12 @@ const pluginPostCritical = getPluginCritical('post');
 ---
 
 {isSlidesView && post ? (
-<Layout title={pageTitle} settings={settings} locale={locale} navTitle={post?.title} navBackHref={backToBlogs} navBackLabel={t('inblog.backToBlogs')} meta={{ description: metaDescription, type: 'article' }}>
+<Layout title={pageTitle} settings={settings} locale={locale} navTitle={post?.title} navBackHref={backToBlogs} navBackLabel={t('inblog.backToBlogs')} meta={{ description: metaDescription, type: 'article' }} bodyClass={collectionNavBodyClass}>
   {pluginPostCritical && <Fragment slot="head"><style is:inline set:html={pluginPostCritical} /></Fragment>}
   {SlidesSlot ? <SlidesSlot id={post.id} locale={locale} config={post.slideshow || {}} collectionEnabled={collectionEnabled} /> : null}
 </Layout>
 ) : (
-<Layout title={pageTitle} settings={settings} locale={locale} navTitle={post?.title} navBackHref={backToBlogs} navBackLabel={t('inblog.backToBlogs')} meta={{ description: metaDescription, type: 'article' }}>
+<Layout title={pageTitle} settings={settings} locale={locale} navTitle={post?.title} navBackHref={backToBlogs} navBackLabel={t('inblog.backToBlogs')} meta={{ description: metaDescription, type: 'article' }} bodyClass={collectionNavBodyClass}>
   {pluginPostCritical && <Fragment slot="head"><style is:inline set:html={pluginPostCritical} /></Fragment>}
   <div class="post-detail-container" id="post-top">
     {error ? (

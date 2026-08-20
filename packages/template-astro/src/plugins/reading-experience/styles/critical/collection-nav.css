@@ -1,15 +1,35 @@
 /* ── CollectionNav — prevent CLS（reading-experience 插件 critical）──
    由 post 页在 post-collection-nav 槽位注册时内联（插件禁用 → 不注入，
-   core 零合集样式）。布局偏移规则（:has 正文让位）必须在首帧生效。 */
+   core 零合集样式）。布局偏移规则（:has 正文让位 + 面板/header/图标尺寸）
+   必须在首帧生效——与全量 collection-nav.css 同值，迟到覆盖零变化。 */
 .cn-panel[data-cn-variant="sidebar"] { position:fixed; width:260px; min-height:200px; z-index:1200; border-radius:12px; overflow:auto; }
+
+/* header/正文/树图标布局（与全量同值——首帧锁定，防异步 CSS 到达时跳变） */
+.cn-header { display:flex; align-items:center; justify-content:space-between; min-height:32px; border-bottom:1px solid var(--border-color-blur); }
+.cn-header-title { display:inline-flex; align-items:center; gap:8px; }
+.cn-header-icon { width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center; color:var(--comp-text-sec); flex-shrink:0; }
+.cn-header-icon svg { width:20px; height:20px; display:block; }
+.cn-switcher { width:200px; }
+.cn-panel[data-cn-variant="sidebar"] .cn-header { padding:0.35rem 0.8rem; }
+.cn-panel[data-cn-variant="sidebar"] .cn-body { padding:0.6rem; max-height:66vh; }
+.ct-icon { width:16px; height:16px; display:inline-flex; align-items:center; justify-content:center; margin-right:8px; color:var(--comp-text-sec); flex-shrink:0; }
+.ct-icon svg { display:block; width:16px; height:16px; }
+.ct-card { display:flex; align-items:center; gap:4px; padding:4px 8px; font-size:0.85rem; }
+.ct-title { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1 1 auto; }
+.ct-children { margin-left:12px; padding-left:12px; }
+.cn-tree ul { list-style:none; margin:0; padding:0; }
+.cn-tree li { margin:7px 0; }
+
 @media (min-width:1200px) {
   .cn-panel[data-cn-variant="sidebar"] { top:120px; left:calc(15vw - 160px); }
-  .post-detail-container:has(.cn-panel[data-in-collection="true"]) { padding-left:280px; }
-  body:has(#collection-nav-root[data-in-collection="true"]) .post-detail-container { padding-left:280px; }
+  /* 正文让位：body.has-collection-nav（SSR 确定性，首帧即匹配——:has 在慢网下
+     首帧 DOM 未完整时不匹配，正文让位迟到造成 CLS）；折叠态由 JS 切 .collapsed，
+     交互后变化不计 CLS，用 :has 动态归零 */
+  body.has-collection-nav .post-detail-container { padding-left:280px; }
+  body.has-collection-nav:has(.cn-panel[data-cn-variant="sidebar"].collapsed) .post-detail-container { padding-left:0; }
   .cn-panel[data-cn-variant="sidebar"][data-always-collapsed="true"] { top:90px; left:20px; }
   .cn-panel[data-cn-variant="sidebar"][data-always-collapsed="true"].collapsed { transform:translateX(calc(-260px + 0px)); opacity:0.5; }
-  .post-detail-container:has(.cn-panel[data-in-collection="true"][data-always-collapsed="true"]) { padding-left:0; }
-  body:has(#collection-nav-root[data-in-collection="true"][data-always-collapsed="true"]) .post-detail-container { padding-left:0; }
+  body.has-collection-nav:has(.cn-panel[data-cn-variant="sidebar"][data-always-collapsed="true"]) .post-detail-container { padding-left:0; }
 }
 @media (max-width:1199px) {
   .cn-panel[data-cn-variant="sidebar"] { top:90px; left:20px; }
