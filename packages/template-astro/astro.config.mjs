@@ -169,34 +169,118 @@ export default defineConfig({
                 console.log(`[chronicle-defer-css] ${relPath}: deferred ${count} CSS file(s)`);
               }
 
-              // ── Critical lock ──────────────────────────────────────
-              // global.css 的非变量规则位于 @layer chr-global（最低优先级）。
-              // 这里把同一批规则以镜像注入 critical <style>，置于
-              // @layer chr-lock（层序 chr-global < chr-lock < chr-base < 未分层）：
-              //   1) global.css defer 异步到达时（chr-global 层）永远输给
-              //      chr-lock 首帧镜像 → 布局全程不变（零 CLS）；
-              //   2) 页面型 critical 与页面级 css（未分层）仍高于 chr-lock，
-              //      可覆盖 global 的同类规则（如 blogs 的 .section-title）；
-              //   3) critical-base（chr-base 层）高于 chr-lock，其与 global
-              //      重叠的属性（a 颜色 / :root 字体栈 / #app flex）不被压。
-              // 选择器本身一字未改。
-              // 从 dist 产物提取（跟随主题 + 已压缩）；主题未拆分 @layer
-              // 时提取为空，安全跳过。
-              let chrLockCss = '';
+              // ── Base/global 镜像一致性校验 ────────────────────────
+              // base 与 global 同层同值：base（内联首帧）是 global（异步迟到）
+              // 的手写占位。若 base 漏镜像/值不同步，global 迟到会改变已渲染
+              // 布局（CLS）。构建期比对 base 是否 ⊇ global 层内的布局属性且
+              // 值一致——不一致仅告警（不 fail），提示同步 critical-base。
               try {
+                const baseCss = readFileSync(join(__dirname, 'src', 'themes', 'aurora', 'styles', 'critical', 'critical-base.css'), 'utf-8');
                 const astroDir = join(outDir, '_astro');
                 const globals = readdirSync(astroDir).filter((f) => /^global\..+\.css$/.test(f));
                 for (const g of globals) {
                   const gc = readFileSync(join(astroDir, g), 'utf-8');
                   const lm = gc.match(/@layer\s+chr-global\s*\{([\s\S]*)\}/);
-                  if (lm) { chrLockCss = lm[1].trim(); break; }
+                  if (!lm) continue;
+                  const LAYOUT_RE = /^(display|flex|flex-direction|flex-wrap|flex-grow|flex-shrink|flex-basis|grid|grid-template|grid-area|width|min-width|max-width|height|min-height|max-height|margin|margin-top|margin-right|margin-bottom|margin-left|padding|padding-top|padding-right|padding-bottom|padding-left|position|top|right|bottom|left|inset|z-index|float|gap|transform|zoom|font-size|line-height|box-sizing|overflow|overflow-x|overflow-y|object-fit|object-position|order|align-items|justify-content|aspect-ratio|white-space|vertical-align)$/;
+                  // 已知豁免（base 刻意不镜像，无 CLS 风险）：
+                  //  - h1..h6 裸元素：页面元素都有 class 覆盖（.cover-title/.section-title 等）
+                  //  - :hover/:active 交互态：交互发生时 CSS 早已到达
+                  //  - #chr-bg-layer 背景视觉层（容器 fixed 已脱离流，子层迟到只影响铺满）
+                  //  - .font-* 工具类 / .file-preview-body（后台）/ .math-tooltip（JS 动态浮层）/
+                  //    .float-btn（页面型 critical 已覆盖）
+                  const EXEMPT = (sel) =>
+                    /^h[1-6](\s*,|$)/.test(sel) || /:(hover|active)/.test(sel) ||
+                    sel.includes('#chr-bg-layer') ||
+                    /(^|,) ?\.(font-|file-preview-body|math-tooltip|float-btn)/.test(sel);
+                  // 选择器规范化：剥注释 → 剥 @media 块（只比顶层规则，避免 media 内
+                  // 移动端值覆盖顶层值）→ 拆逗号 → 压缩空白。精确匹配（不做"含于"
+                  // 宽松匹配，避免注释文本/前缀选择器误命中）。
+                  const stripComments = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '');
+                  const stripMedia = (s) => {
+                    let out = '', i = 0;
+                    while (i < s.length) {
+                      if (s.startsWith('@media', i)) {
+                        const open = s.indexOf('{', i);
+                        let depth = 0, j = open;
+                        while (j < s.length) {
+                          if (s[j] === '{') depth++;
+                          else if (s[j] === '}') { depth--; if (depth === 0) break; }
+                          j++;
+                        }
+                        i = j + 1;
+                      } else {
+                        out += s[i];
+                        i++;
+                      }
+                    }
+                    return out;
+                  };
+                  const normSel = (s) => s.replace(/\s+/g, ' ').trim();
+                  const normVal = (s) => s.replace(/\s+/g, ' ').trim().replace(/^0\./, '.');
+                  const parseSelProps = (css) => {
+                    const map = new Map(); // normSel -> {prop: value}（同选择器多条规则合并，后者覆盖）
+                    const re = /([^{}]+)\{([^}]*)\}/g;
+                    let m;
+                    while ((m = re.exec(stripMedia(stripComments(css))))) {
+                      const body = m[2];
+                      if (/^@/.test(m[1].trim())) continue;
+                      const props = {};
+                      for (const d of body.split(';')) {
+                        if (!d.includes(':')) continue;
+                        const p = d.split(':')[0].trim();
+                        const v = d.slice(d.indexOf(':') + 1).trim();
+                        if (LAYOUT_RE.test(p)) props[p] = normVal(v);
+                      }
+                      if (Object.keys(props).length === 0) continue;
+                      for (const part of m[1].split(',')) {
+                        const s = normSel(part);
+                        if (!s) continue;
+                        const prev = map.get(s) || {};
+                        map.set(s, { ...prev, ...props });
+                      }
+                    }
+                    return map;
+                  };
+                  const baseMap = parseSelProps(baseCss);
+                  const globalLayer = stripMedia(stripComments(lm[1]));
+                  const warnList = [];
+                  const selBody = /([^{}]+)\{([^}]*)\}/g;
+                  let sm;
+                  while ((sm = selBody.exec(globalLayer))) {
+                    const rawSel = sm[1].trim();
+                    if (/^@/.test(rawSel)) continue;
+                    const gProps = {};
+                    for (const d of sm[2].split(';')) {
+                      if (!d.includes(':')) continue;
+                      const p = d.split(':')[0].trim();
+                      const v = d.slice(d.indexOf(':') + 1).trim();
+                      if (LAYOUT_RE.test(p)) gProps[p] = normVal(v);
+                    }
+                    if (Object.keys(gProps).length === 0) continue;
+                    for (const part of rawSel.split(',')) {
+                      const s = normSel(part);
+                      if (!s || EXEMPT(s)) continue;
+                      const bProps = baseMap.get(s);
+                      if (!bProps) {
+                        warnList.push(`${s} → ${Object.keys(gProps).join(',')}（base 未镜像）`);
+                        continue;
+                      }
+                      for (const [p, v] of Object.entries(gProps)) {
+                        if (bProps[p] === undefined) warnList.push(`${s} ${p}（base 未镜像）`);
+                        else if (bProps[p] !== v) warnList.push(`${s} ${p}: base=${bProps[p]} global=${v}`);
+                      }
+                    }
+                  }
+                  if (warnList.length > 0) {
+                    console.warn(`[chronicle-base-sync] ${relPath}: ${warnList.length} 处 base 与 global 布局不同步（首帧 CLS 风险）:`);
+                    for (const w of warnList.slice(0, 12)) console.warn(`    - ${w}`);
+                  } else {
+                    console.log(`[chronicle-base-sync] ${relPath}: base ⊇ global 布局属性，同值 ✓`);
+                  }
+                  break;
                 }
               } catch {}
-              if (chrLockCss && !html.includes('data-chr-critical-lock')) {
-                html = html.replace('</head>', `<style data-chr-critical-lock>@layer chr-lock{${chrLockCss}}</style></head>`);
-                writeFileSync(filePath, html);
-                console.log(`[chronicle-critical-lock] ${relPath}: locked ${chrLockCss.length} B of global rules at chr-lock layer`);
-              }
 
               // ── Minify inlined critical CSS ──
               // <style> blocks emitted via set:html bypass Vite's cssMinify

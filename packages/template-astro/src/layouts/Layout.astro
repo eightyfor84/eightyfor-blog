@@ -73,17 +73,18 @@ const isBlogs = /\/(en|zh)\/blogs\/?$/.test(pathname);
 // (same as the old link-after-inline-style behavior).
 const criticalTokens = themeCss(themeManifest.tokens);
 
-// 级联层序（低 → 高）：global 组件基础 < lock(global 首帧镜像) < base(全站排版基础)
-// 未分层（页面型 critical + 页面级外链 css）永远高于所有层 —— 页面型可覆盖
-// base/global 的同类规则，与特异性无关（如 blogs 的 .section-title 覆盖 base 的）。
+// 级联层序（低 → 高）：chr-global（base 手写镜像 + global 异步本体，同名合并）< chr-component（组件默认）
+// 未分层（页面型 critical + 页面级外链 css + 内联自定义）永远高于所有层 —— 页面型可覆盖
+// 全局基础的同名规则，与特异性无关（如 blogs 的 .section-title 覆盖 global 的）。
+// base 与 global 同层同值：base 内联先到作首帧占位，global 迟到覆盖（同值）→ 零 CLS。
 // 旧浏览器（不支持 @layer）丢弃分层块：保留变量(tokens) + 页面型，渐进增强缺失可接受。
-const CSS_LAYERS = '@layer chr-global, chr-lock, chr-base;';
+const CSS_LAYERS = '@layer chr-global, chr-component;';
 
 const criticalBaseCss = themeCss(themeManifest.critical.base);
 
 const criticalCSS = [
   CSS_LAYERS,
-  criticalBaseCss ? `@layer chr-base{${criticalBaseCss}}` : '',
+  criticalBaseCss ? `@layer chr-global{${criticalBaseCss}}` : '',
   isHome    ? themeCss(themeManifest.critical.home)    : '',
   isPost    ? themeCss(themeManifest.critical.post)    : '',
   (isPost || isAbout) ? chronicleMarkdownCss : '',

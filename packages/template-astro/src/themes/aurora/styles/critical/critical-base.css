@@ -22,8 +22,17 @@
 html { overflow:hidden; }
 body {
   min-height:100vh;
+  /* 与 global.css 同值：absolute 子元素（背景层等）的定位基准，首帧锁定防迟到位移 */
+  position:relative;
   font-weight:var(--app-text-wght, 400);
   font-variation-settings:'wght' var(--app-text-wght, 400);
+}
+/* 与 global.css 同值：移动端安全区（刘海屏）内边距——首帧锁定，防异步 CSS 到达时 body 上下留白跳变 */
+body {
+  padding-top:constant(safe-area-inset-top);
+  padding-top:env(safe-area-inset-top);
+  padding-bottom:constant(safe-area-inset-bottom);
+  padding-bottom:env(safe-area-inset-bottom);
 }
 
 /* Form controls do NOT inherit font by default (UA buttonface/Arial). Layout.css
@@ -33,6 +42,12 @@ button, input, select, textarea {
   font-family: inherit;
   font-size: inherit;
   line-height: inherit;
+}
+/* 控件排版与 global.css 同值（font-size:1em ≡ inherit，显式同值便于构建期校验）；
+   padding 首帧锁定——否则异步 CSS 到达时按钮尺寸跳变（CLS）。 */
+button {
+  font-size: 1em;
+  padding: 0.6em 1.2em;
 }
 
 /* ── 页面标题（friends/blogs 等共用；global.css 同值，首帧锁定防标题位移）── */
@@ -45,7 +60,17 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ── Shell ── */
-#app { display:flex; flex-direction:column; height:100vh; }
+/* 页面根容器（flex 列布局）。与 global.css 同值：height 用 calc(var(--vh,1vh)*100)
+   （移动端视口修正；首帧 --vh 未注入时 fallback 100vh ≡ 原值）；width/margin/padding/
+   box-sizing/position/z-index 一并锁定——#app 是全站布局根基，异步 CSS 迟到必须零变化。 */
+#app {
+  display:flex; flex-direction:column;
+  width:100vw; height:calc(var(--vh, 1vh) * 100);
+  margin:0; padding:0;
+  padding-top:env(safe-area-inset-top); padding-bottom:env(safe-area-inset-bottom);
+  box-sizing:border-box;
+  position:relative; z-index:1;
+}
 /* SVG sprite（body 级符号容器）：首帧必须隐藏，否则在文档流占位挤开 #app。
    与 utilities.css 的 .u-svg-defs 同值（critical/异步两处一致，防首帧漂移）。 */
 .u-svg-defs { position:absolute; width:0; height:0; overflow:hidden; pointer-events:none; }
@@ -115,7 +140,11 @@ html.immersive .nav-header {
 .main-content {
   flex:1; overflow-y:auto; overflow-x:hidden;
   padding-top:70px; height:100vh; box-sizing:border-box;
+  position:relative; /* 与 global.css 同值：滚动容器的定位上下文，首帧锁定 */
 }
+/* 状态布局与 global.css 同值：no-nav（无导航页）去顶部留白、unscrollable 锁滚动——首帧即最终态 */
+.main-content.no-nav { padding-top:0; overflow:hidden; z-index:0; }
+.main-content.unscrollable { overflow:hidden; }
 .app-title { font-size:1.5rem; font-weight:bold; color:var(--app-text-pri); margin:0; }
 .nav-link, .nav-action-link { color:var(--app-text-sec); text-decoration:none;  border-radius:6px; }
 .nav-home-link {text-decoration:none;}
@@ -146,7 +175,9 @@ html.immersive .nav-header {
 .reading-header { display:none }
 
 /* ── Links ── */
-a { color:var(--accent); }
+/* 与 global.css 同值（accent-dark）：base 与 global 同层同值，迟到无变化；
+   裸 a 链接首帧即最终色（不再出现 accent→accent-dark 闪现）。 */
+a { color:var(--accent-dark); }
 
 /* ── Mobile (≤768px) ── */
 @media (max-width:768px) {
