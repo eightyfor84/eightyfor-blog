@@ -11,6 +11,8 @@
 </script>
 
 <!-- font-display:swap 保证文本立即可见；media="print" onload 移出渲染阻塞关键路径 -->
+<!-- latin 子集 preload：首帧即开始下载（EN 内容主字体），缩短 FOUT 窗口 → 降 CLS -->
+<link rel="preload" href="/fonts/InterVariable-latin.woff2" as="font" type="font/woff2" crossorigin data-astro-transition-persist="font-inter" />
 <link rel="stylesheet" href="/fonts/inter.css" media="print" onload="this.media='all'" data-astro-transition-persist="font-inter" />
 <noscript><link rel="stylesheet" href="/fonts/inter.css" /></noscript>
 
