@@ -161,7 +161,9 @@
     max-height: 66vh;
   }
   @media (min-width: 1200px) {
-    .cn-panel[data-always-collapsed="true"][data-cn-variant="sidebar"] {
+    body.has-collection-nav .post-detail-container { padding-left:280px; }
+  body.has-collection-nav:has(.cn-panel[data-cn-variant="sidebar"].collapsed) .post-detail-container { padding-left:0; }
+  .cn-panel[data-always-collapsed="true"][data-cn-variant="sidebar"] {
       position: fixed;
       top: 90px;
       left: 20px;

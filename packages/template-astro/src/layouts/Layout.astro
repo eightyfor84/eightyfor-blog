@@ -113,9 +113,11 @@ export interface Props {
   scrollable?: boolean;
   featureFlags?: Record<string, boolean>;
   disableMainContentTransition?: boolean;
+  /** 额外 body 类（插件契约：如合集导航的 has-collection-nav 正文让位）——core 零语义 */
+  bodyClass?: string;
 }
 
-const { title, settings, locale: propLocale, meta, navTitle, navBackHref, navBackLabel, scrollable, disableMainContentTransition } = Astro.props;
+const { title, settings, locale: propLocale, meta, navTitle, navBackHref, navBackLabel, scrollable, disableMainContentTransition, bodyClass } = Astro.props;
 const pageMeta = typeof meta === 'string' ? { description: meta } : (meta || {});
 const featureFlags = resolveFeatureFlags(settings?.featureFlags || Astro.props.featureFlags);
 // 全局搜索弹层槽位：search 插件注册；when.featureFlag='globalSearch' 由 getPluginSlot 门控
@@ -465,7 +467,7 @@ const ANALYTICS_GA_ID = String(process.env.GA_MEASUREMENT_ID || analyticsCfg.gaM
          that must apply before first paint, like chronicle-markdown.css on post pages). -->
     <slot name="head" />
   </head>
-  <body class="frontend-body">
+  <body class:list={["frontend-body", bodyClass]}>
     <!-- 全局隐藏的 SVG defs，放在 body 开头 -->
     <svg aria-hidden="true" class="u-svg-defs">
       <defs>

@@ -17,15 +17,19 @@
 .ct-card { display:flex; align-items:center; gap:4px; padding:4px 8px; font-size:0.85rem; }
 .ct-title { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1 1 auto; }
 .ct-children { margin-left:12px; padding-left:12px; }
+.cn-tree ul { list-style:none; margin:0; padding:0; }
+.cn-tree li { margin:7px 0; }
 
 @media (min-width:1200px) {
   .cn-panel[data-cn-variant="sidebar"] { top:120px; left:calc(15vw - 160px); }
-  .post-detail-container:has(.cn-panel[data-in-collection="true"]) { padding-left:280px; }
-  body:has(#collection-nav-root[data-in-collection="true"]) .post-detail-container { padding-left:280px; }
+  /* 正文让位：body.has-collection-nav（SSR 确定性，首帧即匹配——:has 在慢网下
+     首帧 DOM 未完整时不匹配，正文让位迟到造成 CLS）；折叠态由 JS 切 .collapsed，
+     交互后变化不计 CLS，用 :has 动态归零 */
+  body.has-collection-nav .post-detail-container { padding-left:280px; }
+  body.has-collection-nav:has(.cn-panel[data-cn-variant="sidebar"].collapsed) .post-detail-container { padding-left:0; }
   .cn-panel[data-cn-variant="sidebar"][data-always-collapsed="true"] { top:90px; left:20px; }
   .cn-panel[data-cn-variant="sidebar"][data-always-collapsed="true"].collapsed { transform:translateX(calc(-260px + 0px)); opacity:0.5; }
-  .post-detail-container:has(.cn-panel[data-in-collection="true"][data-always-collapsed="true"]) { padding-left:0; }
-  body:has(#collection-nav-root[data-in-collection="true"][data-always-collapsed="true"]) .post-detail-container { padding-left:0; }
+  body.has-collection-nav:has(.cn-panel[data-cn-variant="sidebar"][data-always-collapsed="true"]) .post-detail-container { padding-left:0; }
 }
 @media (max-width:1199px) {
   .cn-panel[data-cn-variant="sidebar"] { top:90px; left:20px; }
