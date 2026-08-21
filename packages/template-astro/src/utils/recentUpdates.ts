@@ -203,7 +203,11 @@ export async function getRecentUpdates(opts: {
 
   // Single time-ordered list capped at MAX_POSTS; "new"/"modified" are labels,
   // not selection priority. `ordered` is already newest-commit first.
+  // 硬性门控：只保留当前仓库仍存在的文章（postTitleById 来自当前 posts 数据）——
+  // 窗口内"新增后删除"或已删文章的变化不再产出幽灵条目（title 回退 id 的假卡片）。
+  // 删除计数（deletedCount）独立于 changedPosts 计算，不受此门控影响。
   const changedPosts = ordered
+    .filter((o) => postTitleById.has(o.id))
     .slice(0, MAX_POSTS)
     .map((o) => ({ id: o.id, title: postTitleById.get(o.id) || o.id, isNew: o.isNew }));
 
