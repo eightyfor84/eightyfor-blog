@@ -272,6 +272,46 @@ const DATA_DIR = resolveDataDir();
 const POSTS_DIR = path.join(DATA_DIR, 'posts');
 const INDEX_FILE = path.join(POSTS_DIR, 'index.json');
 const COLLECTION_FILE = path.join(DATA_DIR, 'collections.yml');
+
+/**
+ * 合集归属实时查询（collections.yml 反查，与 CollectionNav 的 matched 同源）。
+ * post.collection/collectionPath 不再依赖 frontmatter 或 index.json 快照字段——
+ * collections.yml 改动（如文章移出合集）即时生效，避免陈旧快照导致"无合集文章
+ * 仍挂合集导航/正文让位"。每篇文章映射到包含它的合集（多合集取最后一个）。
+ */
+let _colAssignmentCache: Map<string, { collection: string; collectionPath: string }> | null = null;
+let _colAssignmentMtime = 0;
+function resolveCollectionAssignments(): Map<string, { collection: string; collectionPath: string }> {
+  try {
+    const mtime = fs.statSync(COLLECTION_FILE).mtimeMs;
+    if (_colAssignmentCache && _colAssignmentMtime === mtime) return _colAssignmentCache;
+  } catch { return _colAssignmentCache ?? new Map(); }
+  const map = new Map<string, { collection: string; collectionPath: string }>();
+  try {
+    const data = readDataFile(COLLECTION_FILE);
+    const cols = Array.isArray(data) ? data : ((data as any)?.collections || []);
+    const walk = (nodes: any[] | undefined, colName: string, parents: string[]) => {
+      if (!Array.isArray(nodes)) return;
+      for (const node of nodes) {
+        if (node?.type === 'post' && node.id) {
+          const collectionPath = parents.length > 0
+            ? `${colName} / ${parents.join(' / ')}`
+            : colName;
+          map.set(String(node.id), { collection: colName, collectionPath });
+        }
+        if (node?.type === 'group' && Array.isArray(node.children)) {
+          walk(node.children, colName, [...parents, node.title || 'Untitled']);
+        }
+      }
+    };
+    for (const col of cols) {
+      if (col?.name && Array.isArray(col.nodes)) walk(col.nodes, String(col.name), []);
+    }
+  } catch { /* collections.yml 缺失/损坏 → 空映射 */ }
+  _colAssignmentCache = map;
+  try { _colAssignmentMtime = fs.statSync(COLLECTION_FILE).mtimeMs; } catch {}
+  return map;
+}
 const FRIENDS_FILE = path.join(DATA_DIR, 'friends.yml');
 const PROFILE_FILE = path.join(DATA_DIR, 'profile.yml');
 const COMMENTS_DIR = path.join(DATA_DIR, 'comments');
@@ -427,6 +467,14 @@ function scanPostsFromDisk(): PostMeta[] {
         });
     }
 
+    // 合集归属实时查询覆盖（frontmatter 的 collection 字段不再作为来源——
+    // 统一查询 collections.yml，与 getAllPosts/index.json 路径一致）
+    const colAssignments = resolveCollectionAssignments();
+    for (const p of posts) {
+      const ca = colAssignments.get(String(p.id));
+      p.collection = ca?.collection;
+      p.collectionPath = ca?.collectionPath;
+    }
     return posts;
 }
 
@@ -453,6 +501,14 @@ function getAllPosts(): PostMeta[] {
               });
             }
             if (posts.length > 0) {
+                // 合集归属实时查询覆盖（index.json 的 collection 是生成快照——
+                // collections.yml 改动后未重跑 indexer 会陈旧：无合集文章残留旧合集）
+                const colAssignments = resolveCollectionAssignments();
+                for (const p of posts) {
+                  const ca = colAssignments.get(String(p.id));
+                  p.collection = ca?.collection;
+                  p.collectionPath = ca?.collectionPath;
+                }
                 _postCache = posts;
                 _postCacheMtime = fs.statSync(INDEX_FILE).mtimeMs;
                 return _postCache;
@@ -500,9 +556,10 @@ export function getPostById(id: string, locale?: string): LocalPost | null {
         }
     }
 
-    // Collection info is already on meta from index.json (set by rebuildPostIndex).
-    // For breadcrumb navigation (multiple collections), use getPostCollections().
-    return { ...meta, content, compiledHtml };
+    // 合集归属实时查询（覆盖 index.json 快照——collections.yml 改动即时生效，
+    // 无合集文章不再残留旧合集；与 CollectionNav 的 matched 同源，侧栏/正文让位一致）
+    const ca = resolveCollectionAssignments().get(id);
+    return { ...meta, collection: ca?.collection, collectionPath: ca?.collectionPath, content, compiledHtml };
 }
 
 // ── Settings ─────────────────────────────────────────────

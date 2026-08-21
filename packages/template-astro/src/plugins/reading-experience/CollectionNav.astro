@@ -37,11 +37,14 @@ function esc(s: string) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 }
-function has(n: any[] | undefined, pid: string): boolean {
+function has(n: any[] | undefined, pid: string, visited?: Set<any>): boolean {
   if (!Array.isArray(n)) return false;
+  const seen = visited ?? new Set<any>();
+  if (seen.has(n)) return false; // 循环引用防御（数据误配时防无限递归）
+  seen.add(n);
   for (const x of n) {
     if (x?.type === "post" && String(x.id) === pid) return true;
-    if (x?.children && has(x.children, pid)) return true;
+    if (x?.children && has(x.children, pid, seen)) return true;
   }
   return false;
 }
@@ -55,8 +58,11 @@ function iconFor(pid: string): string {
   }
   return '<svg viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 2v6h6" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/></svg>';
 }
-function tree(n: any[] | undefined, p: string, active: string): string {
+function tree(n: any[] | undefined, p: string, active: string, visited?: Set<any>): string {
   if (!Array.isArray(n) || !n.length) return "";
+  const seen = visited ?? new Set<any>();
+  if (seen.has(n)) return ""; // 循环引用防御
+  seen.add(n);
   return (
     "<ul>" +
     n
@@ -79,7 +85,7 @@ function tree(n: any[] | undefined, p: string, active: string): string {
           );
         }
         const gt = esc(String(x.title || x.name || "Group")),
-          ch = tree(x.children, np, active),
+          ch = tree(x.children, np, active, seen),
           ex = !!(active && has(x.children, active));
         return (
           '<li><div class="ct-card group' +
@@ -101,12 +107,9 @@ function tree(n: any[] | undefined, p: string, active: string): string {
 }
 
 const matched = postId ? find(collections, postId) : [];
-const activeCol =
-  matched.length > 0
-    ? matched[0]
-    : collections.length > 0
-      ? collections[0]
-      : null;
+// 文章不在任何合集（matched 空）→ 不渲染合集导航（此前 activeCol 回退第一个合集，
+// 无 collection 文章也显示侧栏——误挂）；正文让位（body 类）同样只在有匹配时挂。
+const activeCol = matched.length > 0 ? matched[0] : null;
 const treeHtml = activeCol ? tree(activeCol.nodes, "r", postId) : "";
 const navTitle = activeCol ? String(activeCol.name || "") : "";
 const hasMultiple = matched.length > 1;
@@ -114,7 +117,7 @@ const isSidebar = variant === "sidebar";
 const rootId = isSidebar ? "collection-nav-root" : "collection-nav-inline";
 ---
 
-{_navEnabled && collections.length > 0 && (
+{_navEnabled && collections.length > 0 && matched.length > 0 && (
 <div
   id={rootId}
   class:list={["cn-panel", defaultCollapsed ? "collapsed" : "expanded"]}
