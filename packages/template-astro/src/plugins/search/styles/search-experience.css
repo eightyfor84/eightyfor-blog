@@ -61,6 +61,7 @@
   }
   .tag-trigger.selected.featured .tag-count {
     background: var(--featured);
+    color: var(--app-bg-pri);
   }
 
   .search-btn {
