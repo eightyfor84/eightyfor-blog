@@ -61,7 +61,7 @@
 
   /* === BTT visibility === */
   .cb__btn.cb--btt { opacity:0;pointer-events:none;transform:translateY(20px);transition:opacity .15s ease-out,transform .15s ease-out }
-  .cb__btn.cb--btt-visible { opacity:1;pointer-events:auto;transform:none }
+  .cb__btn.cb--btt.cb--btt-visible { opacity:1;pointer-events:auto;transform:none }
 
   /* === Layers === */
   /* Layer 1 — icon face: absolute for single icon, in-flow for multi (capsule) */
