@@ -57,6 +57,7 @@
 
   .tag-trigger.selected .tag-count {
     background: var(--accent);
+    color: var(--recommended-accent-text);
   }
   .tag-trigger.selected.featured .tag-count {
     background: var(--featured);
