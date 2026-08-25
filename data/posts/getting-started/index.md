@@ -19,20 +19,16 @@ Welcome to Chronicle Aurora — a local-first, git-backed Jamstack blog system. 
 
 ## Installation
 
-Chronicle Aurora is a monorepo with two installable pieces:
+Chronicle Aurora is a monorepo (npm workspaces). One command from the repo root installs every package:
 
 ```bash
-# The blog frontend (Astro SSG, reads from data/)
-cd packages/template-astro && npm install
-
-# The CMS (Electron desktop app)
-cd packages/manager && npm install
+npm run init
 ```
 
 ### The CMS (Electron)
 
 ```bash
-cd packages/manager && npm run dev
+npm run dev:cms        # from the repo root — equivalent to cd packages/manager && npm run dev
 ```
 
 This launches the CMS in a dedicated **Electron window** — not a browser tab, and there is no `localhost:5173`. There is also no login or auth: the local machine is trusted, and the Manager reads and writes `data/` directly through the filesystem. Git (commit/push) and local builds are handled from inside the app.
@@ -42,10 +38,11 @@ This launches the CMS in a dedicated **Electron window** — not a browser tab, 
 ### Template development
 
 ```bash
-cd packages/template-astro && npx astro dev
+npm run dev:astro      # from the repo root — blog template at http://localhost:4321
+npm run build:astro    # SSG build → packages/template-astro/dist/
 ```
 
-The Astro dev server renders the blog from `data/` with live reload while you work on the template. `npx astro build` produces the static site from `data/` → `dist/`.
+The Astro dev server renders the blog from `data/` with live reload while you work on the template. `npm run build:astro` produces the static site from `data/` → `dist/`. To free the dev ports (5173 / 4321) later, run `npm run stop`.
 
 ## Writing Your First Post
 

@@ -36,7 +36,7 @@ collections        — the /collection page + collection navigation
 slides             — Marp slide rendering
 ```
 
-Disabling a plugin (`enabled: false`) means its components and styles never enter the build — the feature simply disappears, as if it were never installed. This demo site ships with all plugins disabled so you can see the bare core; enable whichever you need.
+Disabling a plugin (`enabled: false`) means its components and styles never enter the build — the feature simply disappears, as if it were never installed. This demo site ships with all plugins enabled so you can explore the full feature set; disable whichever you don't need.
 
 Two values that used to live in `site.yml` — the light/dark base background colors — now belong to `data/background/background.yml` together with the other background metadata. See the *Base colors* section under Appearance below.
 
@@ -45,13 +45,15 @@ The Manager mirrors this structure under **Settings**: **Template** (Homepage / 
 ### Quick start
 
 ```bash
-# Local CMS (opens an Electron window)
-cd packages/manager && npm install && npm run dev
+# 1. Install every package (npm workspaces, from the repo root)
+npm run init
 
-# Blog frontend (reads data/ directly)
-cd packages/template-astro && npm install
-npx astro dev      # local dev server
-npx astro build    # data/ → dist/
+# 2. Local CMS (opens an Electron window)
+npm run dev:cms
+
+# 3. Blog frontend (reads data/ directly)
+npm run dev:astro   # local dev server
+npm run build:astro # data/ → dist/
 ```
 
 Deployment is plain `git push` → CI/CD (GitHub Actions: compress images → Astro SSG → Deploy Pages). `data/` is the only data source — there is no runtime server to configure.

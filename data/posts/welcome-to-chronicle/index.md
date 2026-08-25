@@ -45,7 +45,7 @@ Chronicle's frontend is built as a **lightweight core + pluggable features**. Th
 └──────────────────────────────────────────────────────────┘
 ```
 
-**This demo site ships with all plugins disabled.** You are looking at the bare core: posts, author card, recent updates, footer. Flip a plugin on in `data/site.yml` (or the Manager's plugin page) and its pages, components, and styles join the next build — nothing else changes. That is the point of the architecture: the core stays small, and every feature is optional.
+**This demo site ships with every plugin enabled** (search, comments, reading experience, friends, collections, slides) so you can see the full feature set. Flip any plugin off in `data/site.yml` (or the Manager's plugin page) and its pages, components, and styles leave the next build — nothing else changes. That is the point of the architecture: the core stays small, and every feature is optional.
 
 ## `data/` — The Single Source of Truth
 
