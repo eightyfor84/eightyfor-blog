@@ -590,7 +590,7 @@
   }
 
   @media (min-width: 769px) {
-    .nav-header:not(.nav-expanded) .nav-link:not(.router-link-active){
+    .nav-header.nav-collapsed .nav-link:not(.router-link-active){
       padding-left: 0.7rem;
       padding-right: 0.7rem;
     }
