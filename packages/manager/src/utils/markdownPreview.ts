@@ -914,8 +914,17 @@ export function getBlockRanges(markdown: string): BlockRange[] {
         i++
       }
       i--
+    } else if (t.type === 'html_block') {
+      // 与 renderBlockHtml 对齐：html_block（裸 HTML/iframe）会生成块——
+      // 必须分配 segIndex，否则后续块索引错位（active-block 加错/不加）
+      if (t.map) ranges.push({ segIndex: segIndex++, startLine: t.map[0] + 1, endLine: t.map[1] })
+      else segIndex++
+    } else if (t.type === 'inline') {
+      // 游离 inline（renderBlockHtml 也生成块）——推进索引保持对齐；
+      // 有 map 给行范围，无 map（罕见）仅计数
+      if (t.map) ranges.push({ segIndex: segIndex++, startLine: t.map[0] + 1, endLine: t.map[1] })
+      else segIndex++
     }
-    // html_block, math placeholder, etc. → skip
   }
   return ranges
 }
