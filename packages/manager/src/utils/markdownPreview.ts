@@ -12,7 +12,15 @@ import MarkdownIt from 'markdown-it';
 import markdownItFootnote from 'markdown-it-footnote';
 import { Icons } from './icons';
 import DOMPurify from 'dompurify';
-import { SANITIZE_CONFIG } from '@chronicle/shared/src/utils';
+import { SANITIZE_CONFIG, isSafeIframeSrc } from '@chronicle/shared/src/utils';
+
+// iframe 视频嵌入（网易云/哔哩哔哩/YouTube）——非白名单 src 的 iframe 直接移除
+// （与 template-astro 的 chronicleMarkdown.ts 同逻辑，CMS 预览与 SSG 输出一致）
+DOMPurify.addHook('afterSanitizeAttributes', (node: Element) => {
+  if (node.tagName === 'IFRAME' && !isSafeIframeSrc(node.getAttribute('src') || '')) {
+    node.remove();
+  }
+});
 
 // ═══════════════════════════════════════════════════════════
 //  Config — must match chronicleMarkdown.ts in template-astro

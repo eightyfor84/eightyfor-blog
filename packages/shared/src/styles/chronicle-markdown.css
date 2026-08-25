@@ -1385,3 +1385,15 @@
 }
 
 
+
+/* ── iframe 视频嵌入（网易云/哔哩哔哩/YouTube）──
+   在 .chr-md（SSG 文章页 / CMS 预览 div 外壳）内响应式显示：
+   保留平台给的 width/height 属性（净化放行），宽度自适应容器。
+   src 域名白名单由净化钩子（isSafeIframeSrc）保证，非白名单 iframe 不会到达这里。 */
+.chr-md iframe {
+  display: block;
+  max-width: 100%;
+  margin: 1em auto;
+  border: 0;
+  border-radius: 8px;
+}

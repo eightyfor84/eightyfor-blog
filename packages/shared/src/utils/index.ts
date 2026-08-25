@@ -1,4 +1,4 @@
-export { ALLOWED_TAGS, ALLOWED_ATTR, SANITIZE_CONFIG } from "./sanitize.js"
+export { ALLOWED_TAGS, ALLOWED_ATTR, SANITIZE_CONFIG, isSafeIframeSrc } from "./sanitize.js"
 export { parseSlides } from "./marpParser.js"
 export type { ParsedSlide, SlideMeta } from "./marpParser.js"
 export { extractBodySummary } from "./summary.js"
