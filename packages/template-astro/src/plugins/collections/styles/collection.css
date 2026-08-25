@@ -252,3 +252,15 @@
     :root[data-theme="light"] .collection-temp-bg-overlay {
       background: rgba(255, 255, 255, 0.5);
     }
+
+/* ── 空状态：无合集 / 空合集 placeholder ── */
+.collections-empty,
+.collection-tree-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--comp-text-sec);
+  font-size: 0.95rem;
+  border: 1px dashed var(--border-color-blur);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--comp-bg) 78%, transparent);
+}

@@ -31,6 +31,7 @@ export interface SearchEngineConfig {
   initialTitle: string;
   initialTags: string[];
   featuredLabel: string;
+  noTagsLabel: string;
 }
 
 // Index caches — shared across soft-navigation re-inits so we only fetch once.
@@ -57,6 +58,7 @@ export function initSearchExperience(config: SearchEngineConfig) {
     initialTitle,
     initialTags,
     featuredLabel,
+    noTagsLabel,
   } = config;
 
   // Abort any prior init for this instance, then start fresh.
@@ -357,7 +359,12 @@ export function initSearchExperience(config: SearchEngineConfig) {
   }
 
   function renderTagCloud() {
-    if (!tagsGridEl || !_allTagData) return;
+    if (!tagsGridEl) return;
+    if (!_allTagData || !_allTagData.length) {
+      // 无 tag placeholder
+      tagsGridEl.innerHTML = `<div class="tags-empty">${esc(noTagsLabel || '')}</div>`;
+      return;
+    }
     tagsGridEl.innerHTML = _allTagData.map((tagData) => {
       const isF = tagData.name === "featured" || tagData.name === "精选";
       return `

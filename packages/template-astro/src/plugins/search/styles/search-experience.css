@@ -542,3 +542,11 @@
       transform: translateY(0);
     }
   }
+
+/* ── 空状态：无 tag placeholder（tag cloud 空）── */
+.tags-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--comp-text-sec);
+  font-size: 0.95rem;
+}

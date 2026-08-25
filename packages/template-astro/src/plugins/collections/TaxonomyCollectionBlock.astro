@@ -51,24 +51,25 @@ const collectionSummaries = allSummaries.slice(0, COLLECTION_LIMIT);
 const hasMoreCollections = allSummaries.length > COLLECTION_LIMIT;
 ---
 
+<!-- 无合集时整块不显示（含标题）——避免空标题的 collection list 块 -->
+{collectionSummaries.length ? (
 <div class="taxonomy-block">
   <h3>{t("home.collectionList")}</h3>
-  {collectionSummaries.length ? (
-    <div class="taxonomy-list">
-      {collectionSummaries.map((collection) => (
-        <a
-          class="mtl-surface interactive glowable scalable"
-          href={collectionPath + "#" + encodeURIComponent(collection.name)}
-        >
-          <span>{collection.name}</span>
-          <strong>{collection.posts}</strong>
-        </a>
-      ))}
-    </div>
-  ) : null}
+  <div class="taxonomy-list">
+    {collectionSummaries.map((collection) => (
+      <a
+        class="mtl-surface interactive glowable scalable"
+        href={collectionPath + "#" + encodeURIComponent(collection.name)}
+      >
+        <span>{collection.name}</span>
+        <strong>{collection.posts}</strong>
+      </a>
+    ))}
+  </div>
   {hasMoreCollections ? (
     <a href={collectionPath} class="view-more-link">
       {t("home.viewAll")} →
     </a>
   ) : null}
 </div>
+) : null}

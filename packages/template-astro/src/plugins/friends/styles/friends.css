@@ -261,3 +261,14 @@
       grid-template-columns: repeat(1, minmax(0, 500px));
     }
   }
+
+/* ── 空状态：无友链 placeholder ── */
+.friends-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--comp-text-sec);
+  font-size: 0.95rem;
+  border: 1px dashed var(--border-color-blur);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--comp-bg) 78%, transparent);
+}
