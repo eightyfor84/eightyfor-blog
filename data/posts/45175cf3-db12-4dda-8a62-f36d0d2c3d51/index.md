@@ -13,7 +13,7 @@ font: serif
 > 
 > ***The Four Loves*,  C.S. Lewis**
 
-[Shower - Rapeter](link:https://music.163.com/#/song?id=2673721054)
+<iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=330 height=86 src="//music.163.com/outchain/player?type=2&id=2673721054&auto=1&height=66"></iframe>
 
 ### 印象中的 Waiwai
 初中同学的时候，我们在对方眼里都是小透明。后来高中不同校，我对TA的印象就永远定格在初中穿校服的样子，有点中性的性格，以及那个在毕业照底下写着的名字。
