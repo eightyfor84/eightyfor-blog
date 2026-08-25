@@ -76,7 +76,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { Notification } from '@chronicle/shared/types'
+import type { Notification } from '@chronicle/shared/src/types'
 import ProgressBar from './ui/ProgressBar.vue'
 
 const { t } = useI18n()

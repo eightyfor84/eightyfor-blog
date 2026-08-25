@@ -26,7 +26,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ParsedSlide } from '@chronicle/shared/utils'
+import type { ParsedSlide } from '@chronicle/shared/src/utils'
 
 defineProps<{
   slides: ParsedSlide[]

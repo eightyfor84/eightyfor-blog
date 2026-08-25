@@ -727,7 +727,7 @@ import { useEditorToolbar, type RibbonTool } from '../composables/editor/core/us
 import { useEditorFile } from '../composables/editor/markdown/useEditorFile'
 import { useEditorSession } from '../composables/editor/core/useEditorLifecycle'
 import { resolveEditorRoute } from '../composables/editor/cloud/useCloudRouter'
-import { slugify, SITE_AUTHOR_PLACEHOLDER } from '@chronicle/shared/utils'
+import { slugify, SITE_AUTHOR_PLACEHOLDER } from '@chronicle/shared/src/utils'
 import { useFileMenu } from '../composables/editor/markdown/useMarkdownFileMenu'
 
 import type { IEditorBody } from './editor/IEditorBody.ts'

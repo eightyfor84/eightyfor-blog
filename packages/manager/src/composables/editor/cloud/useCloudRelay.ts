@@ -7,7 +7,7 @@
  */
 
 import { readJson, writeJson, readText, writeText, readDir, mkdir, uploadFile as writeFileData, safeFileName } from '../../../data/dataAccess'
-import { slugify, uniqueSlug } from '@chronicle/shared/utils'
+import { slugify, uniqueSlug } from '@chronicle/shared/src/utils'
 
 // ═══════════════════════════════════════════════════════════════
 // Types

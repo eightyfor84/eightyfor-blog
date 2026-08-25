@@ -3,5 +3,18 @@
     "@marp-team/marp-core": "^4.3.1",
     "astro": "^7.1.6",
     "yaml": "^2.9.0"
+  },
+  "name": "chronicle-aurora",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "init": "npm install",
+    "dev:cms": "npm run dev --workspace=@chronicle/manager",
+    "dev:astro": "npm run dev --workspace=@chronicle/template-astro",
+    "build:astro": "node packages/gen/bin/cli.mjs build --dataDir data --codeDir packages/template-astro --targetDir dist",
+    "preview:astro": "npm run preview --workspace=@chronicle/template-astro",
+    "stop": "bash scripts/stop.sh"
   }
 }

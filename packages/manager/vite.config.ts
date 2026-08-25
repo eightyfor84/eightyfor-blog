@@ -18,8 +18,8 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@chronicle/shared/src': resolve(sharedPath, 'src'),
-      '@chronicle/shared': resolve(sharedPath, 'src'),
+      // 统一约定：import 一律 @chronicle/shared/src/...（与 template-astro 一致）
+      '@chronicle/shared': resolve(sharedPath),
     },
   },
   base: isElectron ? './' : '/',

@@ -74,7 +74,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Notification } from '@chronicle/shared/types'
+import type { Notification } from '@chronicle/shared/src/types'
 import ProgressBar from '../components/ui/ProgressBar.vue'
 import NotificationItem from '../components/NotificationItem.vue'
 

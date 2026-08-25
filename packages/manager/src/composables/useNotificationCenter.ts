@@ -13,7 +13,7 @@ import type {
   NotificationState,
   NotificationAction,
   CreateNotification,
-} from '@chronicle/shared/types'
+} from '@chronicle/shared/src/types'
 
 // ── 单例状态 ────────────────────────────────
 
