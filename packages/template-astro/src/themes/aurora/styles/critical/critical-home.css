@@ -75,8 +75,7 @@ h3, .story-card--empty h2 { margin: 0; font-size: 1.2rem; }
 .taxonomy-block + .taxonomy-block { margin-top: 1rem; }
 .stream-card {
   display:grid; grid-template-columns:110px minmax(0,1fr);
-  gap:.85rem; padding:1rem; border:1px solid var(--border-color-blur); border-radius:14px;
-  background:var(--comp-bg-glass);
+  gap:.85rem; padding:1rem; border-radius:14px;
 }
 .stream-card__body { display:grid; gap:.55rem; }
 .stream-card__top { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; }

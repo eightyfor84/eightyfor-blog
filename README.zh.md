@@ -1,4 +1,4 @@
-# Chronicle Aurora
+# Chronicle Aurora — v3.0.3
 
 中文 [English](README.md)
 
@@ -56,17 +56,21 @@ manager            — 模板化 CMS：读"模板清单"适配，不绑死本仓
 git clone https://github.com/<你的用户名>/chronicle-aurora.git
 cd chronicle-aurora
 
-# 2. 安装依赖
-npm install
+# 2. 安装依赖（npm workspaces——一条命令安装全部包）
+npm run init
 
-# 3. 启动开发服务器
-cd packages/template-astro && npm run dev     # http://localhost:4321
+# 3. 启动开发服务器（仓库根目录执行）
+npm run dev:astro       # 博客模板 → http://localhost:4321
+npm run dev:cms         # CMS 开发服务器（manager）
 
-# 4. 构建生产版本
-npx astro build --root packages/template-astro  # 输出 → dist/
+# 4. 构建生产版本（SSG → dist/）
+npm run build:astro     # 输出 → packages/template-astro/dist/
 
 # 5. 本地预览生产版本
-npx astro preview --root packages/template-astro
+npm run preview:astro
+
+# 6. 停止占用开发端口的进程（5173 CMS / 4321 Astro）
+npm run stop
 ```
 
 ## 部署

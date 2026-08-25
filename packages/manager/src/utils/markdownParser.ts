@@ -3,7 +3,7 @@ let _katex: any = null
 import { Icons } from './icons'
 import MarkdownIt from 'markdown-it'
 import { highlightCode as hljsHighlight } from './hljsSetup'
-import { stripMarkdown, extractExcerpt } from '@chronicle/shared/utils'
+import { stripMarkdown, extractExcerpt } from '@chronicle/shared/src/utils'
 
 // ── markdown-it instance for block-level parsing only ─────
 // Inline rendering (file cards, images, katex) still handled by processEmphasis/convertToHtml.

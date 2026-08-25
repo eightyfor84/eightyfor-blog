@@ -1,4 +1,4 @@
-# Chronicle Aurora
+# Chronicle Aurora — v3.0.3
 
 [中文](README.zh.md) English
 
@@ -56,14 +56,21 @@ manager                 — templated CMS: reads a template manifest, not hardwi
 git clone https://github.com/<your-username>/chronicle-aurora.git
 cd chronicle-aurora
 
-# 2. Install dependencies
-npm install
+# 2. Install dependencies (npm workspaces — one command installs all packages)
+npm run init
 
-# 3. Start the dev server
-cd packages/template-astro && npm run dev     # http://localhost:4321
+# 3. Start the dev servers (from the repo root)
+npm run dev:astro       # blog template → http://localhost:4321
+npm run dev:cms         # Electron CMS dev server (manager)
 
-# 4. Build for production
-npx astro build --root packages/template-astro  # output → dist/
+# 4. Build for production (SSG → dist/)
+npm run build:astro     # output → packages/template-astro/dist/
+
+# 5. Preview the production build
+npm run preview:astro
+
+# 6. Stop processes occupying dev ports (5173 CMS / 4321 Astro)
+npm run stop
 
 # 5. Preview the production build
 npx astro preview --root packages/template-astro

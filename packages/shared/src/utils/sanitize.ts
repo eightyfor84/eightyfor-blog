@@ -9,10 +9,11 @@
  */
 
 /** Tags allowed through. Everything else is stripped, including:
- *  script, iframe, object, embed, style, form, base, math, link, meta. */
+ *  script, iframe(非白名单 src), object, embed, style, form, base, math, link, meta. */
 export const ALLOWED_TAGS: string[] = [
   // Structure
   'a', 'img', 'video', 'audio', 'source', 'track',
+  'iframe',   // 视频嵌入（网易云/哔哩哔哩/YouTube）——src 域名白名单见 isSafeIframeSrc
   'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td', 'caption', 'colgroup', 'col',
   'blockquote', 'pre', 'code', 'hr', 'br',
   'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
@@ -51,7 +52,31 @@ export const ALLOWED_ATTR: string[] = [
   'data-*',                        // data-url, data-name, data-type, etc.
   'style',                         // image sizing (width/height via =WxH) — DOMPurify validates
   'srcset', 'sizes',
+  // iframe (video embeds) — src 域名白名单见 isSafeIframeSrc
+  'frameborder', 'allowfullscreen', 'allow', 'referrerpolicy', 'allowpaymentrequest', 'scrolling',
 ]
+
+/**
+ * iframe src 域名白名单（视频嵌入）——非白名单 iframe 在净化钩子中被移除
+ * （iframe 可加载任意页面/脚本/钓鱼，放行必须锁死域名）。
+ *   - 网易云音乐: music.163.com
+ *   - 哔哩哔哩:   player.bilibili.com
+ *   - YouTube:    youtube.com / youtu.be / youtube-nocookie.com
+ */
+export const ALLOWED_IFRAME_SRC_PATTERNS: RegExp[] = [
+  /^https?:\/\/([a-z0-9-]+\.)*music\.163\.com\//i,
+  /^https?:\/\/([a-z0-9-]+\.)*player\.bilibili\.com\//i,
+  /^https?:\/\/([a-z0-9-]+\.)*(youtube\.com|youtu\.be|youtube-nocookie\.com)\//i,
+]
+
+/** iframe src 是否命中白名单（净化钩子用；空 src/相对路径 → 不通过） */
+export function isSafeIframeSrc(src: string): boolean {
+  const s = String(src || '').trim()
+  if (!s) return false
+  // 协议相对 URL（//domain/...——网易云/哔哩哔哩官方 embed 代码常用）→ 视为 https://domain/...
+  const normalized = s.startsWith('//') ? 'https:' + s : s
+  return ALLOWED_IFRAME_SRC_PATTERNS.some((re) => re.test(normalized))
+}
 
 /**
  * DOMPurify-ready config object. Use with:

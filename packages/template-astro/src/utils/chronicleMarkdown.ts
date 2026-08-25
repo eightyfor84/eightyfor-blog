@@ -15,13 +15,21 @@ import katex from 'katex';
 import { Icons } from './icons';
 import DOMPurify from 'dompurify';
 import { JSDOM } from 'jsdom';
-import { SANITIZE_CONFIG } from '@chronicle/shared/src/utils';
+import { SANITIZE_CONFIG, isSafeIframeSrc } from '@chronicle/shared/src/utils';
 import { buildTocFromHtml, type TocItem } from './toc';
 import { getLocalImageSize } from './imageSize';
 
 // DOMPurify needs a DOM window at build time (SSG runs in Node.js).
 const purifyWindow = new JSDOM('').window as unknown as Window & typeof globalThis;
 const purify = DOMPurify(purifyWindow);
+
+// iframe 视频嵌入（网易云/哔哩哔哩/YouTube）——非白名单 src 的 iframe 直接移除
+// （iframe 可加载任意页面/脚本/钓鱼，放行必须锁死域名）
+purify.addHook('afterSanitizeAttributes', (node: Element) => {
+  if (node.tagName === 'IFRAME' && !isSafeIframeSrc(node.getAttribute('src') || '')) {
+    node.remove();
+  }
+});
 
 // ═══════════════════════════════════════════════════════════
 //  Config — must match template-astro's localDataSource AND
