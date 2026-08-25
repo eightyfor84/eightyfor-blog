@@ -427,9 +427,9 @@ export function parseMarkdown(content: string, cacheKey?: number): Array<Content
         case 'strong_close': out += '**'; break;
         case 'em_open': out += '*'; break;
         case 'em_close': out += '*'; break;
-        case 'link_open': out += '['; pendingHref = c.attrGet('href') || ''; break;
+        case 'link_open': out += '['; pendingHref = String(c.attrGet('href') || ''); break;
         case 'link_close': out += '](' + pendingHref + ')'; pendingHref = ''; break;
-        case 'image': out += '![' + c.content + '](' + (c.attrGet('src') || '') + ')'; break;
+        case 'image': out += '![' + c.content + '](' + (String(c.attrGet('src') || '')) + ')'; break;
         case 'hardbreak': out += '<br>'; break;
         case 'softbreak': out += ' '; break;
         default: out += c.content || ''; break;
@@ -618,9 +618,9 @@ function inlineHelper(t: Token): string {
       case 'strong_close': out += '**'; break;
       case 'em_open': out += '*'; break;
       case 'em_close': out += '*'; break;
-      case 'link_open': out += '['; pendingHref = c.attrGet('href') || ''; break;
+      case 'link_open': out += '['; pendingHref = String(c.attrGet('href') || ''); break;
       case 'link_close': out += '](' + pendingHref + ')'; pendingHref = ''; break;
-      case 'image': out += '![' + c.content + '](' + (c.attrGet('src') || '') + ')'; break;
+      case 'image': out += '![' + c.content + '](' + (String(c.attrGet('src') || '')) + ')'; break;
       case 'hardbreak': out += '<br>'; break;
       case 'softbreak': out += ' '; break;
       default: out += c.content || ''; break;
@@ -671,7 +671,7 @@ function walkBlocks(tokens: Token[], mathBlocks: string[]): ContentBlock[] {
 
 interface Token {
   type: string; tag?: string; content: string; info: string;
-  children?: Token[] | null; attrGet(name: string): string | null;
+  children?: Token[] | null; attrGet(name: string): string | number | null; // markdown-it 15：attr 值可为 number
 }
 
 // 用自定义控件占位符替换表格，后续由TextEditor渲染MarkdownTable组件
