@@ -73,7 +73,9 @@ export const ALLOWED_IFRAME_SRC_PATTERNS: RegExp[] = [
 export function isSafeIframeSrc(src: string): boolean {
   const s = String(src || '').trim()
   if (!s) return false
-  return ALLOWED_IFRAME_SRC_PATTERNS.some((re) => re.test(s))
+  // 协议相对 URL（//domain/...——网易云/哔哩哔哩官方 embed 代码常用）→ 视为 https://domain/...
+  const normalized = s.startsWith('//') ? 'https:' + s : s
+  return ALLOWED_IFRAME_SRC_PATTERNS.some((re) => re.test(normalized))
 }
 
 /**
