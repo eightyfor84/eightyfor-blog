@@ -86,6 +86,7 @@ const metaDescription =
   <div class="friends-container">
     <main class="friends-main">
       <h1 class="section-title">{t("friends.title")}</h1>
+      {friendsCards.length ? (
       <div
         class:list={[
           "friends-list",
@@ -141,6 +142,9 @@ const metaDescription =
           );
         })}
       </div>
+      ) : (
+        <div class="friends-empty">{t("friends.empty")}</div>
+      )}
     </main>
   </div>
 </Layout>

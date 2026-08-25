@@ -58,6 +58,8 @@ const hasMoreTags = allTagStats.filter((item) => !item.featured).length > TAG_LI
   <HomeSearchBox locale={locale} t={t} />
 </div>
 
+<!-- 无 tag 时整块不显示（含标题）——避免空 tag cloud -->
+{tagStats.length ? (
 <div class="taxonomy-block">
   <h3>{t("home.tagCloud")}</h3>
   <div class="tag-cloud">
@@ -77,3 +79,4 @@ const hasMoreTags = allTagStats.filter((item) => !item.featured).length > TAG_LI
     </a>
   ) : null}
 </div>
+) : null}

@@ -233,6 +233,15 @@ try {
 
         function renderCollectionCards() {
           gridEl.innerHTML = "";
+          if (!collections.length) {
+            // 无合集 placeholder
+            const empty = document.createElement("div");
+            empty.className = "collections-empty";
+            empty.textContent =
+              routePrefix === "/zh" ? "暂无合集" : "No collections yet";
+            gridEl.appendChild(empty);
+            return;
+          }
           collections.forEach((c) => {
             const link = document.createElement("a");
             link.className = "collection-card-link";
@@ -377,6 +386,14 @@ try {
           titleEl.textContent = formatCollectionName(found.name);
           descEl.textContent = found.description || "";
           renderTreeNodes(treeEl, found.nodes);
+          // 空合集 placeholder（合集存在但无文章/分组）
+          if (!found.nodes || !Array.isArray(found.nodes) || !found.nodes.length) {
+            const empty = document.createElement("div");
+            empty.className = "collection-tree-empty";
+            empty.textContent =
+              routePrefix === "/zh" ? "该合集暂无文章" : "This collection has no posts yet";
+            treeEl.appendChild(empty);
+          }
 
           // 显示临时背景层
           const tempBg = document.getElementById("collection-temp-bg");

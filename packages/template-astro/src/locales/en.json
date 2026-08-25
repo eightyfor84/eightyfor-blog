@@ -43,7 +43,9 @@
   "collection": {
     "title": "Collections",
     "backToList": "Back to collections",
-    "navTitlePattern": "Collection: {name}"
+    "navTitlePattern": "Collection: {name}",
+    "empty": "No collections yet",
+    "emptyCollection": "This collection has no posts yet"
   },
   "misc": {
     "backToTop": "Back to Top"
@@ -75,7 +77,7 @@
     "mainContentStream": "Main content stream",
     "viewAll": "View all",
     "viewAllTags": "View all tags",
-    "noPostsAvailable": "No posts available.",
+    "noPostsAvailable": "No posts.",
     "authorInfo": "Author info",
     "topicNavigation": "Topic navigation",
     "quickSearch": "Quick search",
@@ -126,7 +128,8 @@
   "friends": {
     "title": "Friends",
     "viewStory": "View Story",
-    "learnMore": "Click to learn More"
+    "learnMore": "Click to learn More",
+    "empty": "No friends added yet"
   },
   "settings": {
     "locale": {

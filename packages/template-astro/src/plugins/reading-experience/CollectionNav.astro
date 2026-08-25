@@ -164,7 +164,7 @@ const rootId = isSidebar ? "collection-nav-root" : "collection-nav-inline";
       treeHtml ? (
         <div class="cn-tree" set:html={treeHtml} />
       ) : (
-        <div class="cn-empty">No posts in this collection</div>
+        <div class="cn-empty">{t("collection.emptyCollection")}</div>
       )
     }
   </div>
