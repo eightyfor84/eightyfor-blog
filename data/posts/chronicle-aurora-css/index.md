@@ -1,7 +1,7 @@
 ---
 title: Chronicle Aurora——CSS 设计文档
 date: 2026-08-11T14:48:25.932Z
-updatedAt: 2026-08-11T19:23:35.879Z
+updatedAt: 2026-11-11T15:10:00.000Z
 tags: featured, design, chronicle
 author: Eightyfor
 aiGenerated: false
@@ -61,6 +61,7 @@ Chronicle 的设计以玻璃为主要 UI 元素，因此半透明和模糊叠层
 | --- | --- | --- |
 | 应用背景层级 | `--app-bg-pri`、`--app-bg-sec`、`--app-bg-sec-hvr` | `var(--bg-base)` 混入 `var(--bg-offset)` 5%–17% |
 | 组件背景层级 | `--comp-bg`、`--comp-bg-hvr`、`--comp-bg-alt` | `var(--bg-base)` 混入 `var(--bg-offset)` 12%–24% |
+| 凹陷面 | `--comp-bg-inset` | `var(--app-bg-pri)` 混入 `var(--overlay)` 22% |
 | 玻璃不透明基色 | `--glass-opaque`、`--glass-opaque-hvr` | `var(--bg-base)` 混入 `var(--bg-offset)` 47%–60% |
 | 模糊材质（半透明） | `--comp-bg-blur`、`--comp-bg-blur-hvr` | 上述基色 × `--blur-alpha`（90%）混入透明 |
 | 玻璃材质（半透明） | `--comp-bg-glass`、`--comp-bg-glass-hvr` | 上述基色 × `--glass-alpha`（50%）混入透明 |
@@ -70,6 +71,7 @@ Chronicle 的设计以玻璃为主要 UI 元素，因此半透明和模糊叠层
 | 边框 | `--border-color`、`--border-color-blur` | 文字色或偏移量混入透明 |
 | 交互叠加层 | `--hover`、`--active`、`--highlight` | `var(--bg-offset)` 混入透明 |
 | 阴影 | `--shadow-sm`、`--shadow-md`、`--shadow-lg` | `rgba(0,0,0, α)` — α 值共用 |
+| 内阴影 | `--comp-inset-shadow` | `inset 0 1px 2px rgba(0,0,0, α)` — 暗 0.4 / 亮 0.1 |
 | 高光 | `--highlight-glass`、`--highlight-edge` | 白色半透明描边 — 透明度共用 |
 | 遮罩压暗 | `--overlay-dim` | `rgba(0,0,0, α)` — α 值共用 |
 
@@ -87,9 +89,9 @@ Chronicle 的设计以玻璃为主要 UI 元素，因此半透明和模糊叠层
 
 /* 浅色模式 — 仅需重定义基底变量 */
 [data-theme="light"] {
-  --bg-base: #ffffff;
-  --fg-base: #121212;
-  --bg-offset: #6b6b6b;
+  --bg-base: #f9f9f9;
+  --fg-base: #111111;
+  --bg-offset: #aaa;
   --hl-offset: var(--accent);
 }
 ```
@@ -107,19 +109,22 @@ Chronicle 的设计以玻璃为主要 UI 元素，因此半透明和模糊叠层
 
 ### 概述
 
-本系统依据**交互优先级**、**显示逻辑**与**用户直觉**，将界面元素划分为5个材质层级。每个层级对应一种视觉材质，通过模糊度、透明度、阴影与高光的差异化组合，在保持视觉层次丰富的同时，确保信息清晰可读。
+本系统依据**交互优先级**、**显示逻辑**与**用户直觉**，将界面元素划分为6个材质层级。每个层级对应一种视觉材质，通过模糊度、透明度、阴影与高光的差异化组合，在保持视觉层次丰富的同时，确保信息清晰可读。
 
 ### 层级总览
 
 | 层级 | 材质 | 视觉特征 | 中文描述 | 核心用途 |
 | --- | --- | --- | --- | --- |
 | `background` | Solid | 不透明，高对比色 | 全局背景 | 页面根基，承载所有上层元素 |
+| `inset` | Solid | 实色，向黑/白偏移，1px 边框 + 内阴影 | 凹陷面 | 代码块、输入框、文本域 |
 | `container` | Blur | 高模糊，低透，有阴影 | 悬浮式容器 | 临时面板、抽屉、弹窗基底 |
 | `surface` | Glass | 低模糊，高透，有高光+阴影 | 可交互表面 | 卡片、按钮、列表项 |
 | `overlay` | Depth | 模糊，压暗 | 遮罩 | 模态框背景、图片预览衬底 |
 | `content` | - | 通常背景透明，样式由内容决定 | 内容 | 标题、正文、图标等内嵌信息 |
 
 ![材质层级效果](image-2.png "材质层级效果示意图，最左和最右的两列分别是深色和浅色模式的background")
+
+> 示意图为五级版本；本次新增的 `inset` 为第六级，效果见代码块与输入框。
 
 
 ### 各层级详细定义
@@ -128,33 +133,42 @@ Chronicle 的设计以玻璃为主要 UI 元素，因此半透明和模糊叠层
 
 - **外观**：纯色填充，不透明，采用高对比色（如浅色模式 `#f9f9f9`，深色模式 `#121212`）
 - **典型用例**：页面主背景、应用底板
-- **例外**：`<input>` 等表单输入控件可使用此色以保持“凹陷”感
+- **说明**：`<input>`、代码块等凹陷面已独立为 `inset` 层级，不再借用 `background` 色
 
-#### 2. `container` — 悬浮式容器
+#### 2. `inset` — 凹陷面
+
+- **外观**：实色、不透明，由 `background` 向 `--overlay`（暗色 `#000` / 亮色 `#fff`）偏移约 22%；1px 实色边框 + 轻内阴影，无模糊、无外投影
+- **公式**：`--comp-bg-inset: color-mix(in srgb, var(--app-bg-pri) 78%, var(--overlay));`——同一公式在暗色下更黑、亮色下更白
+- **典型用例**：代码块、表单输入、文本域、内嵌终端
+- **约束**：只读或接收输入，不作为悬浮容器；可嵌入 `background` / `container` / `surface` / `content`，自身只允许 `content` 子层级，不可再嵌套 `inset`
+- **例外**：复合输入控件（如搜索框：输入 + 标签触发器 + 搜索按钮）整体仍是 `surface`，内部 input 保持透明，避免“井中井”
+- **语义**：凹陷表示“内容被压进页面”，不是“浮在页面上”；凸起/外阴影属于 `container` / `surface`
+
+#### 3. `container` — 悬浮式容器
 
 - **外观**：毛玻璃效果，高模糊度（≥12px），低透明度，底部投射柔阴影
 - **典型用例**：`.panel-card`（首页信息卡片）、`.modal-base`（弹窗基座）、`.dropdown-wrap`（下拉菜单）
 - **约束**：不可直接嵌套另一个 `container`
 
-#### 3. `surface` — 可交互表面
+#### 4. `surface` — 可交互表面
 
 - **外观**：玻璃质感，低模糊度（4-10px），高透明度，具备顶部高光条与底部阴影
 - **典型用例**：`.post-card`（内容卡片）、`.menu-item`（菜单项）、`.action-sheet`（操作表）
 - **例外**：`.sidebar` 可使用 `surface` 材质以保持沉浸，但是需要使用变体类来避免使用悬停样式
 - **约束**：可在 `container` 内部使用，不可嵌套另一个 `surface`
 
-#### 4. `overlay` — 遮罩
+#### 5. `overlay` — 遮罩
 
 - **外观**：背景模糊（4-20px），叠加50%黑色压暗层
 - **典型用例**：`.image-preview-overlay`（图片查看器背景）、`.modal-overlay`（弹窗外遮罩）
 - **例外**：`.bg-overlay`（背景装饰性遮罩）模糊和压暗由用户决定，不受全局样式控制
 - **约束**：Z-index 夹在聚焦层和下层之间
 
-#### 5. `content` — 内容
+#### 6. `content` — 内容
 
 - **外观**：背景透明，无预设样式，由具体内容类型决定（文字、图标、图片等）
 - **典型用例**：`.card-post-title`、`.panel-description`
-- **约束**：在下层没有`surface`或`container`时，可以嵌套这两种元素，背景保持透明以透出父级材质
+- **约束**：在下层没有 `surface` 或 `container` 时，可以嵌套 `inset`、`surface`、`container`，背景保持透明以透出父级材质
 
 ---
 
@@ -162,11 +176,12 @@ Chronicle 的设计以玻璃为主要 UI 元素，因此半透明和模糊叠层
 
 | 父层级 | 允许嵌套的子层级 | 禁止嵌套 |
 | --- | --- | --- |
-| `background` | `container`、`surface`、`overlay`、`content` | `background` |
-| `container` | `surface`、`content` | `container`、`background` |
-| `surface` | `content` | `surface`、`container`、`background` |
+| `background` | `inset`、`container`、`surface`、`overlay`、`content` | `background` |
+| `inset` | `content` | `inset`、`container`、`surface`、`overlay`、`background` |
+| `container` | `inset`、`surface`、`content` | `container`、`background` |
+| `surface` | `inset`、`content` | `surface`、`container`、`background` |
 | `overlay` | `content`、`container`、`surface` | `background` |
-| `content` | `container`、`surface`（有条件） | `background` |
+| `content` | `inset`、`container`、`surface`（有条件） | `background` |
 
 
 ### 材质层级颜色映射
@@ -174,6 +189,7 @@ Chronicle 的设计以玻璃为主要 UI 元素，因此半透明和模糊叠层
 | 层级 | 背景变量 | 文字变量 | 边框变量 | 状态叠加 |
 | --- | --- | --- | --- | --- |
 | `background` | `--app-bg-pri` | `--app-text-pri` | — | — |
+| `inset` | `--comp-bg-inset` | `--comp-text-pri` | `--border-color` | —（`--comp-inset-shadow` 提供内阴影） |
 | `container` | `--comp-bg-blur` | `--comp-text-pri` | `--border-color-blur` | `--comp-bg-blur-hvr`／`--comp-bg-blur-active` / `--comp-bg-blur-hl` |
 | `surface` | `--comp-bg-glass` | `--comp-text-pri` | `--border-color-blur` | `--comp-bg-glass-hvr`／`--comp-bg-glass-active` / `--comp-bg-glass-hl` |
 | `overlay` | `rgba(0,0,0,.5)` | — | — | — |
@@ -181,21 +197,19 @@ Chronicle 的设计以玻璃为主要 UI 元素，因此半透明和模糊叠层
 
 ---
 
-### 使用方法（即将添加）
+### 使用方法
 
-在class列表中添加对应的层级名称即可，如：
+前端由 `.mtl-surface` / `.mtl-container` / `.mtl-inset` 三个工具类落实；`background` / `overlay` / `content` 是结构性层级，没有独立类：
+
 ```html
-<div class="post-card surface">卡片文本</div>
-
-<style>
-.post-card {
-	/* surface未覆盖的变量可在此定义 */
-}
-.post-card.surface {
-	/* 覆盖surface的变量 */
-}
-</style>
+<div class="post-card mtl-surface">卡片文本</div>
+<div class="panel-card mtl-container">面板</div>
+<pre class="code-chunk-container mtl-inset">代码</pre>
 ```
+
+- `critical-base.css` 只写 idle 态的 background + border，避免首帧 CLS；
+- `global.css` 追加 shadow 与 hover/active 状态；
+- `inset` 也可以直接消费 `--comp-bg-inset` / `--comp-inset-shadow`，代码块/输入框目前就是 token 级用法。
 
 ---
 
@@ -386,7 +400,7 @@ Chronicle Aurora 的 CSS 设计围绕四个核心决策展开：
 
 **一套公式，两套变量。** 颜色系统完全建立在 `color-mix(in srgb, ...)` 之上。深色模式与浅色模式共用完全相同的混合比例——切换时仅替换 4 个基底变量（`--bg-base`、`--fg-base`、`--bg-offset`、`--hl-offset`），所有派生颜色自动翻转。唯一的例外是品牌强调色，深浅模式各自独立定义。
 
-**五级材质，统一语义。** `background` → `container` → `surface` → `overlay` → `content`，按交互优先级与视觉深度递进。每级材质对应固定的 CSS 变量集（背景、文字、边框、状态叠加），组件只需声明层级类名即可获得一致的材质表现。玻璃质感通过 `backdrop-filter` + 半透明背景 + inset 白色高光 + 投影组合实现，纯 CSS，零额外 DOM。
+**六级材质，统一语义。** `background` → `inset` → `container` → `surface` → `overlay` → `content`，按交互优先级与视觉深度递进。每级材质对应固定的 CSS 变量集（背景、文字、边框、状态叠加），组件只需声明层级类名即可获得一致的材质表现。玻璃质感通过 `backdrop-filter` + 半透明背景 + 内侧白色高光 + 投影组合实现，纯 CSS，零额外 DOM。
 
 **内联首屏，异步全量。** Critical CSS 按路由拆分：令牌（5.6 KB）+ 骨架（3.7 KB）+ 页面专用（1–5 KB），全部内联在 `<head>` 中，首屏零网络往返。全局样式和组件样式通过 `media="print"` 技巧异步加载，不阻塞渲染。构建时自动重写 Astro 生成的 `<link>` 标签，无需手动维护。
 
