@@ -2,7 +2,7 @@
 title: 26S2：新生
 date: 2026-05-03T21:33:32.203Z
 updatedAt: 2026-08-11T22:23:54.544Z
-tags: featured
+tags: theme
 author: 
 aiGenerated: false
 status: published

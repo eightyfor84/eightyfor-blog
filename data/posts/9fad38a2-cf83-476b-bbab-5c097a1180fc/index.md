@@ -1,7 +1,7 @@
 ---
 title: What's New in Chronicle 2.0 / Chronicle 2.0 新特性
 date: 2026-06-14T09:44:07.852Z
-tags: featured, changelog, version 2.0
+tags: chronicle, changelog, version 2.0
 author: Eightyfor
 aiGenerated: true
 font: sans

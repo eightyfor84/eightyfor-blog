@@ -2,7 +2,7 @@
 title: Chronicle legacy README 
 date: 2026-05-30T10:56:56.153Z
 updatedAt: 2026-08-11T23:11:10.048Z
-tags: README
+tags: chronicle, version 2.0, README
 author: 
 aiGenerated: false
 status: published

@@ -2,7 +2,7 @@
 title: A story
 date: 2026-05-20T01:00:51.820Z
 updatedAt: 2026-08-11T23:07:37.102Z
-tags: featured, story
+tags: featured, story, theme
 author: 
 aiGenerated: false
 status: published

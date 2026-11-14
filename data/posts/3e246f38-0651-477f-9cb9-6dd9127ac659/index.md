@@ -1,7 +1,7 @@
 ---
 title: SSG + CSR 混合架构技术方案
 date: 2026-04-27T03:46:38.051Z
-tags: featured, Astro, version 2.0
+tags: Astro, version 2.0
 aiGenerated: false
 font: sans
 status: published

@@ -1,7 +1,7 @@
 ---
 title: 2.0更新规划
 date: 2026-03-20T03:06:39.816Z
-tags: featured, changelog, version 2.0
+tags: chronicle, changelog, version 2.0
 aiGenerated: false
 font: sans
 status: published
