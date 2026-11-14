@@ -1,7 +1,7 @@
 {
   "name": "@chronicle/manager",
   "private": true,
-  "version": "3.0.8",
+  "version": "3.0.9",
   "description": "Chronicle CMS — Markdown editor, content manager, and site settings",
   "author": {
     "name": "Eightyfor",
