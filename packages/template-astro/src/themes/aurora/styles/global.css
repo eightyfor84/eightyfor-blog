@@ -16,13 +16,16 @@
   --app-heading-wght: 570;
   --transition-duration: 1;
   --accent-default: #2ea35f;
-  --accent: var(--accentColor, var(--accent-default));
+  --accent-base: var(--accentColor, var(--accent-default));
+  --accent: var(--accent-base);
   --accent-dark: color-mix(in srgb, var(--accent) 80%, #000);
+  --accent-readable: color-mix(in srgb, var(--accent) 70%, #fff);
   --accent-bg: color-mix(in srgb, var(--accent) 15%, transparent);
   --accent-hvr: color-mix(in srgb, var(--accent) 80%, transparent);
   --recommended-accent-text: #fff;
   --text-on-accent: #111;
   --featured: #ffd700;
+  --featured-alt: #ff4fd8;
   /* ── AI enhancement palette (fixed; independent of site accent) ── */
   --ai-grad-1: #2dd4bf;
   --ai-grad-2: #38bdf8;
@@ -150,6 +153,8 @@
   --code-text: #c7254e;
   --recommended-accent-text: #fff;
   --text-on-accent: #fff;
+  --accent: color-mix(in oklch, var(--accent-base) 75%, #2c2c2e);
+  --accent-readable: color-mix(in oklch, var(--accent-base) 52%, #2c2c2e);
   --bg-base: #f9f9f9;
   --bg-offset: #aaa;
   --fg-base: #111111;
@@ -166,7 +171,7 @@
   --comp-bg-accent-blur: color-mix(in srgb, var(--accent) 35%, #fffb);
   --comp-bg-accent-ghost: color-mix(in srgb, var(--accent) 45%, #fff7);
   --comp-text-pri-hl: var(--accent);
-  --comp-text-sec-hl: color-mix(in srgb, var(--accent) 75%, var(--comp-text-sec));
+  --comp-text-sec-hl: color-mix(in oklch, var(--accent) 75%, var(--comp-text-sec));
   --comp-text-accent-ghost: color-mix(in srgb, var(--comp-text-pri) 75%, var(--accent));
   --border-color-blur: color-mix(in srgb, var(--fg-base) 12%, transparent);
   --select-arrow-color: #999;
@@ -228,7 +233,7 @@
   a{
     font-weight: 500;
     font-variation-settings: 'wght' 500;
-    color: var(--accent-dark);
+    color: var(--accent-readable);
     text-decoration: inherit;
   }
   a:hover{
@@ -571,4 +576,24 @@ body.backend::after{
       --top-fade-length: 50px;
     }
   }
+}
+
+/* Featured alternative when the accent is too close to the default gold. */
+html[data-featured-alt="true"] {
+  --featured: var(--featured-alt);
+  --featured-bg: color-mix(in srgb, var(--featured) 16%, transparent);
+}
+
+:root[data-theme="light"][data-featured-alt="true"] {
+  --featured: #c0268f;
+  --featured-bg: color-mix(in srgb, var(--featured) 12%, transparent);
+}
+:root[data-theme="light"] .nav-link.router-link-active {
+  color: #111111 !important;
+}
+/* Dark-mode highlight family stays neutral; only the light theme tints it. */
+:root:not([data-theme="light"]) {
+  --comp-text-pri-hl: var(--app-text-pri);
+  --comp-text-sec-hl: var(--app-text-sec);
+  --highlight: color-mix(in srgb, var(--hl-offset) 20%, transparent);
 }
