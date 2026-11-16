@@ -20,7 +20,7 @@ homepage:
 # Appearance settings (Template settings → Appearance: theme/accent/font/locale)
 appearance:
   theme: follow
-  accent: '#51a32e'
+  accent: 'var(--featured)'
   font: sans
   locale: follow
   defaultPerformanceMode: auto

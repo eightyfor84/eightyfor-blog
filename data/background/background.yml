@@ -1,10 +1,4 @@
 # Chronicle Aurora — Site Background
-mode: cover
-posX: 50
-posY: 50
-size: 100
-blur: 20
-overlayLightColor: "#ffffff"
-overlayLightOpacity: 85
-overlayDarkColor: "#000000"
-overlayDarkOpacity: 85
+# 纯色背景：深色黑 / 浅色白（无图片、无视频）
+baseColorLight: "#ffffff"
+baseColorDark: "#000000"
