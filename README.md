@@ -220,6 +220,16 @@ AI_API_KEY=... AI_MODEL=... npm run ai:summaries
 
 No AI request is made at runtime, and no key is exposed to site visitors.
 
+## Optional AI (BYOK)
+
+AI enhancement is optional and **disabled by default**. This repository does not include an API key, model access, generated summaries, or translation credits. If you enable it, you supply your own OpenAI-compatible endpoint and key at build time:
+
+```bash
+AI_API_KEY=... AI_MODEL=... npm run ai:summaries
+```
+
+No AI request is made at runtime, and no key is exposed to site visitors.
+
 ## License
 
 MIT

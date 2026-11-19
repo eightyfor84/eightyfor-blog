@@ -1,1 +1,274 @@
-{}
+{
+  "249931ea-c899-45a5-9daa-9b6fe0089a41": {
+    "title": "AuthorDNA 项目总览",
+    "date": "2026-05-17T17:21:40.969Z",
+    "tags": [
+      "authordna"
+    ],
+    "status": "published",
+    "summary": "目标：构建一个以“保留作者声音”为核心的 AI 辅助写作平台，通过协商式交互提高写作效率，同时维护写作者的风格与能动性。 核心成功指标（KPIs）： 留存率（30/90 天留存） 用户接受建议的审慎率（接受率与手动改写比率） Writing DNA 活跃率（用户查看/展开 DNA 卡片次数）…",
+    "font": "sans",
+    "author": null,
+    "aiGenerated": false,
+    "type": "article",
+    "extensions": {
+      "collections": {
+        "name": "AuthorDNA",
+        "path": "AuthorDNA"
+      }
+    }
+  },
+  "26s3": {
+    "title": "26S3: Infinite Memory Storage Bank \"何处寻\"",
+    "date": "2026-08-08T01:14:51.820Z",
+    "tags": [
+      "theme",
+      "SBTI"
+    ],
+    "status": "published",
+    "summary": "IMSB，就是你想的那个意思，\"I am Sha Bi\"，自我攻击者人格，可以表示自嘲，也可以表示做错事或者无用功时的懊恼，我想我在这表达的是后一种意思。",
+    "font": "sans",
+    "author": "Eightyfor",
+    "authors": [
+      "Eightyfor"
+    ],
+    "aiGenerated": false,
+    "type": "article",
+    "extensions": {
+      "collections": {
+        "name": "Stories to tell",
+        "path": "Stories to tell / content theme"
+      }
+    }
+  },
+  "3e246f38-0651-477f-9cb9-6dd9127ac659": {
+    "title": "SSG + CSR 混合架构技术方案",
+    "date": "2026-04-27T03:46:38.051Z",
+    "tags": [
+      "Astro",
+      "version 2.0"
+    ],
+    "status": "published",
+    "summary": "强制 SSG：站点必须整体采用静态站点生成，最终产物为纯静态文件，部署于 CDN 弱服务器：尽可能降低服务端计算压力，优先使用静态托管和边缘缓存 CMS 驱动：内容由后台 CMS 管理，更新时机不可预测",
+    "font": "sans",
+    "author": null,
+    "aiGenerated": false,
+    "type": "article"
+  },
+  "45175cf3-db12-4dda-8a62-f36d0d2c3d51": {
+    "title": "A story",
+    "date": "2026-05-20T01:00:51.820Z",
+    "tags": [
+      "featured",
+      "story",
+      "theme"
+    ],
+    "status": "published",
+    "summary": "这是属于我们的故事。",
+    "font": "serif",
+    "author": null,
+    "aiGenerated": false,
+    "type": "article",
+    "extensions": {
+      "collections": {
+        "name": "Stories to tell",
+        "path": "Stories to tell"
+      }
+    }
+  },
+  "6c96284f-a6ec-44d8-a0ed-acce66641cde": {
+    "title": "乌萨奇？到！",
+    "date": "2026-02-11T13:56:09.188Z",
+    "tags": [
+      "usagi"
+    ],
+    "status": "published",
+    "summary": "乌萨奇",
+    "font": "sans",
+    "author": null,
+    "aiGenerated": false,
+    "type": "article"
+  },
+  "6d879241-fa6c-4099-82a5-066853046b9a": {
+    "title": "26S2：新生",
+    "date": "2026-05-03T21:33:32.203Z",
+    "tags": [
+      "theme"
+    ],
+    "status": "published",
+    "summary": "适逢凯尔希重生归来，故改造主页以纪念。",
+    "font": "sans",
+    "author": null,
+    "aiGenerated": false,
+    "type": "article",
+    "extensions": {
+      "collections": {
+        "name": "Stories to tell",
+        "path": "Stories to tell / content theme"
+      }
+    }
+  },
+  "88394cb9-6f3b-4c20-a950-e6d74ea912a0": {
+    "title": "Chronicle legacy README",
+    "date": "2026-05-30T10:56:56.153Z",
+    "tags": [
+      "chronicle",
+      "version 2.0",
+      "README"
+    ],
+    "status": "published",
+    "summary": "一个现代化的博客内容管理系统，支持 Markdown 编辑、多语言、主题定制，采用 双模式（静态/API）架构。",
+    "font": "sans",
+    "author": null,
+    "aiGenerated": false,
+    "type": "article",
+    "extensions": {
+      "collections": {
+        "name": "Chronicle Docs",
+        "path": "Chronicle Docs / legacy"
+      }
+    }
+  },
+  "8a877784-76cd-4b0a-a669-4c30cc3a32ec": {
+    "title": "2026上半主题：杀破狼",
+    "date": "2026-02-24T15:49:32.221Z",
+    "tags": [
+      "theme"
+    ],
+    "status": "published",
+    "summary": "最近沉迷紫微斗数，通过很多渠道学习到紫微斗数的一些知识，其中最出圈的应该就是“杀破狼”命格。此命格命主人生充满挑战，风险和机遇并存。",
+    "font": "sans",
+    "author": null,
+    "aiGenerated": false,
+    "type": "article",
+    "extensions": {
+      "collections": {
+        "name": "Stories to tell",
+        "path": "Stories to tell / content theme"
+      }
+    }
+  },
+  "8bdc8e47-40ee-4660-8274-81421658eb38": {
+    "title": "Chronicle of \"Chronicle\"",
+    "date": "2026-02-13T02:52:33.502Z",
+    "tags": [
+      "featured",
+      "chronicle"
+    ],
+    "status": "published",
+    "summary": "我接触编程不算很早，开始于初中学校社团的 VB 6.0 的课程。那节社团课，看着老社员做的各种小游戏，对编程一窍不通的我，瞬间对 VB 这个老掉牙的新东西来了兴趣。",
+    "font": "serif",
+    "author": "Vincent Chen",
+    "authors": [
+      "Vincent Chen"
+    ],
+    "aiGenerated": false,
+    "type": "article"
+  },
+  "9fad38a2-cf83-476b-bbab-5c097a1180fc": {
+    "title": "What's New in Chronicle 2.0 / Chronicle 2.0 新特性",
+    "date": "2026-06-14T09:44:07.852Z",
+    "tags": [
+      "chronicle",
+      "changelog",
+      "version 2.0"
+    ],
+    "status": "published",
+    "summary": "Chronicle 2.0.2 — June 14, 2026 / 2026年6月14日 Chronicle 2.0 is a major release bringing a redesigned editor, file management overhaul, CMS dashboard and post-manager redesigns, Electron desktop",
+    "font": "sans",
+    "author": "Eightyfor",
+    "authors": [
+      "Eightyfor"
+    ],
+    "aiGenerated": true,
+    "type": "article",
+    "extensions": {
+      "collections": {
+        "name": "Chronicle Docs",
+        "path": "Chronicle Docs / legacy / changelog"
+      }
+    }
+  },
+  "b792d6ca-5efb-405e-84d2-609f056d4be9": {
+    "title": "2.0更新规划",
+    "date": "2026-03-20T03:06:39.816Z",
+    "tags": [
+      "chronicle",
+      "changelog",
+      "version 2.0"
+    ],
+    "status": "published",
+    "summary": "新功能",
+    "font": "sans",
+    "author": null,
+    "aiGenerated": false,
+    "type": "article",
+    "extensions": {
+      "collections": {
+        "name": "Chronicle Docs",
+        "path": "Chronicle Docs / legacy / changelog"
+      }
+    }
+  },
+  "chronicle-aurora": {
+    "title": "推出 Chronicle Aurora",
+    "date": "2026-08-06T18:04:05.379Z",
+    "tags": [
+      "featured",
+      "chronicle",
+      "version 3.0"
+    ],
+    "status": "published",
+    "summary": "不再需要维护服务器。写完文章，点一下 Sync，内容通过 Git 推送到 GitHub Pages / Cloudflare Pages，自动构建上线。HTTPS、CDN 全免费。",
+    "font": "sans",
+    "author": "Eightyfor",
+    "authors": [
+      "Eightyfor"
+    ],
+    "aiGenerated": true,
+    "type": "article",
+    "extensions": {
+      "collections": {
+        "name": "Chronicle Docs",
+        "path": "Chronicle Docs / Changelog"
+      }
+    }
+  },
+  "chronicle-aurora-css": {
+    "title": "Chronicle Aurora——CSS 设计文档",
+    "date": "2026-08-11T14:48:25.932Z",
+    "tags": [
+      "featured",
+      "design",
+      "chronicle"
+    ],
+    "status": "published",
+    "summary": "Chronicle 的设计以玻璃为主要 UI 元素，因此半透明和模糊叠层几乎用于所有组件。这对 UI 设计提出了很高的要求。我们需要兼顾：",
+    "font": "sans",
+    "author": "Eightyfor",
+    "authors": [
+      "Eightyfor"
+    ],
+    "aiGenerated": false,
+    "type": "article",
+    "extensions": {
+      "collections": {
+        "name": "Chronicle Docs",
+        "path": "Chronicle Docs"
+      }
+    }
+  },
+  "f3372aca-8f34-4a28-afc0-914489410ab7": {
+    "title": "概率论知识点",
+    "date": "2026-08-01T22:32:17.035Z",
+    "tags": [
+      "statistics"
+    ],
+    "status": "draft",
+    "summary": "本章介绍了概率论的基本概念、公理、计数方法、条件概率和独立性，为后续学习统计推断奠定了基础。",
+    "font": "sans",
+    "author": null,
+    "aiGenerated": true,
+    "type": "article"
+  }
+}

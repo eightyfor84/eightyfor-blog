@@ -1,0 +1,770 @@
+<!-- 26S4 · Golden Minutes「心醉」— homepage cover
+     设计取向：暖金 / 深墨，编辑部式左对齐版面 + 60 分钟日晷（表盘跟随访客本地时间）。
+     与 26S3（巨大 IMSB 水印 + 居中浮动文案）完全不同的排版语言。 -->
+<style>
+    /* ── shell ── */
+    .home-cover-deck {
+        position: relative;
+        display: flex;
+        align-items: stretch;
+        justify-content: flex-start;
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        text-align: left;
+    }
+
+    /* ── multilingual ── */
+    :lang(zh-CN) .lang-en,
+    :lang(en) .lang-zh { display: none; }
+
+    /* ── cover ── */
+    .gm-cover {
+        --gm-ink: var(--app-text-pri);
+        --gm-dim: var(--app-text-sec);
+        --gm-gold: #e7b768;
+        --gm-gold-hi: #f7e6bd;
+        --gm-gold-lo: #bd873a;
+        --gm-hair: color-mix(in srgb, var(--app-text-pri) 17%, transparent);
+        --gm-glow: color-mix(in srgb, var(--gm-gold) 22%, transparent);
+        --gm-ring-a: .4;
+        --gm-tick-a: .28;
+        --gm-tick-major-a: .62;
+        --gm-serif: var(--app-font-stack-serif);
+        --gm-sans: var(--app-font-stack-inter);
+        --gm-mono: var(--app-font-stack-mono);
+        --gm-gutter: max(clamp(1.25rem, 4.5vw, 2rem), calc((100% - min(1400px + 20%, 80% + 100px)) / 2));
+
+        box-sizing: border-box;
+        position: relative;
+        isolation: isolate;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 29%);
+        grid-template-rows: auto minmax(0, 1fr) auto;
+        grid-template-areas:
+            "top top"
+            "main orbit"
+            "foot foot";
+        column-gap: clamp(1.25rem, 3vw, 3.5rem);
+        width: 100%;
+        height: 100%;
+        padding:
+            clamp(1.6rem, 4.5vh, 2.9rem)
+            var(--gm-gutter)
+            clamp(2.6rem, 6.5vh, 4rem);
+        color: var(--gm-ink);
+        text-align: left;
+        overflow: hidden;
+    }
+
+    :root[data-theme="light"] .gm-cover {
+        --gm-gold: #8a5a15;
+        --gm-gold-hi: #b07a24;
+        --gm-gold-lo: #6f4509;
+        --gm-glow: color-mix(in srgb, #b8862f 12%, transparent);
+        --gm-ring-a: .55;
+        --gm-tick-a: .36;
+        --gm-tick-major-a: .72;
+    }
+    @media (prefers-color-scheme: light) {
+        :root:not([data-theme="dark"]):not([data-theme="light"]) .gm-cover {
+            --gm-gold: #8a5a15;
+            --gm-gold-hi: #b07a24;
+            --gm-gold-lo: #6f4509;
+            --gm-glow: color-mix(in srgb, #b8862f 12%, transparent);
+            --gm-ring-a: .55;
+            --gm-tick-a: .36;
+            --gm-tick-major-a: .72;
+        }
+    }
+
+    /* ambient light — the golden-hour bloom lives on the fixed background
+       layer so it covers the entire viewport instead of being clipped by the
+       split hero stage (height 90vh, overflow: clip). */
+    .gm-atmos {
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background: linear-gradient(180deg, transparent 52%, color-mix(in srgb, var(--bg-base) 34%, transparent) 100%);
+    }
+
+    #chr-bg-layer::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 5;
+        pointer-events: none;
+        --cover-glow: #e7b768;
+        --cover-glow-a: 20%;
+        --cover-glow-hi: #f7e6bd;
+        --cover-glow-hi-a: 6%;
+        background:
+            radial-gradient(56% 62% at 81% 44%, color-mix(in srgb, var(--cover-glow) var(--cover-glow-a), transparent), transparent 72%),
+            radial-gradient(30% 34% at 70% 28%, color-mix(in srgb, var(--cover-glow-hi) var(--cover-glow-hi-a), transparent), transparent 70%),
+            radial-gradient(44% 40% at 74% 86%, color-mix(in srgb, var(--cover-glow) 10%, transparent), transparent 76%);
+    }
+    :root[data-theme="light"] #chr-bg-layer::after {
+        --cover-glow: #8a5a15;
+        --cover-glow-a: 11%;
+        --cover-glow-hi: #b07a24;
+        --cover-glow-hi-a: 5%;
+        background:
+            radial-gradient(56% 62% at 81% 44%, color-mix(in srgb, var(--cover-glow) var(--cover-glow-a), transparent), transparent 72%),
+            radial-gradient(30% 34% at 70% 28%, color-mix(in srgb, var(--cover-glow-hi) var(--cover-glow-hi-a), transparent), transparent 70%),
+            radial-gradient(44% 40% at 74% 86%, color-mix(in srgb, var(--cover-glow) 6%, transparent), transparent 76%);
+    }
+    @media (prefers-color-scheme: light) {
+        :root:not([data-theme="dark"]):not([data-theme="light"]) #chr-bg-layer::after {
+            --cover-glow: #8a5a15;
+            --cover-glow-a: 11%;
+            --cover-glow-hi: #b07a24;
+            --cover-glow-hi-a: 5%;
+            background:
+                radial-gradient(56% 62% at 81% 44%, color-mix(in srgb, var(--cover-glow) var(--cover-glow-a), transparent), transparent 72%),
+                radial-gradient(30% 34% at 70% 28%, color-mix(in srgb, var(--cover-glow-hi) var(--cover-glow-hi-a), transparent), transparent 70%),
+                radial-gradient(44% 40% at 74% 86%, color-mix(in srgb, var(--cover-glow) 6%, transparent), transparent 76%);
+        }
+    }
+
+    /* ── top rule ── */
+    .gm-top {
+        grid-area: top;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding-bottom: clamp(.85rem, 2.2vh, 1.4rem);
+        font-family: var(--gm-sans);
+        font-size: .72rem;
+        letter-spacing: .22em;
+        text-transform: uppercase;
+        color: var(--gm-dim);
+        white-space: nowrap;
+    }
+    .gm-brand,
+    .gm-top-right {
+        display: flex;
+        align-items: center;
+        gap: .8rem;
+        min-width: 0;
+    }
+    .gm-sq {
+        width: .5rem;
+        height: .5rem;
+        flex: none;
+        background: var(--gm-gold);
+        transform: translateY(-.5px);
+    }
+    .gm-issue {
+        color: var(--gm-ink);
+        font-weight: 600;
+        letter-spacing: .16em;
+    }
+    .gm-sep {
+        width: clamp(1rem, 2vw, 1.75rem);
+        height: 1px;
+        flex: none;
+        background: var(--gm-hair);
+    }
+    .gm-live {
+        display: none;
+        margin: 0;
+    }
+
+    /* ── masthead ── */
+    .gm-main {
+        grid-area: main;
+        align-self: center;
+        min-width: 0;
+        padding: clamp(1.5rem, 3.5vh, 2.5rem) 0;
+    }
+    .gm-eyebrow {
+        display: flex;
+        align-items: center;
+        gap: .9rem;
+        margin: 0 0 clamp(.9rem, 2.2vh, 1.4rem);
+        font-family: var(--gm-sans);
+        font-size: .68rem;
+        letter-spacing: .3em;
+        text-transform: uppercase;
+        color: var(--gm-dim);
+    }
+    .gm-eyebrow::before {
+        content: "";
+        width: clamp(1.75rem, 3vw, 2.75rem);
+        height: 1px;
+        flex: none;
+        background: var(--gm-gold);
+    }
+
+    .gm-title {
+        display: flex;
+        align-items: flex-end;
+        gap: clamp(.9rem, 2vw, 2rem);
+        margin: 0;
+        min-width: 0;
+        font-family: var(--gm-serif);
+        color: var(--gm-ink);
+    }
+    .gm-title-en {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        font-size: clamp(3.5rem, 8.6vw, 10.5rem);
+        font-weight: 500;
+        line-height: .86;
+        letter-spacing: -.035em;
+    }
+    .gm-title-line { display: block; }
+    .gm-gold-text {
+        background: linear-gradient(96deg, var(--gm-gold-hi) 0%, var(--gm-gold) 36%, var(--gm-gold-lo) 62%, var(--gm-gold-hi) 100%);
+        background-size: 220% 100%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        animation: gm-sheen 16s ease-in-out infinite;
+    }
+    .gm-title-dot { color: var(--gm-gold); }
+
+    .gm-cn {
+        writing-mode: vertical-rl;
+        flex: none;
+        margin: 0 0 .1em;
+        padding-left: clamp(.7rem, 1.4vw, 1.1rem);
+        border-left: 1px solid color-mix(in srgb, var(--gm-gold) 45%, transparent);
+        font-size: clamp(2.1rem, 3.6vw, 3.4rem);
+        font-weight: 400;
+        line-height: 1;
+        letter-spacing: .24em;
+        color: var(--gm-gold);
+    }
+
+    /* ── minute dial ── */
+    .gm-orbit {
+        grid-area: orbit;
+        position: relative;
+        align-self: center;
+        justify-self: end;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        max-width: min(42vh, 480px);
+    }
+    .gm-orbit-glow {
+        position: absolute;
+        top: -8%;
+        left: 0;
+        width: 100%;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: radial-gradient(circle at 50% 48%, var(--gm-glow), transparent 66%);
+        pointer-events: none;
+    }
+    .gm-dial {
+        position: relative;
+        display: block;
+        width: 100%;
+        height: auto;
+        overflow: visible;
+        color: var(--gm-gold);
+    }
+    .gm-dial .ring {
+        fill: none;
+        stroke: currentColor;
+    }
+    .gm-dial .ring--outer { stroke-opacity: var(--gm-ring-a); stroke-width: 1; }
+    .gm-dial .ring--mid   { stroke-opacity: calc(var(--gm-ring-a) * .4); stroke-width: 1; }
+    .gm-dial .ring--inner { stroke-opacity: calc(var(--gm-ring-a) * .25); stroke-width: 1; }
+    .gm-dial .gm-ticks line {
+        stroke: currentColor;
+        stroke-opacity: var(--gm-tick-a);
+        stroke-width: 1;
+    }
+    .gm-dial .gm-ticks line.maj {
+        stroke-opacity: var(--gm-tick-major-a);
+        stroke-width: 1.6;
+    }
+    .gm-dial .arc {
+        fill: none;
+        stroke: url(#gm-arc-grad);
+        stroke-width: 2;
+    }
+    .gm-dial .gm-hand {
+        stroke-linecap: round;
+    }
+    .gm-dial .gm-hand--hour {
+        stroke: var(--gm-gold);
+        stroke-width: 8;
+        stroke-opacity: 1;
+    }
+    .gm-dial .gm-hand--minute {
+        stroke: var(--gm-ink);
+        stroke-width: 5;
+        stroke-opacity: .5;
+    }
+    .gm-dial .gm-hand--second {
+        stroke: var(--gm-dim);
+        stroke-width: 2;
+        stroke-opacity: .4;
+    }
+    .gm-dial .gm-hand-dot {
+        fill: var(--gm-gold);
+        filter: drop-shadow(0 0 5px color-mix(in srgb, var(--gm-gold) 70%, transparent));
+    }
+    .gm-dial .gm-pin { fill: var(--gm-gold); }
+    /* OS reduced motion: only the fast second hand is withdrawn. */
+    .gm-dial.is-quiet .gm-hand--second { opacity: 0; }
+    /* data-perf=reduced: hands + shimmer off, dial and digital time remain. */
+    .gm-dial.is-no-hands .gm-hand,
+    .gm-dial.is-no-hands .gm-pin { opacity: 0; }
+    @media (prefers-reduced-motion: reduce) {
+        .gm-dial .gm-hand--second { opacity: 0; }
+    }
+    .gm-time {
+        color: var(--gm-ink);
+        font-variant-numeric: tabular-nums;
+    }
+    .gm-orbit-cap {
+        position: relative;
+        margin: clamp(.8rem, 2vh, 1.2rem) 0 0;
+        font-family: var(--gm-mono);
+        font-size: .62rem;
+        letter-spacing: .3em;
+        text-transform: uppercase;
+        color: color-mix(in srgb, var(--gm-dim) 75%, transparent);
+        text-align: center;
+    }
+
+    /* ── footer: epigraph + link ── */
+    .gm-foot {
+        grid-area: foot;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: clamp(1.5rem, 4vw, 4rem);
+        padding-top: clamp(1rem, 2.4vh, 1.6rem);
+    }
+    .gm-quote {
+        min-width: 0;
+        max-width: 40rem;
+        padding-left: clamp(.9rem, 1.6vw, 1.2rem);
+        border-left: 1px solid color-mix(in srgb, var(--gm-gold) 35%, transparent);
+    }
+    .gm-quote blockquote {
+        margin: 0;
+        font-family: var(--gm-serif);
+        font-style: italic;
+        font-size: clamp(.92rem, 1.05vw, 1.05rem);
+        line-height: 1.65;
+        color: color-mix(in srgb, var(--gm-ink) 80%, transparent);
+        text-wrap: pretty;
+    }
+    .gm-quote cite {
+        display: block;
+        margin-top: .55rem;
+        font-family: var(--gm-sans);
+        font-style: normal;
+        font-size: .66rem;
+        letter-spacing: .18em;
+        text-transform: uppercase;
+        color: color-mix(in srgb, var(--gm-dim) 78%, transparent);
+    }
+    .gm-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: .65rem;
+        flex: none;
+        padding-bottom: .45rem;
+        border-bottom: 1px solid color-mix(in srgb, var(--gm-gold) 60%, transparent);
+        color: var(--gm-ink);
+        font-family: var(--gm-sans);
+        font-size: .85rem;
+        font-weight: 500;
+        letter-spacing: .04em;
+        text-decoration: none;
+        transition: color .25s ease, border-color .25s ease;
+    }
+    .gm-cta svg {
+        width: 18px;
+        height: 18px;
+        color: var(--gm-gold);
+        transition: transform .25s ease;
+    }
+    .gm-cta:hover {
+        color: var(--gm-gold);
+        border-bottom-color: var(--gm-gold);
+    }
+    .gm-cta:hover svg { transform: translateX(4px); }
+    .gm-cta:focus-visible {
+        outline: 1px solid var(--gm-gold);
+        outline-offset: 6px;
+    }
+
+    /* ── motion ── */
+    @keyframes gm-sheen {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+    @keyframes gm-breathe {
+        0%, 100% { opacity: .7; }
+        50% { opacity: 1; }
+    }
+    .gm-orbit-glow { animation: gm-breathe 9s ease-in-out infinite; }
+
+    @media (prefers-reduced-motion: reduce) {
+        .gm-gold-text, .gm-orbit-glow { animation: none; }
+    }
+    html[data-perf="reduced"] .gm-gold-text,
+    html[data-perf="reduced"] .gm-orbit-glow { animation: none; }
+
+    @media (forced-colors: active) {
+        .gm-gold-text { color: CanvasText; background: none; }
+        .gm-sq, .gm-eyebrow::before { background: CanvasText; }
+    }
+
+    /* ── compact desktop / laptop ── */
+    @media (min-width: 761px) and (max-height: 700px) {
+        .gm-cover { padding-bottom: clamp(2rem, 5vh, 2.8rem); }
+        .gm-orbit { max-width: min(35vh, 480px); }
+        .gm-orbit-cap { display: none; }
+        .gm-quote blockquote { font-size: .82rem; line-height: 1.55; }
+        .gm-title-en { font-size: clamp(3rem, 7.8vw, 7.5rem); }
+        .gm-cn { font-size: clamp(1.6rem, 2.5vw, 2.3rem); }
+    }
+
+    /* ── mobile ── */
+    @media (max-width: 760px) {
+        .gm-cover {
+            grid-template-columns: minmax(0, 1fr);
+            grid-template-areas:
+                "top"
+                "main"
+                "foot";
+            column-gap: 0;
+            padding: 1.15rem 1.25rem 1.7rem;
+        }
+        .gm-orbit {
+            position: absolute;
+            z-index: -1;
+            top: -7%;
+            right: -28%;
+            width: 78vw;
+            max-width: 78vw;
+            opacity: .55;
+            pointer-events: none;
+        }
+        .gm-orbit-cap { display: none; }
+        .gm-main {
+            position: relative;
+            z-index: 1;
+            padding: 2rem 0 1.5rem;
+        }
+        .gm-title { gap: .9rem; }
+        .gm-title-en {
+            font-size: clamp(3.2rem, 15.5vw, 4.8rem);
+            line-height: .88;
+        }
+        .gm-cn {
+            font-size: clamp(1.7rem, 7vw, 2.2rem);
+            padding-left: .6rem;
+            letter-spacing: .2em;
+        }
+        .gm-eyebrow {
+            font-size: .62rem;
+            letter-spacing: .22em;
+        }
+        .gm-top {
+            font-size: .62rem;
+            letter-spacing: .16em;
+        }
+        .gm-live {
+            display: flex;
+            align-items: center;
+            gap: .55rem;
+            color: var(--gm-ink);
+            font-family: var(--gm-mono);
+            font-size: .62rem;
+            letter-spacing: .16em;
+        }
+        .gm-live .gm-sq {
+            width: .4rem;
+            height: .4rem;
+        }
+        .gm-top-right .gm-sep,
+        .gm-top-right .lang-zh,
+        .gm-top-right .lang-en { display: none; }
+        .gm-sq { width: .4rem; height: .4rem; }
+        .gm-brand { gap: .55rem; }
+        .gm-sep { width: .9rem; }
+        .gm-foot {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1.15rem;
+            padding-top: 1rem;
+        }
+        .gm-quote {
+            max-width: 100%;
+            padding-left: .8rem;
+        }
+        .gm-quote blockquote { font-size: .86rem; line-height: 1.55; }
+        .gm-quote cite { font-size: .6rem; margin-top: .4rem; }
+        .gm-cta { font-size: .82rem; }
+    }
+
+    @media (max-width: 760px) and (max-height: 560px) {
+        .gm-quote { display: none; }
+        .gm-main { padding: 1rem 0; }
+        .gm-title-en { font-size: clamp(2.6rem, 12vw, 3.6rem); }
+    }
+
+    /* ── short landscape (phones on their side) ── */
+    @media (max-height: 520px) {
+        .gm-cover {
+            grid-template-columns: minmax(0, 1fr);
+            grid-template-areas:
+                "top"
+                "main"
+                "foot";
+            column-gap: 0;
+            padding: .7rem 1.25rem 1rem;
+        }
+        .gm-orbit {
+            position: absolute;
+            z-index: -1;
+            top: -26%;
+            right: -8%;
+            width: 48vh;
+            max-width: 48vh;
+            opacity: .45;
+            pointer-events: none;
+        }
+        .gm-orbit-cap { display: none; }
+        .gm-main {
+            position: relative;
+            z-index: 1;
+            padding: .45rem 0;
+        }
+        .gm-eyebrow {
+            margin-bottom: .5rem;
+            font-size: .58rem;
+        }
+        .gm-title-en { font-size: clamp(2.4rem, 7vh, 3.4rem); }
+        .gm-cn { font-size: clamp(1.5rem, 3.6vh, 2rem); }
+        .gm-quote { display: none; }
+        .gm-foot {
+            flex-direction: row;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: .55rem;
+        }
+        .gm-cta { font-size: .8rem; }
+    }
+</style>
+
+<div class="gm-cover">
+    <div class="gm-atmos" aria-hidden="true"></div>
+
+    <header class="gm-top">
+        <div class="gm-brand">
+            <span class="gm-sq" aria-hidden="true"></span>
+            <span class="gm-issue">26S4</span>
+            <span class="gm-sep" aria-hidden="true"></span>
+            <span class="gm-label lang-zh">主题</span>
+            <span class="gm-label lang-en">Theme</span>
+        </div>
+        <p class="gm-live">
+            <span class="gm-sq" aria-hidden="true"></span>
+            <span class="gm-time">17:20</span>
+        </p>
+    </header>
+
+    <div class="gm-main">
+        <p class="gm-eyebrow">
+            <span class="lang-zh">关于重逢的故事</span>
+            <span class="lang-en">A Story of Reconnection</span>
+        </p>
+        <h1 class="gm-title">
+            <span class="gm-title-en">
+                <span class="gm-title-line">Golden</span>
+                <span class="gm-title-line"><span class="gm-gold-text">Minutes</span><span class="gm-title-dot">.</span></span>
+            </span>
+            <span class="gm-cn">心醉</span>
+        </h1>
+    </div>
+
+    <div class="gm-orbit" aria-hidden="true">
+        <div class="gm-orbit-glow"></div>
+        <svg class="gm-dial" viewBox="0 0 600 600" focusable="false" role="presentation">
+            <defs>
+                <linearGradient id="gm-arc-grad" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0" stop-color="currentColor" stop-opacity="0"/>
+                    <stop offset=".5" stop-color="currentColor" stop-opacity=".9"/>
+                    <stop offset="1" stop-color="currentColor" stop-opacity="0"/>
+                </linearGradient>
+            </defs>
+            <circle class="ring ring--outer" cx="300" cy="300" r="288"/>
+            <circle class="ring ring--mid" cx="300" cy="300" r="214"/>
+            <circle class="ring ring--inner" cx="300" cy="300" r="132"/>
+            <g class="gm-ticks">
+      <line x1="300.0" y1="54.0" x2="300.0" y2="18.0" class="maj"/>
+      <line x1="327.8" y1="35.5" x2="329.5" y2="19.5"/>
+      <line x1="355.3" y1="39.8" x2="358.6" y2="24.2"/>
+      <line x1="382.2" y1="47.0" x2="387.1" y2="31.8"/>
+      <line x1="408.2" y1="57.0" x2="414.7" y2="42.4"/>
+      <line x1="423.0" y1="87.0" x2="441.0" y2="55.8" class="maj"/>
+      <line x1="456.4" y1="84.8" x2="465.8" y2="71.9"/>
+      <line x1="478.0" y1="102.3" x2="488.7" y2="90.4"/>
+      <line x1="497.7" y1="122.0" x2="509.6" y2="111.3"/>
+      <line x1="515.2" y1="143.6" x2="528.1" y2="134.2"/>
+      <line x1="513.0" y1="177.0" x2="544.2" y2="159.0" class="maj"/>
+      <line x1="543.0" y1="191.8" x2="557.6" y2="185.3"/>
+      <line x1="553.0" y1="217.8" x2="568.2" y2="212.9"/>
+      <line x1="560.2" y1="244.7" x2="575.8" y2="241.4"/>
+      <line x1="564.5" y1="272.2" x2="580.5" y2="270.5"/>
+      <line x1="546.0" y1="300.0" x2="582.0" y2="300.0" class="maj"/>
+      <line x1="564.5" y1="327.8" x2="580.5" y2="329.5"/>
+      <line x1="560.2" y1="355.3" x2="575.8" y2="358.6"/>
+      <line x1="553.0" y1="382.2" x2="568.2" y2="387.1"/>
+      <line x1="543.0" y1="408.2" x2="557.6" y2="414.7"/>
+      <line x1="513.0" y1="423.0" x2="544.2" y2="441.0" class="maj"/>
+      <line x1="515.2" y1="456.4" x2="528.1" y2="465.8"/>
+      <line x1="497.7" y1="478.0" x2="509.6" y2="488.7"/>
+      <line x1="478.0" y1="497.7" x2="488.7" y2="509.6"/>
+      <line x1="456.4" y1="515.2" x2="465.8" y2="528.1"/>
+      <line x1="423.0" y1="513.0" x2="441.0" y2="544.2" class="maj"/>
+      <line x1="408.2" y1="543.0" x2="414.7" y2="557.6"/>
+      <line x1="382.2" y1="553.0" x2="387.1" y2="568.2"/>
+      <line x1="355.3" y1="560.2" x2="358.6" y2="575.8"/>
+      <line x1="327.8" y1="564.5" x2="329.5" y2="580.5"/>
+      <line x1="300.0" y1="546.0" x2="300.0" y2="582.0" class="maj"/>
+      <line x1="272.2" y1="564.5" x2="270.5" y2="580.5"/>
+      <line x1="244.7" y1="560.2" x2="241.4" y2="575.8"/>
+      <line x1="217.8" y1="553.0" x2="212.9" y2="568.2"/>
+      <line x1="191.8" y1="543.0" x2="185.3" y2="557.6"/>
+      <line x1="177.0" y1="513.0" x2="159.0" y2="544.2" class="maj"/>
+      <line x1="143.6" y1="515.2" x2="134.2" y2="528.1"/>
+      <line x1="122.0" y1="497.7" x2="111.3" y2="509.6"/>
+      <line x1="102.3" y1="478.0" x2="90.4" y2="488.7"/>
+      <line x1="84.8" y1="456.4" x2="71.9" y2="465.8"/>
+      <line x1="87.0" y1="423.0" x2="55.8" y2="441.0" class="maj"/>
+      <line x1="57.0" y1="408.2" x2="42.4" y2="414.7"/>
+      <line x1="47.0" y1="382.2" x2="31.8" y2="387.1"/>
+      <line x1="39.8" y1="355.3" x2="24.2" y2="358.6"/>
+      <line x1="35.5" y1="327.8" x2="19.5" y2="329.5"/>
+      <line x1="54.0" y1="300.0" x2="18.0" y2="300.0" class="maj"/>
+      <line x1="35.5" y1="272.2" x2="19.5" y2="270.5"/>
+      <line x1="39.8" y1="244.7" x2="24.2" y2="241.4"/>
+      <line x1="47.0" y1="217.8" x2="31.8" y2="212.9"/>
+      <line x1="57.0" y1="191.8" x2="42.4" y2="185.3"/>
+      <line x1="87.0" y1="177.0" x2="55.8" y2="159.0" class="maj"/>
+      <line x1="84.8" y1="143.6" x2="71.9" y2="134.2"/>
+      <line x1="102.3" y1="122.0" x2="90.4" y2="111.3"/>
+      <line x1="122.0" y1="102.3" x2="111.3" y2="90.4"/>
+      <line x1="143.6" y1="84.8" x2="134.2" y2="71.9"/>
+      <line x1="177.0" y1="87.0" x2="159.0" y2="55.8" class="maj"/>
+      <line x1="191.8" y1="57.0" x2="185.3" y2="42.4"/>
+      <line x1="217.8" y1="47.0" x2="212.9" y2="31.8"/>
+      <line x1="244.7" y1="39.8" x2="241.4" y2="24.2"/>
+      <line x1="272.2" y1="35.5" x2="270.5" y2="19.5"/>
+            </g>
+            <path class="arc" d="M557.8 437.1 A292 292 0 0 1 145.3 547.6"/>
+            <g class="gm-hand gm-hand--hour" transform="rotate(160 300 300)">
+                <line x1="300" y1="300" x2="300" y2="152"/>
+            </g>
+            <g class="gm-hand gm-hand--minute" transform="rotate(120 300 300)">
+                <line x1="300" y1="300" x2="300" y2="54"/>
+            </g>
+            <g class="gm-hand gm-hand--second" transform="rotate(0 300 300)">
+                <line x1="300" y1="318" x2="300" y2="10"/>
+                <circle class="gm-hand-dot" cx="300" cy="10" r="4.5"/>
+            </g>
+            <circle class="gm-pin" cx="300" cy="300" r="5.5"/>
+        </svg>
+        <p class="gm-orbit-cap">
+            <span class="lang-zh"><span class="gm-time">17:20</span> · 一个故事</span>
+            <span class="lang-en"><span class="gm-time">17:20</span> · One Story</span>
+        </p>
+    </div>
+
+    <footer class="gm-foot">
+        <div class="gm-quote">
+            <blockquote>
+                <span>“Friendship is born at that moment when one person says to another, ‘What? You too? I thought I was the only one.’”</span>
+            </blockquote>
+            <cite>
+                <span>C. S. Lewis, The Four Loves</span>
+            </cite>
+        </div>
+        <a class="gm-cta lang-zh" href="../zh/post/45175cf3-db12-4dda-8a62-f36d0d2c3d51">
+            <span>阅读主题文章</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M4 12h15M13 6l6 6-6 6" />
+            </svg>
+        </a>
+        <a class="gm-cta lang-en" href="../en/post/45175cf3-db12-4dda-8a62-f36d0d2c3d51">
+            <span>Read Theme Post</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M4 12h15M13 6l6 6-6 6" />
+            </svg>
+        </a>
+    </footer>
+</div>
+
+<script data-astro-rerun>
+    (function () {
+        // 表盘 = 当前客户端本地时间；无 JS 时停在 17:20 的静态构图。
+        function update() {
+            var dial = document.querySelector('.gm-dial');
+            if (!dial) return;
+
+            var now = new Date();
+            var sec = now.getSeconds();
+            var min = now.getMinutes() + sec / 60;
+            var hr = (now.getHours() % 12) + min / 60;
+
+            var perfReduced = document.documentElement.getAttribute('data-perf') === 'reduced';
+            var noMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            dial.classList.toggle('is-quiet', noMotion);
+            dial.classList.toggle('is-no-hands', perfReduced);
+
+            if (!perfReduced) {
+                var hourHand = dial.querySelector('.gm-hand--hour');
+                var minuteHand = dial.querySelector('.gm-hand--minute');
+                var secondHand = dial.querySelector('.gm-hand--second');
+                if (hourHand) hourHand.setAttribute('transform', 'rotate(' + (hr * 30).toFixed(2) + ' 300 300)');
+                if (minuteHand) minuteHand.setAttribute('transform', 'rotate(' + (min * 6).toFixed(2) + ' 300 300)');
+                if (secondHand) secondHand.setAttribute('transform', 'rotate(' + (sec * 6) + ' 300 300)');
+            }
+
+            var text = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+            var times = document.querySelectorAll('.gm-time');
+            for (var i = 0; i < times.length; i++) {
+                if (times[i].textContent !== text) times[i].textContent = text;
+            }
+
+            var cap = dial.parentElement && dial.parentElement.querySelector('.gm-orbit-cap');
+            if (cap && !cap.title) {
+                var tz = '';
+                try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
+                var isEn = (document.documentElement.lang || '').indexOf('en') === 0;
+                cap.title = (isEn ? 'Local time' : '本地时间') + (tz ? ' · ' + tz : '');
+            }
+        }
+
+        if (window.__gmClock && window.__gmClock.update) {
+            window.__gmClock.update();
+            return;
+        }
+        window.__gmClock = { update: update, timer: 0 };
+        window.__gmClock.timer = window.setInterval(update, 1000);
+        update();
+
+        document.addEventListener('astro:page-load', update);
+        document.addEventListener('astro:after-swap', update);
+        document.addEventListener('visibilitychange', function () {
+            if (!document.hidden) update();
+        });
+    })();
+</script>
